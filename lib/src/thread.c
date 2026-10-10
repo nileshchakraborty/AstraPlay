@@ -266,7 +266,6 @@ static void set_timeout(struct timespec *timeout, uint64_t ms_from_now)
 }
 #endif
 
-#if !__APPLE__ && !__SWITCH__
 CHIAKI_EXPORT ChiakiErrorCode chiaki_thread_timedjoin(ChiakiThread *thread, void **retval, uint64_t timeout_ms)
 {
 #if _WIN32
@@ -278,6 +277,13 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_thread_timedjoin(ChiakiThread *thread, void
 #elif defined(__ANDROID__)
 	// Android API < 26 doesn't have pthread_clockjoin_np or pthread_timedjoin_np
 	// Fall back to blocking join - timeout parameter is ignored
+	(void)timeout_ms;
+	int r = pthread_join(thread->thread, retval);
+	if(r != 0)
+		return CHIAKI_ERR_THREAD;
+#elif defined(__APPLE__) || defined(__SWITCH__)
+	// Darwin / Switch pthread does not implement pthread_timedjoin_np or pthread_clockjoin_np.
+	// Fall back to pthread_join
 	(void)timeout_ms;
 	int r = pthread_join(thread->thread, retval);
 	if(r != 0)
@@ -295,7 +301,6 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_thread_timedjoin(ChiakiThread *thread, void
 #endif
 	return CHIAKI_ERR_SUCCESS;
 }
-#endif
 
 CHIAKI_EXPORT ChiakiErrorCode chiaki_cond_timedwait(ChiakiCond *cond, ChiakiMutex *mutex, uint64_t timeout_ms)
 {

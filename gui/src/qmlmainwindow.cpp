@@ -367,6 +367,34 @@ AVBufferRef *QmlMainWindow::vulkanHwDeviceCtx()
     vkctx->nb_enabled_inst_extensions = placebo_vk_inst->num_extensions;
     vkctx->enabled_dev_extensions = placebo_vulkan->extensions;
     vkctx->nb_enabled_dev_extensions = placebo_vulkan->num_extensions;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(58, 29, 100) && !defined(FF_API_VULKAN_OLD_QUEUES)
+    int qf_count = 0;
+    if (placebo_vulkan->queue_graphics.count > 0) {
+        vkctx->qf[qf_count].idx = placebo_vulkan->queue_graphics.index;
+        vkctx->qf[qf_count].num = placebo_vulkan->queue_graphics.count;
+        vkctx->qf[qf_count].flags = VK_QUEUE_GRAPHICS_BIT;
+        qf_count++;
+    }
+    if (placebo_vulkan->queue_transfer.count > 0) {
+        vkctx->qf[qf_count].idx = placebo_vulkan->queue_transfer.index;
+        vkctx->qf[qf_count].num = placebo_vulkan->queue_transfer.count;
+        vkctx->qf[qf_count].flags = VK_QUEUE_TRANSFER_BIT;
+        qf_count++;
+    }
+    if (placebo_vulkan->queue_compute.count > 0) {
+        vkctx->qf[qf_count].idx = placebo_vulkan->queue_compute.index;
+        vkctx->qf[qf_count].num = placebo_vulkan->queue_compute.count;
+        vkctx->qf[qf_count].flags = VK_QUEUE_COMPUTE_BIT;
+        qf_count++;
+    }
+    if (vk_decode_queue_index >= 0) {
+        vkctx->qf[qf_count].idx = vk_decode_queue_index;
+        vkctx->qf[qf_count].num = 1;
+        vkctx->qf[qf_count].flags = VK_QUEUE_VIDEO_DECODE_BIT_KHR;
+        qf_count++;
+    }
+    vkctx->nb_qf = qf_count;
+#else
     vkctx->queue_family_index = placebo_vulkan->queue_graphics.index;
     vkctx->nb_graphics_queues = placebo_vulkan->queue_graphics.count;
     vkctx->queue_family_tx_index = placebo_vulkan->queue_transfer.index;
@@ -375,6 +403,8 @@ AVBufferRef *QmlMainWindow::vulkanHwDeviceCtx()
     vkctx->nb_comp_queues = placebo_vulkan->queue_compute.count;
     vkctx->queue_family_decode_index = vk_decode_queue_index;
     vkctx->nb_decode_queues = 1;
+#endif
+#if FF_API_VULKAN_SYNC_QUEUES
     vkctx->lock_queue = [](struct AVHWDeviceContext *dev_ctx, uint32_t queue_family, uint32_t index) {
         auto vk = reinterpret_cast<pl_vulkan>(dev_ctx->user_opaque);
         vk->lock_queue(vk, queue_family, index);
@@ -383,6 +413,7 @@ AVBufferRef *QmlMainWindow::vulkanHwDeviceCtx()
         auto vk = reinterpret_cast<pl_vulkan>(dev_ctx->user_opaque);
         vk->unlock_queue(vk, queue_family, index);
     };
+#endif
     if (av_hwdevice_ctx_init(vulkan_hw_dev_ctx) < 0) {
         qCWarning(chiakiGui) << "Failed to create Vulkan decode context";
         av_buffer_unref(&vulkan_hw_dev_ctx);
