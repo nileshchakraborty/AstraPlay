@@ -35,14 +35,15 @@ DonationManager::DonationManager(Settings *settings, QObject *parent)
     qCInfo(chiakiDonation) << "Mac App Store build: using StoreKit IAP";
     initStoreKit();
 #else
-    if (resolvePsnOnlineId().isEmpty())
+    if (isEnabled() && resolvePsnOnlineId().isEmpty())
         fetchPsnOnlineId();
 #endif
 }
 
 bool DonationManager::isEnabled() const
 {
-    return true;
+    // Donation verification and paywalls are disabled
+    return false;
 }
 
 bool DonationManager::isAppStore() const
@@ -56,33 +57,8 @@ bool DonationManager::isAppStore() const
 
 void DonationManager::scheduleOfferIfEligible()
 {
-    if (!isEnabled())
-        return;
-
-#ifndef CHIAKI_IS_MAC_APPSTORE
-    QString psnId = resolvePsnOnlineId();
-    if (psnId.isEmpty()) {
-        qCDebug(chiakiDonation) << "No PSN online ID available, skipping donation prompt";
-        return;
-    }
-#endif
-
-    qint64 totalMs = m_settings->GetDonationTotalStreamTimeMs();
-    if (totalMs < DONATION_MIN_STREAM_MS) {
-        qCDebug(chiakiDonation) << "Not enough stream time:" << totalMs << "ms (need" << DONATION_MIN_STREAM_MS << ")";
-        return;
-    }
-
-    qint64 lastMs = m_settings->GetDonationLastPromptWallClockMs();
-    qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
-    if (lastMs > 0 && (nowMs - lastMs) < DONATION_PROMPT_COOLDOWN_MS) {
-        qCDebug(chiakiDonation) << "Cooldown active, skipping donation prompt";
-        return;
-    }
-
-    cancelScheduledOffer();
-    qCDebug(chiakiDonation) << "Scheduling donation prompt in" << DONATION_SHOW_DELAY_MS << "ms";
-    m_delayTimer->start();
+    // Automatic in-stream prompt overlay disabled to avoid intrusive prompts during use.
+    return;
 }
 
 void DonationManager::cancelScheduledOffer()

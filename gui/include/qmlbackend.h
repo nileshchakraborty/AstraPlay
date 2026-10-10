@@ -17,6 +17,7 @@
 
 class QNetworkAccessManager;
 class QmlGamesBackend;
+class EmbeddedRelayServer;
 
 // pylux Configuration
 #define PYLUX_URL "https://www.xbgamestream.com"
@@ -408,5 +409,6 @@ private:
 #ifdef CHIAKI_ENABLE_STEAMWORKS
     SteamworksWrapper * steamworks_wrapper = {};
 #endif
+    EmbeddedRelayServer *embedded_relay_server = nullptr;
 
 };

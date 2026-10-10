@@ -33,6 +33,7 @@
 #endif
 #include <QWebEngineCookieStore>
 #endif
+#include "embeddedrelayserver.h"
 #include <QUrlQuery>
 #include <QtGlobal>
 #include <QGuiApplication>
@@ -146,6 +147,10 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 #endif
     cloud_streaming_backend = new CloudStreamingBackend(settings, this);
     cloud_catalog_backend = new CloudCatalogBackend(settings, this);
+
+    // Initialize standalone embedded PSN Login Relay server
+    embedded_relay_server = new EmbeddedRelayServer(this);
+    embedded_relay_server->start(8080);
     connect(settings_qml, &QmlSettings::cloudStoreLocaleChanged, this, [this]() {
         // Full wipe (not just the v6 PS5 intermediates): the unified catalog is locale-specific,
         // so a language change must also drop unified_catalog_v3 or a stale-locale list is served.
@@ -168,7 +173,31 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
             chiaki_log_mutex.lock();
             chiaki_log_ctx = nullptr;
             chiaki_log_mutex.unlock();
-            session->deleteLater();
+            StreamSession *old_session = session;
+            session = nullptr;
+            // Sever ALL of the old session's outgoing connections, not just those with
+            // `this` as receiver: the SessionQuit lambda operates on the *member* `session`
+            // (it would deleteLater the NEW session), FfmpegFrameAvailable is connected with
+            // frame_obj as context (its lambda derefs the member `session`, which is null
+            // right now — a queued frame would crash the frame thread), and QmlMainWindow
+            // connects SessionQuit straight to QGuiApplication::quit in direct-stream mode
+            // (a late quit from the old session would exit the whole app). The only other
+            // casualties are the session's internal haptics self-connections, irrelevant for
+            // a session being stopped.
+            old_session->disconnect();
+            if (old_session->IsStarted()) {
+                // Live session: deleting it here would make ~StreamSession join the session
+                // thread on the GUI thread, which deadlocks if that thread is blocked in a
+                // BlockingQueuedConnection into the GUI loop (e.g. InitAudio). Quit-driven
+                // deletion instead: Stop() makes SessionQuit fire, and the direct connection
+                // below deletes it once its thread is finishing.
+                connect(old_session, &StreamSession::SessionQuit, old_session, &QObject::deleteLater);
+                old_session->Stop();
+            } else {
+                // Never started (or start failed): there is no thread to join —
+                // chiaki_session_join is a guarded no-op — so a plain deferred delete is safe.
+                old_session->deleteLater();
+            }
         }
         
         // Register the new session
@@ -181,6 +210,10 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
         
         // Connect frame presentation (critical for video display!)
         connect(session, &StreamSession::FfmpegFrameAvailable, frame_thread->parent(), [this, window]() {
+            // Queued delivery: a metacall already posted to the frame thread survives
+            // disconnect() of a replaced session, and `session` is nulled during replacement.
+            if (!session)
+                return;
             ChiakiFfmpegDecoder *decoder = session->GetFfmpegDecoder();
             if (!decoder) {
                 qCCritical(chiakiGui) << "Session has no FFmpeg decoder";
@@ -1170,6 +1203,10 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
 #endif
 
     connect(session, &StreamSession::FfmpegFrameAvailable, frame_thread->parent(), [this]() {
+        // Queued delivery: a metacall already posted to the frame thread survives
+        // disconnect() of a replaced session, and `session` is nulled during teardown.
+        if (!session)
+            return;
         ChiakiFfmpegDecoder *decoder = session->GetFfmpegDecoder();
         if (!decoder) {
             qCCritical(chiakiGui) << "Session has no FFmpeg decoder";
@@ -1747,7 +1784,7 @@ void QmlBackend::sessionGoHome()
 
 void QmlBackend::enterPin(const QString &pin)
 {
-    qCInfo(chiakiGui) << "Set login pin " << pin;
+    qCInfo(chiakiGui) << "Set login pin";
     if (session)
         session->SetLoginPIN(pin);
 }
@@ -3448,17 +3485,36 @@ QString QmlBackend::generateQRCode()
 
 QString QmlBackend::getPyluxURL()
 {
-    return QString(PYLUX_URL);
+    // Check environment variable override first
+    QByteArray envUrl = qgetenv("PYLUX_RELAY_URL");
+    if (!envUrl.isEmpty()) {
+        return QString::fromUtf8(envUrl);
+    }
+    // Use standalone embedded relay server
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        return embedded_relay_server->serverUrl();
+    }
+    return QStringLiteral("http://127.0.0.1:8080");
 }
 
 void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
 {
-    // Create network access manager
+    QJSValue cb = callback;
+
+    // Fast path: if running embedded relay server locally, create code directly in-memory!
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        if (embedded_relay_server->createCode(code)) {
+            if (cb.isCallable()) {
+                cb.call({true, QString("")});
+            }
+            return;
+        }
+    }
+
+    // Fallback: network request to remote relay if overridden
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    
-    // Prepare the request
     QNetworkRequest request;
-    request.setUrl(QUrl(QString(PYLUX_URL) + "/psstream/create-code"));
+    request.setUrl(QUrl(getPyluxURL() + "/psstream/create-code"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload
@@ -3532,12 +3588,31 @@ void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
 
 void QmlBackend::checkPyluxStatus(const QString &code, const QJSValue &callback)
 {
-    // Create network access manager
+    QJSValue cb = callback;
+
+    // Fast path: if running embedded relay server locally, check tokens in-memory!
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        QString npsso;
+        if (embedded_relay_server->getTokens(code, npsso)) {
+            if (cb.isCallable()) {
+                cb.call({true, QString(""), npsso});
+            }
+            return;
+        } else if (embedded_relay_server->validateCode(code)) {
+            // Code is valid, but tokens aren't ready yet (user still logging in)
+            if (cb.isCallable()) {
+                cb.call({false, QString("Waiting for login in browser..."), QString("")});
+            }
+            return;
+        }
+    }
+
+    // Fallback: network request to remote relay if overridden
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     
     // Prepare the request
     QNetworkRequest request;
-    request.setUrl(QUrl(QString(PYLUX_URL) + "/psstream/get-tokens"));
+    request.setUrl(QUrl(getPyluxURL() + "/psstream/get-tokens"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload

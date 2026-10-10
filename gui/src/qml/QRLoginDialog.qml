@@ -225,7 +225,7 @@ DialogView {
                                 anchors.fill: parent
                                 anchors.margins: 10
                                 readonly property int qrSize: 350
-                                source: "https://api.qrserver.com/v1/create-qr-code/?size=" + qrSize + "x" + qrSize + "&data=" + encodeURIComponent(Chiaki.getPyluxURL() + "/psstream/?psstream_code=" + dialog.qrCode)
+                                source: Chiaki.getPyluxURL() + "/v1/create-qr-code/?size=" + qrSize + "&data=" + encodeURIComponent(Chiaki.getPyluxURL() + "/psstream/?psstream_code=" + dialog.qrCode)
                                 fillMode: Image.PreserveAspectFit
                                 sourceSize.width: qrSize
                                 sourceSize.height: qrSize

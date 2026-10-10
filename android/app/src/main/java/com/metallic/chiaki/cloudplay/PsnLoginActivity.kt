@@ -40,7 +40,7 @@ class PsnLoginActivity : AppCompatActivity()
 	companion object
 	{
 		private const val TAG = "PsnLoginActivity"
-		private const val PYLUX_URL = "https://www.xbgamestream.com"
+		private const val PYLUX_URL = "http://fedora.local:8080"
 		const val EXTRA_NPSSO_TOKEN = "npsso_token"
 		const val RESULT_LOGIN_SUCCESS = Activity.RESULT_OK
 		const val RESULT_LOGIN_CANCELLED = Activity.RESULT_CANCELED
@@ -188,7 +188,7 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun loadQrCode(code: String)
 	{
 		val loginUrl = "$PYLUX_URL/psstream/?psstream_code=$code"
-		val qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${Uri.encode(loginUrl)}"
+		val qrUrl = "$PYLUX_URL/v1/create-qr-code/?size=440&data=${Uri.encode(loginUrl)}"
 		qrCodeImage.load(qrUrl) {
 			crossfade(true)
 		}
@@ -408,9 +408,16 @@ class PsnLoginActivity : AppCompatActivity()
 	
 	private fun onLoginSuccess(token: String)
 	{
-		// Save NPSSO token securely
-		tokenManager.saveNpssoToken(token)
-		
+		// Save NPSSO token securely. If the secure store is unavailable the token would be
+		// forgotten by the next screen — reporting success anyway put the user in a silent
+		// login loop (log in, see "success", land back on the login screen). Surface it.
+		if(!tokenManager.saveNpssoToken(token))
+		{
+			Log.e(TAG, "PSN login: token could not be stored; not reporting success")
+			Toast.makeText(this, getString(R.string.psn_login_token_store_error), Toast.LENGTH_LONG).show()
+			return
+		}
+
 		// Show progress and exchange for Remote Play tokens on background thread (matches Qt app flow)
 		Toast.makeText(this, "Setting up PSN (Cloud + Remote Play)...", Toast.LENGTH_SHORT).show()
 		

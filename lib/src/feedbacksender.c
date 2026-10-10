@@ -2,11 +2,26 @@
 
 #include <chiaki/feedbacksender.h>
 #include <chiaki/time.h>
+#include <string.h>
 
 #define FEEDBACK_STATE_TIMEOUT_MIN_MS 8 // minimum time to wait between sending 2 packets
 #define FEEDBACK_STATE_TIMEOUT_MAX_MS 200 // maximum time to wait between sending 2 packets
 
 #define FEEDBACK_HISTORY_BUFFER_SIZE 0x10
+
+// Number of most recent events repeated in every history packet.
+// Analog L2/R2 produce one event per value change, so with only 4 a button release
+// (e.g. L1/R1) could drop out of the window within one or two packets.
+#define FEEDBACK_HISTORY_RESEND_EVENT_COUNT 0x8
+
+// History packets are sent once over UDP without acknowledgement. If the packet carrying
+// the last change (typically a button release) is lost and nothing else changes afterwards,
+// the console never sees it and the button stays held. So after the newest history packet,
+// if nothing new is queued, the same packet is sent again at these offsets (ms after it was sent).
+// This is safe: events carry absolute values (button 0/0xff, trigger 0..255, touch position)
+// and only the newest packet is repeated, so state can never go backwards.
+static const uint64_t feedback_history_tail_ms[] = { 20, 50, 100, 200 };
+#define FEEDBACK_HISTORY_TAIL_COUNT (sizeof(feedback_history_tail_ms) / sizeof(feedback_history_tail_ms[0]))
 
 static void *feedback_sender_thread_func(void *user);
 
@@ -31,6 +46,10 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_feedback_sender_init(ChiakiFeedbackSender *
 	feedback_sender->state_seq_num = 0;
 
 	feedback_sender->history_seq_num = 0;
+	feedback_sender->history_last_size = 0;
+	feedback_sender->history_last_event_count = 0;
+	feedback_sender->history_last_sent_ms = 0;
+	feedback_sender->history_tail_resends = FEEDBACK_HISTORY_TAIL_COUNT;
 	ChiakiErrorCode err = chiaki_feedback_history_buffer_init(&feedback_sender->history_buf, FEEDBACK_HISTORY_BUFFER_SIZE);
 	if(err != CHIAKI_ERR_SUCCESS)
 		return err;
@@ -257,9 +276,18 @@ static void feedback_sender_send_history_packet(ChiakiFeedbackSender *feedback_s
 		return;
 	}
 
+	uint8_t event_count = (uint8_t)feedback_sender->history_buf.len;
+
 	//CHIAKI_LOGD(feedback_sender->log, "Feedback History:");
 	//chiaki_log_hexdump(feedback_sender->log, CHIAKI_LOG_DEBUG, buf, buf_size);
-	chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_seq_num++, buf, buf_size);
+	chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_seq_num++, event_count, buf, buf_size);
+
+	// remember for tail resends; a new packet restarts the schedule
+	memcpy(feedback_sender->history_last_packet, buf, buf_size);
+	feedback_sender->history_last_size = buf_size;
+	feedback_sender->history_last_event_count = event_count;
+	feedback_sender->history_last_sent_ms = chiaki_time_now_monotonic_ms();
+	feedback_sender->history_tail_resends = 0;
 }
 
 static void feedback_sender_send_history(ChiakiFeedbackSender *feedback_sender)
@@ -351,15 +379,27 @@ static void *feedback_sender_thread_func(void *user)
 	if(err != CHIAKI_ERR_SUCCESS)
 		return NULL;
 
-	uint64_t next_timeout = FEEDBACK_STATE_TIMEOUT_MAX_MS;
 	while(true)
 	{
+		uint64_t now_ms = chiaki_time_now_monotonic_ms();
+		uint64_t next_timeout = FEEDBACK_STATE_TIMEOUT_MAX_MS;
+		// wake up in time for the next tail resend of the last history packet
+		if(feedback_sender->history_tail_resends < FEEDBACK_HISTORY_TAIL_COUNT)
+		{
+			uint64_t due_ms = feedback_sender->history_last_sent_ms + feedback_history_tail_ms[feedback_sender->history_tail_resends];
+			uint64_t until_due = due_ms > now_ms ? due_ms - now_ms : 0;
+			if(until_due < next_timeout)
+				next_timeout = until_due;
+		}
+
 		err = chiaki_cond_timedwait_pred(&feedback_sender->state_cond, &feedback_sender->state_mutex, next_timeout, state_cond_check, feedback_sender);
 		if(err != CHIAKI_ERR_SUCCESS && err != CHIAKI_ERR_TIMEOUT)
 			break;
 
 		if(feedback_sender->should_stop)
 			break;
+
+		now_ms = chiaki_time_now_monotonic_ms();
 
 		// TODO: FEEDBACK_STATE_TIMEOUT_MIN_MS
 		bool timeout_wake = !feedback_sender->controller_state_changed;
@@ -372,8 +412,7 @@ static void *feedback_sender_thread_func(void *user)
 		// accumulate into the raw copy.
 		feedback_sender->controller_state = feedback_sender->controller_state_raw;
 		bool chord_fired_before = feedback_sender->ps_chord.fired;
-		chiaki_ps_chord_apply(&feedback_sender->ps_chord, &feedback_sender->controller_state,
-			chiaki_time_now_monotonic_ms());
+		chiaki_ps_chord_apply(&feedback_sender->ps_chord, &feedback_sender->controller_state, now_ms);
 		bool chord_just_fired = !chord_fired_before && feedback_sender->ps_chord.fired;
 
 		// State packet: as upstream — re-send on every timeout (keepalive), and on
@@ -392,7 +431,19 @@ static void *feedback_sender_thread_func(void *user)
 			feedback_sender_send_state(feedback_sender);
 
 		if(send_feedback_history)
+		{
 			feedback_sender_send_history(feedback_sender);
+		}
+		else if(feedback_sender->history_last_size > 0
+			&& feedback_sender->history_tail_resends < FEEDBACK_HISTORY_TAIL_COUNT
+			&& now_ms >= feedback_sender->history_last_sent_ms + feedback_history_tail_ms[feedback_sender->history_tail_resends])
+		{
+			// nothing new since the last history packet: send it again (gets a new sequence number like any packet)
+			chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_seq_num++,
+				feedback_sender->history_last_event_count,
+				feedback_sender->history_last_packet, feedback_sender->history_last_size);
+			feedback_sender->history_tail_resends++;
+		}
 
 		feedback_sender->controller_state_prev = feedback_sender->controller_state;
 

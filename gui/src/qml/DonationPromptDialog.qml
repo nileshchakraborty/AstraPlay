@@ -649,7 +649,7 @@ DialogView {
                                             anchors.centerIn: parent
                                             width: 190; height: 190
                                             source: DonationManager.paymentUrl
-                                                    ? "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(DonationManager.paymentUrl)
+                                                    ? Chiaki.getPyluxURL() + "/v1/create-qr-code/?size=200&data=" + encodeURIComponent(DonationManager.paymentUrl)
                                                     : ""
                                             fillMode: Image.PreserveAspectFit
 
