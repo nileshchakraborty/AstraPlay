@@ -44,6 +44,9 @@ SetupIconFile=..\gui\chiaking.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+CloseApplications=yes
+RestartApplications=no
+CloseApplicationsFilter=*pylux*
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

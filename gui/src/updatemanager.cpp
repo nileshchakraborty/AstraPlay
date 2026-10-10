@@ -350,7 +350,7 @@ void UpdateManager::installAndRestart()
     qint64 currentPid = QCoreApplication::applicationPid();
 
     if (nativePath.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
-        // Run MSI installer cleanly with msiexec, purging .bak files
+        // Run MSI installer cleanly with msiexec in fully silent mode (/qn), purging .bak and .old files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_msi.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -363,8 +363,10 @@ void UpdateManager::installAndRestart()
             out << "    goto wait_pid\r\n";
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
-            out << "msiexec /i \"" << nativePath << "\" /passive /norestart\r\n";
+            out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
+            out << "msiexec /i \"" << nativePath << "\" /qn /norestart ALLUSERS=1\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
+            out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
             out << "start \"\" \"" << appExePath << "\"\r\n";
             out << "del \"%~f0\"\r\n";
             batFile.close();
@@ -375,7 +377,7 @@ void UpdateManager::installAndRestart()
     } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) &&
                (nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
                 nativePath.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
-        // Run clean installer with silent upgrade, purging .bak and .old files
+        // Run setup executable in fully silent mode (/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS), purging .bak and .old files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_installer.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -389,7 +391,7 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "start /wait \"\" \"" << nativePath << "\" /SILENT /NORESTART\r\n";
+            out << "start /wait \"\" \"" << nativePath << "\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\"" << appDir << "\"\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
             out << "start \"\" \"" << appExePath << "\"\r\n";
