@@ -114,7 +114,48 @@ app.post('/psstream/validate-code', handleValidateCode);
 app.post('/pylux/connect', handleConnect);
 app.post('/psstream/connect', handleConnect);
 
-// --- 3. Web UI Static Files ---
+// --- 3. Local Offline QR Code Generator Endpoint ---
+// Replaces external api.qrserver.com so no third-party network pings are made
+const QRCode = require('qrcode');
+app.get('/v1/create-qr-code', async (req, res) => {
+  try {
+    const data = req.query.data;
+    if (!data) {
+      return res.status(400).send('Missing data query param');
+    }
+    const size = parseInt(req.query.size, 10) || 300;
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const buffer = await QRCode.toBuffer(String(data), {
+      width: size,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    return res.send(buffer);
+  } catch (err) {
+    console.error('QR code generation error:', err);
+    return res.status(500).send('Failed to generate QR code');
+  }
+});
+
+// --- 4. Local Account ID lookup endpoint (/search.php) ---
+// Replaces third-party psn.flipscreen.games
+app.get('/search.php', (req, res) => {
+  const username = req.query.username;
+  if (!username) {
+    return res.json({ error: 'Username required' });
+  }
+  // If an encoded account ID is already given or needs formatting:
+  return res.json({
+    username: String(username),
+    error: 'Please use the direct PSN Login method on this device or via QR code.'
+  });
+});
+
+// --- 5. Web UI Static Files ---
 app.use('/pylux', express.static(path.join(__dirname, 'public')));
 app.use('/psstream', express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'public')));
@@ -127,4 +168,5 @@ app.get('/psstream', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Pylux PSN Relay Server running on port ${PORT}`);
   console.log(`Local web UI available at: http://localhost:${PORT}/psstream/`);
+  console.log(`Local offline QR generator at: http://localhost:${PORT}/v1/create-qr-code/`);
 });

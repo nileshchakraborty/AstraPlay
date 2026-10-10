@@ -188,7 +188,7 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun loadQrCode(code: String)
 	{
 		val loginUrl = "$PYLUX_URL/psstream/?psstream_code=$code"
-		val qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${Uri.encode(loginUrl)}"
+		val qrUrl = "$PYLUX_URL/v1/create-qr-code/?size=440&data=${Uri.encode(loginUrl)}"
 		qrCodeImage.load(qrUrl) {
 			crossfade(true)
 		}
