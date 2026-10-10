@@ -1,0 +1,164 @@
+name: Release on Merge
+
+on:
+  workflow_run:
+    workflows: ["MSBuild"]
+    types:
+      - completed
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Custom release tag (e.g. v2.11.5). Leave blank to auto-generate based on CMakeLists.txt version."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    name: Create Release Tag and Publish Binaries
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download compiled binaries from MSBuild
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p downloaded_artifact
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            RUN_ID="${{ github.event.workflow_run.id }}"
+          else
+            echo "Workflow dispatched manually. Looking for latest successful MSBuild run on master..."
+            RUN_ID=$(gh run list --workflow "MSBuild" --branch master --status success --limit 1 --json databaseId -q '.[0].databaseId')
+          fi
+
+          echo "Downloading artifact from MSBuild run: $RUN_ID"
+          gh run download "$RUN_ID" --name pylux-windows-x64 --dir downloaded_artifact
+
+          echo "Downloaded files:"
+          ls -la downloaded_artifact
+
+      - name: Determine release version and tag
+        id: versioning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CUSTOM_TAG: ${{ github.event.inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$CUSTOM_TAG" ]; then
+            TAG="$CUSTOM_TAG"
+            VER="${CUSTOM_TAG#v}"
+          else
+            MAJOR=$(grep '^set(CHIAKI_VERSION_MAJOR' CMakeLists.txt | awk '{print $2}' | tr -d ')')
+            MINOR=$(grep '^set(CHIAKI_VERSION_MINOR' CMakeLists.txt | awk '{print $2}' | tr -d ')')
+            PATCH=$(grep '^set(CHIAKI_VERSION_PATCH' CMakeLists.txt | awk '{print $2}' | tr -d ')')
+            BASE_VER="${MAJOR}.${MINOR}.${PATCH}"
+
+            # Check if tag v${BASE_VER} already exists
+            if ! git rev-parse -q --verify "refs/tags/v${BASE_VER}" >/dev/null 2>&1 && ! gh release view "v${BASE_VER}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              TAG="v${BASE_VER}"
+              VER="${BASE_VER}"
+            else
+              # Existing base tag found; find next available sequential dot revision (v2.11.4.1, v2.11.4.2...)
+              N=1
+              while git rev-parse -q --verify "refs/tags/v${BASE_VER}.${N}" >/dev/null 2>&1 || gh release view "v${BASE_VER}.${N}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; do
+                N=$((N + 1))
+              done
+              TAG="v${BASE_VER}.${N}"
+              VER="${BASE_VER}.${N}"
+            fi
+          fi
+
+          echo "Computed release tag: $TAG"
+          echo "Computed version: $VER"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Package release assets
+        run: |
+          mkdir -p dist
+          EXE_SRC=$(find downloaded_artifact -type f -name "*.exe" | head -n 1)
+          if [ -z "$EXE_SRC" ]; then
+            echo "::error::No .exe binary found in downloaded artifact!"
+            exit 1
+          fi
+
+          # Windows executable assets formatted for auto-updater discovery
+          cp "$EXE_SRC" dist/pylux-windows-x64.exe
+          cp "$EXE_SRC" dist/pylux.exe
+
+          # Portable zip archive
+          cd dist
+          zip -9 pylux-windows-x64.zip pylux.exe
+          
+          # Checksums
+          sha256sum pylux-windows-x64.exe pylux.exe pylux-windows-x64.zip > SHA256SUMS.txt
+          cd ..
+
+          echo "Release assets prepared:"
+          ls -lh dist/
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          NOTES_FILE="${RUNNER_TEMP}/release_notes.md"
+          TAG="${{ steps.versioning.outputs.tag }}"
+          VER="${{ steps.versioning.outputs.version }}"
+
+          # Collect recent commit logs
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            CHANGES=$(git log "${PREV_TAG}..HEAD" --oneline --no-merges || git log -n 10 --oneline --no-merges)
+          else
+            CHANGES=$(git log -n 10 --oneline --no-merges)
+          fi
+
+          cat <<EOF > "$NOTES_FILE"
+          ## Pylux ${TAG}
+
+          Automated build release from \`master\` branch.
+
+          ### Compiled Binaries
+          - **\`pylux-windows-x64.exe\`** — Windows 64-bit standalone executable (compatible with in-app updater)
+          - **\`pylux.exe\`** — Windows 64-bit standalone executable
+          - **\`pylux-windows-x64.zip\`** — Portable zip archive
+
+          ### SHA-256 Checksums
+          \`\`\`text
+          $(cat dist/SHA256SUMS.txt)
+          \`\`\`
+
+          ### Recent Commits
+          \`\`\`text
+          ${CHANGES}
+          \`\`\`
+          EOF
+
+          sed -i 's/^[ \t]*//' "$NOTES_FILE"
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and Tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.versioning.outputs.tag }}
+        run: |
+          echo "Publishing release $TAG..."
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target master \
+            --title "Pylux ${TAG}" \
+            --notes-file "${{ steps.notes.outputs.notes_file }}" \
+            dist/*
+
+          echo "Release $TAG published successfully with assets:"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY"
