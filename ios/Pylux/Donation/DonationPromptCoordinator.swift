@@ -23,38 +23,8 @@ final class DonationPromptCoordinator: ObservableObject {
     // MARK: - Stream Auto-Prompt
 
     func scheduleOfferIfEligible() {
-        guard !DonationStore.productIDs.isEmpty else {
-            os_log(.info, log: coordLog, "Donation: skipped — no product IDs")
-            return
-        }
-        let store = SecureStore.shared
-        let total = store.totalStreamTimeMs
-        let last = store.lastDonationPromptWallClockMs
-        let now = Int64(Date().timeIntervalSince1970 * 1000)
-        os_log(.info, log: coordLog, "Donation: totalStreamMs=%lld (need %lld), lastPrompt=%lld, now=%lld, cooldownLeft=%llds",
-               total, Self.minStreamMs, last, now, last > 0 ? max(0, Self.autoPromptMinIntervalMs - (now - last)) / 1000 : 0)
-        guard total >= Self.minStreamMs else { return }
-        if last > 0, now - last < Self.autoPromptMinIntervalMs { return }
-
-        cancelScheduledOffer()
-        scheduledTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64(Self.showDelaySeconds * 1_000_000_000))
-            guard !Task.isCancelled else { return }
-
-            await DonationStore.shared.checkOwnership()
-            guard !Task.isCancelled else { return }
-
-            if DonationStore.shared.ownsDonation {
-                SecureStore.shared.lastDonationPromptWallClockMs = Int64(Date().timeIntervalSince1970 * 1000)
-                return
-            }
-
-            await DonationStore.shared.loadProducts()
-            guard !Task.isCancelled else { return }
-
-            SecureStore.shared.lastDonationPromptWallClockMs = Int64(Date().timeIntervalSince1970 * 1000)
-            showPaywall = true
-        }
+        // Automatic in-stream prompt overlay disabled to avoid intrusive prompts during use.
+        return
     }
 
     func cancelScheduledOffer() {

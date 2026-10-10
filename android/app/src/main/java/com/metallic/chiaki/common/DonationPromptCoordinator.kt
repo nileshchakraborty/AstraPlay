@@ -433,14 +433,8 @@ class DonationPromptCoordinator private constructor(
 
 	fun scheduleOfferIfEligible()
 	{
-		if (!streamAutoOffer) return
-		val orderedProductIds = donationProductIds(activity)
-		if (orderedProductIds.isEmpty()) return
-		if (!streamAutoPreconditionsPass()) return
-
-		cancelScheduledOffer()
-		pendingOfferRunnable = Runnable { beginBillingEvaluation(orderedProductIds) }
-		handler.postDelayed(pendingOfferRunnable!!, SHOW_DELAY_MS)
+		// Automatic in-stream prompt overlay disabled to avoid intrusive prompts during use.
+		return
 	}
 
 	/**
