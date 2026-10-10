@@ -96,6 +96,16 @@ void UpdateManager::checkForUpdates(bool userInitiated)
     m_statusMessage = tr("Checking for updates...");
     emit statusMessageChanged();
 
+#if defined(Q_OS_WIN)
+    // Clean up any stale .bak files in application directory
+    QString appDir = QFileInfo(QCoreApplication::applicationFilePath()).absolutePath();
+    QDir dir(appDir);
+    const QStringList bakFiles = dir.entryList(QStringList() << QStringLiteral("*.bak"), QDir::Files);
+    for (const QString &bakFile : bakFiles) {
+        dir.remove(bakFile);
+    }
+#endif
+
     QNetworkRequest request{QUrl(REPO_RELEASES_API)};
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Pylux-Updater/") + QStringLiteral(CHIAKI_VERSION));
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
@@ -163,10 +173,13 @@ void UpdateManager::onCheckFinished()
         QString dlUrl = asset.value("browser_download_url").toString();
 
 #if defined(Q_OS_WIN)
-        // Prefer installer .exe, fallback to portable zip or pylux.exe
-        if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && name.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
+        // Prefer MSI installer (.msi), then exe installer, fallback to portable zip or pylux.exe
+        if (name.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
             m_downloadUrl = dlUrl;
             break;
+        } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && name.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
+            if (m_downloadUrl.isEmpty() || !m_downloadUrl.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive))
+                m_downloadUrl = dlUrl;
         } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) || (name.endsWith(QLatin1String(".zip"), Qt::CaseInsensitive) && name.contains(QLatin1String("windows"), Qt::CaseInsensitive))) {
             if (m_downloadUrl.isEmpty())
                 m_downloadUrl = dlUrl;
@@ -331,16 +344,46 @@ void UpdateManager::installAndRestart()
 #if defined(Q_OS_WIN)
     QString nativePath = QDir::toNativeSeparators(m_downloadedFilePath);
     QString appExePath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    QString appDir = QDir::toNativeSeparators(QFileInfo(appExePath).absolutePath());
     qint64 currentPid = QCoreApplication::applicationPid();
 
-    if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
-        // Run Inno Setup installer silently or with UI, waiting for this PID to close
+    if (nativePath.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
+        // Run MSI installer cleanly with msiexec, purging .bak files
+        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_msi.bat"));
+        QFile batFile(scriptPath);
+        if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&batFile);
+            out << "@echo off\r\n";
+            out << ":wait_pid\r\n";
+            out << "tasklist /FI \"PID eq " << currentPid << "\" 2>NUL | find /I /N \"" << currentPid << "\">NUL\r\n";
+            out << "if \"%ERRORLEVEL%\"==\"0\" (\r\n";
+            out << "    timeout /t 1 /nobreak >nul\r\n";
+            out << "    goto wait_pid\r\n";
+            out << ")\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
+            out << "msiexec /i \"" << nativePath << "\" /passive /norestart\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
+            out << "start \"\" \"" << appExePath << "\"\r\n";
+            out << "del \"%~f0\"\r\n";
+            batFile.close();
+        }
+
+        QProcess::startDetached("cmd.exe", QStringList() << "/c" << scriptPath);
+        QGuiApplication::quit();
+    } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
+        // Run Inno Setup installer, purging .bak files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_installer.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&batFile);
             out << "@echo off\r\n";
-            out << "timeout /t 1 /nobreak >nul\r\n";
+            out << ":wait_pid\r\n";
+            out << "tasklist /FI \"PID eq " << currentPid << "\" 2>NUL | find /I /N \"" << currentPid << "\">NUL\r\n";
+            out << "if \"%ERRORLEVEL%\"==\"0\" (\r\n";
+            out << "    timeout /t 1 /nobreak >nul\r\n";
+            out << "    goto wait_pid\r\n";
+            out << ")\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "start \"\" \"" << nativePath << "\"\r\n";
             out << "del \"%~f0\"\r\n";
             batFile.close();
@@ -349,7 +392,7 @@ void UpdateManager::installAndRestart()
         QProcess::startDetached("cmd.exe", QStringList() << "/c" << scriptPath);
         QGuiApplication::quit();
     } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
-        // Direct executable replacement via temporary helper script
+        // Direct executable replacement via temporary helper script, purging .bak files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_update.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -361,7 +404,9 @@ void UpdateManager::installAndRestart()
             out << "    timeout /t 1 /nobreak >nul\r\n";
             out << "    goto wait_pid\r\n";
             out << ")\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "copy /y \"" << nativePath << "\" \"" << appExePath << "\"\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "start \"\" \"" << appExePath << "\"\r\n";
             out << "del \"" << nativePath << "\"\r\n";
             out << "del \"%~f0\"\r\n";

@@ -86,6 +86,7 @@ jobs:
 
       - name: Package release assets
         run: |
+          sudo apt-get update && sudo apt-get install -y msitools || true
           mkdir -p dist
           EXE_SRC=$(find downloaded_artifact -type f -name "*.exe" | head -n 1)
           if [ -z "$EXE_SRC" ]; then
@@ -100,9 +101,42 @@ jobs:
           # Portable zip archive
           cd dist
           zip -9 pylux-windows-x64.zip pylux.exe
-          
+          cd ..
+
+          # Generate MSI Windows installer with automatic .bak cleanup
+          VER_RAW="${{ steps.versioning.outputs.version }}"
+          MSI_VER=$(echo "$VER_RAW" | awk -F. '{printf "%d.%d.%d", ($1 ? $1 : 1), ($2 ? $2 : 0), ($3 ? $3 : 0)}')
+          cat << 'EOF' > pylux.wxs
+          <?xml version="1.0" encoding="utf-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="Pylux" Language="1033" Version="$(var.Version)" Manufacturer="Forward Technologies" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
+              <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" />
+              <MajorUpgrade DowngradeErrorMessage="A newer version of Pylux is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="ProgramFiles64Folder">
+                  <Directory Id="INSTALLFOLDER" Name="pylux">
+                    <Component Id="MainExecutable" Guid="*" Win64="yes">
+                      <File Id="PyluxEXE" Source="dist/pylux.exe" KeyPath="yes" />
+                      <RemoveFile Id="PurgeBakFiles" Name="*.bak" On="both" />
+                    </Component>
+                  </Directory>
+                </Directory>
+              </Directory>
+              <Feature Id="MainFeature" Title="Pylux" Level="1">
+                <ComponentRef Id="MainExecutable" />
+              </Feature>
+            </Product>
+          </Wix>
+          EOF
+
+          if command -v wixl >/dev/null 2>&1; then
+            wixl -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi pylux.wxs || echo "wixl failed, skipping MSI generation"
+          fi
+
           # Checksums
-          sha256sum pylux-windows-x64.exe pylux.exe pylux-windows-x64.zip > SHA256SUMS.txt
+          cd dist
+          sha256sum * > SHA256SUMS.txt
           cd ..
 
           echo "Release assets prepared:"
@@ -128,7 +162,8 @@ jobs:
 
           Automated build release from \`master\` branch.
 
-          ### Compiled Binaries
+          ### Compiled Binaries & Clean Installers
+          - **\`pylux-windows-x64.msi\`** — Windows Installer package with automated \`*.bak\` file purging
           - **\`pylux-windows-x64.exe\`** — Windows 64-bit standalone executable (compatible with in-app updater)
           - **\`pylux.exe\`** — Windows 64-bit standalone executable
           - **\`pylux-windows-x64.zip\`** — Portable zip archive
