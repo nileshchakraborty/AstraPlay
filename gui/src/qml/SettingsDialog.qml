@@ -483,17 +483,73 @@ DialogView {
                             KeyNavigation.up: psnGamesSyncCheckbox
                             KeyNavigation.left: showGameImageDuringLaunch
                             KeyNavigation.right: showGameImageDuringLaunch
-                            KeyNavigation.down: {
-                                if(streamMenuShortcut1.visible)
-                                    streamMenuShortcut1
-                                else
-                                    showGameImageDuringLaunch
-                            }
+                            KeyNavigation.down: autoUpdateCheckbox
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(Checked)")
+                        }
+
+                        Label {
+                            Layout.alignment: Qt.AlignRight
+                            text: qsTr("Automatically Check For Updates:")
+                        }
+                        C.CheckBox {
+                            id: autoUpdateCheckbox
+                            text: qsTr("Check GitHub for new releases on startup")
+                            checked: Chiaki.settings.autoUpdateEnabled
+                            onToggled: Chiaki.settings.autoUpdateEnabled = checked
+                            KeyNavigation.priority: KeyNavigation.BeforeItem
+                            KeyNavigation.up: showGameImageDuringLaunch
+                            KeyNavigation.left: autoUpdateCheckbox
+                            KeyNavigation.right: autoUpdateCheckbox
+                            KeyNavigation.down: checkUpdatesButton
+                        }
+
+                        Label {
+                            Layout.alignment: Qt.AlignRight
+                            text: qsTr("(Checked)")
+                        }
+
+                        Label {
+                            Layout.alignment: Qt.AlignRight
+                            text: qsTr("Software Update:")
+                        }
+                        RowLayout {
+                            spacing: 12
+                            C.Button {
+                                id: checkUpdatesButton
+                                text: UpdateManager.checking ? qsTr("Checking...") : qsTr("Check for Updates")
+                                enabled: !UpdateManager.checking && !UpdateManager.downloading
+                                onClicked: {
+                                    UpdateManager.checkForUpdates(true);
+                                    updateDialog.open();
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: autoUpdateCheckbox
+                                KeyNavigation.left: checkUpdatesButton
+                                KeyNavigation.right: checkUpdatesButton
+                                KeyNavigation.down: {
+                                    if(streamMenuShortcut1.visible)
+                                        streamMenuShortcut1
+                                    else
+                                        checkUpdatesButton
+                                }
+                            }
+                            Label {
+                                text: UpdateManager.statusMessage
+                                color: Material.accent
+                                font.pixelSize: 13
+                                visible: text.length > 0
+                                Layout.maximumWidth: 350
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Label {
+                            Layout.alignment: Qt.AlignRight
+                            text: ""
                         }
                     }
                     RowLayout {

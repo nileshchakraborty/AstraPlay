@@ -18,6 +18,7 @@
 class QNetworkAccessManager;
 class QmlGamesBackend;
 class EmbeddedRelayServer;
+class UpdateManager;
 
 // pylux Configuration
 #define PYLUX_URL "https://www.xbgamestream.com"
@@ -110,6 +111,7 @@ class QmlBackend : public QObject
     Q_PROPERTY(CloudStreamingBackend* cloudStreaming READ cloudStreaming CONSTANT)
     Q_PROPERTY(CloudCatalogBackend* cloudCatalog READ cloudCatalog CONSTANT)
     Q_PROPERTY(bool cloudSteamShortcutEnabled READ cloudSteamShortcutEnabled CONSTANT)
+    Q_PROPERTY(UpdateManager* updateManager READ updateManager CONSTANT)
 
 public:
 
@@ -138,6 +140,7 @@ public:
     CloudStreamingBackend *cloudStreaming() const;
     CloudCatalogBackend *cloudCatalog() const;
     bool cloudSteamShortcutEnabled() const;
+    UpdateManager *updateManager() const;
 
     bool discoveryEnabled() const;
     void setDiscoveryEnabled(bool enabled);
@@ -410,5 +413,6 @@ private:
     SteamworksWrapper * steamworks_wrapper = {};
 #endif
     EmbeddedRelayServer *embedded_relay_server = nullptr;
+    UpdateManager *m_update_manager = nullptr;
 
 };

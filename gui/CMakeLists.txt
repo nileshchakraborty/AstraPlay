@@ -73,6 +73,8 @@ set(SOURCE_FILES
 	src/gamelauncher.cpp
 	include/donationmanager.h
 	src/donationmanager.cpp
+	include/updatemanager.h
+	src/updatemanager.cpp
 	)
 set(RESOURCE_FILES "")
 

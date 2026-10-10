@@ -1,6 +1,7 @@
 #include "qmlbackend.h"
 #include "qmlgamesbackend.h"
 #include "donationmanager.h"
+#include "updatemanager.h"
 #ifdef CHIAKI_IS_MAC_APPSTORE
 #include "appreviewmanager.h"
 #endif
@@ -140,6 +141,8 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     qmlRegisterSingletonInstance(uri, 1, 0, "ChiakiGames", games_backend);
     auto *donationManager = new DonationManager(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "DonationManager", donationManager);
+    m_update_manager = new UpdateManager(settings, this);
+    qmlRegisterSingletonInstance(uri, 1, 0, "UpdateManager", m_update_manager);
 #ifdef CHIAKI_IS_MAC_APPSTORE
     // Mac App Store: arm the SKStoreReviewController prompt for the next active transition.
     auto *appReviewManager = new AppReviewManager(settings, donationManager, this);
@@ -652,6 +655,11 @@ CloudStreamingBackend *QmlBackend::cloudStreaming() const
 CloudCatalogBackend *QmlBackend::cloudCatalog() const
 {
     return cloud_catalog_backend;
+}
+
+UpdateManager *QmlBackend::updateManager() const
+{
+    return m_update_manager;
 }
 
 bool QmlBackend::cloudSteamShortcutEnabled() const

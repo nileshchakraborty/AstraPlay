@@ -31,6 +31,7 @@ class QmlSettings : public QObject
     Q_PROPERTY(int suspendAction READ suspendAction WRITE setSuspendAction NOTIFY suspendActionChanged)
     Q_PROPERTY(bool logVerbose READ logVerbose WRITE setLogVerbose NOTIFY logVerboseChanged)
     Q_PROPERTY(bool steamCloudSync READ steamCloudSync WRITE setSteamCloudSync NOTIFY steamCloudSyncChanged)
+    Q_PROPERTY(bool autoUpdateEnabled READ autoUpdateEnabled WRITE setAutoUpdateEnabled NOTIFY autoUpdateEnabledChanged)
     Q_PROPERTY(int rumbleHapticsIntensity READ rumbleHapticsIntensity WRITE setRumbleHapticsIntensity NOTIFY rumbleHapticsIntensityChanged)
 #ifdef CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
     Q_PROPERTY(bool steamDeckHaptics READ steamDeckHaptics WRITE setSteamDeckHaptics NOTIFY steamDeckHapticsChanged)
@@ -222,6 +223,8 @@ public:
     void setLogVerbose(bool verbose);
     bool steamCloudSync() const;
     void setSteamCloudSync(bool enabled);
+    bool autoUpdateEnabled() const;
+    void setAutoUpdateEnabled(bool enabled);
 
     int rumbleHapticsIntensity() const;
     void setRumbleHapticsIntensity(int intensity);
@@ -736,6 +739,7 @@ signals:
     void psnRefreshTokenChanged();
     void psnAuthTokenExpiryChanged();
     void psnNpssoTokenChanged();
+    void autoUpdateEnabledChanged();
     void accountAttributesCheckPassedChanged();
     void psnAccountIdChanged();
     void psnGamesSyncEnabledChanged();

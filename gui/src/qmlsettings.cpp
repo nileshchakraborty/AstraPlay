@@ -339,6 +339,23 @@ void QmlSettings::setSteamCloudSync(bool enabled)
     emit steamCloudSyncChanged();
 }
 
+bool QmlSettings::autoUpdateEnabled() const
+{
+    return settings->GetAutoUpdateEnabled();
+}
+
+void QmlSettings::setAutoCheckEnabled(bool enabled)
+{
+    settings->SetAutoUpdateEnabled(enabled);
+    emit autoUpdateEnabledChanged();
+}
+
+void QmlSettings::setAutoUpdateEnabled(bool enabled)
+{
+    settings->SetAutoUpdateEnabled(enabled);
+    emit autoUpdateEnabledChanged();
+}
+
 int QmlSettings::rumbleHapticsIntensity() const
 {
     return static_cast<int>(settings->GetRumbleHapticsIntensity());
