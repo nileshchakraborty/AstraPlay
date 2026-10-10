@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/relay">
+    <file>index.html</file>
+    <file>styles.css</file>
+    <file>script.js</file>
+  </qresource>
+</RCC>

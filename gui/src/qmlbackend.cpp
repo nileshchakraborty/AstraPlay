@@ -33,6 +33,7 @@
 #endif
 #include <QWebEngineCookieStore>
 #endif
+#include "embeddedrelayserver.h"
 #include <QUrlQuery>
 #include <QtGlobal>
 #include <QGuiApplication>
@@ -146,6 +147,10 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 #endif
     cloud_streaming_backend = new CloudStreamingBackend(settings, this);
     cloud_catalog_backend = new CloudCatalogBackend(settings, this);
+
+    // Initialize standalone embedded PSN Login Relay server
+    embedded_relay_server = new EmbeddedRelayServer(this);
+    embedded_relay_server->start(8080);
     connect(settings_qml, &QmlSettings::cloudStoreLocaleChanged, this, [this]() {
         // Full wipe (not just the v6 PS5 intermediates): the unified catalog is locale-specific,
         // so a language change must also drop unified_catalog_v3 or a stale-locale list is served.
@@ -3448,20 +3453,34 @@ QString QmlBackend::generateQRCode()
 
 QString QmlBackend::getPyluxURL()
 {
-    // Check environment variable first, then fallback to fedora.local clone or default
+    // Check environment variable override first
     QByteArray envUrl = qgetenv("PYLUX_RELAY_URL");
     if (!envUrl.isEmpty()) {
         return QString::fromUtf8(envUrl);
     }
-    return QStringLiteral("http://fedora.local:8080");
+    // Use standalone embedded relay server
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        return embedded_relay_server->serverUrl();
+    }
+    return QStringLiteral("http://127.0.0.1:8080");
 }
 
 void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
 {
-    // Create network access manager
+    QJSValue cb = callback;
+
+    // Fast path: if running embedded relay server locally, create code directly in-memory!
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        if (embedded_relay_server->createCode(code)) {
+            if (cb.isCallable()) {
+                cb.call({true, QString("")});
+            }
+            return;
+        }
+    }
+
+    // Fallback: network request to remote relay if overridden
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    
-    // Prepare the request
     QNetworkRequest request;
     request.setUrl(QUrl(getPyluxURL() + "/psstream/create-code"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -3537,7 +3556,26 @@ void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
 
 void QmlBackend::checkPyluxStatus(const QString &code, const QJSValue &callback)
 {
-    // Create network access manager
+    QJSValue cb = callback;
+
+    // Fast path: if running embedded relay server locally, check tokens in-memory!
+    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+        QString npsso;
+        if (embedded_relay_server->getTokens(code, npsso)) {
+            if (cb.isCallable()) {
+                cb.call({true, QString(""), npsso});
+            }
+            return;
+        } else if (embedded_relay_server->validateCode(code)) {
+            // Code is valid, but tokens aren't ready yet (user still logging in)
+            if (cb.isCallable()) {
+                cb.call({false, QString("Waiting for login in browser..."), QString("")});
+            }
+            return;
+        }
+    }
+
+    // Fallback: network request to remote relay if overridden
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     
     // Prepare the request
