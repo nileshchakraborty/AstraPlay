@@ -34,6 +34,7 @@ jobs:
             cc:p
             cmake:p
             curl:p
+            diffutils:p
             fast_float:p
             fftw:p
             hidapi:p
@@ -70,12 +71,28 @@ jobs:
           pip install protobuf
           pacman -S --noconfirm git make unzip zip jq
 
+      - name: Build libplacebo
+        run: |
+          scripts/build-libplacebo-windows.sh
+
+      - name: Setup ffmpeg
+        run: |
+          curl -LO https://github.com/streetpea/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-win64-gpl-shared-7.1.zip
+          unzip ffmpeg-n7.1-latest-win64-gpl-shared-7.1.zip
+          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/bin/." /mingw64/bin
+          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/include/." /mingw64/include
+          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/lib/." /mingw64/lib
+
+      - name: Add QmlWebEngine Import
+        run: |
+          cp scripts/qtwebengine_import.qml gui/src/qml/
+
       - name: Configure CMake project
         run: |
           cmake -S . -B build -G "Ninja" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCHIAKI_ENABLE_CLI=OFF \
-            -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHAKI_ENABLE_STEAMWORKS }} \
+            -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} \
             -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
       - name: Build project
