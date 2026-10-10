@@ -7,6 +7,7 @@
 #include "qmlsettings.h"
 #include "cloudstreamingbackend.h"
 #include "cloudcatalogbackend.h"
+#include "updatemanager.h"
 
 #include <QObject>
 #include <QThread>
@@ -18,7 +19,6 @@
 class QNetworkAccessManager;
 class QmlGamesBackend;
 class EmbeddedRelayServer;
-class UpdateManager;
 
 // pylux Configuration
 #define PYLUX_URL "https://www.xbgamestream.com"
