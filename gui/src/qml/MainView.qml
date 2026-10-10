@@ -6,8 +6,6 @@ import QtQuick.Effects
 
 import org.streetpea.chiaking
 
-import "controls" as C
-
 Pane {
     padding: 0
     id: consolePane

@@ -43,8 +43,8 @@ Dialog {
             Layout.fillWidth: true
 
             Rectangle {
-                width: 44
-                height: 44
+                Layout.preferredWidth: 44
+                Layout.preferredHeight: 44
                 radius: 22
                 color: Qt.rgba(0, 212/255, 255/255, 0.15)
                 border.color: Material.accent

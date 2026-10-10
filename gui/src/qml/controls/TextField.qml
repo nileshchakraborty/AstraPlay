@@ -4,6 +4,7 @@ import QtQuick.Controls.Material
 import QtQuick.Effects
 
 TextField {
+    id: control
     property bool firstInFocusChain: false
     property bool lastInFocusChain: false
     property bool sendOutput: false
@@ -12,9 +13,9 @@ TextField {
     // Enhanced futuristic styling
     background: Rectangle {
         radius: 8
-        color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : Qt.rgba(0, 212/255, 255/255, 0.05)
-        border.color: parent.activeFocus ? "#00d4ff" : Qt.rgba(0, 212/255, 255/255, 0.3)
-        border.width: parent.activeFocus ? 2 : 1
+        color: control.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : Qt.rgba(0, 212/255, 255/255, 0.05)
+        border.color: control.activeFocus ? "#00d4ff" : Qt.rgba(0, 212/255, 255/255, 0.3)
+        border.width: control.activeFocus ? 2 : 1
         
         Behavior on color { ColorAnimation { duration: 200 } }
         Behavior on border.color { ColorAnimation { duration: 200 } }
@@ -27,10 +28,10 @@ TextField {
             color: "transparent"
             border.color: "#00d4ff"
             border.width: 2
-            opacity: parent.parent.activeFocus ? 0.5 : 0
+            opacity: control.activeFocus ? 0.5 : 0
             visible: opacity > 0
             
-            layer.enabled: parent.parent.activeFocus
+            layer.enabled: control.activeFocus
             layer.effect: MultiEffect {
                 blurEnabled: true
                 blurMax: 10
@@ -78,7 +79,8 @@ TextField {
         case Qt.Key_Return:
             if (readOnly) {
                 readOnly = false;
-                Qt.inputMethod.show();
+                if (Qt.inputMethod && typeof Qt.inputMethod["show"] === "function")
+                    Qt.inputMethod["show"]();
                 event.accepted = true;
             } else {
                 readOnly = true;
@@ -96,11 +98,12 @@ TextField {
 
     MouseArea {
         anchors.fill: parent
-        enabled: parent.readOnly
+        enabled: control.readOnly
         onClicked: {
-            parent.forceActiveFocus(Qt.TabFocusReason);
-            parent.readOnly = false;
-            Qt.inputMethod.show();
+            control.forceActiveFocus(Qt.TabFocusReason);
+            control.readOnly = false;
+            if (Qt.inputMethod && typeof Qt.inputMethod["show"] === "function")
+                Qt.inputMethod["show"]();
         }
     }
 }
