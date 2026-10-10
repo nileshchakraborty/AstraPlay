@@ -8,6 +8,9 @@
 #include "thread.h"
 #include "common.h"
 
+#define CHIAKI_FEEDBACK_HISTORY_PACKET_BUF_SIZE 0x300
+#define CHIAKI_FEEDBACK_HISTORY_PACKET_QUEUE_SIZE 0x40
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,6 +43,13 @@ typedef struct chiaki_feedback_sender_t
 
 	ChiakiSeqNum16 history_seq_num;
 	ChiakiFeedbackHistoryBuffer history_buf;
+
+	// Last history packet sent, repeated a few times while nothing new happens (see feedbacksender.c)
+	uint8_t history_last_packet[CHIAKI_FEEDBACK_HISTORY_PACKET_BUF_SIZE];
+	size_t history_last_size;
+	uint8_t history_last_event_count;
+	uint64_t history_last_sent_ms;
+	unsigned int history_tail_resends;
 
 	bool should_stop;
 	ChiakiControllerState controller_state_prev;
