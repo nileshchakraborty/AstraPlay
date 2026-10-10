@@ -97,3 +97,9 @@ jobs:
       - name: Build project
         run: |
           cmake --build build --config Release --clean-first --target chiaki
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylux-windows-x64
+          path: build/gui/chiaki.exe
