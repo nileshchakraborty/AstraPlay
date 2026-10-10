@@ -470,7 +470,7 @@ Pane {
                 
                 // Keyboard navigation
                 KeyNavigation.left: mainTabBar.itemAt(1)  // Cloud Play tab
-                KeyNavigation.right: settingsButton
+                KeyNavigation.right: updateNotificationButton.visible ? updateNotificationButton : settingsButton
                 KeyNavigation.down: {
                     if (mainTabBar.currentIndex === 1 && cloudPlayLoader.active) {
                         let cloudPlayView = cloudPlayLoader.item;
@@ -538,6 +538,45 @@ Pane {
             }
 
             Button {
+                id: updateNotificationButton
+                Layout.preferredHeight: 48
+                visible: UpdateManager.updateAvailable
+                flat: true
+                icon.source: "qrc:/icons/refresh-24px.svg"
+                icon.width: 24
+                icon.height: 24
+                focusPolicy: Qt.StrongFocus
+                hoverEnabled: true
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Update Available: %1. Click to install.").arg(UpdateManager.latestVersion)
+                onClicked: root.showUpdateDialog()
+
+                KeyNavigation.left: psnLoginHeaderButton
+                KeyNavigation.right: settingsButton
+                KeyNavigation.down: settingsButton.KeyNavigation.down
+                Keys.onReturnPressed: {
+                    clicked();
+                    event.accepted = true;
+                }
+
+                background: Rectangle {
+                    radius: 8
+                    color: updateNotificationButton.hovered ? Qt.rgba(0, 212/255, 255/255, 0.25) : Qt.rgba(0, 212/255, 255/255, 0.12)
+                    border.color: "#00d4ff"
+                    border.width: 1.5
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        color: "transparent"
+                        border.color: "#00d4ff"
+                        border.width: 2
+                        opacity: updateNotificationButton.activeFocus ? 0.8 : 0
+                    }
+                }
+            }
+
+            Button {
                 id: settingsButton
                     Layout.preferredHeight: 48
                     Layout.preferredWidth: 48
@@ -550,7 +589,7 @@ Pane {
                 onClicked: root.showSettingsDialog()
                 
                 // Keyboard navigation
-                KeyNavigation.left: psnLoginHeaderButton
+                KeyNavigation.left: updateNotificationButton.visible ? updateNotificationButton : psnLoginHeaderButton
                 KeyNavigation.right: closeButton
                 KeyNavigation.down: {
                     if (mainTabBar.currentIndex === 1 && cloudPlayLoader.active) {

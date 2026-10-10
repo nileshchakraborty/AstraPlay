@@ -27,6 +27,8 @@ Dialog {
     onOpened: {
         if (UpdateManager.updateAvailable)
             updateNowButton.forceActiveFocus(Qt.TabFocusReason);
+        else if (checkAgainButton.visible)
+            checkAgainButton.forceActiveFocus(Qt.TabFocusReason);
         else
             closeButton.forceActiveFocus(Qt.TabFocusReason);
     }
@@ -66,7 +68,7 @@ Dialog {
                             return qsTr("Checking for updates...");
                         if (UpdateManager.updateAvailable)
                             return qsTr("New version %1 is available!").arg(UpdateManager.latestVersion);
-                        return UpdateManager.statusMessage;
+                        return UpdateManager.statusMessage.length > 0 ? UpdateManager.statusMessage : qsTr("Pylux is up to date (v%1).").arg(UpdateManager.currentVersion);
                     }
                     font.bold: true
                     font.pixelSize: 16
@@ -133,6 +135,14 @@ Dialog {
         RowLayout {
             Layout.alignment: Qt.AlignRight
             spacing: 12
+
+            // Check Again button
+            C.Button {
+                id: checkAgainButton
+                text: qsTr("Check Again")
+                visible: !UpdateManager.updateAvailable && !UpdateManager.checking
+                onClicked: UpdateManager.checkForUpdates(true)
+            }
 
             // View on GitHub button
             C.Button {
