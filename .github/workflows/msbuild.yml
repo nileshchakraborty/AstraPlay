@@ -34,7 +34,6 @@ jobs:
             cc:p
             cmake:p
             curl:p
-            diffutils:p
             fast_float:p
             fftw:p
             hidapi:p
