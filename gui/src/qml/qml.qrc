@@ -36,6 +36,7 @@
     <file>GameShortcutDialog.qml</file>
     <file>QRCodeDialog.qml</file>
     <file>DonationPromptDialog.qml</file>
+    <file>UpdateDialog.qml</file>
     <file alias="donation_prompt_phrases.json">../../../shared/donation_prompt_phrases.json</file>
     <file>controls/Button.qml</file>
     <file>controls/CheckBox.qml</file>

@@ -789,6 +789,10 @@ class Settings : public QObject
 		qint64 GetAppReviewLastPromptTotalStreamMs() const  { return settings.value("settings/app_review_last_prompt_total_stream_ms", 0).toLongLong(); }
 		void SetAppReviewLastPromptTotalStreamMs(qint64 ms) { settings.setValue("settings/app_review_last_prompt_total_stream_ms", ms); }
 
+		// Auto Update
+		bool GetAutoUpdateEnabled() const                   { return settings.value("settings/auto_update_enabled", true).toBool(); }
+		void SetAutoUpdateEnabled(bool enabled)             { settings.setValue("settings/auto_update_enabled", enabled); }
+
 	signals:
 		void RegisteredHostsUpdated();
 		void HiddenHostsUpdated();

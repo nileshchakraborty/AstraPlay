@@ -9,6 +9,7 @@ Item {
     id: root
     property list<Item> restoreFocusItems
     property bool steamShortcutChecked: false
+    property bool updateChecked: false
     Material.theme: Material.Dark
     Material.accent: "#00d4ff"
 
@@ -321,6 +322,14 @@ Item {
             stack.replace(stack.get(0), streamViewComponent, {}, StackView.Immediate);
         else if (Chiaki.autoConnect)
             stack.replace(stack.get(0), autoConnectViewComponent, {}, StackView.Immediate);
+
+        if (!root.updateChecked && Chiaki.settings.autoUpdateEnabled) {
+            root.updateChecked = true;
+            // Slight delay so window fully renders first
+            Qt.callLater(() => {
+                UpdateManager.checkForUpdates(false);
+            });
+        }
     }
 
     StackView {
@@ -456,6 +465,22 @@ Item {
 
     RemindDialog {
         id: remindDialog
+    }
+
+    UpdateDialog {
+        id: updateDialog
+    }
+
+    Connections {
+        target: UpdateManager
+        function onUpdateCheckCompleted(hasUpdate, userInitiated, version) {
+            if (hasUpdate) {
+                // If update is available, prompt user non-intrusively via updateDialog
+                updateDialog.open();
+            } else if (userInitiated) {
+                // If user clicked Check for Updates manually and no update found, updateDialog is already open and showing up to date status
+            }
+        }
     }
 
     Connections {
