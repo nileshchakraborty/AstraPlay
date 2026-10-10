@@ -63,14 +63,39 @@ void EmbeddedRelayServer::stop()
 
 QString EmbeddedRelayServer::serverUrl() const
 {
-    // Try to find local LAN IP for display/QR code
-    QString localIp = QStringLiteral("127.0.0.1");
-    const QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    for (const QHostAddress &address : ipAddressesList) {
-        if (address != QHostAddress::LocalHost && address.toIPv4Address()) {
-            localIp = address.toString();
-            break;
+    // Try to find physical LAN IP for display/QR code (ignoring loopback, docker, vpn)
+    QString localIp;
+    const QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &iface : interfaces) {
+        if (!(iface.flags() & QNetworkInterface::IsUp) || !(iface.flags() & QNetworkInterface::IsRunning))
+            continue;
+        if (iface.flags() & QNetworkInterface::IsLoopBack)
+            continue;
+
+        QString name = iface.name().toLower();
+        // Skip virtual or tunnel adapters
+        if (name.contains("docker") || name.contains("veth") || name.contains("tun") ||
+            name.contains("tap") || name.contains("bridge") || name.contains("utun"))
+            continue;
+
+        const QList<QNetworkAddressEntry> entries = iface.addressEntries();
+        for (const QNetworkAddressEntry &entry : entries) {
+            QHostAddress addr = entry.ip();
+            if (addr.protocol() == QAbstractSocket::IPv4Protocol && !addr.isLoopback()) {
+                QString ipStr = addr.toString();
+                // Standard private LAN subnets: 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+                if (ipStr.startsWith("192.168.") || ipStr.startsWith("10.") || ipStr.startsWith("172.")) {
+                    return QStringLiteral("http://%1:%2").arg(ipStr).arg(m_port);
+                }
+                if (localIp.isEmpty()) {
+                    localIp = ipStr;
+                }
+            }
         }
+    }
+
+    if (localIp.isEmpty()) {
+        localIp = QStringLiteral("127.0.0.1");
     }
     return QStringLiteral("http://%1:%2").arg(localIp).arg(m_port);
 }
