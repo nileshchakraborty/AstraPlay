@@ -177,9 +177,11 @@ void UpdateManager::onCheckFinished()
         if (name.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
             m_downloadUrl = dlUrl;
             break;
-        } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && name.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
-            if (m_downloadUrl.isEmpty() || !m_downloadUrl.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive))
-                m_downloadUrl = dlUrl;
+        } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) &&
+                   (name.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
+                    name.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
+            m_downloadUrl = dlUrl;
+            break;
         } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) || (name.endsWith(QLatin1String(".zip"), Qt::CaseInsensitive) && name.contains(QLatin1String("windows"), Qt::CaseInsensitive))) {
             if (m_downloadUrl.isEmpty())
                 m_downloadUrl = dlUrl;
@@ -370,8 +372,10 @@ void UpdateManager::installAndRestart()
 
         QProcess::startDetached("cmd.exe", QStringList() << "/c" << scriptPath);
         QGuiApplication::quit();
-    } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) && nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive)) {
-        // Run Inno Setup installer, purging .bak files
+    } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) &&
+               (nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
+                nativePath.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
+        // Run clean installer with silent upgrade, purging .bak and .old files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_installer.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -384,7 +388,11 @@ void UpdateManager::installAndRestart()
             out << "    goto wait_pid\r\n";
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
-            out << "start \"\" \"" << nativePath << "\"\r\n";
+            out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
+            out << "start /wait \"\" \"" << nativePath << "\" /SILENT /NORESTART\r\n";
+            out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
+            out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
+            out << "start \"\" \"" << appExePath << "\"\r\n";
             out << "del \"%~f0\"\r\n";
             batFile.close();
         }
