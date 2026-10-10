@@ -3448,7 +3448,12 @@ QString QmlBackend::generateQRCode()
 
 QString QmlBackend::getPyluxURL()
 {
-    return QString(PYLUX_URL);
+    // Check environment variable first, then fallback to fedora.local clone or default
+    QByteArray envUrl = qgetenv("PYLUX_RELAY_URL");
+    if (!envUrl.isEmpty()) {
+        return QString::fromUtf8(envUrl);
+    }
+    return QStringLiteral("http://fedora.local:8080");
 }
 
 void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
@@ -3458,7 +3463,7 @@ void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
     
     // Prepare the request
     QNetworkRequest request;
-    request.setUrl(QUrl(QString(PYLUX_URL) + "/psstream/create-code"));
+    request.setUrl(QUrl(getPyluxURL() + "/psstream/create-code"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload
@@ -3537,7 +3542,7 @@ void QmlBackend::checkPyluxStatus(const QString &code, const QJSValue &callback)
     
     // Prepare the request
     QNetworkRequest request;
-    request.setUrl(QUrl(QString(PYLUX_URL) + "/psstream/get-tokens"));
+    request.setUrl(QUrl(getPyluxURL() + "/psstream/get-tokens"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload

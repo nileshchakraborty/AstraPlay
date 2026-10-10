@@ -35,14 +35,15 @@ DonationManager::DonationManager(Settings *settings, QObject *parent)
     qCInfo(chiakiDonation) << "Mac App Store build: using StoreKit IAP";
     initStoreKit();
 #else
-    if (resolvePsnOnlineId().isEmpty())
+    if (isEnabled() && resolvePsnOnlineId().isEmpty())
         fetchPsnOnlineId();
 #endif
 }
 
 bool DonationManager::isEnabled() const
 {
-    return true;
+    // Donation verification and paywalls are disabled
+    return false;
 }
 
 bool DonationManager::isAppStore() const

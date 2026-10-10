@@ -40,7 +40,7 @@ class PsnLoginActivity : AppCompatActivity()
 	companion object
 	{
 		private const val TAG = "PsnLoginActivity"
-		private const val PYLUX_URL = "https://www.xbgamestream.com"
+		private const val PYLUX_URL = "http://fedora.local:8080"
 		const val EXTRA_NPSSO_TOKEN = "npsso_token"
 		const val RESULT_LOGIN_SUCCESS = Activity.RESULT_OK
 		const val RESULT_LOGIN_CANCELLED = Activity.RESULT_CANCELED

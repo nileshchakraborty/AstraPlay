@@ -10,7 +10,9 @@ private let loginLog = OSLog(subsystem: "com.pylux.stream", category: "PyluxLogi
 class PyluxLoginService {
     static let shared = PyluxLoginService()
     
-    private let pyluxURL = "https://www.xbgamestream.com"
+    private var pyluxURL: String {
+        ProcessInfo.processInfo.environment["PYLUX_RELAY_URL"] ?? "http://fedora.local:8080"
+    }
     
     /// Generate UUID v4 for OAuth cid parameter
     func generateUUID() -> String {
