@@ -4,23 +4,24 @@ import QtQuick.Controls.Material
 import QtQuick.Effects
 
 Slider {
+    id: control
     property bool firstInFocusChain: false
     property bool lastInFocusChain: false
     property bool sendOutput: false
     
     // Enhanced futuristic styling
     background: Rectangle {
-        x: parent.leftPadding
-        y: parent.topPadding + parent.availableHeight / 2 - height / 2
+        x: control.leftPadding
+        y: control.topPadding + control.availableHeight / 2 - height / 2
         implicitWidth: 200
         implicitHeight: 4
-        width: parent.availableWidth
+        width: control.availableWidth
         height: implicitHeight
         radius: 2
         color: Qt.rgba(255, 255, 255, 0.2)
         
         Rectangle {
-            width: parent.parent.visualPosition * parent.width
+            width: control.visualPosition * parent.width
             height: parent.height
             color: "#00d4ff"
             radius: parent.radius
@@ -42,14 +43,14 @@ Slider {
     }
     
     handle: Rectangle {
-        x: parent.leftPadding + parent.visualPosition * (parent.availableWidth - width)
-        y: parent.topPadding + parent.availableHeight / 2 - height / 2
+        x: control.leftPadding + control.visualPosition * (control.availableWidth - width)
+        y: control.topPadding + control.availableHeight / 2 - height / 2
         implicitWidth: 20
         implicitHeight: 20
         radius: 10
-        color: parent.pressed ? "#ffffff" : "#00d4ff"
-        border.color: parent.visualFocus ? "#ffffff" : "transparent"
-        border.width: parent.visualFocus ? 2 : 0
+        color: control.pressed ? "#ffffff" : "#00d4ff"
+        border.color: control.visualFocus ? "#ffffff" : "transparent"
+        border.width: control.visualFocus ? 2 : 0
         
         Behavior on color { ColorAnimation { duration: 200 } }
         Behavior on border.color { ColorAnimation { duration: 200 } }
@@ -61,10 +62,10 @@ Slider {
             color: "transparent"
             border.color: "#00d4ff"
             border.width: 2
-            opacity: parent.parent.visualFocus ? 0.7 : 0
+            opacity: control.visualFocus ? 0.7 : 0
             visible: opacity > 0
             
-            layer.enabled: parent.parent.visualFocus
+            layer.enabled: control.visualFocus
             layer.effect: MultiEffect {
                 blurEnabled: true
                 blurMax: 12

@@ -16,6 +16,7 @@ class UpdateManager : public QObject
     Q_PROPERTY(bool downloading READ isDownloading NOTIFY downloadingChanged)
     Q_PROPERTY(qreal downloadProgress READ downloadProgress NOTIFY downloadProgressChanged)
     Q_PROPERTY(QString latestVersion READ latestVersion NOTIFY latestVersionChanged)
+    Q_PROPERTY(QString currentVersion READ currentVersion CONSTANT)
     Q_PROPERTY(QString releaseNotes READ releaseNotes NOTIFY releaseNotesChanged)
     Q_PROPERTY(QString releaseUrl READ releaseUrl NOTIFY releaseUrlChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
@@ -30,6 +31,7 @@ public:
     bool isDownloading() const { return m_downloading; }
     qreal downloadProgress() const { return m_downloadProgress; }
     QString latestVersion() const { return m_latestVersion; }
+    QString currentVersion() const { return QStringLiteral(CHIAKI_VERSION); }
     QString releaseNotes() const { return m_releaseNotes; }
     QString releaseUrl() const { return m_releaseUrl; }
     QString statusMessage() const { return m_statusMessage; }

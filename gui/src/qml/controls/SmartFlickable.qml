@@ -35,14 +35,14 @@ Flickable {
     
     Connections {
         target: smartFlick.Window.window
-        enabled: tabIndex === currentTabIndex && scrollbar.visible && contentLayout !== null
+        enabled: smartFlick.tabIndex === smartFlick.currentTabIndex && scrollbar.visible && smartFlick.contentLayout !== null
         function onActiveFocusItemChanged() {
             var focusItem = smartFlick.Window.activeFocusItem
             if (focusItem && focusItem.parent) {
                 var isChild = false
                 var checkItem = focusItem
                 while (checkItem) {
-                    if (checkItem === contentLayout) {
+                    if (checkItem === smartFlick.contentLayout) {
                         isChild = true
                         break
                     }
