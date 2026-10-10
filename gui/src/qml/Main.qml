@@ -248,6 +248,10 @@ Item {
         stack.push(settingsDialogComponent);
     }
 
+    function showUpdateDialog() {
+        updateDialog.open();
+    }
+
     function showDisplaySettingsDialog() {
         stack.push(displaySettingsDialogComponent);
     }

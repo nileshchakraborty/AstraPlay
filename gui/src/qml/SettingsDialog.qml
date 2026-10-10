@@ -483,7 +483,7 @@ DialogView {
                             KeyNavigation.up: psnGamesSyncCheckbox
                             KeyNavigation.left: showGameImageDuringLaunch
                             KeyNavigation.right: showGameImageDuringLaunch
-                            KeyNavigation.down: autoUpdateCheckbox
+                            KeyNavigation.down: autoUpdateEnabledRadio
                         }
 
                         Label {
@@ -493,28 +493,48 @@ DialogView {
 
                         Label {
                             Layout.alignment: Qt.AlignRight
-                            text: qsTr("Automatically Check For Updates:")
+                            text: qsTr("Automatic Updates:")
                         }
-                        C.CheckBox {
-                            id: autoUpdateCheckbox
-                            text: qsTr("Check GitHub for new releases on startup")
-                            checked: Chiaki.settings.autoUpdateEnabled
-                            onToggled: Chiaki.settings.autoUpdateEnabled = checked
-                            KeyNavigation.priority: KeyNavigation.BeforeItem
-                            KeyNavigation.up: showGameImageDuringLaunch
-                            KeyNavigation.left: autoUpdateCheckbox
-                            KeyNavigation.right: autoUpdateCheckbox
-                            KeyNavigation.down: checkUpdatesButton
+                        ColumnLayout {
+                            spacing: 4
+                            C.RadioButton {
+                                id: autoUpdateEnabledRadio
+                                text: qsTr("Automatically check for updates on startup (Recommended)")
+                                checked: Chiaki.settings.autoUpdateEnabled
+                                onToggled: {
+                                    if (checked)
+                                        Chiaki.settings.autoUpdateEnabled = true
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: showGameImageDuringLaunch
+                                KeyNavigation.left: autoUpdateEnabledRadio
+                                KeyNavigation.right: autoUpdateEnabledRadio
+                                KeyNavigation.down: autoUpdateOptOutRadio
+                            }
+                            C.RadioButton {
+                                id: autoUpdateOptOutRadio
+                                text: qsTr("Opt out of automatic updates (Manual updates only)")
+                                checked: !Chiaki.settings.autoUpdateEnabled
+                                onToggled: {
+                                    if (checked)
+                                        Chiaki.settings.autoUpdateEnabled = false
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: autoUpdateEnabledRadio
+                                KeyNavigation.left: autoUpdateOptOutRadio
+                                KeyNavigation.right: autoUpdateOptOutRadio
+                                KeyNavigation.down: checkUpdatesButton
+                            }
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
-                            text: qsTr("(Checked)")
+                            text: Chiaki.settings.autoUpdateEnabled ? qsTr("(Enabled)") : qsTr("(Opted out)")
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
-                            text: qsTr("Software Update:")
+                            text: qsTr("Manual Update:")
                         }
                         RowLayout {
                             spacing: 12
@@ -527,9 +547,9 @@ DialogView {
                                     updateDialog.open();
                                 }
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
-                                KeyNavigation.up: autoUpdateCheckbox
+                                KeyNavigation.up: autoUpdateOptOutRadio
                                 KeyNavigation.left: checkUpdatesButton
-                                KeyNavigation.right: checkUpdatesButton
+                                KeyNavigation.right: installUpdateButton.visible ? installUpdateButton : checkUpdatesButton
                                 KeyNavigation.down: {
                                     if(streamMenuShortcut1.visible)
                                         streamMenuShortcut1
@@ -537,12 +557,43 @@ DialogView {
                                         checkUpdatesButton
                                 }
                             }
+                            C.Button {
+                                id: installUpdateButton
+                                visible: UpdateManager.updateAvailable
+                                text: {
+                                    if (UpdateManager.downloadProgress >= 1.0)
+                                        return qsTr("Install & Restart");
+                                    if (UpdateManager.downloading)
+                                        return qsTr("Downloading...");
+                                    return qsTr("Install Update Now");
+                                }
+                                enabled: !UpdateManager.downloading
+                                Material.background: Material.accent
+                                onClicked: {
+                                    updateDialog.open();
+                                    if (UpdateManager.downloadProgress >= 1.0) {
+                                        UpdateManager.installAndRestart();
+                                    } else if (!UpdateManager.downloading) {
+                                        UpdateManager.startDownload();
+                                    }
+                                }
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: autoUpdateOptOutRadio
+                                KeyNavigation.left: checkUpdatesButton
+                                KeyNavigation.right: installUpdateButton
+                                KeyNavigation.down: {
+                                    if(streamMenuShortcut1.visible)
+                                        streamMenuShortcut1
+                                    else
+                                        installUpdateButton
+                                }
+                            }
                             Label {
                                 text: UpdateManager.statusMessage
-                                color: Material.accent
+                                color: UpdateManager.updateAvailable ? Material.accent : "white"
                                 font.pixelSize: 13
                                 visible: text.length > 0
-                                Layout.maximumWidth: 350
+                                Layout.maximumWidth: 320
                                 elide: Text.ElideRight
                             }
                         }
