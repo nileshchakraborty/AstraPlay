@@ -6,16 +6,11 @@ astraplay is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0
 
 ## How It Works
 
-### 1. Automated Source Code Upload (GitHub Action)
+### 1. Source Code on GitHub Releases
 
-The GitHub Action `.github/workflows/upload-source-code.yml` automatically:
-- Creates a complete source code archive when code is pushed
-- Uploads it to Dropbox under `/astraplay-sources/`
-- Runs on:
-  - Manual trigger (`workflow_dispatch`)
-  - Push to main/master branches
-  - Push to release branches
-  - Version tags
+Every GitHub release automatically attaches full source archives (`Source code (zip)` /
+`Source code (tar.gz)`) for its tag, and the repository itself is public. No extra
+upload step or secret is needed — publishing a release satisfies source distribution.
 
 ### 2. License Files in Binary Distribution
 
@@ -33,31 +28,11 @@ The template `legal/agpl-source-notice.txt` contains the notice text with placeh
 - `__GIT_BRANCH__` → Git branch name
 - `__ARCHITECTURE__` → System architecture
 
-## Setup for GitHub Action
+## Setup for GitHub Releases
 
-### Required Secrets
-
-Set these in your repository Settings → Secrets and variables → Actions:
-
-- `DROPBOX_REFRESH_TOKEN`
-- `DROPBOX_APP_KEY`
-- `DROPBOX_APP_SECRET`
-
-### Getting Dropbox OAuth Credentials
-
-1. Go to https://www.dropbox.com/developers/apps
-2. Click "Create app"
-3. Choose:
-   - **API**: Scoped access
-   - **Access**: Full Dropbox
-   - **Name**: e.g., "chiaki-ng-source-hosting"
-4. In the **Permissions** tab, enable:
-   - `files.content.write`
-   - `files.content.read`
-   - `sharing.write`
-5. In the **Settings** tab:
-   - Note your **App key** and **App secret**
-   - Generate an **Access token** (this is the refresh token)
+No secrets or extra setup are required: source archives are attached automatically
+when a release is published from a tag. Keep release tags available as long as
+you distribute the corresponding binaries.
 
 ## Using in Build Scripts
 
@@ -84,33 +59,17 @@ This will automatically:
 - Copy `COPYING` license file
 - Generate `SOURCE_CODE.txt` with build information
 
-## Updating the Source Code Link
+## The Source Code Link
 
-The source code is uploaded with a **static filename** (`astraplay-source-latest.tar.gz`) that gets overwritten on each upload, so the Dropbox link never changes.
+`SOURCE_CODE.txt` points at the stable releases page, so it never needs updating:
 
-### One-Time Setup:
-
-1. Run the GitHub Action once (manually via workflow_dispatch)
-2. Check Dropbox `/astraplay-sources/astraplay-source-latest.tar.gz`
-3. Get the shared link for the file (Right-click → Share → Create link)
-4. Update line 11 in `legal/agpl-source-notice.txt` with the actual URL
-
-Example:
 ```
-    https://www.dropbox.com/scl/fi/abc123xyz/astraplay-source-latest.tar.gz?rlkey=xyz&dl=1
+    https://github.com/nileshchakraborty/AstraPlay/releases/latest
 ```
 
-**Important:** Make sure the link ends with `?dl=1` (or `&dl=1`) for direct download.
-
-Since the filename is static, you only need to set this URL once. Future builds will automatically overwrite the same file in Dropbox, so the link continues to work.
-
-## Manual Source Distribution (Alternative)
-
-If you prefer not to use Dropbox, you can:
-
-1. Manually create source archives when releasing binaries
-2. Upload to GitHub Releases, your own server, or any public hosting
-3. Update the URL in `scripts/build-appimage.sh` line 131
+Every release there carries its matching source archive. If you distribute a custom
+build outside GitHub releases, host its source yourself and update the URL in
+`legal/agpl-source-notice.txt` accordingly.
 
 ## AGPL Compliance Requirements
 

@@ -29,9 +29,9 @@ When a PR is merged into `release/beta`, GitHub Actions builds and deploys every
 | Android + Android TV | Signed AAB (all ABIs) | Google Play (beta track) |
 | iOS | Signed IPA (arm64) | TestFlight (upload only) |
 | macOS | Universal .pkg (arm64 + x86_64) | App Store Connect (upload only) |
-| Windows | Portable zip + installer (x86_64) | Dropbox + GitHub Actions artifact |
-| Linux | AppImage (x86_64) | Dropbox + GitHub Actions artifact |
-| Linux (Flatpak) | Flatpak (x86_64 + aarch64) | Flathub (manifest synced to `flathub/io.github.nileshchakraborty.astraplay`) |
+| Windows | Portable zip + installer (x86_64) | GitHub release |
+| Linux | AppImage (x86_64) | GitHub release |
+| Linux (Flatpak) | Flatpak (x86_64 + aarch64) | Flathub (manifest synced to `flathub/io.github.nileshchakraborty.AstraPlay`) |
 
 When `master` is deployed (currently manual dispatch only):
 

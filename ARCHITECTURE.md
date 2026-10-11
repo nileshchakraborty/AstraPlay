@@ -225,8 +225,8 @@ GitHub Push / PR
       │     (AAB)          (IPA/.pkg)      (AppImage/exe/Flatpak)
       │         │              │                 │
       │         ▼              ▼                 ▼
-      │    Google Play    TestFlight/       Dropbox/
-      │    (beta track)   App Store        Flathub
+      │    Google Play    TestFlight/     GitHub Releases
+      │    (beta track)   App Store        + Flathub
       │
       └── master ──► Manual dispatch ──► Production release
 ```

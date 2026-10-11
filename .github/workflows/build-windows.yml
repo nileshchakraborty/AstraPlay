@@ -1,5 +1,5 @@
 # Build Windows (x86_64, MSYS2/MinGW)
-# Output: Portable zip + installer published to Dropbox.
+# Output: Portable zip + installer as run artifacts (published to the GitHub release).
 
 name: Build Windows
 
@@ -7,12 +7,6 @@ on:
   workflow_dispatch:
   workflow_call:
     outputs:
-      zip_url:
-        description: Dropbox direct URL for rolling zip (astraplay-latest or astraplay-beta-latest on release/beta)
-        value: ${{ jobs.build-windows_x64-msys2.outputs.zip_url }}
-      installer_url:
-        description: Dropbox direct URL for rolling installer (installer-latest or installer-beta-latest on release/beta)
-        value: ${{ jobs.build-windows_x64-msys2.outputs.installer_url }}
       chiaki_version:
         description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build-windows_x64-msys2.outputs.chiaki_version }}
@@ -28,8 +22,6 @@ jobs:
     name: Build AstraPlay Windows x86_64
     runs-on: windows-latest
     outputs:
-      zip_url: ${{ steps.zip.outputs.url }}
-      installer_url: ${{ steps.installer.outputs.url }}
       chiaki_version: ${{ steps.extract_version.outputs.version }}
     defaults:
       run:
@@ -194,49 +186,20 @@ jobs:
           echo "INSTALLER_NAME=${INSTALLER_NAME}" >> $GITHUB_ENV
           echo "Renamed installer to: ${INSTALLER_NAME}"
 
-      - name: Publish portable zip
-        id: zip
-        uses: ./.github/actions/dropbox-publish
-        with:
-          file: ${{ env.RELEASE_PACKAGE_PATH }}
-          latest-path: /astraplay/windows/astraplay${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.zip
-          versioned-path: /astraplay/windows/astraplay-${{ env.CHIAKI_VERSION }}.zip
-          refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
-          app-key: ${{ secrets.DROPBOX_APP_KEY }}
-          app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
-
-      - name: Publish installer
-        id: installer
-        uses: ./.github/actions/dropbox-publish
-        with:
-          file: ${{ env.INSTALLER_NAME }}
-          latest-path: /astraplay/windows/astraplay-windows-installer${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.exe
-          versioned-path: /astraplay/windows/astraplay-windows-installer-${{ env.CHIAKI_VERSION }}.exe
-          refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
-          app-key: ${{ secrets.DROPBOX_APP_KEY }}
-          app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
-
       - name: Build summary
         if: always()
         run: |
           ZIP_SIZE=$(ls -lh "${{ env.RELEASE_PACKAGE_PATH }}" 2>/dev/null | awk '{print $5}')
           INST_SIZE=$(ls -lh "${{ env.INSTALLER_NAME }}" 2>/dev/null | awk '{print $5}')
-          if [ "${{ github.ref_name }}" = "release/beta" ]; then
-            ROLLING_LABEL="rolling (beta: astraplay-beta-latest.* / installer-beta-latest)"
-            ZIP_NAME="astraplay-beta-latest.zip"
-            INST_NAME="astraplay-windows-installer-beta-latest.exe"
-          else
-            ROLLING_LABEL="rolling (stable: astraplay-latest.* / installer-latest)"
-            ZIP_NAME="astraplay-latest.zip"
-            INST_NAME="astraplay-windows-installer-latest.exe"
-          fi
           {
             echo "## AstraPlay Windows — v${CHIAKI_VERSION}"
             echo ""
-            echo "| Artifact | Size | Download (${ROLLING_LABEL}) | Versioned archive |"
-            echo "| --- | --- | --- | --- |"
-            echo "| Portable zip     | ${ZIP_SIZE:-?}  | [${ZIP_NAME}](${{ steps.zip.outputs.url }}) | \`/astraplay/windows/astraplay-${CHIAKI_VERSION}.zip\` |"
-            echo "| Installer (.exe) | ${INST_SIZE:-?} | [${INST_NAME}](${{ steps.installer.outputs.url }}) | \`/astraplay/windows/astraplay-windows-installer-${CHIAKI_VERSION}.exe\` |"
+            echo "| Artifact | Size |"
+            echo "| --- | --- |"
+            echo "| Portable zip     | ${ZIP_SIZE:-?}  |"
+            echo "| Installer (.exe) | ${INST_SIZE:-?} |"
+            echo ""
+            echo "Binaries are published to the [GitHub release](https://github.com/nileshchakraborty/AstraPlay/releases/latest)."
             echo ""
             echo "### How to use"
             echo "- **Portable zip** — unzip anywhere and run \`astraplay.exe\`. No install required."

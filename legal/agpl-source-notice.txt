@@ -8,7 +8,7 @@ This software is licensed under the GNU Affero General Public License v3.0
 As required by the AGPL license, the complete corresponding source code
 used to build this binary is available for download at:
 
-    https://www.dropbox.com/scl/fi/rw1xoplpxore68dnho9jx/psstream-source-latest.tar.gz?rlkey=8nvd0lbe2gnah51oyz1xyfjrm&st=jqpvz1n8&dl=0
+    https://github.com/nileshchakraborty/AstraPlay/releases/latest
 
 The source code archive includes all source files, build scripts, and
 dependencies needed to compile and build this software from source.

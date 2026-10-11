@@ -14,7 +14,7 @@ set -xe
 #   - Saves artifacts to build-output/ for local testing
 #
 # Key differences from GitHub Actions:
-#   - No upload to Dropbox (saves locally instead)
+#   - No upload (saves locally instead)
 #   - No artifact uploads (files stay in build-output/)
 #   - Faster feedback loop for testing changes
 #
