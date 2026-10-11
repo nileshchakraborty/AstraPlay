@@ -12,7 +12,9 @@
 /captures
 .externalNativeBuild
 .cxx
-/app/release
 keystore.jks
 *.keystore
+*.jks
+*.pem
+*.der
 build-output.txt

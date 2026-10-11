@@ -81,6 +81,11 @@ xcuserdata/
 build-output.txt
 **/build-output.txt
 local.properties
+**/local.properties
+*.keystore
+*.jks
+*.pem
+*.der
 
 # Fastlane (generated)
 macos/fastlane/README.md
