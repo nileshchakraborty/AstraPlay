@@ -20,7 +20,7 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.transformation.ExpandableTransformationBehavior
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 
 // see https://github.com/lcdsmao/ExpandableFABExample
 

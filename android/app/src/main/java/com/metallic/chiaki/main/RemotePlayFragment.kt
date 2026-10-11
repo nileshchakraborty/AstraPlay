@@ -17,12 +17,12 @@ import androidx.core.view.isGone
 import com.metallic.chiaki.common.ext.alertDialogBuilder
 import com.metallic.chiaki.common.ext.enableFocusableInTouchModeForTv
 import com.metallic.chiaki.common.ext.isTv
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.*
 import com.metallic.chiaki.common.ext.putRevealExtra
 import com.metallic.chiaki.common.PsnTokenManager
 import com.metallic.chiaki.common.ext.viewModelFactory
-import com.astraplay.stream.databinding.FragmentRemotePlayBinding
+import io.github.nileshchakraborty.astraplay.databinding.FragmentRemotePlayBinding
 import com.metallic.chiaki.lib.ConnectInfo
 import com.metallic.chiaki.lib.DiscoveryHost
 import com.metallic.chiaki.manualconsole.EditManualConsoleActivity

@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.metallic.chiaki.common.RegisteredHost
-import com.astraplay.stream.databinding.ItemRegisteredHostBinding
+import io.github.nileshchakraborty.astraplay.databinding.ItemRegisteredHostBinding
 
 class SettingsRegisteredHostsAdapter(
 	private val deleteCallback: ((RegisteredHost) -> Unit)? = null

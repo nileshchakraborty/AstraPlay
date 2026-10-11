@@ -10,9 +10,9 @@ import android.view.Window
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.ext.RevealActivity
-import com.astraplay.stream.databinding.ActivityRegistBinding
+import io.github.nileshchakraborty.astraplay.databinding.ActivityRegistBinding
 import com.metallic.chiaki.lib.RegistInfo
 import com.metallic.chiaki.lib.Target
 import java.lang.IllegalArgumentException

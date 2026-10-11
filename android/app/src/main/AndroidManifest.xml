@@ -23,7 +23,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <provider
-            android:authorities="com.astraplay.stream.fileprovider"
+            android:authorities="io.github.nileshchakraborty.astraplay.fileprovider"
             android:name="androidx.core.content.FileProvider"
             android:grantUriPermissions="true"
             android:exported="false">

@@ -7,7 +7,7 @@ import android.text.method.ScrollingMovementMethod
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 
 class LicenseAgreementActivity : AppCompatActivity()
 {

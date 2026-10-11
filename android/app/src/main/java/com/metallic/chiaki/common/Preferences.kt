@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceManager
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.cloudplay.repository.CloudGameRepository
 import com.metallic.chiaki.lib.Codec
 import com.metallic.chiaki.lib.ConnectVideoProfile

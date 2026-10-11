@@ -54,7 +54,7 @@ tasks.register("printAstraPlayVersionCode") {
 
 
 android {
-    namespace "com.astraplay.stream"
+    namespace "io.github.nileshchakraborty.astraplay"
     compileSdk 35
     
     // Specify NDK version - r28+ required for 16KB page size alignment
@@ -62,7 +62,7 @@ android {
     ndkVersion "28.2.13676358" // NDK r28.2 - provides 16KB alignment by default
     
     defaultConfig {
-        applicationId "com.astraplay.stream"
+        applicationId "io.github.nileshchakraborty.astraplay"
         minSdk 24
         targetSdk 35
         versionCode androidVersionCode

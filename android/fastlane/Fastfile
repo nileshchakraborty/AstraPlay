@@ -33,7 +33,7 @@ platform :android do
 
     upload_to_play_store(
       json_key: json_key,
-      package_name: "com.astraplay.stream",
+      package_name: "io.github.nileshchakraborty.astraplay",
       aab: aab_path,
       track: track,
       skip_upload_metadata: true,

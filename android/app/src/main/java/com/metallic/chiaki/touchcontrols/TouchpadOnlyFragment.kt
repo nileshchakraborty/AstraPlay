@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import com.astraplay.stream.databinding.FragmentTouchpadOnlyBinding
+import io.github.nileshchakraborty.astraplay.databinding.FragmentTouchpadOnlyBinding
 import io.reactivex.rxkotlin.Observables.combineLatest
 
 class TouchpadOnlyFragment : TouchControlsFragment()

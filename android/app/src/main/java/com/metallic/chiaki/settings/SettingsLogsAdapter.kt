@@ -5,10 +5,10 @@ package com.metallic.chiaki.settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.LogFile
 import com.metallic.chiaki.common.ext.inflate
-import com.astraplay.stream.databinding.ItemLogFileBinding
+import io.github.nileshchakraborty.astraplay.databinding.ItemLogFileBinding
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*

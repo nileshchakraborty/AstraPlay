@@ -24,8 +24,8 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.android.material.appbar.MaterialToolbar
-import com.astraplay.stream.BuildConfig
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.BuildConfig
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.SecureTokenManager
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.PsnTokenManager

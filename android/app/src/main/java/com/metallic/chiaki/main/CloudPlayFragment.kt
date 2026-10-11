@@ -34,7 +34,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.metallic.chiaki.common.ext.alertDialogBuilder
-import com.astraplay.stream.R
+import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.cloudplay.PsnLoginActivity
 import com.metallic.chiaki.cloudplay.api.CloudStreamingBackend
 import com.metallic.chiaki.cloudplay.model.CloudCategory
@@ -42,7 +42,7 @@ import com.metallic.chiaki.cloudplay.model.CloudError
 import com.metallic.chiaki.cloudplay.model.CloudGame
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.ext.viewModelFactory
-import com.astraplay.stream.databinding.FragmentCloudPlayBinding
+import io.github.nileshchakraborty.astraplay.databinding.FragmentCloudPlayBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
