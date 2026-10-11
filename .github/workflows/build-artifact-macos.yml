@@ -1,0 +1,64 @@
+# Build macOS artifact — on-demand, build-only.
+
+name: Build macOS (artifact)
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: "Target macOS Architecture"
+        required: true
+        type: choice
+        default: "arm64"
+        options:
+          - "arm64"
+          - "x86_64"
+          - "universal"
+
+concurrency:
+  group: build-artifact-macos-${{ github.ref }}-${{ inputs.arch }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build macOS (${{ inputs.arch || 'arm64' }})
+    runs-on: ${{ (inputs.arch == 'x86_64') && 'macos-15-intel' || 'macos-latest' }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set short commit hash
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Extract version
+        id: extract_version
+        uses: ./.github/actions/extract-version
+
+      - name: Build ad-hoc .app and .dmg
+        run: bash scripts/build-macos.sh ${{ inputs.arch || 'arm64' }} --ad-hoc --no-credentials-file --no-notarize --skip-notary-keychain
+
+      - name: Ensure DMG and Zip bundles exist
+        working-directory: build-output
+        run: |
+          if [ ! -f "Pylux.dmg" ] && [ -d "Pylux.app" ]; then
+            hdiutil create -srcfolder "Pylux.app" -volname "Pylux" "Pylux.dmg"
+          fi
+          zip -ry Pylux-macos-${{ inputs.arch || 'arm64' }}.zip Pylux.app
+
+      - name: Upload macOS DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
+          path: build-output/Pylux.dmg
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload macOS Zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: build-output/Pylux-macos-${{ inputs.arch || 'arm64' }}.zip
+          retention-days: 14
+          if-no-files-found: error

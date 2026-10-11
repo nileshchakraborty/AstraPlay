@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="Pylux" Language="1033" Version="$(var.Version)" Manufacturer="Forward Technologies" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="$(var.Platform)" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Pylux is already installed." />
+    <Media Id="1" Cabinet="pylux.cab" EmbedCab="yes" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="pylux">
+          <Component Id="MainExecutable" Guid="*" Win64="yes">
+            <File Id="PyluxEXE" Source="$(var.SourceExe)" KeyPath="yes" />
+            <RemoveFile Id="PurgeBakFiles" Name="*.bak" On="both" />
+            <RemoveFile Id="PurgeOldFiles" Name="*.old" On="both" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature Id="MainFeature" Title="Pylux" Level="1">
+      <ComponentRef Id="MainExecutable" />
+    </Feature>
+  </Product>
+</Wix>
