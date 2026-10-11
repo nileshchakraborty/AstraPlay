@@ -4,7 +4,7 @@ set -euo pipefail
 
 ALLYX_HOST="${ALLYX_HOST:-allyx.local}"
 ALLYX_USER="${ALLYX_USER:-niles}"
-REPO="nileshchakraborty/Pylux"
+REPO="nileshchakraborty/AstraPlay"
 
 echo "=== AstraPlay Ally X Deployment ==="
 

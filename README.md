@@ -2,9 +2,9 @@
 
 # AstraPlay
 
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/nileshchakraborty/Pylux/blob/master/LICENSES/AGPL-3.0-only-OpenSSL.txt)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20(x64%20%2B%20ARM64)%20%7C%20macOS%20(Apple%20Silicon%20%2B%20Intel)%20%7C%20Linux%20(x86__64%20%2B%20ARM64)%20%7C%20Android%20%7C%20iOS-brightgreen)](https://github.com/nileshchakraborty/Pylux/releases)
-[![Build Status](https://github.com/nileshchakraborty/Pylux/actions/workflows/release-on-merge.yml/badge.svg)](https://github.com/nileshchakraborty/Pylux/actions/workflows/release-on-merge.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/nileshchakraborty/AstraPlay/blob/master/LICENSES/AGPL-3.0-only-OpenSSL.txt)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20(x64%20%2B%20ARM64)%20%7C%20macOS%20(Apple%20Silicon%20%2B%20Intel)%20%7C%20Linux%20(x86__64%20%2B%20ARM64)%20%7C%20Android%20%7C%20iOS-brightgreen)](https://github.com/nileshchakraborty/AstraPlay/releases)
+[![Build Status](https://github.com/nileshchakraborty/AstraPlay/actions/workflows/release-on-merge.yml/badge.svg)](https://github.com/nileshchakraborty/AstraPlay/actions/workflows/release-on-merge.yml)
 
 **AstraPlay is an open-source, multi-device PS4 and PS5 Remote Play client for Windows, macOS, Linux, SteamOS, Bazzite, Android, and iOS.** It features seamless console discovery, Internet Play, automatic background update checking, and high-performance hardware-accelerated AV1 / HEVC / H.264 video decoding.
 
@@ -12,15 +12,15 @@
 
 ## Downloads & Supported Platforms
 
-All release packages and binary checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/Pylux/releases/latest).
+All release packages and binary checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
 
 | Operating System | Architectures | Download Packages | Description |
 | :--- | :--- | :--- | :--- |
-| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X)<br>**ARM64** (Snapdragon X Elite, WoA) | [`.msi Installer (x64)`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.exe Setup Installer`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`astraplay.exe Standalone`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Full Inno Setup installer, WiX `.msi` package, portable ZIP with bundled Qt6 & FFmpeg DLLs, or standalone executable for the in-app updater. |
-| **macOS** | **Apple Silicon** (`arm64`: M1/M2/M3/M4)<br>**Intel** (`x86_64`) | [`.dmg Disk Image`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip App Bundle`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Native drag-and-drop `.dmg` installers and portable `AstraPlay.app` archives for both Apple Silicon and Intel Macs. |
-| **Linux / Handhelds** | **x86_64** (Desktop, SteamOS, Bazzite)<br>**ARM64** (`aarch64`: Raspberry Pi 5, ARM SBCs) | [`.AppImage Executable`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip Portable Package`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Standalone portable AppImage executables and Steam-ready ZIP packages with `launch.sh`. |
-| **Android** | **ARM64 / Universal** (Phones, Tablets, Android TV) | [`.apk Package`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Sideloadable APK and Google Play Store App Bundle (`com.astraplay.stream`). |
-| **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Sideloadable IPA (install via AltStore, Sideloadly, or TrollStore) or TestFlight. |
+| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X)<br>**ARM64** (Snapdragon X Elite, WoA) | [`.msi Installer (x64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`astraplay.exe Standalone`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Full Inno Setup installer, WiX `.msi` package, portable ZIP with bundled Qt6 & FFmpeg DLLs, or standalone executable for the in-app updater. |
+| **macOS** | **Apple Silicon** (`arm64`: M1/M2/M3/M4)<br>**Intel** (`x86_64`) | [`.dmg Disk Image`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native drag-and-drop `.dmg` installers and portable `AstraPlay.app` archives for both Apple Silicon and Intel Macs. |
+| **Linux / Handhelds** | **x86_64** (Desktop, SteamOS, Bazzite)<br>**ARM64** (`aarch64`: Raspberry Pi 5, ARM SBCs) | [`.AppImage Executable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Standalone portable AppImage executables and Steam-ready ZIP packages with `launch.sh`. |
+| **Android** | **ARM64 / Universal** (Phones, Tablets, Android TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable APK and Google Play Store App Bundle (`com.astraplay.stream`). |
+| **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable IPA (install via AltStore, Sideloadly, or TrollStore) or TestFlight. |
 
 ---
 
@@ -64,7 +64,7 @@ Comprehensive technical documentation for AstraPlay is available in the reposito
 
 ### Linux / macOS
 ```bash
-git clone --recursive https://github.com/nileshchakraborty/Pylux.git
+git clone --recursive https://github.com/nileshchakraborty/AstraPlay.git
 cd Pylux
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build

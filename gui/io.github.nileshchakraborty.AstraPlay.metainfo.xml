@@ -9,8 +9,8 @@
   <developer id="com.astraplay">
     <name>AstraPlay Contributors</name>
   </developer>
-  <url type="homepage">https://github.com/nileshchakraborty/Pylux</url>
-  <url type="bugtracker">https://github.com/nileshchakraborty/Pylux/issues</url>
+  <url type="homepage">https://github.com/nileshchakraborty/AstraPlay</url>
+  <url type="bugtracker">https://github.com/nileshchakraborty/AstraPlay/issues</url>
   <description>
     <p>
       AstraPlay is a free, community-built, open source remote play client forked from Chiaki.

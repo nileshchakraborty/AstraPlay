@@ -23,7 +23,7 @@
 #include <shellapi.h>
 #endif
 
-static const QString REPO_RELEASES_API = QStringLiteral("https://api.github.com/repos/nileshchakraborty/Pylux/releases/latest");
+static const QString REPO_RELEASES_API = QStringLiteral("https://api.github.com/repos/nileshchakraborty/AstraPlay/releases/latest");
 
 UpdateManager::UpdateManager(Settings *settings, QObject *parent)
     : QObject(parent)
