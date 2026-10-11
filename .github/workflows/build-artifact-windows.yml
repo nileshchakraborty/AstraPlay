@@ -298,12 +298,12 @@ jobs:
 
       - name: Package Pylux ARM64
         run: |
-          mkdir pylux-arm64
-          cp build/gui/chiaki.exe pylux-arm64/pylux.exe
+          mkdir pylux
+          cp build/gui/chiaki.exe pylux/pylux.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
-          echo pylux-arm64/pylux.exe > tmp0.txt
+          echo pylux/pylux.exe > tmp0.txt
           while [ -e tmp0.txt ]
           do
             cp tmp0.txt tmp.txt
@@ -315,14 +315,14 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
-                cp "$dep" pylux-arm64/
+              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+                cp "$dep" pylux/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
-          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux-arm64/pylux.exe
-          find pylux-arm64 -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux/pylux.exe
+          find pylux -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
             echo "$plugin" >> tmp0.txt
           done
           while [ -e tmp0.txt ] && [ -s tmp0.txt ]
@@ -336,8 +336,8 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
-                cp "$dep" pylux-arm64/
+              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+                cp "$dep" pylux/
                 echo "$dep" >> tmp0.txt
               fi
             done
@@ -346,13 +346,14 @@ jobs:
 
       - name: Create portable zip
         run: |
-          zip -r pylux-windows-arm64.zip pylux-arm64
+          zip -r pylux-windows-arm64.zip pylux
 
       - name: Extract version
         id: extract_version
         uses: ./.github/actions/extract-version
 
       - name: Compile Inno Setup ARM64 Installer
+        continue-on-error: true
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: "scripts/chiaki-ng.iss"

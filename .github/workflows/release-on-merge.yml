@@ -276,12 +276,12 @@ jobs:
 
       - name: Package Pylux ARM64 Runtime
         run: |
-          mkdir -p pylux-arm64
-          cp build/gui/chiaki.exe pylux-arm64/pylux.exe
+          mkdir -p pylux
+          cp build/gui/chiaki.exe pylux/pylux.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
-          echo pylux-arm64/pylux.exe > tmp0.txt
+          echo pylux/pylux.exe > tmp0.txt
           while [ -e tmp0.txt ]
           do
             cp tmp0.txt tmp.txt
@@ -293,14 +293,14 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
-                cp "$dep" pylux-arm64/
+              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+                cp "$dep" pylux/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
-          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux-arm64/pylux.exe
-          find pylux-arm64 -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux/pylux.exe
+          find pylux -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
             echo "$plugin" >> tmp0.txt
           done
           while [ -e tmp0.txt ] && [ -s tmp0.txt ]
@@ -314,16 +314,17 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
-                cp "$dep" pylux-arm64/
+              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+                cp "$dep" pylux/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
           rm -f tmp0.txt tmp.txt
-          zip -r pylux-windows-arm64.zip pylux-arm64
+          zip -r pylux-windows-arm64.zip pylux
 
       - name: Compile Inno Setup ARM64 Installer
+        continue-on-error: true
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: "scripts/chiaki-ng.iss"
@@ -332,7 +333,7 @@ jobs:
       - name: Stage Windows ARM64 Artifacts
         run: |
           mkdir -p windows_arm64_staging
-          cp pylux-arm64/pylux.exe windows_arm64_staging/pylux-windows-arm64.exe
+          cp pylux/pylux.exe windows_arm64_staging/pylux-windows-arm64.exe
           cp pylux-windows-arm64.zip windows_arm64_staging/
           if [ -f pylux-windows-installer.exe ]; then
             cp pylux-windows-installer.exe windows_arm64_staging/pylux-windows-arm64-installer.exe
@@ -807,13 +808,7 @@ jobs:
             # x64 MSI
             if [ -f dist/pylux.exe ]; then
               echo "Compiling Windows x64 MSI installer..."
-              wixl -v -D SourceExe="dist/pylux.exe" -D Platform="x64" -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi scripts/pylux.wxs || echo "wixl x64 failed, skipping MSI generation"
-            fi
-
-            # ARM64 MSI
-            if [ -f dist/pylux-windows-arm64.exe ]; then
-              echo "Compiling Windows ARM64 MSI installer..."
-              wixl -v -D SourceExe="dist/pylux-windows-arm64.exe" -D Platform="arm64" -D Version="${MSI_VER}" -o dist/pylux-windows-arm64.msi scripts/pylux.wxs || echo "wixl ARM64 failed, skipping ARM64 MSI generation"
+              wixl --arch x64 -v -D SourceExe="dist/pylux.exe" -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi scripts/pylux.wxs || echo "wixl x64 failed, skipping MSI generation"
             fi
           fi
 

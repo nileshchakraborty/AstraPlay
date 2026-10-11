@@ -1,73 +1,101 @@
-
 ![Pylux Logo](pylux-logo.png)
 
 # Pylux
 
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/ForWard-Technologies-LLC/Pylux/blob/master/LICENSES/AGPL-3.0-only-OpenSSL.txt)
-[![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux-brightgreen)](https://github.com/ForWard-Technologies-LLC/Pylux/releases)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/nileshchakraborty/Pylux/blob/master/LICENSES/AGPL-3.0-only-OpenSSL.txt)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20(x64%20%2B%20ARM64)%20%7C%20macOS%20(Apple%20Silicon%20%2B%20Intel)%20%7C%20Linux%20(x86__64%20%2B%20ARM64)%20%7C%20Android%20%7C%20iOS-brightgreen)](https://github.com/nileshchakraborty/Pylux/releases)
+[![Build Status](https://github.com/nileshchakraborty/Pylux/actions/workflows/release-on-merge.yml/badge.svg)](https://github.com/nileshchakraborty/Pylux/actions/workflows/release-on-merge.yml)
 [![Reddit: r/Pylux](https://img.shields.io/badge/Reddit-r%2FPylux-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/Pylux/)
 
-**Pylux is a free, open-source, community build PS4 and PS5 Remote Play client for Android, Android TV, iOS, macOS, Windows, Linux, and Steam Deck.** It focuses on app-store installs, Internet Play (streaming the game catalog or your owned games), automatic console discovery, and a touch-friendly mobile UI — all from one community-maintained codebase.
+**Pylux is an open-source, multi-device PS4 and PS5 Remote Play client for Windows, macOS, Linux, SteamOS, Bazzite, Android, and iOS.** It features seamless console discovery, Internet Play, automatic background update checking, and high-performance hardware-accelerated AV1 / HEVC / H.264 video decoding.
 
-## Download
+---
 
-<a href="https://play.google.com/store/apps/details?id=com.pylux.stream"><img src="assets/google-play-badge.svg" height="50" alt="Get it on Google Play"></a>&nbsp;<a href="https://www.dropbox.com/scl/fi/wf9cr349acdwkih0syrva/pylux-windows-installer-latest.exe?rlkey=m2egtuj8z7f5se6405gg09wct&dl=1"><img src="assets/windows-installer-badge.svg" height="50" alt="Download for Windows"></a>
+## Downloads & Supported Platforms
 
-<a href="https://apps.apple.com/us/app/pylux-remote-play/id6761292658"><img src="assets/app-store-badge.svg" height="50" alt="Download on the App Store"></a>&nbsp;<a href="https://apps.apple.com/us/app/pylux-remote-play/id6761292658"><img src="assets/mac-app-store-badge.svg" height="50" alt="Download on the Mac App Store"></a>
+All release packages and binary checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/Pylux/releases/latest).
 
-<a href="https://flathub.org/apps/io.github.ForWard_Technologies_LLC.Pylux"><img src="assets/flathub-badge.svg" height="50" alt="Get it on Flathub"></a>&nbsp;<a href="https://www.dropbox.com/scl/fi/wi8bjilwiklv7fde0b4ea/pylux-latest.AppImage?rlkey=3xne4ltuiq54ogfmng4gq24mp&dl=1"><img src="assets/linux-appimage-badge.svg" height="50" alt="Download AppImage"></a>
+| Operating System | Architectures | Download Packages | Description |
+| :--- | :--- | :--- | :--- |
+| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X)<br>**ARM64** (Snapdragon X Elite, WoA) | [`.msi Installer (x64)`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.exe Setup Installer`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`pylux.exe Standalone`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Full Inno Setup installer, WiX `.msi` package, portable ZIP with bundled Qt6 & FFmpeg DLLs, or standalone executable for the in-app updater. |
+| **macOS** | **Apple Silicon** (`arm64`: M1/M2/M3/M4)<br>**Intel** (`x86_64`) | [`.dmg Disk Image`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip App Bundle`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Native drag-and-drop `.dmg` installers and portable `Pylux.app` archives for both Apple Silicon and Intel Macs. |
+| **Linux / Handhelds** | **x86_64** (Desktop, SteamOS, Bazzite)<br>**ARM64** (`aarch64`: Raspberry Pi 5, ARM SBCs) | [`.AppImage Executable`](https://github.com/nileshchakraborty/Pylux/releases/latest)<br>[`.zip Portable Package`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Standalone portable AppImage executables and Steam-ready ZIP packages with `launch.sh`. |
+| **Android** | **ARM64 / Universal** (Phones, Tablets, Android TV) | [`.apk Debug Package`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Sideloadable APK package. |
+| **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Unsigned Package`](https://github.com/nileshchakraborty/Pylux/releases/latest) | Sideloadable unsigned IPA (install via AltStore, Sideloadly, or TrollStore). |
 
-For full release notes and all downloads see the [Releases page](https://github.com/ForWard-Technologies-LLC/Pylux/releases).
-
-## Screenshots
-
-<p align="center">
-  <img src="assets/screenshots/android-phones/01.png" alt="Pylux screenshot 1" width="45%" />
-  <img src="assets/screenshots/android-phones/02.png" alt="Pylux screenshot 2" width="45%" />
-  <img src="assets/screenshots/android-phones/03.png" alt="Pylux screenshot 3" width="45%" />
-  <img src="assets/screenshots/android-phones/04.png" alt="Pylux screenshot 4" width="45%" />
-</p>
+---
 
 ## Features
 
-- **Internet Play** — stream games from the game catalog or your owned game library
-- **Remote Play** — low-latency streaming of your PlayStation console to any supported device
-- **Cross-platform** — Android, Android TV, iOS, iPadOS, macOS, Windows, Linux, Steam Deck
-- **App-store installs** — available on Google Play, App Store, Mac App Store, and [Flathub](https://flathub.org/apps/io.github.ForWard_Technologies_LLC.Pylux) (Linux / Steam Deck)
-- **Automatic console discovery and registration**
-- **Touch-friendly controls** — mobile-optimized UI for phones and tablets
+- **Multi-Device Support**: Native packages for Windows (x64 & ARM64), macOS (Apple Silicon & Intel), Linux (x86_64 & aarch64), Android, and iOS.
+- **Handheld Optimized**: Native controller support, gamepad navigation, and Quick Access Menu integrations for the ROG Xbox Ally X, Steam Deck, Legion Go, and Claw.
+- **In-App Auto-Updater**: Built-in background update checker (`UpdateManager`) that fetches latest releases, downloads packages, purges stale `.bak` files, and applies updates seamlessly.
+- **Console Discovery**: Automatic broadcast discovery of PS4 and PS5 consoles on local networks with PIN pairing.
+- **Internet Play**: Connect and stream from registered consoles over WAN and mobile networks.
+- **Modern Hardware Decoding**: Accelerated decoding with Vulkan, Metal, D3D11VA, VAAPI, VideoToolbox, and AMediaCodec.
+- **Touch & Gamepad Controls**: On-screen overlay controls for touch devices alongside full DualSense, DualShock 4, and Xbox controller support with haptics.
 
-## Documentation
+---
 
-Full setup guides, configuration, and controller options at **[forward-technologies-llc.github.io/Pylux](https://forward-technologies-llc.github.io/Pylux/)**.
+## Project Specifications & Architecture
 
-## Contributing
+Comprehensive technical documentation for Pylux is available in the repository root:
 
-Fork the repo, create a branch, and open a pull request targeting `release/beta`. When merged, CI automatically builds and deploys to all platforms (Google Play, TestFlight, App Store Connect, Dropbox).
+- [**PRD.md**](PRD.md) — Product Requirements Document and roadmap
+- [**DESIGN.md**](DESIGN.md) — UI/UX guidelines, design systems, and handheld input paradigms
+- [**ARCHITECTURE.md**](ARCHITECTURE.md) — System architecture, cross-platform subsystems, and build pipeline
+- [**DATA.md**](DATA.md) — Data storage, configuration models, and state persistence
+- [**SECURITY.md**](SECURITY.md) — Security policies, cryptographic keys, credentials, and network privacy
+- [**CODE_STYLE.md**](CODE_STYLE.md) — Code style guides for C++, Qt, QML, Python, and shell scripts
+- [**TESTING.md**](TESTING.md) — Testing strategy, unit tests, integration tests, and hardware validation
+- [**AGENTS.md**](AGENTS.md) — Autonomous development agents, operating instructions, and CI/CD policies
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and local development setup.
+---
 
-## What needs work
+## Building from Source
 
-- **iOS** needs the most work — cleanup, hardening, and refactors are all in scope.
-- **Android** is more stable but still benefits from fixes and polish.
-- **Desktop (Qt)** is where merge pain with [upstream Chiaki](https://github.com/streetpea/chiaki-ng) shows up most. Prefer adding new code in new files when practical and skip sweeping rewrites that block pulling upstream fixes.
-- **Cherry-picks from upstream** are welcome. If you spot something upstream has that Pylux is missing, open an issue or try adding it yourself.
+### Prerequisites
+- CMake 3.25+
+- Ninja build system
+- Python 3.10+ (with `protobuf`)
+- Qt 6.6+ (`Core`, `Gui`, `Quick`, `Qml`, `Network`, `Svg`, `Widgets`)
+- FFmpeg 6.0+ (or bundled static libraries)
+- SDL 2.0+
 
-AI-assisted contributions are welcome — just follow good coding standards and fully test your changes before submitting.
+### Linux / macOS
+```bash
+git clone --recursive https://github.com/nileshchakraborty/Pylux.git
+cd Pylux
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
-## Why Pylux?
+### Windows (MSYS2 MinGW64 or ClangARM64)
+```bash
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
-I told ChatGPT to name the project and promised I'd actually use the first thing it said. It said Pylux...
+---
 
-## Legal & responsible use
+## ROG Xbox Ally X Deployment Helper
 
-Pylux is intended for use with games and content you own or are licensed to use, on hardware you own, with a valid account or subscription. It does not circumvent copy protection or facilitate piracy.
+To push and test the latest build on an ROG Xbox Ally X Windows host over SSH:
 
-This project is not endorsed or certified by the console manufacturer. All trademarks belong to their respective owners.
+```bash
+bash scripts/push-to-allyx.sh
+```
 
-For questions about this project or responsible use, contact [forward.technologies.llc@gmail.com](mailto:forward.technologies.llc@gmail.com).
+---
+
+## Responsible Use
+
+Pylux is intended for use with games and hardware you own or are legally licensed to access with a valid account. It does not circumvent copy protection, distribute proprietary firmware, or facilitate piracy.
+
+This project is an independent community project and is not endorsed or certified by Sony Interactive Entertainment Inc. PlayStation, PS4, PS5, DualSense, and DualShock are registered trademarks of Sony Interactive Entertainment Inc.
+
+---
 
 ## Credits
 
-Pylux is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng). Special thanks to the original Chiaki development team and the chiaki-ng maintainers for their excellent foundational work. Pylux extends that work with a focus on app-store distribution, mobile and Android TV support, and Internet Play.
+Pylux is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng). Special thanks to the Chiaki and chiaki-ng maintainers and community contributors for their foundational Remote Play engineering.
