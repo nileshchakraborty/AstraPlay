@@ -227,8 +227,18 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 		preferenceScreen.findPreference<Preference>(getString(R.string.preferences_export_settings_key))?.setOnPreferenceClickListener { exportSettings(); true }
 		preferenceScreen.findPreference<Preference>(getString(R.string.preferences_import_settings_key))?.setOnPreferenceClickListener { importSettings(); true }
 		
-		// View License
+		// View License & Legal
 		preferenceScreen.findPreference<Preference>("view_license")?.setOnPreferenceClickListener { viewLicense(); true }
+		preferenceScreen.findPreference<Preference>("view_source_code")?.setOnPreferenceClickListener {
+			val browserIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/nileshchakraborty/AstraPlay"))
+			startActivity(browserIntent)
+			true
+		}
+		preferenceScreen.findPreference<Preference>("view_privacy_policy")?.setOnPreferenceClickListener {
+			val browserIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://nileshchakraborty.github.io/AstraPlay/privacy"))
+			startActivity(browserIntent)
+			true
+		}
 		
 		// Unified PSN Login (for both cloud streaming and remote play)
 		val psnLoginPreference = preferenceScreen.findPreference<Preference>("psn_login")

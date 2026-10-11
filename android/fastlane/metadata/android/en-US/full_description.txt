@@ -1,0 +1,19 @@
+AstraPlay is a high-performance, open-source Remote Play and Cloud Streaming client for PlayStation 4 and PlayStation 5 consoles, designed for mobile, tablet, and Android TV devices.
+
+KEY FEATURES:
+• High Performance Streaming: Up to 1080p 60 FPS (PS4/PS5) and 4K (PSCloud) with low-latency hardware decoding (H.264 & HEVC/H.265).
+• Cloud Streaming Support: Stream games from your library or catalog directly without leaving your couch.
+• Automatic Discovery: Effortlessly discover and wake up registered consoles across your local network.
+• Mobile & Touch Friendly: Customizable on-screen touch controls, virtual touchpad, and gyroscope/motion sensor support.
+• Full Controller Support: Compatible with Bluetooth controllers, USB gamepads, and DualSense features including rumble and haptics.
+• Android TV Optimized: Full DPAD navigation, leanback launcher support, and TV-friendly interface.
+
+SETUP REQUIREMENTS:
+1. A PlayStation 4 or PlayStation 5 console on your network (or supported cloud streaming account).
+2. For remote play over the internet, port forwarding or a VPN to your home network is recommended.
+
+DISCLAIMER & OPEN SOURCE:
+AstraPlay is an independent, community-driven open-source project licensed under the GNU Affero General Public License v3 (AGPL-3.0). This application is NOT affiliated with, endorsed by, or approved by Sony Interactive Entertainment Inc. All trademarks (PlayStation, PS5, PS4, DualSense) are the property of their respective owners.
+
+The full source code is publicly accessible at:
+https://github.com/nileshchakraborty/AstraPlay

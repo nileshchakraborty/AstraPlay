@@ -10,6 +10,7 @@ nav:
     - Configuration: setup/configuration.md
     - Remote Connection: setup/remoteconnection.md
     - Controller Options: setup/controlling.md
+  - Privacy Policy: privacy.md
 
 theme:
   favicon: images/astraplay-icon.png

@@ -286,6 +286,16 @@
         app:key="category_about"
         app:title="@string/preferences_category_title_about">
         <Preference
+            app:key="view_source_code"
+            app:summary="https://github.com/nileshchakraborty/AstraPlay"
+            app:title="@string/preferences_source_code_title"
+            app:icon="@drawable/ic_export"/>
+        <Preference
+            app:key="view_privacy_policy"
+            app:summary="https://nileshchakraborty.github.io/AstraPlay/privacy"
+            app:title="@string/preferences_privacy_policy_title"
+            app:icon="@drawable/ic_export"/>
+        <Preference
             app:key="view_license"
             app:summary="@string/preferences_view_license_summary"
             app:title="@string/preferences_view_license_title"

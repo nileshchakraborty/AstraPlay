@@ -84,6 +84,8 @@
     <string name="preferences_category_title_about">About</string>
     <string name="preferences_view_license_title">License Agreement</string>
     <string name="preferences_view_license_summary">View license terms and disclaimers</string>
+    <string name="preferences_source_code_title">Source Code (AGPLv3)</string>
+    <string name="preferences_privacy_policy_title">Privacy Policy</string>
     <string name="preferences_registered_hosts_summary">Currently registered: %d</string>
     <string name="preferences_resolution_title">Resolution</string>
     <string name="preferences_fps_title">FPS</string>
