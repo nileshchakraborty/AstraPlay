@@ -478,11 +478,18 @@ Item {
     Connections {
         target: UpdateManager
         function onUpdateCheckCompleted(hasUpdate, userInitiated, version) {
-            if (hasUpdate) {
-                // If update is available, prompt user non-intrusively via updateDialog
+            if (userInitiated) {
+                // User explicitly clicked "Check for Updates" — show dialog immediately.
                 updateDialog.open();
-            } else if (userInitiated) {
-                // If user clicked Check for Updates manually and no update found, updateDialog is already open and showing up to date status
+            } else if (hasUpdate) {
+                // Background auto-check found an update. Only interrupt if the user is
+                // already on the main view (stack depth == 1). If they are inside the
+                // Console Setup Wizard, Settings, or any other dialog, don't intrude —
+                // the settings button badge already indicates an update is available.
+                if (stack.depth <= 1) {
+                    updateDialog.open();
+                }
+                // Otherwise the badge on the Settings button will signal the update.
             }
         }
     }
