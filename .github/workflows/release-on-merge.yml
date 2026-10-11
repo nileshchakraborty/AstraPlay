@@ -21,9 +21,9 @@ concurrency:
 
 jobs:
   # =========================================================================
-  # 1. WINDOWS BUILD (MSYS2 MinGW64 + Inno Setup)
+  # 1. WINDOWS X86_64 BUILD (MSYS2 MinGW64 + Inno Setup)
   # =========================================================================
-  build-windows:
+  build-windows-x64:
     name: Build Windows x86_64
     runs-on: windows-latest
     defaults:
@@ -168,26 +168,189 @@ jobs:
           path: "scripts/chiaki-ng.iss"
           options: /O+
 
-      - name: Stage Windows Artifacts
+      - name: Stage Windows x64 Artifacts
         run: |
           mkdir -p windows_staging
           cp pylux/pylux.exe windows_staging/
           cp pylux.zip windows_staging/
           cp pylux-windows-installer.exe windows_staging/
 
-      - name: Upload Windows Artifacts
+      - name: Upload Windows x64 Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-windows-build
+          name: pylux-windows-x64-build
           path: windows_staging/
           retention-days: 7
           if-no-files-found: error
 
   # =========================================================================
-  # 2. MACOS BUILD (Apple Silicon .app + .dmg + .zip)
+  # 2. WINDOWS ARM64 BUILD (MSYS2 ClangARM64 + Inno Setup)
   # =========================================================================
-  build-macos:
-    name: Build macOS Apple Silicon
+  build-windows-arm64:
+    name: Build Windows ARM64
+    runs-on: windows-11-arm
+    continue-on-error: true
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Disable autocrlf
+        shell: pwsh
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: clangarm64
+          update: true
+          install: git diffutils
+          pacboy: >-
+            ca-certificates:p
+            cc:p
+            cmake:p
+            curl:p
+            diffutils:p
+            fast_float:p
+            fftw:p
+            hidapi:p
+            json-c:p
+            lcms2:p
+            libdovi:p
+            meson:p
+            miniupnpc:p
+            gcc:p
+            nasm:p
+            ninja:p
+            openssl:p
+            opus:p
+            pkgconf:p
+            protobuf:p
+            python:p
+            python-psutil:p
+            python-glad:p
+            python-jinja:p
+            python-pip:p
+            qt6-base:p
+            qt6-declarative:p
+            qt6-svg:p
+            SDL2:p
+            shaderc:p
+            speexdsp:p
+            spirv-cross:p
+            vulkan:p
+            vulkan-headers:p
+
+      - name: Install Python dependencies
+        run: |
+          pip install protobuf
+          pacman -S git make unzip zip jq --noconfirm
+
+      - name: Build libplacebo for ARM64
+        run: |
+          scripts/build-libplacebo-windows-arm.sh
+
+      - name: Setup ffmpeg for ARM64
+        run: |
+          curl -LO https://github.com/streetpea/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1.zip
+          unzip ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1.zip
+          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/bin/." /clangarm64/bin
+          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/include/." /clangarm64/include
+          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/lib/." /clangarm64/lib
+
+      - name: Add QmlWebEngine Import
+        run: |
+          cp scripts/qtwebengine_import.qml gui/src/qml/
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
+
+      - name: Build Pylux ARM64
+        run: |
+          cmake --build build --config Release --clean-first --target chiaki
+
+      - name: Package Pylux ARM64 Runtime
+        run: |
+          mkdir -p pylux-arm64
+          cp build/gui/chiaki.exe pylux-arm64/pylux.exe
+          export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
+          export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
+          export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
+          echo pylux-arm64/pylux.exe > tmp0.txt
+          while [ -e tmp0.txt ]
+          do
+            cp tmp0.txt tmp.txt
+            rm tmp0.txt
+            sort -u tmp.txt -o tmp.txt
+            ldd $(<tmp.txt) | awk '($2 == "=>") { print $3 }' | while read -r dep; do
+              case "$dep" in
+                ""|*"/Windows/"*|*"/WINDOWS/"*|*"/System32/"*|*"/SYSTEM32/"*|*"/SysWOW64/"*|*"/SYSWOW64/"*)
+                  continue
+                  ;;
+              esac
+              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
+                cp "$dep" pylux-arm64/
+                echo "$dep" >> tmp0.txt
+              fi
+            done
+          done
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux-arm64/pylux.exe
+          find pylux-arm64 -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+            echo "$plugin" >> tmp0.txt
+          done
+          while [ -e tmp0.txt ] && [ -s tmp0.txt ]
+          do
+            cp tmp0.txt tmp.txt
+            rm tmp0.txt
+            sort -u tmp.txt -o tmp.txt
+            ldd $(<tmp.txt) 2>/dev/null | awk '($2 == "=>") { print $3 }' | while read -r dep; do
+              case "$dep" in
+                ""|*"/Windows/"*|*"/WINDOWS/"*|*"/System32/"*|*"/SYSTEM32/"*|*"/SysWOW64/"*|*"/SYSWOW64/"*)
+                  continue
+                  ;;
+              esac
+              if [ -f "$dep" ] && [ ! -e "pylux-arm64/${dep##*/}" ]; then
+                cp "$dep" pylux-arm64/
+                echo "$dep" >> tmp0.txt
+              fi
+            done
+          done
+          rm -f tmp0.txt tmp.txt
+          zip -r pylux-windows-arm64.zip pylux-arm64
+
+      - name: Compile Inno Setup ARM64 Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: "scripts/chiaki-ng.iss"
+          options: /O+
+
+      - name: Stage Windows ARM64 Artifacts
+        run: |
+          mkdir -p windows_arm64_staging
+          cp pylux-arm64/pylux.exe windows_arm64_staging/pylux-windows-arm64.exe
+          cp pylux-windows-arm64.zip windows_arm64_staging/
+          if [ -f pylux-windows-installer.exe ]; then
+            cp pylux-windows-installer.exe windows_arm64_staging/pylux-windows-arm64-installer.exe
+          fi
+
+      - name: Upload Windows ARM64 Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylux-windows-arm64-build
+          path: windows_arm64_staging/
+          retention-days: 7
+          if-no-files-found: error
+
+  # =========================================================================
+  # 3. MACOS APPLE SILICON BUILD (M1/M2/M3/M4 .dmg + .zip)
+  # =========================================================================
+  build-macos-arm64:
+    name: Build macOS Apple Silicon (arm64)
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
@@ -195,10 +358,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build macOS Bundle
+      - name: Build macOS Apple Silicon Bundle
         run: bash scripts/build-macos.sh arm64 --ad-hoc --no-credentials-file --no-notarize --skip-notary-keychain
 
-      - name: Package DMG and Zip
+      - name: Package Apple Silicon DMG and Zip
         working-directory: build-output
         run: |
           if [ ! -f "Pylux.dmg" ] && [ -d "Pylux.app" ]; then
@@ -206,19 +369,56 @@ jobs:
           fi
           zip -ry Pylux-macOS.zip Pylux.app
           mkdir -p macos_staging
-          cp Pylux.dmg macos_staging/
-          cp Pylux-macOS.zip macos_staging/
+          cp Pylux.dmg macos_staging/Pylux-macOS-arm64.dmg
+          cp Pylux.dmg macos_staging/Pylux-macOS.dmg
+          cp Pylux-macOS.zip macos_staging/Pylux-macOS-arm64.zip
+          cp Pylux-macOS.zip macos_staging/Pylux-macOS.zip
 
-      - name: Upload macOS Artifacts
+      - name: Upload macOS Apple Silicon Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-macos-build
+          name: pylux-macos-arm64-build
           path: build-output/macos_staging/
           retention-days: 7
           if-no-files-found: error
 
   # =========================================================================
-  # 3. LINUX BUILD (SteamOS / Bazzite / AppImage + Portable Zip)
+  # 4. MACOS INTEL BUILD (x86_64 .dmg + .zip)
+  # =========================================================================
+  build-macos-intel:
+    name: Build macOS Intel (x86_64)
+    runs-on: macos-15-intel
+    continue-on-error: true
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build macOS Intel Bundle
+        run: bash scripts/build-macos.sh x86_64 --ad-hoc --no-credentials-file --no-notarize --skip-notary-keychain
+
+      - name: Package Intel DMG and Zip
+        working-directory: build-output
+        run: |
+          if [ ! -f "Pylux.dmg" ] && [ -d "Pylux.app" ]; then
+            hdiutil create -srcfolder "Pylux.app" -volname "Pylux" "Pylux.dmg"
+          fi
+          zip -ry Pylux-macOS-x86_64.zip Pylux.app
+          mkdir -p macos_intel_staging
+          cp Pylux.dmg macos_intel_staging/Pylux-macOS-x86_64.dmg
+          cp Pylux-macOS-x86_64.zip macos_intel_staging/
+
+      - name: Upload macOS Intel Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylux-macos-intel-build
+          path: build-output/macos_intel_staging/
+          retention-days: 7
+          if-no-files-found: error
+
+  # =========================================================================
+  # 5. LINUX BUILD (SteamOS / Bazzite / AppImage + Portable Zip)
   # =========================================================================
   build-linux:
     name: Build Linux x86_64
@@ -265,7 +465,7 @@ jobs:
           if-no-files-found: error
 
   # =========================================================================
-  # 4. ANDROID BUILD (Sideloadable Debug APK)
+  # 6. ANDROID BUILD (Sideloadable Debug APK)
   # =========================================================================
   build-android:
     name: Build Android
@@ -326,7 +526,7 @@ jobs:
           if-no-files-found: error
 
   # =========================================================================
-  # 5. IOS BUILD (Unsigned Sideloadable IPA)
+  # 7. IOS BUILD (Unsigned Sideloadable IPA)
   # =========================================================================
   build-ios:
     name: Build iOS Unsigned IPA
@@ -438,13 +638,20 @@ jobs:
           if-no-files-found: error
 
   # =========================================================================
-  # 6. PUBLISH MULTI-PLATFORM RELEASE
+  # 8. PUBLISH MULTI-PLATFORM RELEASE
   # =========================================================================
   release:
     name: Create Release Tag and Publish Binaries
     runs-on: ubuntu-latest
-    needs: [build-windows, build-macos, build-linux, build-android, build-ios]
-    if: always() && !cancelled() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success' || needs.build-linux.result == 'success')
+    needs:
+      - build-windows-x64
+      - build-windows-arm64
+      - build-macos-arm64
+      - build-macos-intel
+      - build-linux
+      - build-android
+      - build-ios
+    if: always() && !cancelled() && (needs.build-windows-x64.result == 'success' || needs.build-macos-arm64.result == 'success' || needs.build-linux.result == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -500,47 +707,85 @@ jobs:
         run: |
           mkdir -p dist
 
-          # 1. Windows assets
-          if [ -d artifacts/pylux-windows-build ]; then
-            WIN_EXE=$(find artifacts/pylux-windows-build -maxdepth 2 -name "pylux.exe" | head -n 1)
+          # 1. Windows x64 assets
+          if [ -d artifacts/pylux-windows-x64-build ]; then
+            WIN_EXE=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "pylux.exe" | head -n 1)
             if [ -n "$WIN_EXE" ]; then
               cp "$WIN_EXE" dist/pylux.exe
               cp "$WIN_EXE" dist/pylux-windows-x64.exe
             fi
-            WIN_ZIP=$(find artifacts/pylux-windows-build -maxdepth 2 -name "pylux.zip" | head -n 1)
+            WIN_ZIP=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "pylux.zip" | head -n 1)
             if [ -n "$WIN_ZIP" ]; then
               cp "$WIN_ZIP" dist/pylux-windows-x64.zip
             fi
-            WIN_INST=$(find artifacts/pylux-windows-build -maxdepth 2 -name "*installer*.exe" | head -n 1)
+            WIN_INST=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "*installer*.exe" | head -n 1)
             if [ -n "$WIN_INST" ]; then
               cp "$WIN_INST" dist/pylux-windows-installer.exe
             fi
           fi
 
-          # 2. Windows MSI installer generation (wixl)
-          if [ -f dist/pylux.exe ]; then
-            sudo apt-get update && sudo apt-get install -y msitools || true
-            if command -v wixl >/dev/null 2>&1; then
-              VER_RAW="${{ steps.versioning.outputs.version }}"
-              MSI_VER=$(echo "$VER_RAW" | awk -F. '{printf "%d.%d.%d", ($1 ? $1 : 1), ($2 ? $2 : 0), ($3 ? $3 : 0)}')
-              echo "Compiling MSI installer with wixl for version ${MSI_VER}..."
-              wixl -v -D SourceExe="dist/pylux.exe" -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi scripts/pylux.wxs || echo "wixl failed, skipping MSI generation"
+          # 2. Windows ARM64 assets
+          if [ -d artifacts/pylux-windows-arm64-build ]; then
+            WIN_ARM_EXE=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64.exe" | head -n 1)
+            if [ -n "$WIN_ARM_EXE" ]; then
+              cp "$WIN_ARM_EXE" dist/pylux-windows-arm64.exe
+            fi
+            WIN_ARM_ZIP=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64.zip" | head -n 1)
+            if [ -n "$WIN_ARM_ZIP" ]; then
+              cp "$WIN_ARM_ZIP" dist/pylux-windows-arm64.zip
+            fi
+            WIN_ARM_INST=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64-installer.exe" | head -n 1)
+            if [ -n "$WIN_ARM_INST" ]; then
+              cp "$WIN_ARM_INST" dist/pylux-windows-arm64-installer.exe
             fi
           fi
 
-          # 3. macOS assets
-          if [ -d artifacts/pylux-macos-build ]; then
-            MAC_DMG=$(find artifacts/pylux-macos-build -name "*.dmg" | head -n 1)
-            if [ -n "$MAC_DMG" ]; then
-              cp "$MAC_DMG" dist/Pylux-macOS.dmg
+          # 3. MSI installer generation (wixl for both x64 and ARM64)
+          sudo apt-get update && sudo apt-get install -y msitools || true
+          if command -v wixl >/dev/null 2>&1; then
+            VER_RAW="${{ steps.versioning.outputs.version }}"
+            MSI_VER=$(echo "$VER_RAW" | awk -F. '{printf "%d.%d.%d", ($1 ? $1 : 1), ($2 ? $2 : 0), ($3 ? $3 : 0)}')
+            
+            # x64 MSI
+            if [ -f dist/pylux.exe ]; then
+              echo "Compiling Windows x64 MSI installer..."
+              wixl -v -D SourceExe="dist/pylux.exe" -D Platform="x64" -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi scripts/pylux.wxs || echo "wixl x64 failed, skipping MSI generation"
             fi
-            MAC_ZIP=$(find artifacts/pylux-macos-build -name "*.zip" | head -n 1)
-            if [ -n "$MAC_ZIP" ]; then
-              cp "$MAC_ZIP" dist/Pylux-macOS.zip
+
+            # ARM64 MSI
+            if [ -f dist/pylux-windows-arm64.exe ]; then
+              echo "Compiling Windows ARM64 MSI installer..."
+              wixl -v -D SourceExe="dist/pylux-windows-arm64.exe" -D Platform="arm64" -D Version="${MSI_VER}" -o dist/pylux-windows-arm64.msi scripts/pylux.wxs || echo "wixl ARM64 failed, skipping ARM64 MSI generation"
             fi
           fi
 
-          # 4. Linux assets
+          # 4. macOS Apple Silicon assets
+          if [ -d artifacts/pylux-macos-arm64-build ]; then
+            MAC_ARM_DMG=$(find artifacts/pylux-macos-arm64-build -name "*arm64.dmg" -o -name "Pylux-macOS.dmg" | head -n 1)
+            if [ -n "$MAC_ARM_DMG" ]; then
+              cp "$MAC_ARM_DMG" dist/Pylux-macOS-arm64.dmg
+              cp "$MAC_ARM_DMG" dist/Pylux-macOS.dmg
+            fi
+            MAC_ARM_ZIP=$(find artifacts/pylux-macos-arm64-build -name "*arm64.zip" -o -name "Pylux-macOS.zip" | head -n 1)
+            if [ -n "$MAC_ARM_ZIP" ]; then
+              cp "$MAC_ARM_ZIP" dist/Pylux-macOS-arm64.zip
+              cp "$MAC_ARM_ZIP" dist/Pylux-macOS.zip
+            fi
+          fi
+
+          # 5. macOS Intel assets
+          if [ -d artifacts/pylux-macos-intel-build ]; then
+            MAC_INTEL_DMG=$(find artifacts/pylux-macos-intel-build -name "*x86_64.dmg" | head -n 1)
+            if [ -n "$MAC_INTEL_DMG" ]; then
+              cp "$MAC_INTEL_DMG" dist/Pylux-macOS-x86_64.dmg
+            fi
+            MAC_INTEL_ZIP=$(find artifacts/pylux-macos-intel-build -name "*x86_64.zip" | head -n 1)
+            if [ -n "$MAC_INTEL_ZIP" ]; then
+              cp "$MAC_INTEL_ZIP" dist/Pylux-macOS-x86_64.zip
+            fi
+          fi
+
+          # 6. Linux assets
           if [ -d artifacts/pylux-linux-build ]; then
             LIN_AI=$(find artifacts/pylux-linux-build -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_AI" ]; then
@@ -552,7 +797,7 @@ jobs:
             fi
           fi
 
-          # 5. Android assets
+          # 7. Android assets
           if [ -d artifacts/pylux-android-build ]; then
             AND_APK=$(find artifacts/pylux-android-build -name "*.apk" | head -n 1)
             if [ -n "$AND_APK" ]; then
@@ -560,7 +805,7 @@ jobs:
             fi
           fi
 
-          # 6. iOS assets
+          # 8. iOS assets
           if [ -d artifacts/pylux-ios-build ]; then
             IOS_IPA=$(find artifacts/pylux-ios-build -name "*.ipa" | head -n 1)
             if [ -n "$IOS_IPA" ]; then
@@ -568,7 +813,7 @@ jobs:
             fi
           fi
 
-          # 7. Checksums
+          # 9. Checksums
           cd dist
           sha256sum * > SHA256SUMS.txt
           cd ..

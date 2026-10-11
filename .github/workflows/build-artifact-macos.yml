@@ -4,15 +4,25 @@ name: Build macOS (artifact)
 
 on:
   workflow_dispatch:
+    inputs:
+      arch:
+        description: "Target macOS Architecture"
+        required: true
+        type: choice
+        default: "arm64"
+        options:
+          - "arm64"
+          - "x86_64"
+          - "universal"
 
 concurrency:
-  group: build-artifact-macos-${{ github.ref }}
+  group: build-artifact-macos-${{ github.ref }}-${{ inputs.arch }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build macOS (artifact)
-    runs-on: macos-latest
+    name: Build macOS (${{ inputs.arch || 'arm64' }})
+    runs-on: ${{ (inputs.arch == 'x86_64') && 'macos-15-intel' || 'macos-latest' }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +36,8 @@ jobs:
         id: extract_version
         uses: ./.github/actions/extract-version
 
-      # Ad-hoc, no credentials file, no notarization, no notary keychain.
-      # build-macos.sh installs its own Homebrew deps and creates both Pylux.app and Pylux.dmg.
       - name: Build ad-hoc .app and .dmg
-        run: bash scripts/build-macos.sh arm64 --ad-hoc --no-credentials-file --no-notarize --skip-notary-keychain
+        run: bash scripts/build-macos.sh ${{ inputs.arch || 'arm64' }} --ad-hoc --no-credentials-file --no-notarize --skip-notary-keychain
 
       - name: Ensure DMG and Zip bundles exist
         working-directory: build-output
@@ -37,12 +45,12 @@ jobs:
           if [ ! -f "Pylux.dmg" ] && [ -d "Pylux.app" ]; then
             hdiutil create -srcfolder "Pylux.app" -volname "Pylux" "Pylux.dmg"
           fi
-          zip -ry Pylux-macos.zip Pylux.app
+          zip -ry Pylux-macos-${{ inputs.arch || 'arm64' }}.zip Pylux.app
 
       - name: Upload macOS DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-macOS-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
+          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
           path: build-output/Pylux.dmg
           retention-days: 14
           if-no-files-found: error
@@ -50,7 +58,7 @@ jobs:
       - name: Upload macOS Zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-macOS-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
-          path: build-output/Pylux-macos.zip
+          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: build-output/Pylux-macos-${{ inputs.arch || 'arm64' }}.zip
           retention-days: 14
           if-no-files-found: error
