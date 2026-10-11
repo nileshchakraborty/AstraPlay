@@ -14,7 +14,13 @@ endif()
 
 # CHIAKI_ENABLE_GUI_WEBENGINE: root CMakeLists.txt (OFF on Linux; App Store passes OFF via ASTRAPLAY_EXTRA_CMAKE_ARGS)
 if(CHIAKI_ENABLE_GUI_WEBENGINE)
-	find_package(Qt6 COMPONENTS WebEngineQuick)
+	# MinGW/MSYS2 Qt6 ships no WebEngine module: degrade to external-browser
+	# PSN login instead of failing configure where it is unavailable.
+	find_package(Qt6 QUIET COMPONENTS WebEngineQuick)
+	if(NOT Qt6WebEngineQuick_FOUND)
+		message(STATUS "Qt6 WebEngineQuick not found, building without embedded web engine (PSN login uses external browser)")
+		set(CHIAKI_ENABLE_GUI_WEBENGINE OFF)
+	endif()
 endif()
 find_package(Qt6 COMPONENTS DBus)
 
