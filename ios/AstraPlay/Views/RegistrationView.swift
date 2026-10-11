@@ -206,18 +206,20 @@ struct RegistrationView: View {
             }
         }
         .sheet(isPresented: $showingLoginSheet) {
-            LoginWebViewContainer(url: PsnAuthConstants.loginUrl) { npsso in
-                showingLoginSheet = false
-                PsnTokenManager.shared.exchangeNpsso(npsso: npsso) { result in
-                    DispatchQueue.main.async {
-                        switch result {
-                        case .success:
-                            let savedId = SecureStore.shared.accountId
-                            if !savedId.isEmpty {
-                                psnId = savedId
+            if let url = AstraPlayLoginService.shared.buildOAuthURL() {
+                LoginWebViewContainer(url: url) { npsso in
+                    showingLoginSheet = false
+                    Task.detached {
+                        let success = PsnTokenManager.shared.exchangeNpssoForTokens(npsso)
+                        await MainActor.run {
+                            if success {
+                                let savedId = SecureStore.shared.accountId
+                                if !savedId.isEmpty {
+                                    psnId = savedId
+                                }
+                            } else {
+                                resultMessage = "PSN login error: Failed to retrieve account ID"
                             }
-                        case .failure(let err):
-                            resultMessage = "PSN login error: \(err.localizedDescription)"
                         }
                     }
                 }

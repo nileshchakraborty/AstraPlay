@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: release-on-merge-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   # =========================================================================
@@ -26,6 +26,7 @@ jobs:
   build-windows-x64:
     name: Build Windows x86_64
     runs-on: windows-latest
+    timeout-minutes: 35
     defaults:
       run:
         shell: msys2 {0}
@@ -136,26 +137,6 @@ jobs:
             done
           done
           windeployqt6.exe --no-translations --qmldir=gui/src/qml astraplay/astraplay.exe
-          find astraplay -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
-            echo "$plugin" >> tmp0.txt
-          done
-          while [ -e tmp0.txt ] && [ -s tmp0.txt ]
-          do
-            cp tmp0.txt tmp.txt
-            rm tmp0.txt
-            sort -u tmp.txt -o tmp.txt
-            ldd $(<tmp.txt) 2>/dev/null | awk '($2 == "=>") { print $3 }' | while read -r dep; do
-              case "$dep" in
-                ""|*"/Windows/"*|*"/WINDOWS/"*|*"/System32/"*|*"/SYSTEM32/"*|*"/SysWOW64/"*|*"/SYSWOW64/"*)
-                  continue
-                  ;;
-              esac
-              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
-                cp "$dep" astraplay/
-                echo "$dep" >> tmp0.txt
-              fi
-            done
-          done
           rm -f tmp0.txt tmp.txt
 
       - name: Create Portable Zip
@@ -190,6 +171,7 @@ jobs:
     name: Build Windows ARM64
     runs-on: windows-11-arm
     continue-on-error: true
+    timeout-minutes: 35
     defaults:
       run:
         shell: msys2 {0}
@@ -300,26 +282,6 @@ jobs:
             done
           done
           windeployqt6.exe --no-translations --qmldir=gui/src/qml astraplay/astraplay.exe
-          find astraplay -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
-            echo "$plugin" >> tmp0.txt
-          done
-          while [ -e tmp0.txt ] && [ -s tmp0.txt ]
-          do
-            cp tmp0.txt tmp.txt
-            rm tmp0.txt
-            sort -u tmp.txt -o tmp.txt
-            ldd $(<tmp.txt) 2>/dev/null | awk '($2 == "=>") { print $3 }' | while read -r dep; do
-              case "$dep" in
-                ""|*"/Windows/"*|*"/WINDOWS/"*|*"/System32/"*|*"/SYSTEM32/"*|*"/SysWOW64/"*|*"/SYSWOW64/"*)
-                  continue
-                  ;;
-              esac
-              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
-                cp "$dep" astraplay/
-                echo "$dep" >> tmp0.txt
-              fi
-            done
-          done
           rm -f tmp0.txt tmp.txt
           zip -r astraplay-windows-arm64.zip astraplay
 
@@ -424,6 +386,7 @@ jobs:
   build-linux-x64:
     name: Build Linux x86_64
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Install Podman and Tools
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
@@ -472,6 +435,7 @@ jobs:
     name: Build Linux ARM64 (aarch64)
     runs-on: ubuntu-24.04-arm
     continue-on-error: true
+    timeout-minutes: 35
     steps:
       - name: Install Podman and Tools
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
@@ -728,6 +692,7 @@ jobs:
   release:
     name: Create Release Tag and Publish Binaries
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     needs:
       - build-windows-x64
       - build-windows-arm64
