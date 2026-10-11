@@ -3,7 +3,6 @@
 #ifdef CHIAKI_IS_MAC_APPSTORE
 
 #include "appreviewmanager.h"
-#include "donationmanager.h"
 
 #include <QGuiApplication>
 #include <QLoggingCategory>
@@ -18,10 +17,9 @@ constexpr qint64 kMinFirstStreamMs = 10LL * 60LL * 1000LL;          // 10 min
 constexpr qint64 kBetweenPromptsStreamMs = 60LL * 60LL * 1000LL;    // 60 min
 }
 
-AppReviewManager::AppReviewManager(Settings *settings, DonationManager *donationManager, QObject *parent)
+AppReviewManager::AppReviewManager(Settings *settings, QObject *parent)
     : QObject(parent)
     , m_settings(settings)
-    , m_donationManager(donationManager)
 {
 }
 
@@ -55,21 +53,15 @@ void AppReviewManager::requestReviewIfEligible()
     if (m_requestedThisLaunch || !m_settings)
         return;
 
-    const qint64 total = m_settings->GetDonationTotalStreamTimeMs();
+    const qint64 total = m_settings->GetTotalStreamTimeMs();
     const qint64 last = m_settings->GetAppReviewLastPromptTotalStreamMs();
     const qint64 needed = (last == 0) ? kMinFirstStreamMs : (last + kBetweenPromptsStreamMs);
-    const bool donationActive = m_donationManager && m_donationManager->paywallActiveOrScheduled();
     qCInfo(chiakiAppReview).nospace()
         << "App review: eligibility check (total=" << total
         << " last=" << last
-        << " needed=" << needed
-        << " donationActive=" << donationActive << ")";
+        << " needed=" << needed << ")";
     if (total < needed)
         return;
-    if (donationActive) {
-        qCInfo(chiakiAppReview) << "App review: skipped (donation paywall active or scheduled)";
-        return;
-    }
 
     m_requestedThisLaunch = true;
     qCInfo(chiakiAppReview) << "App review: requested (system may not display)";

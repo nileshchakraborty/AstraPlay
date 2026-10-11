@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.astraplay.stream.R
-import com.metallic.chiaki.common.AppIntegrityManager
 import com.metallic.chiaki.common.InAppReviewHelper
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.ext.viewModelFactory
@@ -44,7 +43,6 @@ class MainActivity : AppCompatActivity()
 	private var currentPage = 0
 	/** Timestamp of last card-level favorite toggle (used to debounce SELECT+MENU from PS Options). */
 	private var lastCardFavoriteToggleMs = 0L
-	private var integrityManager: AppIntegrityManager? = null
 
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
@@ -55,15 +53,6 @@ class MainActivity : AppCompatActivity()
 		catch(e: Exception) { android.util.Log.e("MainActivity", "Failed to init native SSL", e) }
 
 		preferences = Preferences(this)
-		
-		integrityManager = AppIntegrityManager(this)
-		integrityManager?.validateAppState(this) { isValid ->
-			if (isValid) {
-				android.util.Log.w("MainActivity", "✓ Application integrity verified - proceeding with launch")
-			} else {
-				android.util.Log.e("MainActivity", "✗ Application integrity check FAILED - blocking launch")
-			}
-		}
 		
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
@@ -444,12 +433,6 @@ class MainActivity : AppCompatActivity()
 				if (active) R.drawable.ic_discover_on else R.drawable.ic_discover_off
 			)
 		})
-	}
-	
-	override fun onDestroy()
-	{
-		super.onDestroy()
-		integrityManager?.release()
 	}
 
 	private fun isDescendantOf(descendant: View, ancestor: View): Boolean

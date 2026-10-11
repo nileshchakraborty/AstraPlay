@@ -1022,8 +1022,6 @@ Item {
 
         function onSessionChanged() {
             if (!Chiaki.session) {
-                DonationManager.cancelScheduledOffer();
-                DonationManager.flushStreamTime();
                 if (errorTitleLabel.text)
                     closeTimer.start();
                 else
@@ -1032,8 +1030,6 @@ Item {
         }
 
         function onSessionError(title, text) {
-            DonationManager.cancelScheduledOffer();
-            DonationManager.flushStreamTime();
             sessionError = true;
             sessionLoading = false;
             
@@ -1139,11 +1135,6 @@ Item {
             // Otherwise, keep loading until GameLaunchCompleted (if launching a game) or hasVideo (if not)
             if (Chiaki.settings.audioVideoDisabled & 0x02)
                 sessionLoading = false;
-
-            if (Chiaki.session && Chiaki.session.connected) {
-                DonationManager.markConnected();
-                DonationManager.scheduleOfferIfEligible();
-            }
         }
     }
 

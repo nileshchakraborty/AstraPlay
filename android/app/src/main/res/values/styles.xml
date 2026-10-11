@@ -147,22 +147,4 @@
         <item name="colorAccent">@color/accent</item>
     </style>
 
-    <!-- Full-width custom support paywall (bottom sheet, not AlertDialog) -->
-    <style name="SupportPaywallBottomSheet" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/SupportPaywallBottomSheet.Modal</item>
-        <item name="android:windowIsFloating">false</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@color/primary_dark</item>
-    </style>
-
-    <style name="SupportPaywallBottomSheet.Modal" parent="Widget.MaterialComponents.BottomSheet.Modal">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SupportPaywall.Rect</item>
-        <item name="backgroundTint">@color/primary_dark</item>
-        <item name="elevation">16dp</item>
-    </style>
-
-    <style name="ShapeAppearanceOverlay.SupportPaywall.Rect" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">0dp</item>
-    </style>
 </resources>

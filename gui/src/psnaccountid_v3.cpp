@@ -220,11 +220,6 @@ void PSNAccountIDV3::handleAccountIdResponse(const QString& url, const QJsonDocu
     QByteArray byte_representation = to_bytes_little_endian(std::stoll(user_id.toStdString()), 8);
     settings->SetPsnAccountId(byte_representation.toBase64());
 
-    QString online_id = object.value("online_id").toString();
-    if (!online_id.isEmpty()) {
-        settings->SetDonationPsnOnlineId(online_id);
-        qCInfo(chiakiGui) << "PSNAccountIDV3: PSN online ID cached:" << online_id;
-    }
     
     qCInfo(chiakiGui) << "PSNAccountIDV3: Account ID retrieved and saved successfully";
     

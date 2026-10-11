@@ -39,14 +39,4 @@
     <color name="astraplay_gold_selected_border">#66F59E0B</color> <!-- 40% opacity selected border -->
     <color name="toolbar_bg">#14161F</color>              <!-- Dark toolbar background -->
 
-    <!-- Support / paywall sheet -->
-    <color name="support_header_icon_scrim">#33FFFFFF</color>
-    <color name="support_drag_handle">#66FFFFFF</color>
-    <color name="support_tier_card_bg">#1A2332</color>
-    <color name="support_tier_card_stroke">@color/astraplay_gold_border</color>
-    <color name="support_text_secondary">#B8C5D6</color>
-    <color name="support_paywall_divider">#33FFFFFF</color>
-    <color name="support_badge_bg">#40009FE3</color>
-    <color name="support_tier_ripple">#40FFFFFF</color>
-    <color name="support_tap_hint">#7A8FA3</color>
 </resources>

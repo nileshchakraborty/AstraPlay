@@ -280,23 +280,6 @@ QString Settings::GetSettingsFilePath() const
 	return settings.fileName();
 }
 
-bool Settings::GetDonationCachedStatus(bool *outStatus) const
-{
-	if (!settings.contains("settings/donation_cached_donated_status"))
-		return false;
-	qint64 ts = settings.value("settings/donation_cached_status_timestamp", 0).toLongLong();
-	qint64 now = QDateTime::currentMSecsSinceEpoch();
-	if ((now - ts) > DONATION_CACHE_TTL_MS)
-		return false;
-	*outStatus = settings.value("settings/donation_cached_donated_status", false).toBool();
-	return true;
-}
-
-void Settings::SetDonationCachedStatus(bool donated)
-{
-	settings.setValue("settings/donation_cached_donated_status", donated);
-	settings.setValue("settings/donation_cached_status_timestamp", QDateTime::currentMSecsSinceEpoch());
-}
 
 void Settings::ImportSettings(QString filepath)
 {

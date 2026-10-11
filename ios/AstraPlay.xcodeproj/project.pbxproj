@@ -54,12 +54,7 @@
 		A3000016 /* CloudCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000006 /* CloudCatalogService.swift */; };
 		A3000017 /* CloudPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000007 /* CloudPlayView.swift */; };
 		A3000060 /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000050 /* CachedAsyncImage.swift */; };
-		A4000011 /* DonationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000001 /* DonationStore.swift */; };
-		A4000012 /* DonationPhrasePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000002 /* DonationPhrasePicker.swift */; };
-		A4000013 /* DonationPromptCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000003 /* DonationPromptCoordinator.swift */; };
-		A4000014 /* DonationPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4000004 /* DonationPaywallView.swift */; };
 		A6000011 /* AppReviewHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6000001 /* AppReviewHelper.swift */; };
-		A4000015 /* donation_prompt_phrases.json in Resources */ = {isa = PBXBuildFile; fileRef = A4000005 /* donation_prompt_phrases.json */; };
 		A5000011 /* agpl_license.txt in Resources */ = {isa = PBXBuildFile; fileRef = A5000001 /* agpl_license.txt */; };
 		A5000012 /* disclaimer.txt in Resources */ = {isa = PBXBuildFile; fileRef = A5000002 /* disclaimer.txt */; };
 		A5000013 /* LicenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5000003 /* LicenseView.swift */; };
@@ -126,12 +121,6 @@
 		A3000006 /* CloudCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCatalogService.swift; sourceTree = "<group>"; };
 		A3000007 /* CloudPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudPlayView.swift; sourceTree = "<group>"; };
 		A3000050 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
-		A4000001 /* DonationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationStore.swift; sourceTree = "<group>"; };
-		A4000002 /* DonationPhrasePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationPhrasePicker.swift; sourceTree = "<group>"; };
-		A4000003 /* DonationPromptCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationPromptCoordinator.swift; sourceTree = "<group>"; };
-		A4000004 /* DonationPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationPaywallView.swift; sourceTree = "<group>"; };
-		A4000005 /* donation_prompt_phrases.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = donation_prompt_phrases.json; path = ../shared/donation_prompt_phrases.json; sourceTree = SOURCE_ROOT; };
-		A4000007 /* DonationProducts.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = DonationProducts.storekit; sourceTree = "<group>"; };
 		A5000001 /* agpl_license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = agpl_license.txt; path = ../gui/res/license/agpl_license.txt; sourceTree = SOURCE_ROOT; };
 		A5000002 /* disclaimer.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = disclaimer.txt; path = ../gui/res/license/disclaimer.txt; sourceTree = SOURCE_ROOT; };
 		A5000003 /* LicenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseView.swift; sourceTree = "<group>"; };
@@ -162,13 +151,11 @@
 			children = (
 				A2000001 /* App */,
 				A2000002 /* Bridge */,
-				A4000006 /* Donation */,
 				A2000003 /* Models */,
 				A2000004 /* Services */,
 				A2000005 /* Views */,
 				A1000014 /* Assets.xcassets */,
 				A1000015 /* AstraPlay.entitlements */,
-				A4000005 /* donation_prompt_phrases.json */,
 				A5000001 /* agpl_license.txt */,
 				A5000002 /* disclaimer.txt */,
 			);
@@ -277,18 +264,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		A4000006 /* Donation */ = {
-			isa = PBXGroup;
-			children = (
-				A4000001 /* DonationStore.swift */,
-				A4000002 /* DonationPhrasePicker.swift */,
-				A4000003 /* DonationPromptCoordinator.swift */,
-				A4000004 /* DonationPaywallView.swift */,
-				A4000007 /* DonationProducts.storekit */,
-			);
-			path = Donation;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -348,7 +323,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000004 /* Assets.xcassets in Resources */,
-				A4000015 /* donation_prompt_phrases.json in Resources */,
 				A5000011 /* agpl_license.txt in Resources */,
 				A5000012 /* disclaimer.txt in Resources */,
 			);
@@ -408,10 +382,6 @@
 				A3000016 /* CloudCatalogService.swift in Sources */,
 				A3000017 /* CloudPlayView.swift in Sources */,
 				A3000060 /* CachedAsyncImage.swift in Sources */,
-				A4000011 /* DonationStore.swift in Sources */,
-				A4000012 /* DonationPhrasePicker.swift in Sources */,
-				A4000013 /* DonationPromptCoordinator.swift in Sources */,
-				A4000014 /* DonationPaywallView.swift in Sources */,
 				A6000011 /* AppReviewHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

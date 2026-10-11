@@ -354,16 +354,10 @@ struct SettingsView: View {
     @State private var psnLoggedIn = PsnTokenStore.shared.hasTokens
     /// Bumped when cloud ping results are saved so datacenter pickers reload from `SecureStore`.
     @State private var datacenterStoreRevision = 0
-    @State private var showDonationPaywall = false
 
     var body: some View {
         Form {
-            // 1. Support
-            if !DonationStore.productIDs.isEmpty {
-                supportSection
-            }
-
-            // 2. General
+            // 1. General
             generalSection
 
             // 3. Remote Play Settings
@@ -528,28 +522,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 1.5 Support
-
-    private var supportSection: some View {
-        Section {
-            Button {
-                showDonationPaywall = true
-            } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Support AstraPlay")
-                        .foregroundColor(.primary)
-                    Text("Donate to support development. Thank you for using AstraPlay.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .sheet(isPresented: $showDonationPaywall) {
-                DonationPaywallView()
-            }
-        } header: {
-            Text("Support")
-        }
-    }
 
     // MARK: - 2. Remote Play Settings
 

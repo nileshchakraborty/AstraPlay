@@ -100,7 +100,6 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 | F27 | Stream quality configuration (resolution, FPS, bitrate, codec) | P0 |
 | F28 | Controller keyboard navigation (Qt::TabFocusAllControls) | P1 |
 | F29 | Steam shortcut creation | P2 |
-| F30 | Donation prompt (non-App-Store builds) | P3 |
 
 ---
 

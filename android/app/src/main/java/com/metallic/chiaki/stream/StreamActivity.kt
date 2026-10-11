@@ -22,7 +22,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 
 import com.astraplay.stream.R
-import com.metallic.chiaki.common.DonationPromptCoordinator
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.ext.viewModelFactory
 import com.astraplay.stream.databinding.ActivityStreamBinding
@@ -90,7 +89,6 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	private var savedOnScreenControlsEnabled = false
 	private var savedTouchpadOnlyEnabled = false
 
-	private lateinit var donationCoordinator: DonationPromptCoordinator
 	/** [SystemClock.elapsedRealtime] when this session entered [StreamStateConnected]; 0 if not connected. */
 	private var connectedAtElapsedRealtime: Long = 0L
 
@@ -108,8 +106,6 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		viewModel = ViewModelProvider(this, viewModelFactory {
 			StreamViewModel(application, connectInfo)
 		})[StreamViewModel::class.java]
-
-		donationCoordinator = DonationPromptCoordinator.forStream(this, viewModel)
 
 		viewModel.input.observe(this)
 
@@ -313,7 +309,6 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		super.onDestroy()
 		Log.i("StreamActivity", "onDestroy: finishing=$isFinishing")
 		flushStreamTimeSegment()
-		donationCoordinator.onDestroy()
 		controlsDisposable.dispose()
 		uiVisibilityHandler.removeCallbacksAndMessages(null)
 		stopStatsPolling()
@@ -651,23 +646,19 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			{
 				if (connectedAtElapsedRealtime == 0L)
 					connectedAtElapsedRealtime = SystemClock.elapsedRealtime()
-				donationCoordinator.scheduleOfferIfEligible()
 			}
 
 			StreamStateConnecting ->
 			{
-				donationCoordinator.cancelScheduledOffer()
 			}
 
 			StreamStateIdle ->
 			{
-				donationCoordinator.cancelScheduledOffer()
 				flushStreamTimeSegment()
 			}
 
 			is StreamStateQuit ->
 			{
-				donationCoordinator.cancelScheduledOffer()
 				flushStreamTimeSegment()
 				if(dialogContents != StreamQuitDialog)
 				{
@@ -701,7 +692,6 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 
 			is StreamStateCreateError ->
 			{
-				donationCoordinator.cancelScheduledOffer()
 				flushStreamTimeSegment()
 				if(dialogContents != CreateErrorDialog)
 				{
@@ -721,7 +711,6 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 
 			is StreamStateLoginPinRequest ->
 			{
-				donationCoordinator.cancelScheduledOffer()
 				flushStreamTimeSegment()
 				if(dialogContents != PinRequestDialog)
 				{

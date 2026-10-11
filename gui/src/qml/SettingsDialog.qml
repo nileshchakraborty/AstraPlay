@@ -2769,24 +2769,6 @@ DialogView {
                         Material.roundedScale: Material.SmallScale
                     }
 
-                    C.Button {
-                        id: supportButton
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: 400
-                        Layout.preferredHeight: 50
-                        text: qsTr("Support AstraPlay")
-                        visible: DonationManager.enabled
-                        onClicked: DonationManager.openSupportFromSettings()
-                        Material.roundedScale: Material.SmallScale
-
-                        Connections {
-                            target: DonationManager
-                            function onAlreadyDonated() {
-                                root.showToast(qsTr("Thank You!"), qsTr("You've already donated — we appreciate your support!"), "#4CAF50");
-                            }
-                        }
-                    }
 
                     C.Button {
                         id: softwareUpdatesButton

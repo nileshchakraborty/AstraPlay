@@ -28,14 +28,12 @@ final class AppReviewHelper {
         let total = SecureStore.shared.totalStreamTimeMs
         let last = SecureStore.shared.lastAppReviewPromptTotalStreamMs
         let needed = (last == 0) ? Self.minFirstStreamMs : (last + Self.betweenPromptsStreamMs)
-        let donationActive = DonationPromptCoordinator.shared.showPaywall
         let hasScene = scene != nil
         os_log(.info, log: reviewLog,
-               "App review: eligibility check (total=%lld last=%lld needed=%lld donationActive=%{BOOL}d hasScene=%{BOOL}d)",
-               total, last, needed, donationActive, hasScene)
+               "App review: eligibility check (total=%lld last=%lld needed=%lld hasScene=%{BOOL}d)",
+               total, last, needed, hasScene)
 
         if total < needed { return }
-        if donationActive { return }
         guard let windowScene = scene else { return }
 
         requestedThisLaunch = true

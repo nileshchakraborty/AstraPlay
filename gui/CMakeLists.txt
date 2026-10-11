@@ -77,8 +77,6 @@ set(SOURCE_FILES
 	src/systemdinhibit.cpp
 	include/gamelauncher.h
 	src/gamelauncher.cpp
-	include/donationmanager.h
-	src/donationmanager.cpp
 	include/updatemanager.h
 	src/updatemanager.cpp
 	include/qrimage.h
@@ -179,8 +177,6 @@ endif()
 if(CHIAKI_IS_MAC_APPSTORE)
 	target_compile_definitions(chiaki PRIVATE CHIAKI_IS_MAC_APPSTORE)
 	target_sources(chiaki PRIVATE
-		include/macstorekit.h
-		src/macstorekit.mm
 		include/appreviewmanager.h
 		src/appreviewmanager.cpp
 		src/appreviewbridge.mm

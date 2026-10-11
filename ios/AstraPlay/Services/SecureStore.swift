@@ -162,10 +162,8 @@ final class SecureStore {
     private let kCloudCatalogNativeMode = "cloud_catalog_native_mode"
     private let kCloudTagFilters = "cloud_tag_filters"
 
-    // Donation / support paywall
+    // Stream metrics
     private let kTotalStreamTimeMs       = "astraplay.totalStreamTimeMs"
-    private let kLastDonationPromptWallMs = "astraplay.lastDonationPromptWallMs"
-    private let kDonationPaywallShowCount = "astraplay.donationPaywallShowCount"
 
     // App Store review prompt (Apple SKStoreReviewController)
     private let kLastAppReviewPromptTotalStreamMs = "astraplay.lastAppReviewPromptTotalStreamMs"
@@ -335,7 +333,7 @@ final class SecureStore {
         set { KC.writeStringSet(kCloudTagFilters, newValue) }
     }
 
-    // MARK: - Donation / Support Paywall
+    // MARK: - Stream Metrics
 
     var totalStreamTimeMs: Int64 {
         get { Int64(KC.readString(kTotalStreamTimeMs) ?? "0") ?? 0 }
@@ -345,23 +343,6 @@ final class SecureStore {
     func addTotalStreamTimeMs(_ delta: Int64) {
         guard delta > 0 else { return }
         totalStreamTimeMs += delta
-    }
-
-    var lastDonationPromptWallClockMs: Int64 {
-        get { Int64(KC.readString(kLastDonationPromptWallMs) ?? "0") ?? 0 }
-        set { KC.writeString(kLastDonationPromptWallMs, String(newValue)) }
-    }
-
-    var donationPaywallShowCount: Int {
-        get { KC.readInt(kDonationPaywallShowCount) }
-        set { KC.writeInt(kDonationPaywallShowCount, newValue) }
-    }
-
-    @discardableResult
-    func incrementDonationPaywallShowCount() -> Int {
-        let next = donationPaywallShowCount + 1
-        donationPaywallShowCount = next
-        return next
     }
 
     // MARK: - App Store Review Prompt
@@ -422,7 +403,7 @@ final class SecureStore {
             kCloudFavorites, kCloudSortState,
             kCloudResolvedStoreCountry, kCloudResolvedStoreLang, kLegacyCloudFallbackRegion, kCloudCatalogNativeMode,
             kCloudTagFilters,
-            kTotalStreamTimeMs, kLastDonationPromptWallMs, kDonationPaywallShowCount,
+            kTotalStreamTimeMs,
             kLastAppReviewPromptTotalStreamMs,
             kLastHost, kLastRegistKey, kLastMorning, kLastPs5,
             kLastResolution, kLastFps, kLastCodec,

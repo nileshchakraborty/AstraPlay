@@ -190,7 +190,7 @@ Feedback Sender → TAKION (UDP) → PS Console
 | `CHIAKI_ENABLE_RUDP` | AUTO | Remote Play over Internet |
 | `CHIAKI_ENABLE_STEAMWORKS` | OFF | Steamworks overlay |
 | `CHIAKI_ENABLE_GUI_WEBENGINE` | ON (non-Linux) | Qt WebEngine for PSN OAuth |
-| `CHIAKI_IS_MAC_APPSTORE` | OFF | Disable donation prompt, enable IAP hooks |
+| `CHIAKI_IS_MAC_APPSTORE` | OFF | Enable Mac App Store review controller |
 | `CHIAKI_LIB_ENABLE_MBEDTLS` | OFF | mbedTLS instead of OpenSSL |
 | `CHIAKI_ENABLE_STEAMDECK_NATIVE` | ON | Native Steam Deck gyro/haptics |
 

@@ -172,11 +172,6 @@ enum class PlaceboToneMappingMetadata {
 	CieY
 };
 
-constexpr qint64  DONATION_MIN_STREAM_MS       = 3600000LL;
-constexpr qint64  DONATION_PROMPT_COOLDOWN_MS  = 3600000LL;
-constexpr int     DONATION_SHOW_DELAY_MS       = 5000;
-constexpr qint64  DONATION_CACHE_TTL_MS        = 24LL * 3600LL * 1000LL;
-#define           DONATION_API_BASE_URL          "https://www.ksco.co/astraplay"
 
 class Settings : public QObject
 {
@@ -772,19 +767,11 @@ class Settings : public QObject
 		QMap<int, Qt::Key> GetControllerMapping();
 		QMap<Qt::Key, int> GetControllerMappingForDecoding();
 
-		// Donation
-		QString GetDonationPsnOnlineId() const              { return settings.value("settings/donation_psn_online_id").toString(); }
-		void SetDonationPsnOnlineId(const QString &id)      { settings.setValue("settings/donation_psn_online_id", id); }
-		qint64 GetDonationTotalStreamTimeMs() const         { return settings.value("settings/donation_total_stream_time_ms", 0).toLongLong(); }
-		void SetDonationTotalStreamTimeMs(qint64 ms)        { settings.setValue("settings/donation_total_stream_time_ms", ms); }
-		qint64 GetDonationLastPromptWallClockMs() const     { return settings.value("settings/donation_last_prompt_wall_clock_ms", 0).toLongLong(); }
-		void SetDonationLastPromptWallClockMs(qint64 ms)    { settings.setValue("settings/donation_last_prompt_wall_clock_ms", ms); }
-		int GetDonationPromptShowCount() const              { return settings.value("settings/donation_prompt_show_count", 0).toInt(); }
-		void SetDonationPromptShowCount(int count)          { settings.setValue("settings/donation_prompt_show_count", count); }
-		bool GetDonationCachedStatus(bool *outStatus) const;
-		void SetDonationCachedStatus(bool donated);
+		// Stream metrics / App Store review prompt
+		qint64 GetTotalStreamTimeMs() const                 { return settings.value("settings/total_stream_time_ms", settings.value("settings/donation_total_stream_time_ms", 0)).toLongLong(); }
+		void SetTotalStreamTimeMs(qint64 ms)                { settings.setValue("settings/total_stream_time_ms", ms); }
 
-		// App Store review prompt (Mac App Store only): `donation_total_stream_time_ms`
+		// App Store review prompt (Mac App Store only): `total_stream_time_ms`
 		// snapshot at the last `SKStoreReviewController.requestReview` call. 0 = never requested.
 		qint64 GetAppReviewLastPromptTotalStreamMs() const  { return settings.value("settings/app_review_last_prompt_total_stream_ms", 0).toLongLong(); }
 		void SetAppReviewLastPromptTotalStreamMs(qint64 ms) { settings.setValue("settings/app_review_last_prompt_total_stream_ms", ms); }

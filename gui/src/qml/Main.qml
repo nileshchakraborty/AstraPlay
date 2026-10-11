@@ -315,9 +315,6 @@ Item {
         stack.push(consoleSetupWalkthroughComponent)
     }
 
-    function openDonationPrompt() {
-        stack.push(donationPromptDialogComponent)
-    }
 
     Component.onCompleted: {
         if (Chiaki.session)
@@ -656,18 +653,4 @@ Item {
         ConsoleSetupWalkthrough { }
     }
 
-    Component {
-        id: donationPromptDialogComponent
-        DonationPromptDialog { }
-    }
-
-    Connections {
-        target: DonationManager
-        enabled: DonationManager.enabled
-
-        function onShowDonationPromptChanged() {
-            if (DonationManager.showDonationPrompt)
-                openDonationPrompt();
-        }
-    }
 }

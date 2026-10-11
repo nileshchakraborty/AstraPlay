@@ -52,7 +52,7 @@ struct StreamView: View {
     @State private var hideOverlayTask: Task<Void, Never>?
     @State private var pipClosedByUser = false
     @State private var pipIsPossible = false
-    @StateObject private var donationCoordinator = DonationPromptCoordinator.shared
+    @State private var connectedAt: Date? = nil
 
     init(connectInfo: StreamConnectInfo) {
         self.connectInfo = connectInfo
@@ -71,6 +71,15 @@ struct StreamView: View {
         p.touchpadOnlyEnabled = touchpadOnly
         p.streamStatsOverlayEnabled = showStats
         p.save()
+    }
+
+    private func flushStreamTime() {
+        guard let start = connectedAt else { return }
+        let delta = Int64(Date().timeIntervalSince(start) * 1000)
+        if delta > 0 {
+            SecureStore.shared.addTotalStreamTimeMs(delta)
+        }
+        connectedAt = nil
     }
 
     private var isConnected: Bool {
@@ -237,14 +246,10 @@ struct StreamView: View {
         .onDisappear {
             session.input.clearTouchOverlayState()
             AppOrientationLock.unlockAfterStream()
-            donationCoordinator.cancelScheduledOffer()
-            donationCoordinator.flushStreamTime()
+            flushStreamTime()
             if !session.pipManager.isActive {
                 session.pause()
             }
-        }
-        .sheet(isPresented: $donationCoordinator.showPaywall) {
-            DonationPaywallView()
         }
         .onChange(of: session.menuRequestToken) { _ in
             // OPTIONS+SHARE chord fired -> surface the in-stream menu (auto-hides), same as a tap.
@@ -258,15 +263,14 @@ struct StreamView: View {
                     session.attachToView(view)
                 }
                 lastDroppedFrames = -1 // reset stats baseline for the new session
-                donationCoordinator.markConnected()
-                donationCoordinator.scheduleOfferIfEligible()
+                if connectedAt == nil {
+                    connectedAt = Date()
+                }
             case .quit(_, _):
-                donationCoordinator.cancelScheduledOffer()
-                donationCoordinator.flushStreamTime()
+                flushStreamTime()
                 showQuitAlert = true
             case .createError(let code, let message):
-                donationCoordinator.cancelScheduledOffer()
-                donationCoordinator.flushStreamTime()
+                flushStreamTime()
                 if let m = message, !m.isEmpty {
                     errorMessage = "\(m) (code \(code))"
                 } else {
@@ -274,13 +278,10 @@ struct StreamView: View {
                 }
                 showErrorAlert = true
             case .loginPinRequest(let incorrect):
-                donationCoordinator.cancelScheduledOffer()
-                donationCoordinator.flushStreamTime()
+                flushStreamTime()
                 pinIncorrect = incorrect
                 pinEntry = ""
                 showPinAlert = true
-            case .connecting:
-                donationCoordinator.cancelScheduledOffer()
             default:
                 break
             }
