@@ -21,7 +21,7 @@ class QmlGamesBackend;
 class EmbeddedRelayServer;
 
 // astraplay Configuration
-#define astraplay_URL "https://www.ksco.co"
+#define astraplay_URL "https://nileshchakraborty.github.io/AstraPlay"
 
 #ifdef CHIAKI_HAVE_WEBENGINE
 #include <QQuickWebEngineProfile>

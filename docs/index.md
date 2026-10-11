@@ -4,7 +4,7 @@
 
 ## Download
 
-Desktop and mobile releases are published on the [releases page](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" } and at [ksco.co](https://www.ksco.co){ target="_blank" rel="noopener" }:
+Desktop and mobile releases are published on the [releases page](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" } and documented at [AstraPlay](https://nileshchakraborty.github.io/AstraPlay){ target="_blank" rel="noopener" }:
 
 === "Android / Android TV"
     [:simple-googleplay: Get it on Google Play](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }

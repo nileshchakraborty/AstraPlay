@@ -1,6 +1,6 @@
 site_name: AstraPlay
-repo_url: https://github.com/nileshcharkabroty/astraplay
-site_url: https://nileshchakraborty.github.io/astraplay/
+repo_url: https://github.com/nileshchakraborty/AstraPlay
+site_url: https://nileshchakraborty.github.io/AstraPlay/
 edit_uri: edit/master/docs
 nav:
   - Home: index.md

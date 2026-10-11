@@ -3,7 +3,7 @@
 
 #define MyAppName "AstraPlay"
 #define MyAppPublisher "nileshchakraborty"
-#define MyAppURL "https://www.ksco.co"
+#define MyAppURL "https://nileshchakraborty.github.io/AstraPlay"
 #define MyAppExeName "astraplay.exe"
 #define MyAppPath "..\astraplay"
 #define MyAppVersion() \
