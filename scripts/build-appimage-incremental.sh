@@ -103,11 +103,11 @@ if [ "${SKIP_APPIMAGE:-0}" != "1" ]; then
     chmod +x "${APPIMAGETOOL}"
   fi
 
-  APPIMAGE_OUT="pylux-${ARCH}.AppImage"
+  APPIMAGE_OUT="astraplay-${ARCH}.AppImage"
   env APPIMAGE_EXTRACT_AND_RUN=1 \
     ./${APPIMAGETOOL} --no-appstream --runtime-file "${APPIMAGETOOL_RUNTIME}" "${appdir}" "${APPIMAGE_OUT}"
 
-  mv -f "${APPIMAGE_OUT}" "pylux.AppImage"
+  mv -f "${APPIMAGE_OUT}" "astraplay.AppImage"
 else
   echo "SKIP_APPIMAGE=1 set; leaving AppDir at: ${appdir}"
 fi

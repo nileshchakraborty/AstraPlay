@@ -5,7 +5,7 @@ This repo includes scripts to mirror CI and to speed up local iteration.
 Scripts
 - build-appimage-ci.sh
   - One-shot full CI-equivalent AppImage build in a fresh container.
-  - Produces `appimage/pylux.AppImage` and launches it.
+  - Produces `appimage/astraplay.AppImage` and launches it.
 
 - build-appimage-fast.sh
   - Fast dev loop using a persistent container and incremental build.

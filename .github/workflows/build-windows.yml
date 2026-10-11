@@ -8,13 +8,13 @@ on:
   workflow_call:
     outputs:
       zip_url:
-        description: Dropbox direct URL for rolling zip (pylux-latest or pylux-beta-latest on release/beta)
+        description: Dropbox direct URL for rolling zip (astraplay-latest or astraplay-beta-latest on release/beta)
         value: ${{ jobs.build-windows_x64-msys2.outputs.zip_url }}
       installer_url:
         description: Dropbox direct URL for rolling installer (installer-latest or installer-beta-latest on release/beta)
         value: ${{ jobs.build-windows_x64-msys2.outputs.installer_url }}
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build-windows_x64-msys2.outputs.chiaki_version }}
 
 concurrency:
@@ -25,7 +25,7 @@ env:
   CHIAKI_ENABLE_STEAMWORKS: "OFF"
 jobs:
   build-windows_x64-msys2:
-    name: Build Pylux Windows x86_64
+    name: Build AstraPlay Windows x86_64
     runs-on: windows-latest
     outputs:
       zip_url: ${{ steps.zip.outputs.url }}
@@ -104,27 +104,27 @@ jobs:
         run: |
           cp scripts/qtwebengine_import.qml gui/src/qml/
 
-      - name: Configure Pylux
+      - name: Configure AstraPlay
         run: |
           cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
-      - name: Build Pylux
+      - name: Build AstraPlay
         run: |
           cmake --build build --config Release --clean-first --target chiaki
           
-      - name: Package Pylux
+      - name: Package AstraPlay
         run: |
-          mkdir pylux
-          cp build/gui/chiaki.exe pylux/pylux.exe
+          mkdir astraplay
+          cp build/gui/chiaki.exe astraplay/astraplay.exe
           if [ "${{ env.CHIAKI_ENABLE_STEAMWORKS }}" = "ON" ]; then
-            cp third-party/steamworks/steamworks_sdk/redistributable_bin/win64/steam_api64.dll pylux/
-            cp steam_appid.txt pylux/ 2>/dev/null || echo "Warning: steam_appid.txt not found"
+            cp third-party/steamworks/steamworks_sdk/redistributable_bin/win64/steam_api64.dll astraplay/
+            cp steam_appid.txt astraplay/ 2>/dev/null || echo "Warning: steam_appid.txt not found"
           fi
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/mingw64/share/qt6/bin/:/mingw64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/mingw64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/mingw64/share/qt6/qml"
-          # Recursively find and copy DLL dependencies of pylux.exe
-          echo pylux/pylux.exe > tmp0.txt
+          # Recursively find and copy DLL dependencies of astraplay.exe
+          echo astraplay/astraplay.exe > tmp0.txt
           while [ -e tmp0.txt ]
           do
             cp tmp0.txt tmp.txt
@@ -136,18 +136,18 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
                 echo "Copied $dep"
-                cp "$dep" pylux/
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
           # Copy Qt plugins and QML modules
-          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux/pylux.exe
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml astraplay/astraplay.exe
           # Copy dependencies of Qt plugins (windeployqt6 doesn't copy plugin dependencies like libjpeg-8.dll)
           echo "Finding Qt plugin DLLs..."
-          find pylux -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+          find astraplay -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
             echo "Found plugin: $plugin"
             echo "$plugin" >> tmp0.txt
           done
@@ -163,9 +163,9 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
                 echo "  Copying plugin dependency: ${dep##*/}"
-                cp "$dep" pylux/
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
@@ -174,8 +174,8 @@ jobs:
 
       - name: Create zip archive
         run: |
-          zip -r pylux.zip pylux
-          echo "RELEASE_PACKAGE_PATH=pylux.zip" >> $GITHUB_ENV
+          zip -r astraplay.zip astraplay
+          echo "RELEASE_PACKAGE_PATH=astraplay.zip" >> $GITHUB_ENV
 
       - name: Extract version
         id: extract_version
@@ -189,8 +189,8 @@ jobs:
 
       - name: Rename installer with version
         run: |
-          INSTALLER_NAME="pylux-windows-installer-${{ env.CHIAKI_VERSION }}.exe"
-          cp pylux-windows-installer.exe "${INSTALLER_NAME}"
+          INSTALLER_NAME="astraplay-windows-installer-${{ env.CHIAKI_VERSION }}.exe"
+          cp astraplay-windows-installer.exe "${INSTALLER_NAME}"
           echo "INSTALLER_NAME=${INSTALLER_NAME}" >> $GITHUB_ENV
           echo "Renamed installer to: ${INSTALLER_NAME}"
 
@@ -199,8 +199,8 @@ jobs:
         uses: ./.github/actions/dropbox-publish
         with:
           file: ${{ env.RELEASE_PACKAGE_PATH }}
-          latest-path: /pylux/windows/pylux${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.zip
-          versioned-path: /pylux/windows/pylux-${{ env.CHIAKI_VERSION }}.zip
+          latest-path: /astraplay/windows/astraplay${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.zip
+          versioned-path: /astraplay/windows/astraplay-${{ env.CHIAKI_VERSION }}.zip
           refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           app-key: ${{ secrets.DROPBOX_APP_KEY }}
           app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
@@ -210,8 +210,8 @@ jobs:
         uses: ./.github/actions/dropbox-publish
         with:
           file: ${{ env.INSTALLER_NAME }}
-          latest-path: /pylux/windows/pylux-windows-installer${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.exe
-          versioned-path: /pylux/windows/pylux-windows-installer-${{ env.CHIAKI_VERSION }}.exe
+          latest-path: /astraplay/windows/astraplay-windows-installer${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.exe
+          versioned-path: /astraplay/windows/astraplay-windows-installer-${{ env.CHIAKI_VERSION }}.exe
           refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           app-key: ${{ secrets.DROPBOX_APP_KEY }}
           app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
@@ -222,24 +222,24 @@ jobs:
           ZIP_SIZE=$(ls -lh "${{ env.RELEASE_PACKAGE_PATH }}" 2>/dev/null | awk '{print $5}')
           INST_SIZE=$(ls -lh "${{ env.INSTALLER_NAME }}" 2>/dev/null | awk '{print $5}')
           if [ "${{ github.ref_name }}" = "release/beta" ]; then
-            ROLLING_LABEL="rolling (beta: pylux-beta-latest.* / installer-beta-latest)"
-            ZIP_NAME="pylux-beta-latest.zip"
-            INST_NAME="pylux-windows-installer-beta-latest.exe"
+            ROLLING_LABEL="rolling (beta: astraplay-beta-latest.* / installer-beta-latest)"
+            ZIP_NAME="astraplay-beta-latest.zip"
+            INST_NAME="astraplay-windows-installer-beta-latest.exe"
           else
-            ROLLING_LABEL="rolling (stable: pylux-latest.* / installer-latest)"
-            ZIP_NAME="pylux-latest.zip"
-            INST_NAME="pylux-windows-installer-latest.exe"
+            ROLLING_LABEL="rolling (stable: astraplay-latest.* / installer-latest)"
+            ZIP_NAME="astraplay-latest.zip"
+            INST_NAME="astraplay-windows-installer-latest.exe"
           fi
           {
-            echo "## Pylux Windows — v${CHIAKI_VERSION}"
+            echo "## AstraPlay Windows — v${CHIAKI_VERSION}"
             echo ""
             echo "| Artifact | Size | Download (${ROLLING_LABEL}) | Versioned archive |"
             echo "| --- | --- | --- | --- |"
-            echo "| Portable zip     | ${ZIP_SIZE:-?}  | [${ZIP_NAME}](${{ steps.zip.outputs.url }}) | \`/pylux/windows/pylux-${CHIAKI_VERSION}.zip\` |"
-            echo "| Installer (.exe) | ${INST_SIZE:-?} | [${INST_NAME}](${{ steps.installer.outputs.url }}) | \`/pylux/windows/pylux-windows-installer-${CHIAKI_VERSION}.exe\` |"
+            echo "| Portable zip     | ${ZIP_SIZE:-?}  | [${ZIP_NAME}](${{ steps.zip.outputs.url }}) | \`/astraplay/windows/astraplay-${CHIAKI_VERSION}.zip\` |"
+            echo "| Installer (.exe) | ${INST_SIZE:-?} | [${INST_NAME}](${{ steps.installer.outputs.url }}) | \`/astraplay/windows/astraplay-windows-installer-${CHIAKI_VERSION}.exe\` |"
             echo ""
             echo "### How to use"
-            echo "- **Portable zip** — unzip anywhere and run \`pylux.exe\`. No install required."
+            echo "- **Portable zip** — unzip anywhere and run \`astraplay.exe\`. No install required."
             echo "- **Installer (.exe)** — run and follow the prompts; adds Start Menu shortcuts."
           } >> "$GITHUB_STEP_SUMMARY"
 

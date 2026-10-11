@@ -257,7 +257,7 @@ if (!code) return res.status(400).json({ result: 'error', error: 'Missing code' 
 lib/          C only — no platform SDK includes
 gui/          C++ / Qt only — links lib
 android/app/  Kotlin/Java — JNI to lib
-ios/Pylux/    Swift/ObjC — via bridge helpers
+ios/AstraPlay/    Swift/ObjC — via bridge helpers
 ```
 - No `#ifdef ANDROID` / `#ifdef __APPLE__` in `lib/` source (only allowed in `lib/include/chiaki/` platform detection headers).
 - Platform-specific behavior → add a `CHIAKI_EXPORT` function in `lib/` and call it from the platform shell.

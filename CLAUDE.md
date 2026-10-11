@@ -46,7 +46,7 @@ AstraPlay is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (
 ## iOS ↔ C library boundary
 `ChiakiSession`'s memory layout depends on the lib's CMake config; Xcode compiles ObjC/Swift
 without that config, so struct offsets differ between the two sides.
-- **DON'T** call `static inline` chiaki functions that touch struct fields from `ios/Pylux/**`
+- **DON'T** call `static inline` chiaki functions that touch struct fields from `ios/AstraPlay/**`
   (e.g. the `chiaki_session_set_*` sink/callback setters) — the write lands at the wrong
   offset and silently no-ops. `ios/build.sh` fails the build on violations
   (`check_forbidden_inline_setters`).

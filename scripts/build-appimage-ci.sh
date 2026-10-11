@@ -54,13 +54,13 @@ main() {
 
   # 7) Launch the AppImage in the background using extract-and-run and log output
   echo "[build-appimage-ci] Launching AppImage in background..."
-  if [[ ! -f appimage/pylux.AppImage ]]; then
-    echo "[build-appimage-ci] ERROR: appimage/pylux.AppImage not found" >&2
+  if [[ ! -f appimage/astraplay.AppImage ]]; then
+    echo "[build-appimage-ci] ERROR: appimage/astraplay.AppImage not found" >&2
     exit 1
   fi
 
   # Note: file should already be executable; avoid chmod if not needed to prevent EPERM
-  nohup env APPIMAGE_EXTRACT_AND_RUN=1 ./appimage/pylux.AppImage \
+  nohup env APPIMAGE_EXTRACT_AND_RUN=1 ./appimage/astraplay.AppImage \
     > /tmp/chiaki_run.log 2>&1 &
   echo $! > /tmp/chiaki_app.pid
 

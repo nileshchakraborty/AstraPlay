@@ -1,7 +1,7 @@
 {
-  "name": "pylux-psstream-relay",
+  "name": "astraplay-psstream-relay",
   "version": "1.0.0",
-  "description": "Local self-hosted clone of Pylux PSN token relay server for fedora.local",
+  "description": "Local self-hosted clone of AstraPlay PSN token relay server for fedora.local",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

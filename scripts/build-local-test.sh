@@ -10,7 +10,7 @@ set -xe
 # What it does:
 #   - Mimics the GitHub Actions build process (build-appimage-x64.yml)
 #   - Runs entirely in the same Docker container as GitHub Actions
-#   - Produces identical outputs: pylux.AppImage and pylux.zip
+#   - Produces identical outputs: astraplay.AppImage and astraplay.zip
 #   - Saves artifacts to build-output/ for local testing
 #
 # Key differences from GitHub Actions:
@@ -55,15 +55,15 @@ podman run --rm \
     sudo -E scripts/build-appimage.sh /tmp/appdir
     
     # Copy outputs to mounted /output with correct permissions
-    sudo cp appimage/pylux.AppImage /output/
-    sudo cp -r appimage/pylux /output/
+    sudo cp appimage/astraplay.AppImage /output/
+    sudo cp -r appimage/astraplay /output/
     sudo chown -R $(id -u):$(id -g) /output
     sudo chmod -R u+rwX,go+rX /output
     
-    # Zip pylux inside container (avoids host permission issues)
+    # Zip astraplay inside container (avoids host permission issues)
     cd /output
-    zip -r pylux.zip pylux
-    rm -rf pylux
+    zip -r astraplay.zip astraplay
+    rm -rf astraplay
     
     echo '=== Build outputs ==='
     ls -lh /output/
@@ -73,6 +73,6 @@ echo ""
 echo "============================================"
 echo "Build complete! Artifacts in build-output/"
 ls -lh build-output/
-echo "  - pylux.AppImage"
-echo "  - pylux.zip"
+echo "  - astraplay.AppImage"
+echo "  - astraplay.zip"
 echo "============================================"

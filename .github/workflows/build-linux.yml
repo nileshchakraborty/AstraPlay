@@ -8,13 +8,13 @@ on:
   workflow_call:
     outputs:
       zip_url:
-        description: Dropbox direct URL for rolling zip (pylux-latest or pylux-beta-latest on release/beta)
+        description: Dropbox direct URL for rolling zip (astraplay-latest or astraplay-beta-latest on release/beta)
         value: ${{ jobs.build.outputs.zip_url }}
       appimage_url:
-        description: Dropbox direct URL for rolling AppImage (pylux-latest or pylux-beta-latest on release/beta)
+        description: Dropbox direct URL for rolling AppImage (astraplay-latest or astraplay-beta-latest on release/beta)
         value: ${{ jobs.build.outputs.appimage_url }}
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build.outputs.chiaki_version }}
 
 concurrency:
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Pylux Linux x86_64
+    name: Build AstraPlay Linux x86_64
     runs-on: ubuntu-latest
     outputs:
       zip_url: ${{ steps.zip.outputs.url }}
@@ -37,14 +37,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          path: pylux
+          path: astraplay
 
       - name: Add QmlWebEngine import
-        working-directory: pylux
+        working-directory: astraplay
         run: cp scripts/qtwebengine_import.qml gui/src/qml/
 
       - name: Build in container
-        working-directory: pylux
+        working-directory: astraplay
         run: |
           podman run --rm \
             -v "$PWD:/build/chiaki" \
@@ -55,59 +55,59 @@ jobs:
             /bin/bash -c "sudo -E scripts/build-appimage.sh /build/appdir"
 
       - name: Package portable zip
-        working-directory: pylux/appimage
-        run: zip -r pylux.zip pylux
+        working-directory: astraplay/appimage
+        run: zip -r astraplay.zip astraplay
 
       - name: Extract version
         id: extract_version
-        uses: ./pylux/.github/actions/extract-version
+        uses: ./astraplay/.github/actions/extract-version
         with:
-          cmakelists: pylux/CMakeLists.txt
+          cmakelists: astraplay/CMakeLists.txt
 
       - name: Publish portable zip
         id: zip
-        uses: ./pylux/.github/actions/dropbox-publish
+        uses: ./astraplay/.github/actions/dropbox-publish
         with:
-          file: pylux/appimage/pylux.zip
-          latest-path: /pylux/linux/pylux${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.zip
-          versioned-path: /pylux/linux/pylux-${{ env.CHIAKI_VERSION }}.zip
+          file: astraplay/appimage/astraplay.zip
+          latest-path: /astraplay/linux/astraplay${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.zip
+          versioned-path: /astraplay/linux/astraplay-${{ env.CHIAKI_VERSION }}.zip
           refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           app-key: ${{ secrets.DROPBOX_APP_KEY }}
           app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
 
       - name: Publish AppImage
         id: appimage
-        uses: ./pylux/.github/actions/dropbox-publish
+        uses: ./astraplay/.github/actions/dropbox-publish
         with:
-          file: pylux/appimage/pylux.AppImage
-          latest-path: /pylux/linux/pylux${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.AppImage
-          versioned-path: /pylux/linux/pylux-${{ env.CHIAKI_VERSION }}.AppImage
+          file: astraplay/appimage/astraplay.AppImage
+          latest-path: /astraplay/linux/astraplay${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.AppImage
+          versioned-path: /astraplay/linux/astraplay-${{ env.CHIAKI_VERSION }}.AppImage
           refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           app-key: ${{ secrets.DROPBOX_APP_KEY }}
           app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
 
       - name: Build summary
         if: always()
-        working-directory: pylux/appimage
+        working-directory: astraplay/appimage
         run: |
-          ZIP_SIZE=$(ls -lh pylux.zip 2>/dev/null | awk '{print $5}')
-          AI_SIZE=$(ls -lh pylux.AppImage 2>/dev/null | awk '{print $5}')
+          ZIP_SIZE=$(ls -lh astraplay.zip 2>/dev/null | awk '{print $5}')
+          AI_SIZE=$(ls -lh astraplay.AppImage 2>/dev/null | awk '{print $5}')
           if [ "${{ github.ref_name }}" = "release/beta" ]; then
-            ROLLING_LABEL="rolling (beta: pylux-beta-latest.*)"
-            ZIP_NAME="pylux-beta-latest.zip"
-            AI_NAME="pylux-beta-latest.AppImage"
+            ROLLING_LABEL="rolling (beta: astraplay-beta-latest.*)"
+            ZIP_NAME="astraplay-beta-latest.zip"
+            AI_NAME="astraplay-beta-latest.AppImage"
           else
-            ROLLING_LABEL="rolling (stable: pylux-latest.*)"
-            ZIP_NAME="pylux-latest.zip"
-            AI_NAME="pylux-latest.AppImage"
+            ROLLING_LABEL="rolling (stable: astraplay-latest.*)"
+            ZIP_NAME="astraplay-latest.zip"
+            AI_NAME="astraplay-latest.AppImage"
           fi
           {
-            echo "## Pylux Linux — v${CHIAKI_VERSION}"
+            echo "## AstraPlay Linux — v${CHIAKI_VERSION}"
             echo ""
             echo "| Artifact | Size | Download (${ROLLING_LABEL}) | Versioned archive |"
             echo "| --- | --- | --- | --- |"
-            echo "| Portable zip | ${ZIP_SIZE:-?} | [${ZIP_NAME}](${{ steps.zip.outputs.url }}) | \`/pylux/linux/pylux-${CHIAKI_VERSION}.zip\` |"
-            echo "| AppImage     | ${AI_SIZE:-?}  | [${AI_NAME}](${{ steps.appimage.outputs.url }}) | \`/pylux/linux/pylux-${CHIAKI_VERSION}.AppImage\` |"
+            echo "| Portable zip | ${ZIP_SIZE:-?} | [${ZIP_NAME}](${{ steps.zip.outputs.url }}) | \`/astraplay/linux/astraplay-${CHIAKI_VERSION}.zip\` |"
+            echo "| AppImage     | ${AI_SIZE:-?}  | [${AI_NAME}](${{ steps.appimage.outputs.url }}) | \`/astraplay/linux/astraplay-${CHIAKI_VERSION}.AppImage\` |"
             echo ""
             echo "### How to use"
             echo "- **Portable zip** — unzip and run \`linux/launch.sh\` (recommended for Steam)."

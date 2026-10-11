@@ -90,7 +90,7 @@
 
                 </LinearLayout>
 
-                <!-- Center: Pylux logo - absolutely centered -->
+                <!-- Center: AstraPlay logo - absolutely centered -->
                 <ImageView
                     android:id="@+id/appTitle"
                     android:layout_width="wrap_content"

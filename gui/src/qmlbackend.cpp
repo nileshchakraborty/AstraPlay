@@ -3502,8 +3502,6 @@ QString QmlBackend::getAstraPlayURL()
 {
     // Check environment variable override first
     QByteArray envUrl = qgetenv("ASTRAPLAY_RELAY_URL");
-    if (envUrl.isEmpty())
-        envUrl = qgetenv("PYLUX_RELAY_URL");
     if (!envUrl.isEmpty()) {
         return QString::fromUtf8(envUrl);
     }

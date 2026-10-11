@@ -1,15 +1,15 @@
 #!/bin/bash
-# iOS build script for Pylux (Chiaki)
+# iOS build script for AstraPlay (Chiaki)
 # Similar to android/build.ps1: dev = simulator + run, release = production archive
 #
 # ============================ HOW TO RUN + READ LOGS (iOS) ============================
 # Normal loop:   ./build.sh dev          # build + install + launch (sim or device) + start logs
-# View logs:     ./build.sh logs         # one-shot tail -n 200 of ios/logs/pylux.log (NEVER hangs)
+# View logs:     ./build.sh logs         # one-shot tail -n 200 of ios/logs/astraplay.log (NEVER hangs)
 # Stop logs:     ./build.sh stop-logs
 #
 # Every launch path (dev / launch / iterate) starts a BACKGROUND log capture into ONE fixed file
-# (ios/logs/pylux.log) and returns immediately -- nothing streams in the foreground, so it never
-# hangs. To watch live instead of a snapshot:  tail -f ios/logs/pylux.log
+# (ios/logs/astraplay.log) and returns immediately -- nothing streams in the foreground, so it never
+# hangs. To watch live instead of a snapshot:  tail -f ios/logs/astraplay.log
 #
 # PHYSICAL DEVICE LOGS WORK OVER WI-FI -- NO USB CABLE NEEDED (since 2026-07-08).
 # The app is launched via `devicectl ... --console` with OS_ACTIVITY_DT_MODE=YES, which
@@ -26,16 +26,16 @@
 #   ./build.sh dev               - (default) build + install + launch on device/sim + background logs
 #   ./build.sh launch            - Skip build; just launch app + background logs
 #   ./build.sh iterate           - Fast loop: optional full lib, xcodebuild, install, launch, background logs
-#   ./build.sh logs              - One-shot dump (tail -n 200) of logs/pylux.log; never streams/hangs
-#   ./build.sh stop-logs         - Stop capture (reads logs/pylux-capture.pid if present)
+#   ./build.sh logs              - One-shot dump (tail -n 200) of logs/astraplay.log; never streams/hangs
+#   ./build.sh stop-logs         - Stop capture (reads logs/astraplay-capture.pid if present)
 #   ./build.sh release           - Build archive for App Store upload
 #
 # Env knobs:
 #   ASTRAPLAY_FULL_BUILD=1 ./build.sh iterate  - Rebuild chiaki-lib via CMake first
-#   PYLUX_XCODE_QUIET=1        - Pass xcodebuild -quiet (default: full build log to terminal)
-#   PYLUX_XCODE_CONFIGURATION=Release ./build.sh dev|iterate  - Release build; default Debug
-#   PYLUX_LOG_MINUTES=N        - Background capture auto-stops after N minutes (default 20)
-#   PYLUX_SYSLOG_NETWORK=1     - idevicesyslog always uses -n (override auto USB vs Wi‑Fi)
+#   ASTRAPLAY_XCODE_QUIET=1        - Pass xcodebuild -quiet (default: full build log to terminal)
+#   ASTRAPLAY_XCODE_CONFIGURATION=Release ./build.sh dev|iterate  - Release build; default Debug
+#   ASTRAPLAY_LOG_MINUTES=N        - Background capture auto-stops after N minutes (default 20)
+#   ASTRAPLAY_SYSLOG_NETWORK=1     - idevicesyslog always uses -n (override auto USB vs Wi‑Fi)
 #   ./build.sh release xcframework - Also create XCFramework after release build
 #   ./build.sh ship - Archive + export IPA + Fastlane upload (TestFlight). Uses generic/platform=iOS only;
 #       does not install on a device or stream logs. Requires: brew install fastlane + API key env (see below).
@@ -52,19 +52,19 @@ MODE="${1:-dev}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLCHAIN_URL="https://raw.githubusercontent.com/leetal/ios-cmake/master/ios.toolchain.cmake"
 TOOLCHAIN_FILE="$SCRIPT_DIR/ios.toolchain.cmake"
-SCHEME="Pylux"
+SCHEME="AstraPlay"
 BUNDLE_ID="com.astraplay.stream"
-PYLUX_XCODE_CONFIGURATION="${PYLUX_XCODE_CONFIGURATION:-Debug}"
+ASTRAPLAY_XCODE_CONFIGURATION="${ASTRAPLAY_XCODE_CONFIGURATION:-Debug}"
 
-# xcodebuild prints full compile output by default. Set PYLUX_XCODE_QUIET=1 to reduce noise.
-if [ "${PYLUX_XCODE_QUIET:-0}" = "1" ]; then
-    _PYLUX_XCODE_EXTRA=(-quiet)
+# xcodebuild prints full compile output by default. Set ASTRAPLAY_XCODE_QUIET=1 to reduce noise.
+if [ "${ASTRAPLAY_XCODE_QUIET:-0}" = "1" ]; then
+    _ASTRAPLAY_XCODE_EXTRA=(-quiet)
 else
-    _PYLUX_XCODE_EXTRA=()
+    _ASTRAPLAY_XCODE_EXTRA=()
 fi
 
 # idevicesyslog needs usbmux/network UDID (not devicectl Core Device UUID). Prefer USB list, then Wi‑Fi list, then caller fallback.
-_pylux_resolve_syslog_udid() {
+_astraplay_resolve_syslog_udid() {
     local fallback="${1:-}"
     local u
     u=$(idevice_id -l 2>/dev/null | head -1)
@@ -74,17 +74,17 @@ _pylux_resolve_syslog_udid() {
     [ -n "$fallback" ] && echo "$fallback"
 }
 
-# USB by default; use -n when device is only on idevice_id -ln, or when PYLUX_SYSLOG_NETWORK=1.
-_pylux_idevicesyslog_use_network_flag() {
+# USB by default; use -n when device is only on idevice_id -ln, or when ASTRAPLAY_SYSLOG_NETWORK=1.
+_astraplay_idevicesyslog_use_network_flag() {
     local udid="$1"
     [ -z "$udid" ] && return 1
-    [ "${PYLUX_SYSLOG_NETWORK:-0}" = "1" ] && return 0
+    [ "${ASTRAPLAY_SYSLOG_NETWORK:-0}" = "1" ] && return 0
     idevice_id -l 2>/dev/null | grep -qxF "$udid" && return 1
     idevice_id -ln 2>/dev/null | grep -qF "$udid" && return 0
     return 1
 }
 
-_pylux_start_phys_device_syslog_bg() {
+_astraplay_start_phys_device_syslog_bg() {
     local udid="$1"
     local log_file="$2"
     local isys
@@ -103,22 +103,22 @@ _pylux_start_phys_device_syslog_bg() {
         # builds use `-p <name>`, 1.4.0+ replaced it with `-m <match-string>`.
         # Passing the wrong one makes idevicesyslog print usage and exit 0, so
         # detect from --help instead of trying blind.
-        local filter=(-m Pylux)
-        "$isys" --help 2>&1 | grep -qE '^\s+-p, --process' && filter=(-p Pylux)
-        if _pylux_idevicesyslog_use_network_flag "$udid"; then
+        local filter=(-m AstraPlay)
+        "$isys" --help 2>&1 | grep -qE '^\s+-p, --process' && filter=(-p AstraPlay)
+        if _astraplay_idevicesyslog_use_network_flag "$udid"; then
             echo "device syslog (bg): $isys -n -u $udid ${filter[*]}" >&2
             "$isys" -n -u "$udid" "${filter[@]}" >> "$log_file" 2>&1 &
         else
             echo "device syslog (bg): $isys -u $udid ${filter[*]}" >&2
             "$isys" -u "$udid" "${filter[@]}" >> "$log_file" 2>&1 &
         fi
-        PYLUX_SYSLOG_BG_PID=$!
+        ASTRAPLAY_SYSLOG_BG_PID=$!
     elif python3 -c "import pymobiledevice3" 2>/dev/null; then
         echo "WARN: no idevicesyslog; using pymobiledevice3" >&2
         local extra=()
         [ -n "$udid" ] && extra+=(--udid "$udid")
         env PYTHONUNBUFFERED=1 python3 -u -m pymobiledevice3 syslog live "${extra[@]}" >> "$log_file" 2>&1 &
-        PYLUX_SYSLOG_BG_PID=$!
+        ASTRAPLAY_SYSLOG_BG_PID=$!
     else
         echo "ERROR: install libimobiledevice or pymobiledevice3 for device logs." >&2
         exit 1
@@ -137,7 +137,7 @@ _pylux_start_phys_device_syslog_bg() {
 check_forbidden_inline_setters() {
     local forbidden="chiaki_session_set_event_cb|chiaki_session_set_video_sample_cb|chiaki_session_set_audio_sink|chiaki_session_set_haptics_sink|chiaki_session_ctrl_set_display_sink"
     local hits
-    hits=$(grep -rnE "($forbidden)\(" "$SCRIPT_DIR/Pylux" --include="*.m" --include="*.mm" --include="*.swift" 2>/dev/null | grep -v "_ex(" || true)
+    hits=$(grep -rnE "($forbidden)\(" "$SCRIPT_DIR/AstraPlay" --include="*.m" --include="*.mm" --include="*.swift" 2>/dev/null | grep -v "_ex(" || true)
     if [ -n "$hits" ]; then
         echo "" >&2
         echo "BUILD BLOCKED: struct-offset-dependent chiaki inline setter called from app code:" >&2
@@ -261,7 +261,7 @@ run_dev() {
     
     # Use xcodebuild for build destination (it needs legacy UDID e.g. 00008101-...)
     # devicectl uses CoreDevice ID (e.g. E0A55DB7-...) - only for install/launch
-    DESTINATIONS=$(xcodebuild -project "$SCRIPT_DIR/Pylux.xcodeproj" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep "platform:iOS," | grep -v "Simulator" | grep "name:" | _filter_real_ios_device_destinations)
+    DESTINATIONS=$(xcodebuild -project "$SCRIPT_DIR/AstraPlay.xcodeproj" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep "platform:iOS," | grep -v "Simulator" | grep "name:" | _filter_real_ios_device_destinations)
     if [ -n "$DESTINATIONS" ]; then
         DEVICE_LINE=$(echo "$DESTINATIONS" | head -1)
         DEVICE_UDID=$(echo "$DEVICE_LINE" | grep -oE 'id:[^,}]+' | head -1 | cut -d: -f2)
@@ -281,16 +281,16 @@ run_dev() {
         # Clean build folder to force relink
         rm -rf "$SCRIPT_DIR/build-derived/Build/Intermediates.noindex"
         echo ""
-        echo "=== Building Pylux app for physical device ==="
+        echo "=== Building AstraPlay app for physical device ==="
         # Note: Code signing required for physical devices. Make sure you have a valid
         # provisioning profile or enable "Automatically manage signing" in Xcode.
-        (cd "$SCRIPT_DIR" && xcodebuild -project Pylux.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration "$PYLUX_XCODE_CONFIGURATION" clean build \
+        (cd "$SCRIPT_DIR" && xcodebuild -project AstraPlay.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration "$ASTRAPLAY_XCODE_CONFIGURATION" clean build \
             -destination "id=$DEVICE_UDID" \
             -derivedDataPath "$SCRIPT_DIR/build-derived" \
             -allowProvisioningUpdates \
-            "${_PYLUX_XCODE_EXTRA[@]}")
+            "${_ASTRAPLAY_XCODE_EXTRA[@]}")
 
-        APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${PYLUX_XCODE_CONFIGURATION}-iphoneos/Pylux.app"
+        APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${ASTRAPLAY_XCODE_CONFIGURATION}-iphoneos/AstraPlay.app"
         if [ ! -d "$APP_PATH" ]; then
             echo "ERROR: App not found at $APP_PATH"
             exit 1
@@ -302,7 +302,7 @@ run_dev() {
         xcrun devicectl device install app --device "$INSTALL_UDID" "$APP_PATH"
         
         # Launch + log capture in ONE step over CoreDevice (Wi-Fi or USB):
-        # console-attached launch streams os_log straight into logs/pylux.log.
+        # console-attached launch streams os_log straight into logs/astraplay.log.
         launch_phys_with_console_log_bg "$INSTALL_UDID" "$BUNDLE_ID"
         echo ""
         echo "App launched on physical device: $DEVICE_NAME"
@@ -317,20 +317,20 @@ run_dev() {
         # Clean build folder to force relink
         rm -rf "$SCRIPT_DIR/build-derived/Build/Intermediates.noindex"
         echo ""
-        echo "=== Building Pylux app for simulator ==="
+        echo "=== Building AstraPlay app for simulator ==="
         # Must match SIMULATOR_PLATFORM: arm64 on Apple Silicon, x86_64 on Intel
         if [ "$(uname -m)" = "arm64" ]; then
             XC_ARCHS="ARCHS=arm64"
         else
             XC_ARCHS="ARCHS=x86_64"
         fi
-        (cd "$SCRIPT_DIR" && xcodebuild -project Pylux.xcodeproj -scheme "$SCHEME" -sdk iphonesimulator -configuration "$PYLUX_XCODE_CONFIGURATION" clean build \
+        (cd "$SCRIPT_DIR" && xcodebuild -project AstraPlay.xcodeproj -scheme "$SCHEME" -sdk iphonesimulator -configuration "$ASTRAPLAY_XCODE_CONFIGURATION" clean build \
             -destination 'generic/platform=iOS Simulator' \
             "$XC_ARCHS" \
             -derivedDataPath "$SCRIPT_DIR/build-derived" \
-            "${_PYLUX_XCODE_EXTRA[@]}")
+            "${_ASTRAPLAY_XCODE_EXTRA[@]}")
 
-        APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${PYLUX_XCODE_CONFIGURATION}-iphonesimulator/Pylux.app"
+        APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${ASTRAPLAY_XCODE_CONFIGURATION}-iphonesimulator/AstraPlay.app"
         if [ ! -d "$APP_PATH" ]; then
             echo "ERROR: App not found at $APP_PATH"
             exit 1
@@ -358,34 +358,34 @@ run_dev() {
 }
 
 # --- Release: build app for device, create archive ---
-ARCHIVE_PATH="$SCRIPT_DIR/build-derived/Pylux.xcarchive"
+ARCHIVE_PATH="$SCRIPT_DIR/build-derived/AstraPlay.xcarchive"
 
 # Mirrors .github/actions/extract-version: MAJOR*10000+MINOR*100+PATCH.
-_pylux_read_version_from_cmake() {
+_astraplay_read_version_from_cmake() {
     local cmake="$SCRIPT_DIR/../CMakeLists.txt"
     local major minor patch
     major=$(grep '^set(CHIAKI_VERSION_MAJOR' "$cmake" | awk '{print $2}' | tr -d ')')
     minor=$(grep '^set(CHIAKI_VERSION_MINOR' "$cmake" | awk '{print $2}' | tr -d ')')
     patch=$(grep '^set(CHIAKI_VERSION_PATCH' "$cmake" | awk '{print $2}' | tr -d ')')
-    PYLUX_MARKETING_VERSION="${major}.${minor}.${patch}"
-    PYLUX_BUILD_NUMBER=$(( 10#${major} * 10000 + 10#${minor} * 100 + 10#${patch} ))
+    ASTRAPLAY_MARKETING_VERSION="${major}.${minor}.${patch}"
+    ASTRAPLAY_BUILD_NUMBER=$(( 10#${major} * 10000 + 10#${minor} * 100 + 10#${patch} ))
 }
 
 create_release_archive() {
-    _pylux_read_version_from_cmake
+    _astraplay_read_version_from_cmake
     echo ""
-    echo "=== Creating archive for release (version ${PYLUX_MARKETING_VERSION}, build ${PYLUX_BUILD_NUMBER}) ==="
-    (cd "$SCRIPT_DIR" && xcodebuild -project Pylux.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration Release archive \
+    echo "=== Creating archive for release (version ${ASTRAPLAY_MARKETING_VERSION}, build ${ASTRAPLAY_BUILD_NUMBER}) ==="
+    (cd "$SCRIPT_DIR" && xcodebuild -project AstraPlay.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration Release archive \
         -destination 'generic/platform=iOS' \
         -archivePath "$ARCHIVE_PATH" \
         -derivedDataPath "$SCRIPT_DIR/build-derived" \
-        MARKETING_VERSION="${PYLUX_MARKETING_VERSION}" \
-        CURRENT_PROJECT_VERSION="${PYLUX_BUILD_NUMBER}")
+        MARKETING_VERSION="${ASTRAPLAY_MARKETING_VERSION}" \
+        CURRENT_PROJECT_VERSION="${ASTRAPLAY_BUILD_NUMBER}")
 
     if [ ! -d "$ARCHIVE_PATH" ]; then
         echo ""
         echo "Archive failed. For release builds, set DEVELOPMENT_TEAM in Xcode:"
-        echo "  Open Pylux.xcodeproj > Signing & Capabilities > select your Team"
+        echo "  Open AstraPlay.xcodeproj > Signing & Capabilities > select your Team"
         exit 1
     fi
     echo ""
@@ -450,10 +450,10 @@ run_ship() {
     fi
     echo "IPA: $IPA"
 
-    export PYLUX_IPA_PATH="$IPA"
+    export ASTRAPLAY_IPA_PATH="$IPA"
     echo ""
     echo "=== Uploading to App Store Connect (TestFlight) ==="
-    (cd "$SCRIPT_DIR" && fastlane upload_pylux_ipa)
+    (cd "$SCRIPT_DIR" && fastlane upload_astraplay_ipa)
     echo ""
     echo "Done. When processing finishes, the build appears in App Store Connect → TestFlight."
 }
@@ -461,7 +461,7 @@ run_ship() {
 create_xcframework() {
     COMBINED_DEVICE="$SCRIPT_DIR/build-iphoneos/libchiaki_complete.a"
     COMBINED_SIM="$SCRIPT_DIR/build-iphonesimulator/libchiaki_complete.a"
-    FRAMEWORK_DIR="$SCRIPT_DIR/Pylux.xcframework"
+    FRAMEWORK_DIR="$SCRIPT_DIR/AstraPlay.xcframework"
     rm -rf "$FRAMEWORK_DIR"
     mkdir -p "$FRAMEWORK_DIR/ios-arm64/chiaki.framework"
     mkdir -p "$FRAMEWORK_DIR/ios-arm64_x86_64-simulator/chiaki.framework"
@@ -519,7 +519,7 @@ run_launch() {
         DEVICE_NAME=$(echo "$DEVICE_INFO" | awk '{print $2}')
         DEVICE_UDID=$(echo "$DEVICE_INFO" | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}' | head -1)
         
-        SYSLOG_UDID="$(_pylux_resolve_syslog_udid "$DEVICE_UDID")"
+        SYSLOG_UDID="$(_astraplay_resolve_syslog_udid "$DEVICE_UDID")"
 
         echo "Found physical device: $DEVICE_NAME ($DEVICE_UDID)"
         echo ""
@@ -562,11 +562,11 @@ clean_and_rebuild() {
     
     # Clean Xcode DerivedData cache to force fresh build
     echo "Cleaning Xcode DerivedData cache..."
-    rm -rf ~/Library/Developer/Xcode/DerivedData/*Pylux* 2>/dev/null || true
+    rm -rf ~/Library/Developer/Xcode/DerivedData/*AstraPlay* 2>/dev/null || true
     
     # Also clean Xcode build products
     echo "Cleaning Xcode build products..."
-    xcodebuild clean -project "$SCRIPT_DIR/Pylux.xcodeproj" -scheme "$SCHEME" -configuration "$PYLUX_XCODE_CONFIGURATION" 2>&1 | grep -E "^(Clean|note:|error:)" || true
+    xcodebuild clean -project "$SCRIPT_DIR/AstraPlay.xcodeproj" -scheme "$SCHEME" -configuration "$ASTRAPLAY_XCODE_CONFIGURATION" 2>&1 | grep -E "^(Clean|note:|error:)" || true
     
     echo ""
     echo "=== Clean complete, starting rebuild ==="
@@ -581,7 +581,7 @@ resolve_physical_device() {
     DEVICE_UDID=""
     DEVICE_NAME=""
     DEVICECTL_UDID=""
-    DESTINATIONS=$(xcodebuild -project "$SCRIPT_DIR/Pylux.xcodeproj" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep "platform:iOS," | grep -v "Simulator" | grep "name:" | _filter_real_ios_device_destinations)
+    DESTINATIONS=$(xcodebuild -project "$SCRIPT_DIR/AstraPlay.xcodeproj" -scheme "$SCHEME" -showdestinations 2>/dev/null | grep "platform:iOS," | grep -v "Simulator" | grep "name:" | _filter_real_ios_device_destinations)
     if [ -n "$DESTINATIONS" ]; then
         DEVICE_LINE=$(echo "$DESTINATIONS" | head -1)
         DEVICE_UDID=$(echo "$DEVICE_LINE" | grep -oE 'id:[^,}]+' | head -1 | cut -d: -f2)
@@ -595,17 +595,17 @@ resolve_physical_device() {
 run_iterate() {
     LOGS_DIR="$SCRIPT_DIR/logs"
     mkdir -p "$LOGS_DIR"
-    LOG_FILE="$LOGS_DIR/pylux.log"
-    CAPTURE_PID_FILE="$LOGS_DIR/pylux-capture.pid"
+    LOG_FILE="$LOGS_DIR/astraplay.log"
+    CAPTURE_PID_FILE="$LOGS_DIR/astraplay-capture.pid"
 
     echo ""
     echo "══════════════════════════════════════════════════════════════"
-    echo "  PYLUX ITERATE"
+    echo "  ASTRAPLAY ITERATE"
     echo "══════════════════════════════════════════════════════════════"
     stop_logs
     rm -f "$CAPTURE_PID_FILE"
 
-    if [ "${ASTRAPLAY_FULL_BUILD:-${PYLUX_FULL_BUILD:-0}}" = "1" ]; then
+    if [ "${ASTRAPLAY_FULL_BUILD:-${ASTRAPLAY_FULL_BUILD:-0}}" = "1" ]; then
         echo "=== ASTRAPLAY_FULL_BUILD=1: rebuilding chiaki-lib ==="
         build_lib
     fi
@@ -623,16 +623,16 @@ run_iterate() {
     touch "$SCRIPT_DIR/build-iphonesimulator/libchiaki_complete.a" 2>/dev/null || true
 
     echo "=== Xcode build (incremental, no clean) ==="
-    (cd "$SCRIPT_DIR" && xcodebuild -project Pylux.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration "$PYLUX_XCODE_CONFIGURATION" build \
+    (cd "$SCRIPT_DIR" && xcodebuild -project AstraPlay.xcodeproj -scheme "$SCHEME" -sdk iphoneos -configuration "$ASTRAPLAY_XCODE_CONFIGURATION" build \
         -destination "id=$DEVICE_UDID" \
         -derivedDataPath "$SCRIPT_DIR/build-derived" \
         -allowProvisioningUpdates \
-        "${_PYLUX_XCODE_EXTRA[@]}") || {
+        "${_ASTRAPLAY_XCODE_EXTRA[@]}") || {
         echo "ERROR: xcodebuild failed. Fix errors or run: ASTRAPLAY_FULL_BUILD=1 $0 iterate"
         exit 1
     }
 
-    APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${PYLUX_XCODE_CONFIGURATION}-iphoneos/Pylux.app"
+    APP_PATH="$SCRIPT_DIR/build-derived/Build/Products/${ASTRAPLAY_XCODE_CONFIGURATION}-iphoneos/AstraPlay.app"
     if [ ! -d "$APP_PATH" ]; then
         echo "ERROR: App not found at $APP_PATH"
         exit 1
@@ -643,9 +643,9 @@ run_iterate() {
     launch_phys_with_console_log_bg "$INSTALL_UDID" "$BUNDLE_ID"
 
     echo ""
-    echo "  → Open Pylux and press Stream."
+    echo "  → Open AstraPlay and press Stream."
     echo "  → Live:  tail -f $LOG_FILE"
-    echo "  → Grep:  grep 'Pylux VideoDecoder\\|displayed:' $LOG_FILE | tail -40"
+    echo "  → Grep:  grep 'AstraPlay VideoDecoder\\|displayed:' $LOG_FILE | tail -40"
     echo ""
     echo "══════════════════════════════════════════════════════════════"
 }
@@ -656,9 +656,9 @@ run_iterate() {
 start_sim_log_capture_bg() {
     local LOGS_DIR="$SCRIPT_DIR/logs"
     mkdir -p "$LOGS_DIR"
-    local LOG_FILE="$LOGS_DIR/pylux.log"
-    local CAPTURE_PID_FILE="$LOGS_DIR/pylux-capture.pid"
-    local STOP_MIN="${PYLUX_LOG_MINUTES:-20}"
+    local LOG_FILE="$LOGS_DIR/astraplay.log"
+    local CAPTURE_PID_FILE="$LOGS_DIR/astraplay-capture.pid"
+    local STOP_MIN="${ASTRAPLAY_LOG_MINUTES:-20}"
     stop_logs >/dev/null 2>&1 || true
     printf '\n########## SIM SESSION %s ##########\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$LOG_FILE"
     nohup xcrun simctl spawn booted log stream \
@@ -688,15 +688,15 @@ start_sim_log_capture_bg() {
 # stayed empty while deploys (CoreDevice/Wi-Fi) kept working.
 # IMPORTANT: devicectl forwards catchable signals to the app, so the watchdog and
 # stop-logs must use kill -9 on this PID (SIGKILL detaches the console WITHOUT
-# killing the app; a plain TERM would terminate Pylux on the phone).
+# killing the app; a plain TERM would terminate AstraPlay on the phone).
 launch_phys_with_console_log_bg() {
     local devicectl_id="$1"
     local bundle_id="$2"
     local LOGS_DIR="$SCRIPT_DIR/logs"
     mkdir -p "$LOGS_DIR"
-    local LOG_FILE="$LOGS_DIR/pylux.log"
-    local CAPTURE_PID_FILE="$LOGS_DIR/pylux-capture.pid"
-    local STOP_MIN="${PYLUX_LOG_MINUTES:-20}"
+    local LOG_FILE="$LOGS_DIR/astraplay.log"
+    local CAPTURE_PID_FILE="$LOGS_DIR/astraplay-capture.pid"
+    local STOP_MIN="${ASTRAPLAY_LOG_MINUTES:-20}"
     stop_logs >/dev/null 2>&1 || true
     printf '\n########## DEVICE SESSION %s (devicectl console) ##########\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$LOG_FILE"
     nohup xcrun devicectl device process launch --terminate-existing --console \
@@ -726,12 +726,12 @@ start_phys_log_capture_bg() {
     local LOG_FILE="$2"
     local LOGS_DIR="$SCRIPT_DIR/logs"
     mkdir -p "$LOGS_DIR"
-    local CAPTURE_PID_FILE="$LOGS_DIR/pylux-capture.pid"
-    local STOP_MIN="${PYLUX_LOG_MINUTES:-20}"
+    local CAPTURE_PID_FILE="$LOGS_DIR/astraplay-capture.pid"
+    local STOP_MIN="${ASTRAPLAY_LOG_MINUTES:-20}"
     stop_logs >/dev/null 2>&1 || true
     printf '\n########## DEVICE SESSION %s ##########\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$LOG_FILE"
-    _pylux_start_phys_device_syslog_bg "$udid" "$LOG_FILE"
-    local pid="$PYLUX_SYSLOG_BG_PID"
+    _astraplay_start_phys_device_syslog_bg "$udid" "$LOG_FILE"
+    local pid="$ASTRAPLAY_SYSLOG_BG_PID"
     disown "$pid" 2>/dev/null || true
     echo "$pid" > "$CAPTURE_PID_FILE"
     ( sleep $((STOP_MIN * 60)); kill "$pid" 2>/dev/null || true; rm -f "$CAPTURE_PID_FILE" ) >/dev/null 2>&1 </dev/null &
@@ -742,13 +742,13 @@ start_phys_log_capture_bg() {
 # --- Stop log streaming (kill orphan processes) ---
 stop_logs() {
     local killed=0
-    CAPTURE_PID_FILE="$SCRIPT_DIR/logs/pylux-capture.pid"
+    CAPTURE_PID_FILE="$SCRIPT_DIR/logs/astraplay-capture.pid"
     if [ -f "$CAPTURE_PID_FILE" ]; then
         CAPTURE_PID=$(head -1 "$CAPTURE_PID_FILE" 2>/dev/null || true)
         if [ -n "$CAPTURE_PID" ] && kill -0 "$CAPTURE_PID" 2>/dev/null; then
             # SIGKILL, not TERM: the capture may be a `devicectl ... --console` process,
             # which FORWARDS catchable signals to the app on the phone. -9 detaches the
-            # console without terminating Pylux.
+            # console without terminating AstraPlay.
             kill -9 "$CAPTURE_PID" 2>/dev/null && { echo "Stopped capture PID $CAPTURE_PID"; killed=1; }
         fi
         rm -f "$CAPTURE_PID_FILE"
@@ -759,7 +759,7 @@ stop_logs() {
             pkill -f "$proc" 2>/dev/null && { echo "Stopped $proc"; killed=1; }
         fi
     done
-    pkill -f "tee.*pylux.log" 2>/dev/null && { echo "Stopped tee"; killed=1; }
+    pkill -f "tee.*astraplay.log" 2>/dev/null && { echo "Stopped tee"; killed=1; }
     [ $killed -eq 1 ] && echo "Log streaming stopped." || echo "No log streaming processes found."
 }
 
@@ -787,7 +787,7 @@ case "$MODE" in
         # One-shot bounded dump of the captured log (never streams/hangs). `log show` does NOT
         # retain .info logs on the simulator, so this tails the file fed by the background capture
         # (started by `dev`/`iterate`). Start one first if the file is empty/missing.
-        LOG_FILE="$SCRIPT_DIR/logs/pylux.log"
+        LOG_FILE="$SCRIPT_DIR/logs/astraplay.log"
         if [ -f "$LOG_FILE" ]; then
             tail -n 200 "$LOG_FILE"
         else

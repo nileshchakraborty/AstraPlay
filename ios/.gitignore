@@ -1,8 +1,8 @@
 logs/mcp-ship-stream.log
-logs/pylux.log
+logs/astraplay.log
 fastlane/report.xml
 build-iphoneos/
 build-iphonesimulator/
 build-derived/
-Pylux.xcframework/
+AstraPlay.xcframework/
 ios.toolchain.cmake

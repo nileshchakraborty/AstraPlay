@@ -16,7 +16,7 @@ on:
   workflow_call:
     outputs:
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build-and-verify.outputs.chiaki_version }}
       flatpak_build_succeeded:
         description: Whether the Flatpak CI verify build succeeded
@@ -28,7 +28,7 @@ on:
         description: Download and install the Dropbox-hosted bundle
         value: ${{ jobs.build-and-verify.outputs.flatpak_install_command }}
       flatpak_run_command:
-        description: Launch Pylux after install
+        description: Launch AstraPlay after install
         value: ${{ jobs.build-and-verify.outputs.flatpak_run_command }}
 
 concurrency:
@@ -60,7 +60,7 @@ jobs:
 
       - name: Patch manifest to build from local checkout
         run: |
-          sed -i '/^  - name: pylux/,/^  - name:\|^$/{
+          sed -i '/^  - name: astraplay/,/^  - name:\|^$/{
             s|      - type: git|      - type: dir|
             s|        url:.*|        path: ../../|
             /commit:/d
@@ -69,7 +69,7 @@ jobs:
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         id: flatpak_build
         with:
-          bundle: pylux-x64.flatpak
+          bundle: astraplay-x64.flatpak
           manifest-path: scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml
           branch: stable
           cache-key: flatpak-builder-${{ github.sha }}
@@ -81,9 +81,9 @@ jobs:
         if: steps.flatpak_build.outcome == 'success'
         uses: ./.github/actions/dropbox-publish
         with:
-          file: pylux-x64.flatpak
-          latest-path: /pylux/linux/pylux${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.flatpak
-          versioned-path: /pylux/linux/pylux-${{ env.CHIAKI_VERSION }}.flatpak
+          file: astraplay-x64.flatpak
+          latest-path: /astraplay/linux/astraplay${{ github.ref_name == 'release/beta' && '-beta' || '' }}-latest.flatpak
+          versioned-path: /astraplay/linux/astraplay-${{ env.CHIAKI_VERSION }}.flatpak
           refresh-token: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
           app-key: ${{ secrets.DROPBOX_APP_KEY }}
           app-secret: ${{ secrets.DROPBOX_APP_SECRET }}
@@ -93,9 +93,9 @@ jobs:
         if: steps.flatpak_dropbox.outcome == 'success'
         run: |
           if [ "${{ github.ref_name }}" = "release/beta" ]; then
-            BUNDLE="pylux-beta-latest.flatpak"
+            BUNDLE="astraplay-beta-latest.flatpak"
           else
-            BUNDLE="pylux-latest.flatpak"
+            BUNDLE="astraplay-latest.flatpak"
           fi
           URL="${{ steps.flatpak_dropbox.outputs.url }}"
           INSTALL="curl -fsSL -o ${BUNDLE} \"${URL}\" && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install --user -y ${BUNDLE}"
@@ -115,18 +115,18 @@ jobs:
           DROPBOX_URL: ${{ steps.flatpak_dropbox.outputs.url }}
         run: |
           if [ "${{ github.ref_name }}" = "release/beta" ]; then
-            ROLLING_NAME="pylux-beta-latest.flatpak"
+            ROLLING_NAME="astraplay-beta-latest.flatpak"
           else
-            ROLLING_NAME="pylux-latest.flatpak"
+            ROLLING_NAME="astraplay-latest.flatpak"
           fi
           {
-            echo "## Pylux Flatpak — v${CHIAKI_VERSION:-?} (x86_64)"
+            echo "## AstraPlay Flatpak — v${CHIAKI_VERSION:-?} (x86_64)"
             echo ""
             if [ "${{ steps.flatpak_build.outcome }}" = "success" ]; then
-              FP_SIZE=$(ls -lh pylux-x64.flatpak 2>/dev/null | awk '{print $5}')
+              FP_SIZE=$(ls -lh astraplay-x64.flatpak 2>/dev/null | awk '{print $5}')
               echo "| Artifact | Size | Rolling download | Versioned archive |"
               echo "| --- | --- | --- | --- |"
-              echo "| Flatpak bundle | ${FP_SIZE:-?} | [${ROLLING_NAME}](${DROPBOX_URL}) | \`/pylux/linux/pylux-${CHIAKI_VERSION}.flatpak\` |"
+              echo "| Flatpak bundle | ${FP_SIZE:-?} | [${ROLLING_NAME}](${DROPBOX_URL}) | \`/astraplay/linux/astraplay-${CHIAKI_VERSION}.flatpak\` |"
               echo ""
               if [ -n "${DROPBOX_URL}" ]; then
                 INSTALL="curl -fsSL -o ${ROLLING_NAME} \"${DROPBOX_URL}\" && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install --user -y ${ROLLING_NAME}"
@@ -167,10 +167,10 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #     - name: Checkout Pylux repo
+  #     - name: Checkout AstraPlay repo
   #       uses: actions/checkout@v4
   #       with:
-  #         path: pylux
+  #         path: astraplay
   #
   #     - name: Checkout Flathub repo
   #       uses: actions/checkout@v4
@@ -181,13 +181,13 @@ jobs:
   #
   #     - name: Sync files to Flathub repo
   #       run: |
-  #         PYLUX_COMMIT=$(cd pylux && git rev-parse HEAD)
+  #         ASTRAPLAY_COMMIT=$(cd astraplay && git rev-parse HEAD)
   #
   #         # Patch the commit hash in the manifest to match this exact build
-  #         sed "s|commit: .*|commit: ${PYLUX_COMMIT}|" \
-  #           pylux/scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml > flathub/io.github.nileshchakraborty.AstraPlay.yml
+  #         sed "s|commit: .*|commit: ${ASTRAPLAY_COMMIT}|" \
+  #           astraplay/scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml > flathub/io.github.nileshchakraborty.AstraPlay.yml
   #
-  #         cp pylux/scripts/flatpak/0001-vulkan-ignore-frames-without-hw-context.patch \
+  #         cp astraplay/scripts/flatpak/0001-vulkan-ignore-frames-without-hw-context.patch \
   #            flathub/0001-vulkan-ignore-frames-without-hw-context.patch
   #
   #     - name: Commit and push to Flathub
@@ -202,5 +202,5 @@ jobs:
   #         fi
   #
   #         git add -A
-  #         git commit -m "Sync manifest from Pylux @ $(cd ../pylux && git rev-parse --short HEAD)"
+  #         git commit -m "Sync manifest from AstraPlay @ $(cd ../astraplay && git rev-parse --short HEAD)"
   #         git push

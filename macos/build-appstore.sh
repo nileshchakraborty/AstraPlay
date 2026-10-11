@@ -1,9 +1,9 @@
 #!/bin/bash
-# Build Pylux for Mac App Store: signed .app (sandbox entitlements) + signed .pkg for Transporter.
+# Build AstraPlay for Mac App Store: signed .app (sandbox entitlements) + signed .pkg for Transporter.
 #
 # Prerequisites: same as scripts/build-macos.sh (Xcode CLI tools, Homebrew, Qt@6, etc.).
 # On Apple Silicon, default is arm64-only. Universal needs x86_64 deps on the same machine
-# (e.g. /usr/local Rosetta Homebrew) or build universal on CI — set PYLUX_MAC_APPSTORE_UNIVERSAL=1.
+# (e.g. /usr/local Rosetta Homebrew) or build universal on CI — set ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1.
 #
 # Credentials: secrets/macos/credentials.env only (same file as scripts/build-macos.sh).
 #   MACOS_APPSTORE_APPLICATION_SIGN_ID — Apple Distribution / Mac App Developer Application (NOT Developer ID)
@@ -13,7 +13,7 @@
 # Usage (from repo root):
 #   ./macos/build-appstore.sh              # incremental build + .pkg (arm64 on Apple Silicon)
 #   ./macos/build-appstore.sh --ship       # build .pkg then upload via Fastlane to App Store Connect
-#   PYLUX_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh   # universal (local needs x86_64 brew stack)
+#   ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh   # universal (local needs x86_64 brew stack)
 #   ./macos/build-appstore.sh --clean      # clean artifacts first, then build as above
 #   ./macos/build-appstore.sh clean        # only remove App Store cmake/products (no build)
 #
@@ -24,7 +24,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SECRETS_CREDS="$REPO_ROOT/secrets/macos/credentials.env"
 ENTITLEMENTS="$SCRIPT_DIR/appstore/entitlements.plist"
 BUILD_OUTPUT_DIR="$REPO_ROOT/build-output"
-PKG_OUT="$BUILD_OUTPUT_DIR/Pylux-appstore.pkg"
+PKG_OUT="$BUILD_OUTPUT_DIR/AstraPlay-appstore.pkg"
 
 appstore_clean() {
 	echo "=== Cleaning App Store / macOS CMake artifacts ==="
@@ -34,7 +34,7 @@ appstore_clean() {
 			rm -rf "$d"
 		fi
 	done
-	for f in "$BUILD_OUTPUT_DIR/Pylux.app" "$BUILD_OUTPUT_DIR/Pylux-appstore.pkg" "$BUILD_OUTPUT_DIR/Pylux.dmg"; do
+	for f in "$BUILD_OUTPUT_DIR/AstraPlay.app" "$BUILD_OUTPUT_DIR/AstraPlay-appstore.pkg" "$BUILD_OUTPUT_DIR/AstraPlay.dmg"; do
 		if [[ -e "$f" ]]; then
 			echo "  rm -rf $f"
 			rm -rf "$f"
@@ -51,7 +51,7 @@ fi
 if [[ "${1:-}" == "clean" ]]; then
 	if [[ $# -ne 1 ]]; then
 		echo "Usage: $0 clean"
-		echo "  Removes build-arm64, build-x86_64, build-universal and Pylux.app / Pylux-appstore.pkg / Pylux.dmg"
+		echo "  Removes build-arm64, build-x86_64, build-universal and AstraPlay.app / AstraPlay-appstore.pkg / AstraPlay.dmg"
 		exit 1
 	fi
 	appstore_clean
@@ -127,7 +127,7 @@ if [ ! -f "$MACOS_APPSTORE_PROVISIONING_PROFILE" ]; then
 fi
 
 # TestFlight (90886): signature entitlements must include the same application-identifier as the profile.
-WORKDIR="$(mktemp -d -t pylux-appstore)"
+WORKDIR="$(mktemp -d -t astraplay-appstore)"
 cleanup_workdir() { rm -rf "$WORKDIR"; }
 trap cleanup_workdir EXIT
 
@@ -162,15 +162,15 @@ cp "$ENTITLEMENTS" "$MERGED_ENTITLEMENTS"
 echo "  Merged application-identifier + team-identifier from provisioning profile into entitlements for codesign."
 
 export MACOS_SIGN_ID="$MACOS_APPSTORE_APPLICATION_SIGN_ID"
-export PYLUX_ENTITLEMENTS="$MERGED_ENTITLEMENTS"
+export ASTRAPLAY_ENTITLEMENTS="$MERGED_ENTITLEMENTS"
 # Steamworks is already off in build-macos.sh; Steam *shortcut* defaults ON — disable for store builds.
 # No Qt WebEngine: same CMake flag as Linux; PSN uses external browser (MAS / no QtWebEngineProcess).
-export PYLUX_EXTRA_CMAKE_ARGS="-DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF -DCHIAKI_ENABLE_GUI_WEBENGINE=OFF -DCHIAKI_IS_MAC_APPSTORE=ON"
+export ASTRAPLAY_EXTRA_CMAKE_ARGS="-DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF -DCHIAKI_ENABLE_GUI_WEBENGINE=OFF -DCHIAKI_IS_MAC_APPSTORE=ON"
 
 BUILD_ARCH="universal"
-if [[ "$(uname -m)" == "arm64" ]] && [[ "${PYLUX_MAC_APPSTORE_UNIVERSAL:-}" != "1" ]]; then
+if [[ "$(uname -m)" == "arm64" ]] && [[ "${ASTRAPLAY_MAC_APPSTORE_UNIVERSAL:-}" != "1" ]]; then
 	BUILD_ARCH="arm64"
-	echo "Host is arm64: using BUILD_ARCH=$BUILD_ARCH (set PYLUX_MAC_APPSTORE_UNIVERSAL=1 for universal)."
+	echo "Host is arm64: using BUILD_ARCH=$BUILD_ARCH (set ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1 for universal)."
 else
 	echo "App Store build architecture: $BUILD_ARCH"
 fi
@@ -182,7 +182,7 @@ echo "=== Building signed app (no DMG / no notarization) ==="
 	--skip-notary-keychain \
 	--no-credentials-file
 
-APP="$BUILD_OUTPUT_DIR/Pylux.app"
+APP="$BUILD_OUTPUT_DIR/AstraPlay.app"
 if [ ! -d "$APP" ]; then
 	echo "Expected app bundle not found: $APP"
 	exit 1
@@ -229,7 +229,7 @@ if [[ "$DO_SHIP" == true ]]; then
 		brew install fastlane
 	fi
 
-	export PYLUX_PKG_PATH="$PKG_OUT"
+	export ASTRAPLAY_PKG_PATH="$PKG_OUT"
 
 	IOS_CREDS="$REPO_ROOT/secrets/ios/credentials.env"
 	if [[ -z "${APP_STORE_CONNECT_API_KEY_KEY_ID:-}" && -f "$IOS_CREDS" ]]; then
@@ -247,7 +247,7 @@ if [[ "$DO_SHIP" == true ]]; then
 		ASC_KEY_ID="${APP_STORE_CONNECT_API_KEY_KEY_ID}"
 
 		if [[ -n "${APP_STORE_CONNECT_API_KEY_KEY_BASE64:-}" ]]; then
-			SHIP_TMPDIR="$(mktemp -d -t pylux-ship)"
+			SHIP_TMPDIR="$(mktemp -d -t astraplay-ship)"
 			_cleanup_ship() { rm -rf "$SHIP_TMPDIR"; }
 			trap _cleanup_ship EXIT
 			DECODED_KEY="$SHIP_TMPDIR/AuthKey_${ASC_KEY_ID}.p8"
@@ -278,7 +278,7 @@ if [[ "$DO_SHIP" == true ]]; then
 	fi
 
 	cd "$SCRIPT_DIR"
-	fastlane upload_pylux_pkg
+	fastlane upload_astraplay_pkg
 	cd "$REPO_ROOT"
 else
 	echo "  Next: ./macos/build-appstore.sh --ship   (uploads via Fastlane)"

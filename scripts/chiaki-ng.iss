@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AstraPlay"
-#define MyAppPublisher "Forward Technologies"
-#define MyAppURL "https://www.xbgamestream.com"
-#define MyAppExeName "pylux.exe"
-#define MyAppPath "..\pylux"
+#define MyAppPublisher "nileshchakraborty"
+#define MyAppURL "https://www.ksco.co"
+#define MyAppExeName "astraplay.exe"
+#define MyAppPath "..\astraplay"
 #define MyAppVersion() \
   GetVersionComponents(MyAppPath + "\" + MyAppExeName, Local[0], Local[1], Local[2], Local[3]), \
   Str(Local[0]) + "." + Str(Local[1]) + "." + Str(Local[2])
@@ -63,7 +63,6 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Type: files; Name: "{app}\*.bak"
 Type: files; Name: "{app}\*.old"
 Type: files; Name: "{app}\astraplay.exe.bak"
-Type: files; Name: "{app}\pylux.exe.bak"
 Type: files; Name: "{app}\chiaki.exe.bak"
 
 [UninstallDelete]

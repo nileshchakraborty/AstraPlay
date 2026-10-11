@@ -87,13 +87,11 @@ else
     # OpenSSL (3.x on modern distros like Steam Deck), avoiding Qt TLS backend version mismatch.
 fi
 
-# appimagetool names output from the .desktop Name= field (Pylux).
-if [ -f "Pylux-${ARCH}.AppImage" ]; then
-    mv "Pylux-${ARCH}.AppImage" pylux.AppImage
-elif [ -f "pylux-${ARCH}.AppImage" ]; then
-    mv "pylux-${ARCH}.AppImage" pylux.AppImage
+# appimagetool names output from the .desktop Name= field (AstraPlay).
+if [ -f "AstraPlay-${ARCH}.AppImage" ]; then
+    mv "AstraPlay-${ARCH}.AppImage" astraplay.AppImage
 else
-    echo "ERROR: expected Pylux-${ARCH}.AppImage; found:" >&2
+    echo "ERROR: expected AstraPlay-${ARCH}.AppImage; found:" >&2
     ls -1 *.AppImage >&2 || true
     exit 1
 fi

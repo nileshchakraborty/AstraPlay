@@ -25,7 +25,7 @@ This folder holds **Mac App Store–only** assets. The usual **Developer ID + DM
    For **Mac App Store** builds, [macos/build-appstore.sh](../build-appstore.sh) requires:
    - **`MACOS_APPSTORE_APPLICATION_SIGN_ID`** — signs the `.app` (Apple Distribution / Mac App Developer Application; **not** Developer ID).
    - **`MACOS_APPSTORE_INSTALLER_SIGN_ID`** — signs the `.pkg` for Transporter (Mac App Installer identity).
-   - **`MACOS_APPSTORE_PROVISIONING_PROFILE`** — absolute path to a **Mac App Store** provisioning profile (`.provisionprofile`). The script copies it to `Pylux.app/Contents/embedded.provisionprofile` and re-signs the bundle. **Without this, App Store Connect / TestFlight may fail with missing provisioning profile (e.g. 90889).** The script also reads **`com.apple.application-identifier`** and **`com.apple.developer.team-identifier`** from that profile and merges them into the entitlements used for **every** App Store `codesign` step so the signature matches the profile (fixes **90886**).
+   - **`MACOS_APPSTORE_PROVISIONING_PROFILE`** — absolute path to a **Mac App Store** provisioning profile (`.provisionprofile`). The script copies it to `AstraPlay.app/Contents/embedded.provisionprofile` and re-signs the bundle. **Without this, App Store Connect / TestFlight may fail with missing provisioning profile (e.g. 90889).** The script also reads **`com.apple.application-identifier`** and **`com.apple.developer.team-identifier`** from that profile and merges them into the entitlements used for **every** App Store `codesign` step so the signature matches the profile (fixes **90886**).
 
    Create the profile in the developer portal (**Certificates, Identifiers & Profiles → Profiles → + → Mac** → type **Mac App Store**), select your app’s **macOS App ID**, download the profile, and either double-click it (installs under `~/Library/MobileDevice/Provisioning Profiles/`) or point the variable at the downloaded file.
 
@@ -37,9 +37,9 @@ This folder holds **Mac App Store–only** assets. The usual **Developer ID + DM
    ./macos/build-appstore.sh
    ```
 
-   On **Apple Silicon**, the script defaults to an **arm64-only** app (same as a typical `/opt/homebrew` setup). For a **universal** binary (`arm64` + `x86_64`), run `PYLUX_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh` — that only works locally if you have a full **x86_64** Homebrew dependency stack (see CI: [`.github/workflows/build-macos-universal.yml`](../../.github/workflows/build-macos-universal.yml) uses separate Intel and ARM runners).
+   On **Apple Silicon**, the script defaults to an **arm64-only** app (same as a typical `/opt/homebrew` setup). For a **universal** binary (`arm64` + `x86_64`), run `ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh` — that only works locally if you have a full **x86_64** Homebrew dependency stack (see CI: [`.github/workflows/build-macos-universal.yml`](../../.github/workflows/build-macos-universal.yml) uses separate Intel and ARM runners).
 
-   - **Clean + rebuild from scratch** (removes `build-arm64` / `build-x86_64` / `build-universal` and `Pylux.app` / `Pylux-appstore.pkg` / `Pylux.dmg`; keeps `build-output/MoltenVK*` cache):
+   - **Clean + rebuild from scratch** (removes `build-arm64` / `build-x86_64` / `build-universal` and `AstraPlay.app` / `AstraPlay-appstore.pkg` / `AstraPlay.dmg`; keeps `build-output/MoltenVK*` cache):
 
      ```bash
      ./macos/build-appstore.sh --clean
@@ -51,9 +51,9 @@ This folder holds **Mac App Store–only** assets. The usual **Developer ID + DM
      ./macos/build-appstore.sh clean
      ```
 
-   The script appends **`PYLUX_EXTRA_CMAKE_ARGS`**: **`CHIAKI_ENABLE_STEAM_SHORTCUT=OFF`** and **`CHIAKI_ENABLE_GUI_WEBENGINE=OFF`**. That reuses the same **root** CMake option as Linux (where WebEngine is forced off): no **QtWebEngineProcess** in the bundle (App Store sandbox). PSN sign-in stays **external browser** only. Normal **`./scripts/build-macos.sh`** leaves **`CHIAKI_ENABLE_GUI_WEBENGINE=ON`** unless you pass **`-DCHIAKI_ENABLE_GUI_WEBENGINE=OFF`**.
+   The script appends **`ASTRAPLAY_EXTRA_CMAKE_ARGS`**: **`CHIAKI_ENABLE_STEAM_SHORTCUT=OFF`** and **`CHIAKI_ENABLE_GUI_WEBENGINE=OFF`**. That reuses the same **root** CMake option as Linux (where WebEngine is forced off): no **QtWebEngineProcess** in the bundle (App Store sandbox). PSN sign-in stays **external browser** only. Normal **`./scripts/build-macos.sh`** leaves **`CHIAKI_ENABLE_GUI_WEBENGINE=ON`** unless you pass **`-DCHIAKI_ENABLE_GUI_WEBENGINE=OFF`**.
 
-6. Upload `build-output/Pylux-appstore.pkg` with **Transporter**, then attach the build in **App Store Connect**.
+6. Upload `build-output/AstraPlay-appstore.pkg` with **Transporter**, then attach the build in **App Store Connect**.
 
 ## Entitlements in this repo (audit)
 

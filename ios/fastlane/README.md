@@ -15,13 +15,13 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios upload_pylux_ipa
+### ios upload_astraplay_ipa
 
 ```sh
-[bundle exec] fastlane ios upload_pylux_ipa
+[bundle exec] fastlane ios upload_astraplay_ipa
 ```
 
-Upload the IPA at PYLUX_IPA_PATH to App Store Connect
+Upload the IPA at ASTRAPLAY_IPA_PATH to App Store Connect
 
 ----
 

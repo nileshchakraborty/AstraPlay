@@ -159,7 +159,7 @@ Run:
 
 ### 5.2 iOS (XCTest)
 
-Test location: `ios/PyluxTests/` (unit) and `ios/PyluxUITests/` (UI)
+Test location: `ios/AstraPlayTests/` (unit) and `ios/AstraPlayUITests/` (UI)
 
 Key test cases:
 - `SessionBridgeTests` — verifies all `_ex` wrapper calls compile and link

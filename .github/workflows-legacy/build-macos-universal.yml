@@ -93,14 +93,14 @@ jobs:
       - name: Create tarball to preserve symlinks
         run: |
           cd build/gui
-          mv chiaki.app Pylux.app
-          tar -czf Pylux-${{ matrix.arch }}.tar.gz Pylux.app
+          mv chiaki.app AstraPlay.app
+          tar -czf AstraPlay-${{ matrix.arch }}.tar.gz AstraPlay.app
       
       - name: Upload ${{ matrix.arch }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-${{ matrix.cache_suffix }}-app
-          path: build/gui/Pylux-${{ matrix.arch }}.tar.gz
+          name: astraplay-${{ matrix.cache_suffix }}-app
+          path: build/gui/AstraPlay-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
           retention-days: 1
 
@@ -167,12 +167,12 @@ jobs:
           ${{ matrix.arch == 'ARM64' && 'brew uninstall pkgconfig || true' || '' }}
           brew install ${{ matrix.arch == 'x86_64' && '--force' || '' }} qt@6 ffmpeg pkgconfig opus openssl cmake ninja nasm sdl2 protobuf@29 speexdsp libplacebo wget python-setuptools json-c miniupnpc ${{ matrix.arch == 'x86_64' && '|| true' || '' }}
 
-      - name: Configure Pylux
+      - name: Configure AstraPlay
         if: steps.cache-app-bundle.outputs.cache-hit != 'true'
         run: |
           cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix)/opt/openssl@3;$(brew --prefix)/opt/qt@6;$(brew --prefix)/opt/protobuf@29"
 
-      - name: Build Pylux
+      - name: Build AstraPlay
         if: steps.cache-app-bundle.outputs.cache-hit != 'true'
         run: |
           export CPATH=$(brew --prefix)/opt/ffmpeg/include
@@ -220,14 +220,14 @@ jobs:
       - name: Create tarball to preserve symlinks
         run: |
           cd build/gui
-          mv chiaki.app Pylux.app
-          tar -czf Pylux-${{ matrix.arch }}.tar.gz Pylux.app
+          mv chiaki.app AstraPlay.app
+          tar -czf AstraPlay-${{ matrix.arch }}.tar.gz AstraPlay.app
       
       - name: Upload ${{ matrix.arch }} App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-${{ matrix.cache_suffix }}-app
-          path: build/gui/Pylux-${{ matrix.arch }}.tar.gz
+          name: astraplay-${{ matrix.cache_suffix }}-app
+          path: build/gui/AstraPlay-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
           retention-days: 1
 
@@ -249,44 +249,44 @@ jobs:
       - name: Download ARM64 App Bundle
         uses: actions/download-artifact@v4
         with:
-          name: pylux-arm64-app
+          name: astraplay-arm64-app
           path: ./
 
       - name: Download x86_64 App Bundle
         uses: actions/download-artifact@v4
         with:
-          name: pylux-x86_64-app
+          name: astraplay-x86_64-app
           path: ./
       
       - name: Extract tarballs (preserves symlinks)
         run: |
           echo "=== Extracting ARM64 app bundle ==="
-          tar -xzf Pylux-arm64.tar.gz
-          mv Pylux.app Pylux-arm64.app
+          tar -xzf AstraPlay-arm64.tar.gz
+          mv AstraPlay.app AstraPlay-arm64.app
           
           echo "=== Extracting x86_64 app bundle ==="
-          tar -xzf Pylux-x86_64.tar.gz
-          mv Pylux.app Pylux-x86_64.app
+          tar -xzf AstraPlay-x86_64.tar.gz
+          mv AstraPlay.app AstraPlay-x86_64.app
           
           echo "=== Verifying symlinks preserved ==="
-          ls -la Pylux-arm64.app/Contents/Frameworks/QtQuickTimeline.framework/
+          ls -la AstraPlay-arm64.app/Contents/Frameworks/QtQuickTimeline.framework/
           echo ""
-          ls -la Pylux-x86_64.app/Contents/Frameworks/QtQuickTimeline.framework/
+          ls -la AstraPlay-x86_64.app/Contents/Frameworks/QtQuickTimeline.framework/
 
       - name: Create Universal Bundle
         run: |
           # Use lipomerge to recursively merge ALL Mach-O binaries (executables, dylibs, frameworks)
           # This tool walks both directory trees and merges every matching binary with lipo
           echo "=== Merging ARM64 and x86_64 app bundles using lipomerge ==="
-          python3 -m lipomerge Pylux-arm64.app Pylux-x86_64.app Pylux.app
+          python3 -m lipomerge AstraPlay-arm64.app AstraPlay-x86_64.app AstraPlay.app
           
           echo ""
           echo "=== Verification ==="
           echo "Main executable:"
-          lipo -info Pylux.app/Contents/MacOS/chiaki
+          lipo -info AstraPlay.app/Contents/MacOS/chiaki
           
           echo "Sample Qt framework:"
-          lipo -info Pylux.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore || true
+          lipo -info AstraPlay.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore || true
 
       # secrets.* cannot be used in step `if:` (GitHub rejects it). Guard in the script instead.
       - name: Import code signing certificate
@@ -324,19 +324,19 @@ jobs:
           # Sign inside-out with hardened runtime + secure timestamp (required for notarization; matches scripts/build-macos.sh)
           
           echo "=== Signing MoltenVK dylibs ==="
-          for dylib in Pylux.app/Contents/Resources/vulkan/icd.d/*.dylib; do
+          for dylib in AstraPlay.app/Contents/Resources/vulkan/icd.d/*.dylib; do
             [ -f "$dylib" ] && codesign --force --timestamp --options runtime --sign "$SIGN_ID" "$dylib"
           done
           
           echo ""
           echo "=== Signing QtWebEngineProcess helper app ==="
-          if [[ -d Pylux.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app ]]; then
-            codesign --force --timestamp --options runtime --deep --sign "$SIGN_ID" Pylux.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app
+          if [[ -d AstraPlay.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app ]]; then
+            codesign --force --timestamp --options runtime --deep --sign "$SIGN_ID" AstraPlay.app/Contents/Frameworks/QtWebEngineCore.framework/Versions/A/Helpers/QtWebEngineProcess.app
           fi
           
           echo ""
           echo "=== Signing framework executables ==="
-          for fwk in Pylux.app/Contents/Frameworks/*.framework; do
+          for fwk in AstraPlay.app/Contents/Frameworks/*.framework; do
             fwk_name=$(basename "$fwk" .framework)
             if [ -f "$fwk/Versions/A/$fwk_name" ]; then
               codesign --force --timestamp --options runtime --sign "$SIGN_ID" "$fwk/Versions/A/$fwk_name"
@@ -345,27 +345,27 @@ jobs:
           
           echo ""
           echo "=== Signing framework bundles ==="
-          for fwk in Pylux.app/Contents/Frameworks/*.framework; do
+          for fwk in AstraPlay.app/Contents/Frameworks/*.framework; do
             codesign --force --timestamp --options runtime --sign "$SIGN_ID" "$fwk"
           done
           
           echo ""
           echo "=== Signing plugin dylibs ==="
-          if [ -d Pylux.app/Contents/PlugIns ]; then
-            find Pylux.app/Contents/PlugIns -name "*.dylib" -type f -exec codesign --force --timestamp --options runtime --sign "$SIGN_ID" {} \;
+          if [ -d AstraPlay.app/Contents/PlugIns ]; then
+            find AstraPlay.app/Contents/PlugIns -name "*.dylib" -type f -exec codesign --force --timestamp --options runtime --sign "$SIGN_ID" {} \;
           fi
           
           echo ""
           echo "=== Signing standalone dylibs ==="
-          find Pylux.app/Contents/Frameworks -maxdepth 1 -name "*.dylib" -type f -exec codesign --force --timestamp --options runtime --sign "$SIGN_ID" {} \;
+          find AstraPlay.app/Contents/Frameworks -maxdepth 1 -name "*.dylib" -type f -exec codesign --force --timestamp --options runtime --sign "$SIGN_ID" {} \;
           
           echo ""
           echo "=== Signing main executable ==="
-          codesign --force --timestamp --options runtime --sign "$SIGN_ID" Pylux.app/Contents/MacOS/chiaki
+          codesign --force --timestamp --options runtime --sign "$SIGN_ID" AstraPlay.app/Contents/MacOS/chiaki
           
           echo ""
           echo "=== Signing app bundle ==="
-          codesign --force --timestamp --options runtime --entitlements gui/entitlements.xml --sign "$SIGN_ID" Pylux.app
+          codesign --force --timestamp --options runtime --entitlements gui/entitlements.xml --sign "$SIGN_ID" AstraPlay.app
           
           echo ""
           echo "✅ All code signing complete"
@@ -373,13 +373,13 @@ jobs:
           # Create DMG
           echo ""
           echo "=== Creating DMG ==="
-          hdiutil create -srcfolder Pylux.app Pylux-universal.dmg
-          codesign --force --timestamp --options runtime --sign "$SIGN_ID" Pylux-universal.dmg
+          hdiutil create -srcfolder AstraPlay.app AstraPlay-universal.dmg
+          codesign --force --timestamp --options runtime --sign "$SIGN_ID" AstraPlay-universal.dmg
           
           # Rename for release
-          cp Pylux-universal.dmg Pylux-macos_universal-Release.dmg
+          cp AstraPlay-universal.dmg AstraPlay-macos_universal-Release.dmg
           
-          echo "✅ Universal DMG ready: Pylux-macos_universal-Release.dmg"
+          echo "✅ Universal DMG ready: AstraPlay-macos_universal-Release.dmg"
 
       # Submit only — do not --wait here (frees this macOS runner while Apple processes).
       # notarize-wait-delay (ubuntu) + notarize-staple-and-upload (macOS) finish the job.
@@ -399,7 +399,7 @@ jobs:
           echo "=== Submitting for notarization (not waiting on this runner) ==="
           set -euo pipefail
           SUBMIT_JSON=$(mktemp)
-          xcrun notarytool submit Pylux-macos_universal-Release.dmg \
+          xcrun notarytool submit AstraPlay-macos_universal-Release.dmg \
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
@@ -415,16 +415,16 @@ jobs:
           fi
           echo "submission_id=$SUBMISSION_ID" >> "$GITHUB_OUTPUT"
           echo "Submission id: $SUBMISSION_ID"
-          tar -czf Pylux-app-staple.tar.gz Pylux.app
+          tar -czf AstraPlay-app-staple.tar.gz AstraPlay.app
 
       - name: Upload notarization payload for staple job
         if: success() && steps.notary_submit.outputs.submission_id != ''
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-notarize-payload
+          name: astraplay-notarize-payload
           path: |
-            Pylux-macos_universal-Release.dmg
-            Pylux-app-staple.tar.gz
+            AstraPlay-macos_universal-Release.dmg
+            AstraPlay-app-staple.tar.gz
           if-no-files-found: error
           retention-days: 2
 
@@ -453,10 +453,10 @@ jobs:
             | jq -r '.access_token')
           
           # Upload large DMG file using chunked upload session (supports files >150MB)
-          FILE="Pylux-macos_universal-Release.dmg"
+          FILE="AstraPlay-macos_universal-Release.dmg"
           CHUNK_SIZE=$((100 * 1024 * 1024))  # 100MB chunks
           FILE_SIZE=$(stat -f%z "$FILE")
-          DROPBOX_PATH="/pylux/macos/Pylux-macos_universal-Release.dmg"
+          DROPBOX_PATH="/astraplay/macos/AstraPlay-macos_universal-Release.dmg"
           
           echo "Uploading $FILE ($FILE_SIZE bytes) in chunks of $CHUNK_SIZE bytes..."
           
@@ -528,11 +528,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: pylux-notarize-payload
+          name: astraplay-notarize-payload
           path: .
 
       - name: Extract app bundle
-        run: tar -xzf Pylux-app-staple.tar.gz
+        run: tar -xzf AstraPlay-app-staple.tar.gz
 
       - name: Wait for Apple then staple
         env:
@@ -547,8 +547,8 @@ jobs:
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
             --timeout 2h
-          xcrun stapler staple Pylux-macos_universal-Release.dmg
-          xcrun stapler staple Pylux.app
+          xcrun stapler staple AstraPlay-macos_universal-Release.dmg
+          xcrun stapler staple AstraPlay.app
           echo "✅ Stapling complete"
 
       - name: Upload stapled DMG to Dropbox
@@ -565,10 +565,10 @@ jobs:
             -d client_secret=$DROPBOX_APP_SECRET \
             | jq -r '.access_token')
 
-          FILE="Pylux-macos_universal-Release.dmg"
+          FILE="AstraPlay-macos_universal-Release.dmg"
           CHUNK_SIZE=$((100 * 1024 * 1024))
           FILE_SIZE=$(stat -f%z "$FILE")
-          DROPBOX_PATH="/pylux/macos/Pylux-macos_universal-Release.dmg"
+          DROPBOX_PATH="/astraplay/macos/AstraPlay-macos_universal-Release.dmg"
 
           echo "Uploading stapled $FILE ($FILE_SIZE bytes)..."
 

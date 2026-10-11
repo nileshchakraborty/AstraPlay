@@ -3,10 +3,10 @@
 default_platform(:mac)
 
 platform :mac do
-  desc "Upload the PKG at PYLUX_PKG_PATH to App Store Connect"
-  lane :upload_pylux_pkg do
-    pkg_path = ENV["PYLUX_PKG_PATH"]
-    UI.user_error!("Set PYLUX_PKG_PATH to the .pkg file") if pkg_path.nil? || pkg_path.empty?
+  desc "Upload the PKG at ASTRAPLAY_PKG_PATH to App Store Connect"
+  lane :upload_astraplay_pkg do
+    pkg_path = ENV["ASTRAPLAY_PKG_PATH"]
+    UI.user_error!("Set ASTRAPLAY_PKG_PATH to the .pkg file") if pkg_path.nil? || pkg_path.empty?
     UI.user_error!("PKG not found: #{pkg_path}") unless File.file?(pkg_path)
 
     key_id = ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]
@@ -23,8 +23,8 @@ platform :mac do
       in_house: false
     )
 
-    submit = ENV.fetch("PYLUX_SUBMIT_FOR_REVIEW", "false") == "true"
-    beta_external = ENV.fetch("PYLUX_TESTFLIGHT_EXTERNAL_BETA", "false") == "true"
+    submit = ENV.fetch("ASTRAPLAY_SUBMIT_FOR_REVIEW", "false") == "true"
+    beta_external = ENV.fetch("ASTRAPLAY_TESTFLIGHT_EXTERNAL_BETA", "false") == "true"
     changelog_text = "Continuing to provide regular updates and improvements for a better experience!"
     release_notes = { "en-US" => changelog_text }
     reviewer_notes = "Minor bug fix post release. No new features."

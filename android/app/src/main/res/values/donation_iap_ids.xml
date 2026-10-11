@@ -5,9 +5,9 @@
         Order = dialog order (low → high). Owning any listed product hides the prompt.
     -->
     <string-array name="donation_iap_product_ids" translatable="false">
-        <item>pylux_support_bronze</item>
-        <item>pylux_support_silver</item>
-        <item>pylux_support_gold</item>
-        <item>pylux_support_platinum</item>
+        <item>astraplay_support_bronze</item>
+        <item>astraplay_support_silver</item>
+        <item>astraplay_support_gold</item>
+        <item>astraplay_support_platinum</item>
     </string-array>
 </resources>

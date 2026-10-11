@@ -22,7 +22,7 @@ def chiakiVersion = "$chiakiVersionMajor.$chiakiVersionMinor.$chiakiVersionPatch
 println("Determined Chiaki Version: $chiakiVersion")
 
 // versionName + default versionCode are read from repo root CMakeLists.txt (CHIAKI_VERSION_*), not duplicated here.
-// Google Play: versionCode must increase on each upload. Default = encoded Pylux semver
+// Google Play: versionCode must increase on each upload. Default = encoded AstraPlay semver
 // (same as iOS CURRENT_PROJECT_VERSION / macOS CFBundleVersion in CI): MAJOR*10000+MINOR*100+PATCH.
 // Optional override: env ANDROID_VERSION_CODE or -PandroidVersionCode= (e.g. one-off migration).
 // Parameters required: a top-level `def resolveAndroidVersionCode()` is a method, not a closure;
@@ -44,11 +44,11 @@ def resolveAndroidVersionCode(String major, String minor, String patch) {
 def androidVersionCode = resolveAndroidVersionCode(chiakiVersionMajor, chiakiVersionMinor, chiakiVersionPatch)
 println("Android versionCode: $androidVersionCode (from ${chiakiVersion})")
 
-// Fastlane reads this via ./gradlew :app:printPyluxVersionCode — must not live only in afterEvaluate
+// Fastlane reads this via ./gradlew :app:printAstraPlayVersionCode — must not live only in afterEvaluate
 // (task can be missing or output unreliable for single-task invocations).
-tasks.register("printPyluxVersionCode") {
+tasks.register("printAstraPlayVersionCode") {
     doLast {
-        println("PYLUX_VERSION_CODE=" + androidVersionCode)
+        println("ASTRAPLAY_VERSION_CODE=" + androidVersionCode)
     }
 }
 

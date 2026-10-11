@@ -5,7 +5,7 @@ This directory contains a lightweight, self-hosted Node.js / Express clone of th
 ## Features
 - **Zero Third-Party Relays:** PSN token authentication stays strictly on your local network (`fedora.local:8080`).
 - **No Metrics or Donation Checks:** Clean, transparent, open-source relay with no external telemetry or payment pings.
-- **Full Compatibility:** Supports all AstraPlay endpoints (`/psstream/create-code`, `/psstream/get-tokens`, `/pylux/validate-code`, `/pylux/connect`) and serves the clean mobile-friendly auth UI.
+- **Full Compatibility:** Supports all AstraPlay endpoints (`/psstream/create-code`, `/psstream/get-tokens`, `/astraplay/validate-code`, `/astraplay/connect`) and serves the clean mobile-friendly auth UI.
 
 ---
 
@@ -61,5 +61,5 @@ sudo systemctl enable --now astraplay-relay
 The AstraPlay client is configured to default to `http://fedora.local:8080`.
 You can also override the URL dynamically using the environment variable:
 ```bash
-export PYLUX_RELAY_URL="http://fedora.local:8080"
+export ASTRAPLAY_RELAY_URL="http://fedora.local:8080"
 ```

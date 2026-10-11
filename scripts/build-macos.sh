@@ -1,5 +1,5 @@
 #!/bin/bash
-# macOS build script for Pylux following chiaki-ng GitHub Actions workflow
+# macOS build script for AstraPlay following chiaki-ng GitHub Actions workflow
 # Based on: https://github.com/streetpea/chiaki-ng/.github/workflows/build-macos.yml
 #
 # Usage:
@@ -27,15 +27,15 @@
 #   macOS `open` sends a GUI app's stderr to /dev/null, and Qt logs ONLY to stderr (no message
 #   handler; the unified log does NOT capture Qt stderr). So this script cold-launches the app with
 #   `open --stdout/--stderr` redirected to a single fixed file. View it with a BOUNDED dump:
-#     Log file:     <repo>/tmp/pylux-macos.log
-#     View recent:  tail -n 200 tmp/pylux-macos.log     (one-shot; safe; never hangs)
-#     Cache events: grep 'CACHE INVALIDATED' tmp/pylux-macos.log
-#     Follow live:  tail -f  tmp/pylux-macos.log        (BLOCKS until Ctrl-C; do not use in automation)
+#     Log file:     <repo>/tmp/astraplay-macos.log
+#     View recent:  tail -n 200 tmp/astraplay-macos.log     (one-shot; safe; never hangs)
+#     Cache events: grep 'CACHE INVALIDATED' tmp/astraplay-macos.log
+#     Follow live:  tail -f  tmp/astraplay-macos.log        (BLOCKS until Ctrl-C; do not use in automation)
 #     Re-dump:      ./scripts/build-macos.sh logs
 #
 # Optional environment:
-#   PYLUX_ENTITLEMENTS     - Path to entitlements plist (default: gui/entitlements.xml)
-#   PYLUX_EXTRA_CMAKE_ARGS  - Extra cmake args (e.g. -DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF -DCHIAKI_ENABLE_GUI_WEBENGINE=OFF)
+#   ASTRAPLAY_ENTITLEMENTS     - Path to entitlements plist (default: gui/entitlements.xml)
+#   ASTRAPLAY_EXTRA_CMAKE_ARGS  - Extra cmake args (e.g. -DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF -DCHIAKI_ENABLE_GUI_WEBENGINE=OFF)
 #
 # If secrets/macos/credentials.env exists, it is loaded by default and MACOS_SIGN_ID is
 # required unless you pass --ad-hoc or --no-credentials-file. Use --ad-hoc for local
@@ -52,7 +52,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ENTITLEMENTS_PLIST="${PYLUX_ENTITLEMENTS:-$REPO_ROOT/gui/entitlements.xml}"
+ENTITLEMENTS_PLIST="${ASTRAPLAY_ENTITLEMENTS:-$REPO_ROOT/gui/entitlements.xml}"
 NOTARY_PROFILE="${NOTARIZE_KEYCHAIN_PROFILE:-AC_PASSWORD}"
 SECRETS_FILE="$REPO_ROOT/secrets/macos/credentials.env"
 
@@ -72,25 +72,25 @@ LAUNCH_ONLY="false"
 LOGS_ONLY="false"
 
 # Single fixed log file for the captured app output (see LOGS in the header).
-PYLUX_MACOS_LOG="$REPO_ROOT/tmp/pylux-macos.log"
+ASTRAPLAY_MACOS_LOG="$REPO_ROOT/tmp/astraplay-macos.log"
 
 # Print the one place/way to read logs. Always shown after a launch so it's never ambiguous.
 print_logs_help() {
     echo ""
     echo "=== LOGS ==="
-    echo "  Log file:     $PYLUX_MACOS_LOG"
-    echo "  View recent:  tail -n 200 \"$PYLUX_MACOS_LOG\"   (one-shot; never hangs)"
-    echo "  Cache events: grep 'CACHE INVALIDATED' \"$PYLUX_MACOS_LOG\""
-    echo "  Follow live:  tail -f \"$PYLUX_MACOS_LOG\"        (BLOCKS until Ctrl-C)"
+    echo "  Log file:     $ASTRAPLAY_MACOS_LOG"
+    echo "  View recent:  tail -n 200 \"$ASTRAPLAY_MACOS_LOG\"   (one-shot; never hangs)"
+    echo "  Cache events: grep 'CACHE INVALIDATED' \"$ASTRAPLAY_MACOS_LOG\""
+    echo "  Follow live:  tail -f \"$ASTRAPLAY_MACOS_LOG\"        (BLOCKS until Ctrl-C)"
     echo "  Re-dump:      $0 logs"
     echo ""
 }
 
-# Cold-launch the .app with stdout+stderr redirected to PYLUX_MACOS_LOG. `open` silently ignores
+# Cold-launch the .app with stdout+stderr redirected to ASTRAPLAY_MACOS_LOG. `open` silently ignores
 # the redirect if the app is already running, so any existing instance must be fully terminated first.
 launch_app_with_logs() {
     local app_path="$1"
-    mkdir -p "$(dirname "$PYLUX_MACOS_LOG")"
+    mkdir -p "$(dirname "$ASTRAPLAY_MACOS_LOG")"
     pkill -9 -f "$app_path" 2>/dev/null || true
     # Wait until no instance remains (open won't redirect into a running app).
     local _i
@@ -98,9 +98,9 @@ launch_app_with_logs() {
         pgrep -f "$app_path/Contents/MacOS/" >/dev/null 2>&1 || break
         sleep 0.3
     done
-    : > "$PYLUX_MACOS_LOG"
-    open --stdout "$PYLUX_MACOS_LOG" --stderr "$PYLUX_MACOS_LOG" "$app_path"
-    echo "Launched $app_path (logs -> $PYLUX_MACOS_LOG)"
+    : > "$ASTRAPLAY_MACOS_LOG"
+    open --stdout "$ASTRAPLAY_MACOS_LOG" --stderr "$ASTRAPLAY_MACOS_LOG" "$app_path"
+    echo "Launched $app_path (logs -> $ASTRAPLAY_MACOS_LOG)"
     print_logs_help
 }
 
@@ -138,21 +138,21 @@ ARCH="${ARCH:-$(uname -m)}"
 
 # One-shot log dump (never streams/hangs). Handle before any build/credentials work.
 if [ "$LOGS_ONLY" = "true" ]; then
-    if [ -f "$PYLUX_MACOS_LOG" ]; then
-        tail -n 200 "$PYLUX_MACOS_LOG"
+    if [ -f "$ASTRAPLAY_MACOS_LOG" ]; then
+        tail -n 200 "$ASTRAPLAY_MACOS_LOG"
     else
-        echo "No log file yet at $PYLUX_MACOS_LOG — run a build (--iterate) or --launch first."
+        echo "No log file yet at $ASTRAPLAY_MACOS_LOG — run a build (--iterate) or --launch first."
     fi
     exit 0
 fi
 
 # Launch the already-built bundle with logs captured, then exit (no build).
 if [ "$LAUNCH_ONLY" = "true" ]; then
-    if [ ! -d "$BUILD_OUTPUT_DIR/Pylux.app" ]; then
-        echo "ERROR: $BUILD_OUTPUT_DIR/Pylux.app not found — do a full build first."
+    if [ ! -d "$BUILD_OUTPUT_DIR/AstraPlay.app" ]; then
+        echo "ERROR: $BUILD_OUTPUT_DIR/AstraPlay.app not found — do a full build first."
         exit 1
     fi
-    launch_app_with_logs "$BUILD_OUTPUT_DIR/Pylux.app"
+    launch_app_with_logs "$BUILD_OUTPUT_DIR/AstraPlay.app"
     exit 0
 fi
 
@@ -296,7 +296,7 @@ build_for_arch() {
     fi
     
     # Configure (matching GitHub Actions exactly)
-    # PYLUX_EXTRA_CMAKE_ARGS: e.g. macos/build-appstore.sh sets -DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF
+    # ASTRAPLAY_EXTRA_CMAKE_ARGS: e.g. macos/build-appstore.sh sets -DCHIAKI_ENABLE_STEAM_SHORTCUT=OFF
     cmake -S "$REPO_ROOT" -B "$REPO_ROOT/$build_dir" -G "Ninja" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCHIAKI_ENABLE_CLI=OFF \
@@ -305,7 +305,7 @@ build_for_arch() {
         -DCHIAKI_IS_MAC_APPSTORE="$MAC_APPSTORE" \
         $CMAKE_ARCH_FLAGS \
         -DCMAKE_PREFIX_PATH="$(brew --prefix)/opt/openssl@3;$(brew --prefix)/opt/qt@6;$(brew --prefix)/opt/protobuf@29" \
-        ${PYLUX_EXTRA_CMAKE_ARGS:-}
+        ${ASTRAPLAY_EXTRA_CMAKE_ARGS:-}
     
     # Build (matching GitHub Actions exactly)
     export CPATH="$(brew --prefix)/opt/ffmpeg/include"
@@ -317,7 +317,7 @@ build_for_arch() {
 # ========== Deploy Function (following GitHub Actions exactly) ==========
 deploy_app() {
     local build_dir=$1
-    local output_name="${2:-Pylux.app}"
+    local output_name="${2:-AstraPlay.app}"
     local output_path="$BUILD_OUTPUT_DIR/$output_name"
     
     echo "=== Deploying from $build_dir ==="
@@ -481,7 +481,7 @@ sign_app_bundle() {
 if [ "$ITERATE" = "true" ]; then
     # ---- Fast iterate mode: incremental ninja + copy binary + fix paths + re-sign + launch ----
     build_dir="build-$ARCH"
-    output_path="$BUILD_OUTPUT_DIR/Pylux.app"
+    output_path="$BUILD_OUTPUT_DIR/AstraPlay.app"
 
     if [ ! -d "$output_path" ]; then
         echo "ERROR: --iterate requires a prior full build ($output_path not found)"
@@ -556,13 +556,13 @@ elif [ "$BUILD_MODE" = "universal" ]; then
     build_for_arch "x86_64"
     
     # Create universal app by deploying arm64 first
-    deploy_app "build-arm64" "Pylux.app"
+    deploy_app "build-arm64" "AstraPlay.app"
     
     # Create universal binary by combining both architectures
     echo "=== Creating universal binary ==="
     
     # Find the main executable
-    MAIN_BINARY="$BUILD_OUTPUT_DIR/Pylux.app/Contents/MacOS/chiaki"
+    MAIN_BINARY="$BUILD_OUTPUT_DIR/AstraPlay.app/Contents/MacOS/chiaki"
     ARM64_BINARY="$REPO_ROOT/build-arm64/gui/chiaki.app/Contents/MacOS/chiaki"
     X86_64_BINARY="$REPO_ROOT/build-x86_64/gui/chiaki.app/Contents/MacOS/chiaki"
     
@@ -570,12 +570,12 @@ elif [ "$BUILD_MODE" = "universal" ]; then
     lipo -create "$ARM64_BINARY" "$X86_64_BINARY" -output "$MAIN_BINARY"
     
     # Re-sign after lipo (full inside-out sequence)
-    sign_app_bundle "$BUILD_OUTPUT_DIR/Pylux.app"
+    sign_app_bundle "$BUILD_OUTPUT_DIR/AstraPlay.app"
     
 else
     # Single architecture build
     build_for_arch "$ARCH"
-    deploy_app "build-$ARCH" "Pylux.app"
+    deploy_app "build-$ARCH" "AstraPlay.app"
 fi
 
 # ========== Create DMG ==========
@@ -584,9 +584,9 @@ if [ "$SKIP_DMG_NOTARIZE" = "true" ]; then
     echo "=== Skipping DMG and notarization (--skip-dmg-notarize) ==="
 else
     echo "=== Creating DMG ==="
-    rm -f "$BUILD_OUTPUT_DIR/Pylux.dmg"
-    hdiutil create -srcfolder "$BUILD_OUTPUT_DIR/Pylux.app" "$BUILD_OUTPUT_DIR/Pylux.dmg"
-    codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$BUILD_OUTPUT_DIR/Pylux.dmg"
+    rm -f "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
+    hdiutil create -srcfolder "$BUILD_OUTPUT_DIR/AstraPlay.app" "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
+    codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
 
     # ========== Notarize ==========
     if [ "$NOTARIZE" = "true" ]; then
@@ -597,12 +597,12 @@ else
         echo ""
         echo "=== Notarizing ==="
         echo "Submitting to Apple (this may take a few minutes)..."
-        xcrun notarytool submit "$BUILD_OUTPUT_DIR/Pylux.dmg" \
+        xcrun notarytool submit "$BUILD_OUTPUT_DIR/AstraPlay.dmg" \
             --keychain-profile "$NOTARY_PROFILE" \
             --wait
         echo "Stapling notarization ticket..."
-        xcrun stapler staple "$BUILD_OUTPUT_DIR/Pylux.dmg"
-        xcrun stapler staple "$BUILD_OUTPUT_DIR/Pylux.app"
+        xcrun stapler staple "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
+        xcrun stapler staple "$BUILD_OUTPUT_DIR/AstraPlay.app"
         echo "Notarization complete."
     fi
 fi
@@ -610,20 +610,20 @@ fi
 echo ""
 echo "=== Build Complete! ==="
 echo ""
-echo "App bundle: $BUILD_OUTPUT_DIR/Pylux.app"
+echo "App bundle: $BUILD_OUTPUT_DIR/AstraPlay.app"
 if [ "$SKIP_DMG_NOTARIZE" = "true" ]; then
 	echo "DMG file:   (skipped)"
 else
-	echo "DMG file:   $BUILD_OUTPUT_DIR/Pylux.dmg"
+	echo "DMG file:   $BUILD_OUTPUT_DIR/AstraPlay.dmg"
 fi
 echo ""
 echo "To run with logs captured (recommended):"
-echo "  $0 --launch     # cold-launch this bundle, capture stderr -> $PYLUX_MACOS_LOG"
+echo "  $0 --launch     # cold-launch this bundle, capture stderr -> $ASTRAPLAY_MACOS_LOG"
 echo "Then read logs (one-shot, never hangs):"
-echo "  $0 logs         # or: tail -n 200 \"$PYLUX_MACOS_LOG\""
+echo "  $0 logs         # or: tail -n 200 \"$ASTRAPLAY_MACOS_LOG\""
 echo ""
 echo "To run without log capture:"
-echo "  open $BUILD_OUTPUT_DIR/Pylux.app"
+echo "  open $BUILD_OUTPUT_DIR/AstraPlay.app"
 echo ""
 echo "Distribution (credentials.env + default notarize):"
 echo "  ./scripts/build-macos.sh [universal]"

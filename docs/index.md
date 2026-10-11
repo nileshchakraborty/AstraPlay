@@ -58,4 +58,4 @@ Fork the repo, create a branch off `release/beta`, and open a pull request. CI a
 
 AstraPlay is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki){ target="_blank" rel="noopener" } and [chiaki-ng](https://github.com/streetpea/chiaki-ng){ target="_blank" rel="noopener" }. Special thanks to the Chiaki authors and the chiaki-ng maintainers for their foundational work. AstraPlay extends that work with a focus on app-store distribution, mobile support, Android TV, and Internet Play.
 
-For questions or support, open a [GitHub Discussion](https://github.com/nileshchakraborty/AstraPlay/discussions){ target="_blank" rel="noopener" } or contact [forward.technologies.llc@gmail.com](mailto:forward.technologies.llc@gmail.com).
+For questions or support, open a [GitHub Discussion](https://github.com/nileshchakraborty/AstraPlay/discussions){ target="_blank" rel="noopener" } or contact [contact@nileshchakraborty.com](mailto:contact@nileshchakraborty.com).

@@ -95,10 +95,10 @@ jobs:
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
           TF_URL="${TF_JOIN:-https://testflight.apple.com/join/V8pv6cXK}"
           FLATHUB_URL="https://flathub.org/apps/io.github.nileshchakraborty.AstraPlay"
-          IOS_APPSTORE_URL="https://apps.apple.com/app/pylux-remote-play/id6761292658"
-          MACOS_APPSTORE_URL="https://apps.apple.com/app/pylux-remote-play/id6761292658"
+          IOS_APPSTORE_URL="https://github.com/nileshchakraborty/AstraPlay/releases/latest"
+          MACOS_APPSTORE_URL="https://github.com/nileshchakraborty/AstraPlay/releases/latest"
           {
-            echo "## Pylux v${VER}"
+            echo "## AstraPlay v${VER}"
             echo ""
             echo "**Branch:** \`${REF_NAME}\` · **Tag:** \`${TAG}\`"
             echo ""
@@ -139,7 +139,7 @@ jobs:
             echo "**Downloads:** [Portable zip](${WIN_ZIP:-#}) · [Installer](${WIN_INST:-#})"
             echo ""
             if [ "$REF_NAME" = "release/beta" ]; then
-              echo "Beta rolling filenames: \`pylux-beta-latest.zip\`, \`pylux-windows-installer-beta-latest.exe\` (stable \`pylux-latest\` paths are not overwritten)."
+              echo "Beta rolling filenames: \`astraplay-beta-latest.zip\`, \`astraplay-windows-installer-beta-latest.exe\` (stable \`astraplay-latest\` paths are not overwritten)."
               echo ""
             fi
 
@@ -148,15 +148,15 @@ jobs:
             echo "**Downloads:** [Portable zip](${LINUX_ZIP:-#}) · [AppImage](${LINUX_AI:-#}) · [Flatpak bundle](${FLATPAK_URL:-#})"
             echo ""
             if [ "$REF_NAME" = "release/beta" ]; then
-              echo "Beta rolling filenames: \`pylux-beta-latest.zip\`, \`pylux-beta-latest.AppImage\`, \`pylux-beta-latest.flatpak\` (stable \`pylux-latest\` paths are not overwritten)."
+              echo "Beta rolling filenames: \`astraplay-beta-latest.zip\`, \`astraplay-beta-latest.AppImage\`, \`astraplay-beta-latest.flatpak\` (stable \`astraplay-latest\` paths are not overwritten)."
               echo ""
             fi
             echo "- **Portable zip** — unzip and run \`launch.sh\` (recommended for Steam). The launch script sets up bundled libs and the OpenSSL fallback automatically."
             echo "- **AppImage** — make executable and run directly. Set \`APPIMAGE_EXTRACT_AND_RUN=1\` if Steam misbehaves."
             if [ "$REF_NAME" = "release/beta" ]; then
-              FP_BUNDLE="pylux-beta-latest.flatpak"
+              FP_BUNDLE="astraplay-beta-latest.flatpak"
             else
-              FP_BUNDLE="pylux-latest.flatpak"
+              FP_BUNDLE="astraplay-latest.flatpak"
             fi
             if [ -n "${FLATPAK_INSTALL}" ]; then
               FP_INSTALL="$FLATPAK_INSTALL"
@@ -187,4 +187,4 @@ jobs:
             echo ""
           } > "$NOTES_FILE"
 
-          gh release create "$TAG" --repo "$REPO" --title "Pylux ${TAG}" --notes-file "$NOTES_FILE"
+          gh release create "$TAG" --repo "$REPO" --title "AstraPlay ${TAG}" --notes-file "$NOTES_FILE"

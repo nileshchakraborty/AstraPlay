@@ -334,7 +334,7 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_session_go_home(ChiakiSession *session);
  * 2026-07-08: exactly this made the haptics sink NULL inside the lib and
  * killed Remote Play rumble on iOS only — days of debugging.
  *
- * From ios/Pylux (or any non-CMake consumer): use the CHIAKI_EXPORT `_ex`
+ * From ios/AstraPlay (or any non-CMake consumer): use the CHIAKI_EXPORT `_ex`
  * wrappers in lib/src/ios_bridge_helpers.c instead. ios/build.sh enforces
  * this with a lint that fails the build. When adding a setter here, add a
  * matching `_ex` wrapper there.

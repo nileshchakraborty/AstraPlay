@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Push the latest Pylux Windows build to ROG Xbox Ally X
+# Push the latest AstraPlay Windows build to ROG Xbox Ally X
 set -euo pipefail
 
 ALLYX_HOST="${ALLYX_HOST:-allyx.local}"
@@ -26,7 +26,7 @@ gh release download --repo "$REPO" --dir "$TEMP_DIR" --pattern "*.msi" || true
 gh release download --repo "$REPO" --dir "$TEMP_DIR" --pattern "*.exe" || true
 
 MSI_FILE=$(find "$TEMP_DIR" -type f -name "*.msi" | head -n 1 || true)
-EXE_FILE=$(find "$TEMP_DIR" -type f \( -name "astraplay*.exe" -o -name "pylux*.exe" \) | head -n 1 || true)
+EXE_FILE=$(find "$TEMP_DIR" -type f \( -name "astraplay*.exe" \) | head -n 1 || true)
 
 if [ -n "$MSI_FILE" ]; then
     FILENAME=$(basename "$MSI_FILE")

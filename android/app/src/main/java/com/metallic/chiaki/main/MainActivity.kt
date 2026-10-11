@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity()
 {
 	companion object
 	{
-		private const val ICON_SELECTED = 0xFF009FE3.toInt()  // Pylux blue
+		private const val ICON_SELECTED = 0xFF009FE3.toInt()  // AstraPlay gold
 		private const val ICON_UNSELECTED = 0xFFFFFFFF.toInt() // Solid white
 	}
 
@@ -432,7 +432,7 @@ class MainActivity : AppCompatActivity()
 
 	private fun updateActionIcons()
 	{
-		// Pylux logo always visible, WiFi icon only on Remote Play
+		// AstraPlay logo always visible, WiFi icon only on Remote Play
 		binding.appTitle.visibility = View.VISIBLE
 		binding.wifiIcon.visibility = if (currentPage == 0) View.VISIBLE else View.GONE
 	}

@@ -85,14 +85,14 @@ if [ "${SKIP_APPIMAGE:-0}" = "1" ] || [ "$LAUNCH_ONLY" = "1" ]; then
   fi
 else
   # Normal build+launch: run in background from appimage location
-  if [ -f appimage/pylux.AppImage ]; then
-    nohup env APPIMAGE_EXTRACT_AND_RUN=1 ./appimage/pylux.AppImage > /tmp/chiaki_run.log 2>&1 &
+  if [ -f appimage/astraplay.AppImage ]; then
+    nohup env APPIMAGE_EXTRACT_AND_RUN=1 ./appimage/astraplay.AppImage > /tmp/chiaki_run.log 2>&1 &
     echo $! > /tmp/chiaki_app.pid
     echo "Launched (AppImage). PID $(cat /tmp/chiaki_app.pid)"
     echo "Build log: /tmp/appimage_fast.log"
     echo "Run log:   /tmp/chiaki_run.log"
   else
-    echo "ERROR: appimage/pylux.AppImage not found" >&2
+    echo "ERROR: appimage/astraplay.AppImage not found" >&2
     exit 1
   fi
 fi

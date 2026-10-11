@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Island background with Pylux blue border (matching iOS) -->
+<!-- Island background with AstraPlay gold border (matching iOS) -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Blue glow shadow (outer) - subtle -->
     <item>

@@ -67,12 +67,12 @@ function handleGetTokens(req, res) {
   return res.json({ result: 'success', npsso });
 }
 
-// Support both /psstream/* and /pylux/* paths for compatibility
+// Support both /psstream/* and /astraplay/* paths
 app.post('/psstream/create-code', handleCreateCode);
-app.post('/pylux/create-code', handleCreateCode);
+app.post('/astraplay/create-code', handleCreateCode);
 
 app.post('/psstream/get-tokens', handleGetTokens);
-app.post('/pylux/get-tokens', handleGetTokens);
+app.post('/astraplay/get-tokens', handleGetTokens);
 
 // --- 2. Web UI endpoints (called by web browser on fedora.local) ---
 
@@ -108,10 +108,10 @@ function handleConnect(req, res) {
   return res.json({ result: 'success' });
 }
 
-app.post('/pylux/validate-code', handleValidateCode);
+app.post('/astraplay/validate-code', handleValidateCode);
 app.post('/psstream/validate-code', handleValidateCode);
 
-app.post('/pylux/connect', handleConnect);
+app.post('/astraplay/connect', handleConnect);
 app.post('/psstream/connect', handleConnect);
 
 // --- 3. Local Account ID lookup endpoint (/search.php) ---
@@ -129,16 +129,16 @@ app.get('/search.php', (req, res) => {
 });
 
 // --- 5. Web UI Static Files ---
-app.use('/pylux', express.static(path.join(__dirname, 'public')));
+app.use('/astraplay', express.static(path.join(__dirname, 'public')));
 app.use('/psstream', express.static(path.join(__dirname, 'public')));
 app.use('/', express.static(path.join(__dirname, 'public')));
 
-// Fallback redirect for /psstream/?psstream_code=... -> /pylux/?psstream_code=...
+// Serve the web UI for /psstream/?psstream_code=...
 app.get('/psstream', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pylux PSN Relay Server running on port ${PORT}`);
+  console.log(`AstraPlay PSN Relay Server running on port ${PORT}`);
   console.log(`Local web UI available at: http://localhost:${PORT}/psstream/`);
 });

@@ -1,9 +1,9 @@
-name: Extract Pylux version
+name: Extract AstraPlay version
 description: >
   Reads CHIAKI_VERSION_MAJOR/MINOR/PATCH from CMakeLists.txt, exposes the
   full version as both a step output and the CHIAKI_VERSION env var.
   Also exposes semver_build_id = MAJOR*10000 + MINOR*100 + PATCH (each 0..99)
-  for Android versionCode / Apple build numbers — tracks the Pylux semver.
+  for Android versionCode / Apple build numbers — tracks the AstraPlay semver.
 
 inputs:
   cmakelists:
@@ -46,4 +46,4 @@ runs:
         echo "patch=${PATCH}" >> "$GITHUB_OUTPUT"
         echo "semver_build_id=${SEMVER_BUILD_ID}" >> "$GITHUB_OUTPUT"
         echo "CHIAKI_VERSION=${VERSION}" >> "$GITHUB_ENV"
-        echo "Pylux version: ${VERSION} (semver_build_id=${SEMVER_BUILD_ID})"
+        echo "AstraPlay version: ${VERSION} (semver_build_id=${SEMVER_BUILD_ID})"

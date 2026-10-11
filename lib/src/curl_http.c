@@ -40,7 +40,7 @@ static size_t grow_buffer_write(void *ptr, size_t size, size_t nmemb, void *user
 
 // Mask the value following each credential key in buf (in place). Handles the forms
 // "npsso=XYZ", "Authorization: Bearer XYZ", and JSON "access_token":"XYZ". Verbose HTTP
-// logs are meant to be shared for debugging (e.g. ios/logs/pylux.log streams at
+// logs are meant to be shared for debugging (e.g. ios/logs/astraplay.log streams at
 // CHIAKI_LOG_ALL in Debug builds), so credentials must never appear in them verbatim.
 static void redact_credentials(char *buf, size_t len)
 {

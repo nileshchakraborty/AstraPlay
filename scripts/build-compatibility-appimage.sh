@@ -47,13 +47,13 @@ export LD_LIBRARY_PATH="`pwd`/sdl2-prefix/lib:$LD_LIBRARY_PATH"
 export EXTRA_QT_PLUGINS=opengl
 
 ./linuxdeploy-x86_64.AppImage --appdir="${appdir}" -e "${appdir}/usr/bin/chiaki" -d "${appdir}/usr/share/applications/co.ksco.astraplay.desktop" --plugin qt --output appimage
-# appimagetool names output from the .desktop Name= field (Pylux).
-if [ -f "Pylux-x86_64.AppImage" ]; then
-    mv "Pylux-x86_64.AppImage" pylux-compatibility.AppImage
-elif [ -f "pylux-x86_64.AppImage" ]; then
-    mv "pylux-x86_64.AppImage" pylux-compatibility.AppImage
+# appimagetool names output from the .desktop Name= field (AstraPlay).
+if [ -f "AstraPlay-x86_64.AppImage" ]; then
+    mv "AstraPlay-x86_64.AppImage" astraplay-compatibility.AppImage
+elif [ -f "astraplay-x86_64.AppImage" ]; then
+    mv "astraplay-x86_64.AppImage" astraplay-compatibility.AppImage
 else
-    echo "ERROR: expected Pylux-x86_64.AppImage; found:" >&2
+    echo "ERROR: expected AstraPlay-x86_64.AppImage; found:" >&2
     ls -1 *.AppImage >&2 || true
     exit 1
 fi

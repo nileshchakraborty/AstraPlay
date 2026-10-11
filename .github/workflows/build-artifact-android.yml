@@ -67,7 +67,7 @@ jobs:
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Android-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.apk
+          name: AstraPlay-Android-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
           if-no-files-found: error

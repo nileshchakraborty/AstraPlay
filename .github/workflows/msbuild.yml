@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    name: Build Pylux Windows x86_64
+    name: Build AstraPlay Windows x86_64
     runs-on: windows-latest
     defaults:
       run:
@@ -97,12 +97,12 @@ jobs:
       - name: Build project
         run: |
           cmake --build build --config Release --clean-first --target chiaki
-          cp build/gui/chiaki.exe build/gui/pylux.exe
+          cp build/gui/chiaki.exe build/gui/astraplay.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-windows-x64
+          name: astraplay-windows-x64
           path: |
             build/gui/chiaki.exe
-            build/gui/pylux.exe
+            build/gui/astraplay.exe

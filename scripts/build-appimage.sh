@@ -81,18 +81,11 @@ chmod +x linuxdeploy-plugin-qt-${ARCH}.AppImage
     --exclude-library='libvulkan*' \
     --output appimage
 
-# appimagetool names the output from the .desktop Name= field (AstraPlay / Pylux); rename to the stable name.
+# appimagetool names the output from the .desktop Name= field (AstraPlay); rename to the stable name.
 if [ -f "AstraPlay-${ARCH}.AppImage" ]; then
-    cp "AstraPlay-${ARCH}.AppImage" pylux.AppImage
-    cp "AstraPlay-${ARCH}.AppImage" AstraPlay.AppImage
-elif [ -f "Pylux-${ARCH}.AppImage" ]; then
-    cp "Pylux-${ARCH}.AppImage" pylux.AppImage
-    cp "Pylux-${ARCH}.AppImage" AstraPlay.AppImage
-elif [ -f "pylux-${ARCH}.AppImage" ]; then
-    cp "pylux-${ARCH}.AppImage" pylux.AppImage
-    cp "pylux-${ARCH}.AppImage" AstraPlay.AppImage
+    cp "AstraPlay-${ARCH}.AppImage" astraplay.AppImage
 else
-    echo "ERROR: expected AstraPlay-${ARCH}.AppImage or Pylux-${ARCH}.AppImage after linuxdeploy; found:" >&2
+    echo "ERROR: expected AstraPlay-${ARCH}.AppImage after linuxdeploy; found:" >&2
     ls -1 *.AppImage >&2 || true
     exit 1
 fi
@@ -111,7 +104,7 @@ fi
 # OpenSSL version conflicts, and creates a smart launch script.
 #
 # Key additions:
-#   - pylux directory extraction from AppImage
+#   - astraplay directory extraction from AppImage
 #   - Steam libraries (libsteam_api.so, libcpp-steam-tools.so)
 #   - NSS crypto modules for QtWebEngine in Steam runtime
 #   - OpenSSL fallback directory for version compatibility
@@ -119,13 +112,13 @@ fi
 # ============================================================================
 # This runs AFTER AppImage is complete to avoid any interference
 echo "Creating Steam-compatible portable Linux build from extracted AppImage..."
-PORTABLE_DIR="pylux"
+PORTABLE_DIR="astraplay"
 
 # Extract the AppImage to get all bundled libraries
-chmod +x pylux.AppImage
-./pylux.AppImage --appimage-extract >/dev/null
+chmod +x astraplay.AppImage
+./astraplay.AppImage --appimage-extract >/dev/null
 
-# Rename extracted directory to pylux
+# Rename extracted directory to astraplay
 mv squashfs-root "${PORTABLE_DIR}"
 
 # ============================================================================

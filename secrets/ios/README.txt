@@ -15,9 +15,9 @@ Files to place in this folder
              The same .p12 in secrets/macos/github-actions/ may already be this cert.
 
 2. iOS App Store provisioning profile (.mobileprovision)
-   Filename: Pylux_iOS_AppStore.mobileprovision
+   Filename: AstraPlay_iOS_AppStore.mobileprovision
    Source:   https://developer.apple.com/account/resources/profiles/list
-             → Create/download an "App Store Connect" profile for com.pylux.stream (iOS)
+             → Create/download an "App Store Connect" profile for com.astraplay.stream (iOS)
              If Xcode manages signing automatically, you can also find it at:
                ~/Library/MobileDevice/Provisioning Profiles/
 
@@ -34,7 +34,7 @@ Secret name                              How to generate
 ─────────────────────────────────────    ────────────────────────────────────────
 IOS_CERTIFICATE_P12_BASE64              base64 -i secrets/ios/AppleDistribution.p12 | pbcopy
 IOS_CERTIFICATE_PASSWORD                Password you set when exporting the .p12
-IOS_PROVISIONING_PROFILE_BASE64         base64 -i secrets/ios/Pylux_iOS_AppStore.mobileprovision | pbcopy
+IOS_PROVISIONING_PROFILE_BASE64         base64 -i secrets/ios/AstraPlay_iOS_AppStore.mobileprovision | pbcopy
 APP_STORE_CONNECT_API_KEY_KEY_ID        <your-key-id> (from App Store Connect)
 APP_STORE_CONNECT_API_KEY_ISSUER_ID     <your-issuer-id> (from App Store Connect)
 APP_STORE_CONNECT_API_KEY_KEY_BASE64    base64 -i secrets/ios/AuthKey_<your-key-id>.p8 | pbcopy

@@ -1,7 +1,7 @@
 # Deploy iOS (TestFlight)
 #
 # MARKETING_VERSION and CURRENT_PROJECT_VERSION for archives come from root CMakeLists.txt (extract-version),
-# not from the 0.0.0 / 0 placeholders in ios/Pylux.xcodeproj — see "Set iOS marketing + build numbers" + xcodebuild below.
+# not from the 0.0.0 / 0 placeholders in ios/AstraPlay.xcodeproj — see "Set iOS marketing + build numbers" + xcodebuild below.
 #
 # Architecture: arm64 (device only, no simulator)
 # Output: Signed IPA uploaded to TestFlight via Fastlane
@@ -23,7 +23,7 @@ on:
   workflow_call:
     outputs:
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build-ios.outputs.chiaki_version }}
       testflight_join_url:
         description: Public TestFlight join link for external testers
@@ -179,13 +179,13 @@ jobs:
       - name: Archive
         working-directory: ios
         run: |
-          xcodebuild -project Pylux.xcodeproj \
-            -scheme Pylux \
+          xcodebuild -project AstraPlay.xcodeproj \
+            -scheme AstraPlay \
             -sdk iphoneos \
             -configuration Release \
             archive \
             -destination 'generic/platform=iOS' \
-            -archivePath build-derived/Pylux.xcarchive \
+            -archivePath build-derived/AstraPlay.xcarchive \
             -derivedDataPath build-derived \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
@@ -210,7 +210,7 @@ jobs:
             <string>manual</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.pylux.stream</key>
+              <key>com.astraplay.stream</key>
               <string>${{ env.PROVISIONING_PROFILE_UUID }}</string>
             </dict>
             <key>uploadSymbols</key>
@@ -222,7 +222,7 @@ jobs:
           PLIST
 
           xcodebuild -exportArchive \
-            -archivePath build-derived/Pylux.xcarchive \
+            -archivePath build-derived/AstraPlay.xcarchive \
             -exportPath build-derived/export \
             -exportOptionsPlist build-derived/CIExportOptions.plist
 
@@ -240,8 +240,8 @@ jobs:
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          PYLUX_SUBMIT_FOR_REVIEW: ${{ github.ref_name == 'master' && 'true' || 'false' }}
-          PYLUX_TESTFLIGHT_EXTERNAL_BETA: ${{ github.ref_name == 'release/beta' && 'true' || 'false' }}
+          ASTRAPLAY_SUBMIT_FOR_REVIEW: ${{ github.ref_name == 'master' && 'true' || 'false' }}
+          ASTRAPLAY_TESTFLIGHT_EXTERNAL_BETA: ${{ github.ref_name == 'release/beta' && 'true' || 'false' }}
         run: |
           retry() {
             local attempts="$1"
@@ -259,30 +259,30 @@ jobs:
             done
           }
           retry 4 brew install fastlane
-          export PYLUX_IPA_PATH="${{ env.IPA_PATH }}"
-          fastlane upload_pylux_ipa
+          export ASTRAPLAY_IPA_PATH="${{ env.IPA_PATH }}"
+          fastlane upload_astraplay_ipa
 
       - name: Deployment summary
         if: always()
         run: |
           {
-            echo "## Pylux iOS — v${CHIAKI_VERSION:-?}"
+            echo "## AstraPlay iOS — v${CHIAKI_VERSION:-?}"
             echo ""
             if [ "${{ steps.upload_testflight.outcome }}" = "success" ]; then
               if [ "${{ github.ref_name }}" = "master" ]; then
                 echo "Submitted for App Store review. Once approved, download here:"
                 echo ""
-                echo "**[Download on the App Store](https://apps.apple.com/us/app/pylux-remote-play/id6761292658)**"
+                echo "**[Get the release](https://github.com/nileshchakraborty/AstraPlay/releases/latest)**"
                 echo ""
                 echo "> If recently submitted, allow a few days for Apple review before it appears."
               else
                 echo "Beta build uploaded to TestFlight."
                 echo ""
-                echo "**[Join TestFlight beta](https://testflight.apple.com/join/V8pv6cXK)**"
+                echo "**[Get the beta](https://github.com/nileshchakraborty/AstraPlay/releases/latest)**"
                 echo ""
                 echo "1. Install [TestFlight](https://apps.apple.com/app/testflight/id899247664) on your iPhone if you haven't already."
                 echo "2. Open the join link above and accept the invite."
-                echo "3. Install Pylux from TestFlight. New builds may take a short time to pass Beta App Review before appearing."
+                echo "3. Install AstraPlay from TestFlight. New builds may take a short time to pass Beta App Review before appearing."
               fi
             else
               echo "Upload did not complete (outcome: **${{ steps.upload_testflight.outcome }}**). Check the logs above for details."

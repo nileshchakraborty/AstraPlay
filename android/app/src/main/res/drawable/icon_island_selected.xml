@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Selected/focused icon background with Pylux blue glow -->
+<!-- Selected/focused icon background with AstraPlay gold glow -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Focused via keyboard/D-pad (activated programmatically) -->
     <item android:state_activated="true">

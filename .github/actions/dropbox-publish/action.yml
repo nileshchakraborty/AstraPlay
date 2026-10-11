@@ -8,10 +8,10 @@ inputs:
     description: Local path to the file to publish
     required: true
   latest-path:
-    description: Dropbox path for the always-latest copy (e.g. /pylux/linux/pylux-latest.zip)
+    description: Dropbox path for the always-latest copy (e.g. /astraplay/linux/astraplay-latest.zip)
     required: true
   versioned-path:
-    description: Dropbox path for the versioned archive copy (e.g. /pylux/linux/pylux-3.8.12.zip)
+    description: Dropbox path for the versioned archive copy (e.g. /astraplay/linux/astraplay-3.8.12.zip)
     required: true
   refresh-token:
     description: Dropbox OAuth refresh token

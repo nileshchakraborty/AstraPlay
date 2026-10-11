@@ -78,7 +78,7 @@ warn() { printf 'warning: %s\n' "$*" >&2; }
 # Logcat tags captured by --logs and dumped by --logs-dump. Shared by both so they never drift.
 # NOTE: keep the app-side Kotlin tags (CloudGameRepository / SecureTokenManager / Preferences /
 # CloudPlayViewModel) here or catalog cache + login/logout events won't appear.
-PYLUX_LOG_TAGS=(
+ASTRAPLAY_LOG_TAGS=(
   PSGaikaiStreaming:I
   PSGaikaiStreaming:D
   PSKamajiSession:I
@@ -105,7 +105,7 @@ PYLUX_LOG_TAGS=(
 dump_logs() {
   local adb_bin="$1"
   "$adb_bin" wait-for-device
-  "$adb_bin" logcat -d -v threadtime -s "${PYLUX_LOG_TAGS[@]}"
+  "$adb_bin" logcat -d -v threadtime -s "${ASTRAPLAY_LOG_TAGS[@]}"
 }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
@@ -333,15 +333,15 @@ start_log_capture() {
 
   local ts log_file latest_file pid_file meta_file
   ts="$(date +%Y%m%d-%H%M%S)"
-  log_file="$LOG_DIR/pylux-$ts.log"
-  latest_file="$LOG_DIR/pylux-latest.log"
+  log_file="$LOG_DIR/astraplay-$ts.log"
+  latest_file="$LOG_DIR/astraplay-latest.log"
   pid_file="$LOG_DIR/capture.pid"
   meta_file="$LOG_DIR/capture.meta"
 
   "$adb_bin" wait-for-device
   "$adb_bin" logcat -c
 
-  local log_tags=("${PYLUX_LOG_TAGS[@]}")
+  local log_tags=("${ASTRAPLAY_LOG_TAGS[@]}")
 
   log "Capturing logcat for ${LOG_MINUTES}m -> $log_file"
   log "  tags: ${log_tags[*]}"
@@ -403,7 +403,7 @@ main() {
     dump_logs "$adb_bin"
     exit 0
   fi
-  log "Pylux local Android build (CI parity)"
+  log "AstraPlay local Android build (CI parity)"
   log "Repo: $REPO_ROOT"
 
   if [[ "$SKIP_DEPS" == false ]]; then
@@ -467,12 +467,12 @@ main() {
   echo "  VIEW LOGS (one-shot, never hangs):"
   echo "    ./android/build-local.sh --logs-dump                 # dump app-tagged ring buffer + exit"
   echo "    ./android/build-local.sh --logs-dump | grep 'Catalog cache invalidated'"
-  echo "  Background capture file (--logs):  $LOG_DIR/pylux-latest.log   (read with: tail -n 200 <file>)"
+  echo "  Background capture file (--logs):  $LOG_DIR/astraplay-latest.log   (read with: tail -n 200 <file>)"
   echo "  Stop background capture:           ./android/build-local.sh --stop-logs"
   echo "  Session file (device): files/session_logs/chiaki_session_*.log"
   echo "  Pull session log:    adb shell run-as com.astraplay.stream cat files/session_logs/\$(adb shell run-as com.astraplay.stream ls -t files/session_logs/ | head -1)"
   if [[ -f "$LOG_DIR/capture.pid" ]]; then
-    echo "  Capturing:  pid $(cat "$LOG_DIR/capture.pid") -> $(readlink "$LOG_DIR/pylux-latest.log" 2>/dev/null || echo pylux-latest.log)"
+    echo "  Capturing:  pid $(cat "$LOG_DIR/capture.pid") -> $(readlink "$LOG_DIR/astraplay-latest.log" 2>/dev/null || echo astraplay-latest.log)"
   fi
 
   log "Done"

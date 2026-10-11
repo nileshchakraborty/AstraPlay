@@ -42,23 +42,23 @@ jobs:
       - name: Ensure DMG and Zip bundles exist
         working-directory: build-output
         run: |
-          if [ ! -f "Pylux.dmg" ] && [ -d "Pylux.app" ]; then
-            hdiutil create -srcfolder "Pylux.app" -volname "Pylux" "Pylux.dmg"
+          if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
+            hdiutil create -srcfolder "AstraPlay.app" -volname "AstraPlay" "AstraPlay.dmg"
           fi
-          zip -ry Pylux-macos-${{ inputs.arch || 'arm64' }}.zip Pylux.app
+          zip -ry AstraPlay-macos-${{ inputs.arch || 'arm64' }}.zip AstraPlay.app
 
       - name: Upload macOS DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
-          path: build-output/Pylux.dmg
+          name: AstraPlay-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
+          path: build-output/AstraPlay.dmg
           retention-days: 14
           if-no-files-found: error
 
       - name: Upload macOS Zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
-          path: build-output/Pylux-macos-${{ inputs.arch || 'arm64' }}.zip
+          name: AstraPlay-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: build-output/AstraPlay-macos-${{ inputs.arch || 'arm64' }}.zip
           retention-days: 14
           if-no-files-found: error

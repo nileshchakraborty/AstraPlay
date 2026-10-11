@@ -108,22 +108,22 @@ jobs:
         run: |
           cp scripts/qtwebengine_import.qml gui/src/qml/
 
-      - name: Configure Pylux
+      - name: Configure AstraPlay
         run: |
           cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
-      - name: Build Pylux
+      - name: Build AstraPlay
         run: |
           cmake --build build --config Release --clean-first --target chiaki
 
-      - name: Package Pylux
+      - name: Package AstraPlay
         run: |
-          mkdir pylux
-          cp build/gui/chiaki.exe pylux/pylux.exe
+          mkdir astraplay
+          cp build/gui/chiaki.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/mingw64/share/qt6/bin/:/mingw64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/mingw64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/mingw64/share/qt6/qml"
-          echo pylux/pylux.exe > tmp0.txt
+          echo astraplay/astraplay.exe > tmp0.txt
           while [ -e tmp0.txt ]
           do
             cp tmp0.txt tmp.txt
@@ -135,15 +135,15 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
                 echo "Copied $dep"
-                cp "$dep" pylux/
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
-          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux/pylux.exe
-          find pylux -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml astraplay/astraplay.exe
+          find astraplay -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
             echo "$plugin" >> tmp0.txt
           done
           while [ -e tmp0.txt ] && [ -s tmp0.txt ]
@@ -157,8 +157,8 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
-                cp "$dep" pylux/
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
@@ -167,7 +167,7 @@ jobs:
 
       - name: Create portable zip
         run: |
-          zip -r pylux-windows-x64.zip pylux
+          zip -r astraplay-windows-x64.zip astraplay
 
       - name: Extract version
         id: extract_version
@@ -181,14 +181,14 @@ jobs:
 
       - name: Rename installer with version
         run: |
-          INSTALLER_NAME="pylux-windows-x64-installer-${{ steps.extract_version.outputs.version }}.exe"
-          cp pylux-windows-installer.exe "${INSTALLER_NAME}"
+          INSTALLER_NAME="astraplay-windows-x64-installer-${{ steps.extract_version.outputs.version }}.exe"
+          cp astraplay-windows-installer.exe "${INSTALLER_NAME}"
           echo "INSTALLER_NAME=${INSTALLER_NAME}" >> $GITHUB_ENV
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
+          name: AstraPlay-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
           path: ${{ env.INSTALLER_NAME }}
           retention-days: 14
           if-no-files-found: error
@@ -196,8 +196,8 @@ jobs:
       - name: Upload portable zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
-          path: pylux-windows-x64.zip
+          name: AstraPlay-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: astraplay-windows-x64.zip
           retention-days: 14
           if-no-files-found: error
 
@@ -288,22 +288,22 @@ jobs:
         run: |
           cp scripts/qtwebengine_import.qml gui/src/qml/
 
-      - name: Configure Pylux ARM64
+      - name: Configure AstraPlay ARM64
         run: |
           cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
-      - name: Build Pylux ARM64
+      - name: Build AstraPlay ARM64
         run: |
           cmake --build build --config Release --clean-first --target chiaki
 
-      - name: Package Pylux ARM64
+      - name: Package AstraPlay ARM64
         run: |
-          mkdir pylux
-          cp build/gui/chiaki.exe pylux/pylux.exe
+          mkdir astraplay
+          cp build/gui/chiaki.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
-          echo pylux/pylux.exe > tmp0.txt
+          echo astraplay/astraplay.exe > tmp0.txt
           while [ -e tmp0.txt ]
           do
             cp tmp0.txt tmp.txt
@@ -315,14 +315,14 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
-                cp "$dep" pylux/
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
           done
-          windeployqt6.exe --no-translations --qmldir=gui/src/qml pylux/pylux.exe
-          find pylux -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
+          windeployqt6.exe --no-translations --qmldir=gui/src/qml astraplay/astraplay.exe
+          find astraplay -type d \( -name plugins -o -name imageformats -o -name platforms -o -name sqldrivers \) -exec find {} -name "*.dll" \; | while read plugin; do
             echo "$plugin" >> tmp0.txt
           done
           while [ -e tmp0.txt ] && [ -s tmp0.txt ]
@@ -336,8 +336,8 @@ jobs:
                   continue
                   ;;
               esac
-              if [ -f "$dep" ] && [ ! -e "pylux/${dep##*/}" ]; then
-                cp "$dep" pylux/
+              if [ -f "$dep" ] && [ ! -e "astraplay/${dep##*/}" ]; then
+                cp "$dep" astraplay/
                 echo "$dep" >> tmp0.txt
               fi
             done
@@ -346,7 +346,7 @@ jobs:
 
       - name: Create portable zip
         run: |
-          zip -r pylux-windows-arm64.zip pylux
+          zip -r astraplay-windows-arm64.zip astraplay
 
       - name: Extract version
         id: extract_version
@@ -361,9 +361,9 @@ jobs:
 
       - name: Rename ARM64 installer with version
         run: |
-          INSTALLER_NAME="pylux-windows-arm64-installer-${{ steps.extract_version.outputs.version }}.exe"
-          if [ -f pylux-windows-installer.exe ]; then
-            cp pylux-windows-installer.exe "${INSTALLER_NAME}"
+          INSTALLER_NAME="astraplay-windows-arm64-installer-${{ steps.extract_version.outputs.version }}.exe"
+          if [ -f astraplay-windows-installer.exe ]; then
+            cp astraplay-windows-installer.exe "${INSTALLER_NAME}"
             echo "INSTALLER_NAME=${INSTALLER_NAME}" >> $GITHUB_ENV
           fi
 
@@ -371,7 +371,7 @@ jobs:
         if: env.INSTALLER_NAME != ''
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
+          name: AstraPlay-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
           path: ${{ env.INSTALLER_NAME }}
           retention-days: 14
           if-no-files-found: warn
@@ -379,7 +379,7 @@ jobs:
       - name: Upload ARM64 portable zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
-          path: pylux-windows-arm64.zip
+          name: AstraPlay-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: astraplay-windows-arm64.zip
           retention-days: 14
           if-no-files-found: error

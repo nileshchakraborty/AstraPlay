@@ -35,7 +35,7 @@ import java.net.URL
 import kotlin.random.Random
 
 /**
- * PSN Login Activity using xbgamestream code flow
+ * PSN Login Activity using astraplay relay code flow
  * Mirrors desktop app's QR login flow from gui/src/qmlbackend.cpp
  * Reference: gui/src/qmlbackend.cpp lines 3363-3525
  */
@@ -44,7 +44,7 @@ class PsnLoginActivity : AppCompatActivity()
 	companion object
 	{
 		private const val TAG = "PsnLoginActivity"
-		private const val PYLUX_URL = "http://fedora.local:8080"
+		private const val ASTRAPLAY_URL = "http://fedora.local:8080"
 		const val EXTRA_NPSSO_TOKEN = "npsso_token"
 		const val RESULT_LOGIN_SUCCESS = Activity.RESULT_OK
 		const val RESULT_LOGIN_CANCELLED = Activity.RESULT_CANCELED
@@ -137,7 +137,7 @@ class PsnLoginActivity : AppCompatActivity()
 			checkStatusButton = findViewById(R.id.checkStatusButton)
 			cancelButton = findViewById(R.id.cancelButton)
 
-			openBrowserButton.setOnClickListener { openPyluxInBrowser() }
+			openBrowserButton.setOnClickListener { openAstraPlayInBrowser() }
 			checkStatusButton.setOnClickListener { checkTokenStatus() }
 			cancelButton.setOnClickListener {
 				setResult(RESULT_LOGIN_CANCELLED)
@@ -164,7 +164,7 @@ class PsnLoginActivity : AppCompatActivity()
 		Log.i(TAG, "Generated login code: $loginCode")
 
 		scope.launch {
-			val success = createPyluxCode(loginCode)
+			val success = createAstraPlayCode(loginCode)
 			if (success) {
 				if (isOnTv) {
 					tvStatusTextView.text = getString(R.string.psn_login_code_ready)
@@ -191,7 +191,7 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun loadQrCode(code: String)
 	{
-		val loginUrl = "$PYLUX_URL/psstream/?psstream_code=$code"
+		val loginUrl = "$ASTRAPLAY_URL/psstream/?psstream_code=$code"
 		qrCodeImage.setImageBitmap(generateQrCode(loginUrl, 440))
 	}
 
@@ -209,14 +209,14 @@ class PsnLoginActivity : AppCompatActivity()
 	}
 	
 	/**
-	 * Create code on xbgamestream server
+	 * Create code on relay server
 	 * Reference: gui/src/qmlbackend.cpp lines 3363-3440
 	 */
-	private suspend fun createPyluxCode(code: String): Boolean = withContext(Dispatchers.IO)
+	private suspend fun createAstraPlayCode(code: String): Boolean = withContext(Dispatchers.IO)
 	{
 		try
 		{
-			val url = URL("$PYLUX_URL/psstream/create-code")
+			val url = URL("$ASTRAPLAY_URL/psstream/create-code")
 			val connection = url.openConnection() as HttpURLConnection
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
@@ -237,13 +237,13 @@ class PsnLoginActivity : AppCompatActivity()
 				
 				if (jsonResponse.optString("result") == "success")
 				{
-					Log.i(TAG, "pylux code created successfully")
+					Log.i(TAG, "astraplay code created successfully")
 					return@withContext true
 				}
 				else
 				{
 					val error = jsonResponse.optString("error", "Unknown error")
-					Log.e(TAG, "pylux server error: $error")
+					Log.e(TAG, "astraplay server error: $error")
 					return@withContext false
 				}
 			}
@@ -255,7 +255,7 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 		catch (e: Exception)
 		{
-			Log.e(TAG, "Exception creating pylux code", e)
+			Log.e(TAG, "Exception creating astraplay code", e)
 			return@withContext false
 		}
 	}
@@ -276,7 +276,7 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 
 		scope.launch {
-			val token = checkPyluxStatus(loginCode)
+			val token = checkAstraPlayStatus(loginCode)
 
 			if (isOnTv) {
 				tvProgressBar.visibility = View.GONE
@@ -288,7 +288,7 @@ class PsnLoginActivity : AppCompatActivity()
 			}
 
 			if (token != null) {
-				Log.i(TAG, "NPSSO token received from xbgamestream")
+				Log.i(TAG, "NPSSO token received from relay server")
 				onLoginSuccess(token)
 			} else {
 				val msg = getString(R.string.psn_login_not_complete)
@@ -303,14 +303,14 @@ class PsnLoginActivity : AppCompatActivity()
 	}
 	
 	/**
-	 * Check xbgamestream server for token status
+	 * Check relay server for token status
 	 * Reference: gui/src/qmlbackend.cpp lines 3442-3525
 	 */
-	private suspend fun checkPyluxStatus(code: String): String? = withContext(Dispatchers.IO)
+	private suspend fun checkAstraPlayStatus(code: String): String? = withContext(Dispatchers.IO)
 	{
 		try
 		{
-			val url = URL("$PYLUX_URL/psstream/get-tokens")
+			val url = URL("$ASTRAPLAY_URL/psstream/get-tokens")
 			val connection = url.openConnection() as HttpURLConnection
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
@@ -358,7 +358,7 @@ class PsnLoginActivity : AppCompatActivity()
 					}
 					"error" -> {
 						val error = jsonResponse.optString("error", "Unknown error")
-						Log.e(TAG, "pylux error: $error")
+						Log.e(TAG, "astraplay error: $error")
 						return@withContext null
 					}
 					else -> {
@@ -384,23 +384,23 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 		catch (e: Exception)
 		{
-			Log.e(TAG, "Exception checking pylux status", e)
+			Log.e(TAG, "Exception checking astraplay status", e)
 			return@withContext null
 		}
 	}
 	
 	/**
-	 * Open xbgamestream.com with the login code in browser
+	 * Open relay URL with the login code in browser
 	 * Reference: gui/src/qml/QRLoginDialog.qml line 225
 	 */
-	private fun openPyluxInBrowser()
+	private fun openAstraPlayInBrowser()
 	{
 		try
 		{
-			val pyluxUrl = "$PYLUX_URL/psstream/?psstream_code=$loginCode"
-			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(pyluxUrl))
+			val relayUrl = "$ASTRAPLAY_URL/psstream/?psstream_code=$loginCode"
+			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(relayUrl))
 			startActivity(intent)
-			Log.i(TAG, "Opened pylux URL in browser: $pyluxUrl")
+			Log.i(TAG, "Opened relay URL in browser: $relayUrl")
 			statusTextView.text = getString(R.string.psn_login_browser_opened)
 			
 			// Highlight the Check Status button by changing it to filled style

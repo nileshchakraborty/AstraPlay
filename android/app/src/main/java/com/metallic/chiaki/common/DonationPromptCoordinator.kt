@@ -1063,10 +1063,10 @@ class DonationPromptCoordinator private constructor(
 	private fun tierDisplayName(productId: String): String =
 		when (productId)
 		{
-			"pylux_support_bronze" -> activity.getString(R.string.donation_tier_bronze)
-			"pylux_support_silver" -> activity.getString(R.string.donation_tier_silver)
-			"pylux_support_gold" -> activity.getString(R.string.donation_tier_gold)
-			"pylux_support_platinum" -> activity.getString(R.string.donation_tier_platinum)
+			"astraplay_support_bronze" -> activity.getString(R.string.donation_tier_bronze)
+			"astraplay_support_silver" -> activity.getString(R.string.donation_tier_silver)
+			"astraplay_support_gold" -> activity.getString(R.string.donation_tier_gold)
+			"astraplay_support_platinum" -> activity.getString(R.string.donation_tier_platinum)
 			else -> productId.substringAfterLast('_').replaceFirstChar { it.uppercaseChar() }
 		}
 
@@ -1074,10 +1074,10 @@ class DonationPromptCoordinator private constructor(
 	{
 		val res = when (productId)
 		{
-			"pylux_support_bronze" -> R.string.donation_tier_blurb_bronze
-			"pylux_support_silver" -> R.string.donation_tier_blurb_silver
-			"pylux_support_gold" -> R.string.donation_tier_blurb_gold
-			"pylux_support_platinum" -> R.string.donation_tier_blurb_platinum
+			"astraplay_support_bronze" -> R.string.donation_tier_blurb_bronze
+			"astraplay_support_silver" -> R.string.donation_tier_blurb_silver
+			"astraplay_support_gold" -> R.string.donation_tier_blurb_gold
+			"astraplay_support_platinum" -> R.string.donation_tier_blurb_platinum
 			else -> R.string.donation_tier_blurb_default
 		}
 		return activity.getString(res)

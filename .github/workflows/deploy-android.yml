@@ -25,7 +25,7 @@ on:
   workflow_call:
     outputs:
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.build-android.outputs.chiaki_version }}
       play_testing_url:
         description: Google Play open testing opt-in URL
@@ -65,8 +65,8 @@ jobs:
         id: play_links
         if: always()
         run: |
-          echo "play_testing_url=https://play.google.com/apps/testing/com.pylux.stream" >> "$GITHUB_OUTPUT"
-          echo "play_store_url=https://play.google.com/store/apps/details?id=com.pylux.stream" >> "$GITHUB_OUTPUT"
+          echo "play_testing_url=https://play.google.com/apps/testing/com.astraplay.stream" >> "$GITHUB_OUTPUT"
+          echo "play_store_url=https://play.google.com/store/apps/details?id=com.astraplay.stream" >> "$GITHUB_OUTPUT"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -168,7 +168,7 @@ jobs:
           APK="$(find app/build/outputs/apk -name '*.apk' -print0 2>/dev/null | xargs -0 -r ls -t 2>/dev/null | head -1)"
           test -n "$APK" || { echo "::error::No APK produced"; exit 1; }
           SHORT_SHA="$(git rev-parse --short HEAD)"
-          DEST="pylux-${{ steps.extract_version.outputs.version }}-${SHORT_SHA}.apk"
+          DEST="astraplay-${{ steps.extract_version.outputs.version }}-${SHORT_SHA}.apk"
           cp "$APK" "$GITHUB_WORKSPACE/$DEST"
           echo "apk_name=$DEST" >> "$GITHUB_OUTPUT"
           echo "Built sideloadable APK: $DEST"
@@ -177,7 +177,7 @@ jobs:
         if: ${{ inputs.build_apk }}
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-android-apk
+          name: astraplay-android-apk
           path: ${{ steps.build_apk.outputs.apk_name }}
           if-no-files-found: error
 
@@ -206,7 +206,7 @@ jobs:
           else
             TRACK=beta
           fi
-          echo "PYLUX_PLAY_TRACK=$TRACK" >> "$GITHUB_ENV"
+          echo "ASTRAPLAY_PLAY_TRACK=$TRACK" >> "$GITHUB_ENV"
           echo "Deploying to Google Play track: $TRACK"
 
       - name: Upload AAB to Google Play
@@ -219,20 +219,20 @@ jobs:
         run: |
           sudo gem install fastlane -N
           AAB_PATH="$(find app/build/outputs/bundle/release -name '*.aab' | head -1)"
-          export PYLUX_AAB_PATH="$PWD/$AAB_PATH"
-          fastlane upload_pylux_aab
+          export ASTRAPLAY_AAB_PATH="$PWD/$AAB_PATH"
+          fastlane upload_astraplay_aab
 
       - name: Deployment summary
         if: always()
         run: |
           {
-            echo "## Pylux Android — v${CHIAKI_VERSION:-?}"
+            echo "## AstraPlay Android — v${CHIAKI_VERSION:-?}"
             echo ""
             if [ "${{ inputs.build_apk }}" = "true" ]; then
               echo "APK-only run — Google Play publish was skipped."
               echo ""
               if [ "${{ steps.build_apk.outcome }}" = "success" ]; then
-                echo "Sideloadable test APK \`${{ steps.build_apk.outputs.apk_name }}\` is attached to this run (see the **Artifacts** section, named \`pylux-android-apk\`)."
+                echo "Sideloadable test APK \`${{ steps.build_apk.outputs.apk_name }}\` is attached to this run (see the **Artifacts** section, named \`astraplay-android-apk\`)."
               else
                 echo "APK build did not complete (outcome: **${{ steps.build_apk.outcome }}**). Check the logs above for details."
               fi
@@ -245,16 +245,16 @@ jobs:
                     if [ "${{ github.ref_name }}" = "master" ]; then
                       echo "Released to the Play Store:"
                       echo ""
-                      echo "**[Get it on Google Play](https://play.google.com/store/apps/details?id=com.pylux.stream)**"
+                      echo "**[Get it on Google Play](https://play.google.com/store/apps/details?id=com.astraplay.stream)**"
                       echo ""
                       echo "Available for Android phones, tablets, and Android TV."
                     else
                       echo "Beta build uploaded to Google Play."
                       echo ""
-                      echo "**[Join the beta](https://play.google.com/apps/testing/com.pylux.stream)**"
+                      echo "**[Join the beta](https://play.google.com/apps/testing/com.astraplay.stream)**"
                       echo ""
                       echo "1. Open the join link above to opt in to the beta program."
-                      echo "2. Install or update Pylux from the [Play Store](https://play.google.com/store/apps/details?id=com.pylux.stream)."
+                      echo "2. Install or update AstraPlay from the [Play Store](https://play.google.com/store/apps/details?id=com.astraplay.stream)."
                       echo "3. Android TV: join the beta on a phone or browser first, then install from the Play Store on your TV."
                     fi
                   else

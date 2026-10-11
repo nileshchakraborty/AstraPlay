@@ -20,8 +20,8 @@ The GitHub Action `.github/workflows/upload-source-code.yml` automatically:
 ### 2. License Files in Binary Distribution
 
 Build scripts use the helper function `add_agpl_compliance()` from `scripts/add-agpl-compliance.sh` to add:
-- **`usr/share/licenses/pylux/COPYING`**: Full AGPL-3.0 license text
-- **`usr/share/licenses/pylux/SOURCE_CODE.txt`**: Notice with link to download source code
+- **`usr/share/licenses/astraplay/COPYING`**: Full AGPL-3.0 license text
+- **`usr/share/licenses/astraplay/SOURCE_CODE.txt`**: Notice with link to download source code
 
 Files are placed in `usr/share/licenses/astraplay/` to follow Linux standards while being less prominent to end users.
 
@@ -86,18 +86,18 @@ This will automatically:
 
 ## Updating the Source Code Link
 
-The source code is uploaded with a **static filename** (`pylux-source-latest.tar.gz`) that gets overwritten on each upload, so the Dropbox link never changes.
+The source code is uploaded with a **static filename** (`astraplay-source-latest.tar.gz`) that gets overwritten on each upload, so the Dropbox link never changes.
 
 ### One-Time Setup:
 
 1. Run the GitHub Action once (manually via workflow_dispatch)
-2. Check Dropbox `/pylux-sources/pylux-source-latest.tar.gz`
+2. Check Dropbox `/astraplay-sources/astraplay-source-latest.tar.gz`
 3. Get the shared link for the file (Right-click → Share → Create link)
 4. Update line 11 in `legal/agpl-source-notice.txt` with the actual URL
 
 Example:
 ```
-    https://www.dropbox.com/scl/fi/abc123xyz/pylux-source-latest.tar.gz?rlkey=xyz&dl=1
+    https://www.dropbox.com/scl/fi/abc123xyz/astraplay-source-latest.tar.gz?rlkey=xyz&dl=1
 ```
 
 **Important:** Make sure the link ends with `?dl=1` (or `&dl=1`) for direct download.
@@ -150,9 +150,9 @@ If you modify and distribute the software:
 
 After building, check that the files exist in the distribution:
 ```bash
-ls astraplay/usr/share/licenses/pylux/COPYING        # License file exists
-ls astraplay/usr/share/licenses/pylux/SOURCE_CODE.txt # Source info exists
-cat astraplay/usr/share/licenses/pylux/SOURCE_CODE.txt # URL is correct
+ls astraplay/usr/share/licenses/astraplay/COPYING        # License file exists
+ls astraplay/usr/share/licenses/astraplay/SOURCE_CODE.txt # Source info exists
+cat astraplay/usr/share/licenses/astraplay/SOURCE_CODE.txt # URL is correct
 ```
 
 The files are intentionally placed in a standard but less prominent location (`usr/share/licenses/astraplay/`) to comply with AGPL while not being immediately visible to end users.

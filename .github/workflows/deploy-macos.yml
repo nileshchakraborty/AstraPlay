@@ -24,7 +24,7 @@ on:
   workflow_call:
     outputs:
       chiaki_version:
-        description: Pylux version from CMakeLists.txt
+        description: AstraPlay version from CMakeLists.txt
         value: ${{ jobs.create-appstore-pkg.outputs.chiaki_version }}
       testflight_join_url:
         description: Public TestFlight join link for external testers (Mac)
@@ -69,15 +69,15 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Extract Pylux version
-        id: pylux_version
+      - name: Extract AstraPlay version
+        id: astraplay_version
         uses: ./.github/actions/extract-version
 
-      - name: Set macOS bundle build number from Pylux semver
+      - name: Set macOS bundle build number from AstraPlay semver
         run: |
-          BN="${{ steps.pylux_version.outputs.semver_build_id }}"
-          echo "PYLUX_MACOS_BUILD_NUMBER=$BN" >> "$GITHUB_ENV"
-          echo "PYLUX_MACOS_BUILD_NUMBER=$BN (CFBundleVersion; MAJOR*10000+MINOR*100+PATCH)"
+          BN="${{ steps.astraplay_version.outputs.semver_build_id }}"
+          echo "ASTRAPLAY_MACOS_BUILD_NUMBER=$BN" >> "$GITHUB_ENV"
+          echo "ASTRAPLAY_MACOS_BUILD_NUMBER=$BN (CFBundleVersion; MAJOR*10000+MINOR*100+PATCH)"
 
       - name: Install build dependencies
         run: |
@@ -111,7 +111,7 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake_arch }} \
             ${{ env.APPSTORE_CMAKE_FLAGS }} \
             -DCMAKE_PREFIX_PATH="${{ matrix.brew_prefix }}/opt/openssl@3;${{ matrix.brew_prefix }}/opt/qt@6;${{ matrix.brew_prefix }}/opt/protobuf@29" \
-            "-DPYLUX_MACOS_BUILD_NUMBER=${PYLUX_MACOS_BUILD_NUMBER}"
+            "-DASTRAPLAY_MACOS_BUILD_NUMBER=${ASTRAPLAY_MACOS_BUILD_NUMBER}"
 
           export CPATH="${{ matrix.brew_prefix }}/opt/ffmpeg/include"
           cmake --build build --config Release --clean-first --target chiaki
@@ -175,15 +175,15 @@ jobs:
       - name: Create tarball for PKG job (cache, not workflow artifact)
         run: |
           cd build/gui
-          mv chiaki.app Pylux.app
-          tar -czf Pylux-${{ matrix.arch }}.tar.gz Pylux.app
-          mv "Pylux-${{ matrix.arch }}.tar.gz" "$GITHUB_WORKSPACE/"
+          mv chiaki.app AstraPlay.app
+          tar -czf AstraPlay-${{ matrix.arch }}.tar.gz AstraPlay.app
+          mv "AstraPlay-${{ matrix.arch }}.tar.gz" "$GITHUB_WORKSPACE/"
 
       - name: Save bundle for merge job
         uses: actions/cache/save@v4
         with:
-          key: pylux-appstore-${{ github.run_id }}-${{ matrix.cmake_arch }}
-          path: Pylux-${{ matrix.arch }}.tar.gz
+          key: astraplay-appstore-${{ github.run_id }}-${{ matrix.cmake_arch }}
+          path: AstraPlay-${{ matrix.arch }}.tar.gz
 
   create-appstore-pkg:
     name: Create universal PKG and deploy
@@ -216,32 +216,32 @@ jobs:
       - name: Restore ARM64 app bundle
         uses: actions/cache/restore@v4
         with:
-          key: pylux-appstore-${{ github.run_id }}-arm64
-          path: Pylux-ARM64.tar.gz
+          key: astraplay-appstore-${{ github.run_id }}-arm64
+          path: AstraPlay-ARM64.tar.gz
           fail-on-cache-miss: true
 
       - name: Restore x86_64 app bundle
         uses: actions/cache/restore@v4
         with:
-          key: pylux-appstore-${{ github.run_id }}-x86_64
-          path: Pylux-x86_64.tar.gz
+          key: astraplay-appstore-${{ github.run_id }}-x86_64
+          path: AstraPlay-x86_64.tar.gz
           fail-on-cache-miss: true
 
       - name: Create universal bundle
         run: |
-          tar -xzf Pylux-ARM64.tar.gz
-          mv Pylux.app Pylux-arm64.app
+          tar -xzf AstraPlay-ARM64.tar.gz
+          mv AstraPlay.app AstraPlay-arm64.app
 
-          tar -xzf Pylux-x86_64.tar.gz
-          mv Pylux.app Pylux-x86_64.app
+          tar -xzf AstraPlay-x86_64.tar.gz
+          mv AstraPlay.app AstraPlay-x86_64.app
 
           echo "=== Merging ARM64 and x86_64 app bundles ==="
-          python3 -m lipomerge Pylux-arm64.app Pylux-x86_64.app Pylux.app
+          python3 -m lipomerge AstraPlay-arm64.app AstraPlay-x86_64.app AstraPlay.app
 
           echo ""
           echo "=== Verification ==="
-          lipo -info Pylux.app/Contents/MacOS/chiaki
-          lipo -info Pylux.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore || true
+          lipo -info AstraPlay.app/Contents/MacOS/chiaki
+          lipo -info AstraPlay.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore || true
 
       - name: Import Apple Distribution certificate
         env:
@@ -326,7 +326,7 @@ jobs:
 
       - name: Embed profile and sign app bundle
         run: |
-          APP="Pylux.app"
+          APP="AstraPlay.app"
           SIGN_ID="Apple Distribution"
           ENTITLEMENTS="${{ env.MERGED_ENTITLEMENTS }}"
 
@@ -369,8 +369,8 @@ jobs:
 
       - name: Create signed installer package
         run: |
-          PKG_OUT="Pylux-appstore.pkg"
-          productbuild --component Pylux.app /Applications \
+          PKG_OUT="AstraPlay-appstore.pkg"
+          productbuild --component AstraPlay.app /Applications \
             --sign "3rd Party Mac Developer Installer" \
             "$PKG_OUT"
 
@@ -399,8 +399,8 @@ jobs:
         env:
           APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          PYLUX_SUBMIT_FOR_REVIEW: ${{ github.ref_name == 'master' && 'true' || 'false' }}
-          PYLUX_TESTFLIGHT_EXTERNAL_BETA: ${{ github.ref_name == 'release/beta' && 'true' || 'false' }}
+          ASTRAPLAY_SUBMIT_FOR_REVIEW: ${{ github.ref_name == 'master' && 'true' || 'false' }}
+          ASTRAPLAY_TESTFLIGHT_EXTERNAL_BETA: ${{ github.ref_name == 'release/beta' && 'true' || 'false' }}
         run: |
           retry() {
             local attempts="$1"
@@ -418,30 +418,30 @@ jobs:
             done
           }
           retry 4 brew install fastlane
-          export PYLUX_PKG_PATH="${{ env.PKG_PATH }}"
-          fastlane upload_pylux_pkg
+          export ASTRAPLAY_PKG_PATH="${{ env.PKG_PATH }}"
+          fastlane upload_astraplay_pkg
 
       - name: Deployment summary
         if: always()
         run: |
           {
-            echo "## Pylux macOS — v${CHIAKI_VERSION:-?}"
+            echo "## AstraPlay macOS — v${CHIAKI_VERSION:-?}"
             echo ""
             if [ "${{ steps.upload_appstore.outcome }}" = "success" ]; then
               if [ "${{ github.ref_name }}" = "master" ]; then
                 echo "Submitted for Mac App Store review. Once approved, download here:"
                 echo ""
-                echo "**[Download on the Mac App Store](https://apps.apple.com/us/app/pylux-remote-play/id6761292658)**"
+                echo "**[Get the release](https://github.com/nileshchakraborty/AstraPlay/releases/latest)**"
                 echo ""
                 echo "> If recently submitted, allow a few days for Apple review before it appears."
               else
                 echo "Beta build uploaded to TestFlight for Mac."
                 echo ""
-                echo "**[Join TestFlight beta](https://testflight.apple.com/join/V8pv6cXK)**"
+                echo "**[Get the beta](https://github.com/nileshchakraborty/AstraPlay/releases/latest)**"
                 echo ""
                 echo "1. Install [TestFlight](https://apps.apple.com/app/apple-testflight/id899247664) on your Mac if you haven't already."
                 echo "2. Open the join link above and accept the invite."
-                echo "3. Install Pylux from TestFlight. New builds may take a short time to pass Beta App Review before appearing."
+                echo "3. Install AstraPlay from TestFlight. New builds may take a short time to pass Beta App Review before appearing."
               fi
             else
               echo "Upload did not complete (outcome: **${{ steps.upload_appstore.outcome }}**). Check the logs above for details."

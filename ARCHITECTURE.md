@@ -91,8 +91,8 @@ The heart of AstraPlay. Must be the single source of truth for all protocol beha
 
 | Path | Responsibility |
 |------|---------------|
-| `ios/Pylux/` | Swift / ObjC source |
-| `ios/Pylux.xcodeproj/` | Xcode project |
+| `ios/AstraPlay/` | Swift / ObjC source |
+| `ios/AstraPlay.xcodeproj/` | Xcode project |
 | `ios/CMakeLists.txt` | C lib build for iOS (arm64) |
 | `ios/build.sh` | Build script (`dev`, `iterate`, `launch`, `logs`, `stop-logs`) |
 

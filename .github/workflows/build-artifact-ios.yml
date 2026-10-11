@@ -85,13 +85,13 @@ jobs:
       - name: Archive (unsigned)
         working-directory: ios
         run: |
-          xcodebuild -project Pylux.xcodeproj \
-            -scheme Pylux \
+          xcodebuild -project AstraPlay.xcodeproj \
+            -scheme AstraPlay \
             -sdk iphoneos \
             -configuration Release \
             archive \
             -destination 'generic/platform=iOS' \
-            -archivePath build-derived/Pylux.xcarchive \
+            -archivePath build-derived/AstraPlay.xcarchive \
             -derivedDataPath build-derived \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -103,7 +103,7 @@ jobs:
       - name: Package unsigned .ipa
         working-directory: ios
         run: |
-          APP=$(find build-derived/Pylux.xcarchive/Products/Applications \
+          APP=$(find build-derived/AstraPlay.xcarchive/Products/Applications \
             -maxdepth 1 -name "*.app" | head -1)
           if [ -z "$APP" ] || [ ! -d "$APP" ]; then
             echo "::error::No .app found in archive — cannot build .ipa"
@@ -111,13 +111,13 @@ jobs:
           fi
           rm -rf payload-staging && mkdir -p payload-staging/Payload
           cp -R "$APP" payload-staging/Payload/
-          ( cd payload-staging && zip -ry "../Pylux-unsigned.ipa" Payload )
-          echo "Built unsigned IPA: ios/Pylux-unsigned.ipa (sideload with AltStore/Sideloadly)"
+          ( cd payload-staging && zip -ry "../AstraPlay-unsigned.ipa" Payload )
+          echo "Built unsigned IPA: ios/AstraPlay-unsigned.ipa (sideload with AltStore/Sideloadly)"
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-iOS-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.ipa
-          path: ios/Pylux-unsigned.ipa
+          name: AstraPlay-iOS-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.ipa
+          path: ios/AstraPlay-unsigned.ipa
           retention-days: 14
           if-no-files-found: error

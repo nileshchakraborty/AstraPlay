@@ -3,10 +3,10 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Upload the IPA at PYLUX_IPA_PATH to App Store Connect"
-  lane :upload_pylux_ipa do
-    ipa_path = ENV["PYLUX_IPA_PATH"]
-    UI.user_error!("Set PYLUX_IPA_PATH to the .ipa file") if ipa_path.nil? || ipa_path.empty?
+  desc "Upload the IPA at ASTRAPLAY_IPA_PATH to App Store Connect"
+  lane :upload_astraplay_ipa do
+    ipa_path = ENV["ASTRAPLAY_IPA_PATH"]
+    UI.user_error!("Set ASTRAPLAY_IPA_PATH to the .ipa file") if ipa_path.nil? || ipa_path.empty?
     UI.user_error!("IPA not found: #{ipa_path}") unless File.file?(ipa_path)
 
     key_id = ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]
@@ -23,8 +23,8 @@ platform :ios do
       in_house: false
     )
 
-    submit = ENV.fetch("PYLUX_SUBMIT_FOR_REVIEW", "false") == "true"
-    beta_external = ENV.fetch("PYLUX_TESTFLIGHT_EXTERNAL_BETA", "false") == "true"
+    submit = ENV.fetch("ASTRAPLAY_SUBMIT_FOR_REVIEW", "false") == "true"
+    beta_external = ENV.fetch("ASTRAPLAY_TESTFLIGHT_EXTERNAL_BETA", "false") == "true"
     changelog_text = "Continuing to provide regular updates and improvements for a better experience!"
     release_notes = { "en-US" => changelog_text }
     reviewer_notes = "Minor bug fix post release. No new features."
