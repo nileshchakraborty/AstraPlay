@@ -245,16 +245,16 @@ jobs:
                     if [ "${{ github.ref_name }}" = "master" ]; then
                       echo "Released to the Play Store:"
                       echo ""
-                      echo "**[Get it on Google Play](https://play.google.com/store/apps/details?id=com.astraplay.stream)**"
+                      echo "**[Get it on Google Play](https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay)**"
                       echo ""
                       echo "Available for Android phones, tablets, and Android TV."
                     else
                       echo "Beta build uploaded to Google Play."
                       echo ""
-                      echo "**[Join the beta](https://play.google.com/apps/testing/com.astraplay.stream)**"
+                      echo "**[Join the beta](https://play.google.com/apps/testing/io.github.nileshchakraborty.astraplay)**"
                       echo ""
                       echo "1. Open the join link above to opt in to the beta program."
-                      echo "2. Install or update AstraPlay from the [Play Store](https://play.google.com/store/apps/details?id=com.astraplay.stream)."
+                      echo "2. Install or update AstraPlay from the [Play Store](https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay)."
                       echo "3. Android TV: join the beta on a phone or browser first, then install from the Play Store on your TV."
                     fi
                   else
