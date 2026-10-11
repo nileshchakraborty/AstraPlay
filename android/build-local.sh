@@ -452,7 +452,7 @@ main() {
     [[ -n "$apk" ]] || die "--install requires an APK; use --quick or assembleDebug"
     log "Installing $apk"
     "$adb_bin" install -r -t "$apk"
-    "$adb_bin" shell am start -n com.pylux.stream/com.metallic.chiaki.main.MainActivity
+    "$adb_bin" shell am start -n com.astraplay.stream/com.metallic.chiaki.main.MainActivity
     if [[ "$CAPTURE_LOGS" == true ]]; then
       start_log_capture "$adb_bin"
     fi
@@ -470,7 +470,7 @@ main() {
   echo "  Background capture file (--logs):  $LOG_DIR/pylux-latest.log   (read with: tail -n 200 <file>)"
   echo "  Stop background capture:           ./android/build-local.sh --stop-logs"
   echo "  Session file (device): files/session_logs/chiaki_session_*.log"
-  echo "  Pull session log:    adb shell run-as com.pylux.stream cat files/session_logs/\$(adb shell run-as com.pylux.stream ls -t files/session_logs/ | head -1)"
+  echo "  Pull session log:    adb shell run-as com.astraplay.stream cat files/session_logs/\$(adb shell run-as com.astraplay.stream ls -t files/session_logs/ | head -1)"
   if [[ -f "$LOG_DIR/capture.pid" ]]; then
     echo "  Capturing:  pid $(cat "$LOG_DIR/capture.pid") -> $(readlink "$LOG_DIR/pylux-latest.log" 2>/dev/null || echo pylux-latest.log)"
   fi

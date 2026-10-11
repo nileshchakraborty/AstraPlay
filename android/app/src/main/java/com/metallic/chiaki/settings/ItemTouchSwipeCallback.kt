@@ -8,7 +8,7 @@ import android.graphics.Rect
 import androidx.core.graphics.withClip
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.pylux.stream.R
+import com.astraplay.stream.R
 
 abstract class ItemTouchSwipeCallback(context: Context): ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT)
 {

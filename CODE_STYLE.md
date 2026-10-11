@@ -1,10 +1,10 @@
-# Pylux — Code Style Guide
+# AstraPlay — Code Style Guide
 
 ## 1. Language-Specific Conventions
 
 ### 1.1 C (`lib/`)
 
-Pylux inherits the chiaki/chiaki-ng C style. Follow these rules:
+AstraPlay inherits the chiaki/chiaki-ng C style. Follow these rules:
 
 **Naming**
 ```c
@@ -82,7 +82,7 @@ const char *cc_stable_key(const char *title_id);
 
 ### 1.2 C++ (`gui/`)
 
-Pylux's Qt desktop code is C++17.
+AstraPlay's Qt desktop code is C++17.
 
 **Naming**
 ```cpp
@@ -125,7 +125,7 @@ connect(m_session, &ChiakiSession::stateChanged,
 **Upstream Qt files**
 ```
 // ❌ DON'T: make sweeping edits to upstream-owned Qt files
-// ✅ DO: add new files for Pylux features
+// ✅ DO: add new files for AstraPlay features
 //        e.g. gui/src/cloudcatalogbackend.cpp (not patching settingsdialog.cpp for catalog)
 ```
 
@@ -164,7 +164,7 @@ Follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-
 
 ```swift
 // Use value types (struct/enum) for data models
-struct PyluxHost {
+struct AstraPlayHost {
     let hostId: String
     let address: String
     var displayName: String
@@ -257,7 +257,7 @@ if (!code) return res.status(400).json({ result: 'error', error: 'Missing code' 
 lib/          C only — no platform SDK includes
 gui/          C++ / Qt only — links lib
 android/app/  Kotlin/Java — JNI to lib
-ios/Pylux/    Swift/ObjC — via bridge helpers
+ios/AstraPlay/    Swift/ObjC — via bridge helpers
 ```
 - No `#ifdef ANDROID` / `#ifdef __APPLE__` in `lib/` source (only allowed in `lib/include/chiaki/` platform detection headers).
 - Platform-specific behavior → add a `CHIAKI_EXPORT` function in `lib/` and call it from the platform shell.
@@ -270,7 +270,7 @@ ios/Pylux/    Swift/ObjC — via bridge helpers
   connectInternetButton->setVisible(true);
   // [PYLUX END]
   ```
-- Keep Pylux additions syntactically isolated so a `git diff upstream/main` shows a clean set.
+- Keep AstraPlay additions syntactically isolated so a `git diff upstream/main` shows a clean set.
 
 ### 2.6 Line Length & Formatting
 - C/C++: 100 characters max (clang-format via `.clang-format` if present)

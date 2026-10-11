@@ -1,8 +1,8 @@
-# Pylux — Architecture Document
+# AstraPlay — Architecture Document
 
 ## 1. High-Level Overview
 
-Pylux follows a **shared-core, platform-shell** architecture. All protocol logic lives in a shared C library. Platform layers are thin adapters that map the library's callbacks to platform-native audio, video, input, and UI systems.
+AstraPlay follows a **shared-core, platform-shell** architecture. All protocol logic lives in a shared C library. Platform layers are thin adapters that map the library's callbacks to platform-native audio, video, input, and UI systems.
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -19,7 +19,7 @@ Pylux follows a **shared-core, platform-shell** architecture. All protocol logic
                              │
           ┌──────────────────▼──────────────────┐
           │       lib/ — Shared C Library        │
-          │  (chiaki core + Pylux extensions)    │
+          │  (chiaki core + AstraPlay extensions)    │
           └──────────────────────────────────────┘
                              │
          ┌───────────────────┼──────────────────┐
@@ -34,7 +34,7 @@ Pylux follows a **shared-core, platform-shell** architecture. All protocol logic
 
 ### 2.1 `lib/` — Shared C Library
 
-The heart of Pylux. Must be the single source of truth for all protocol behavior.
+The heart of AstraPlay. Must be the single source of truth for all protocol behavior.
 
 | Module | File(s) | Responsibility |
 |--------|---------|---------------|
@@ -91,8 +91,8 @@ The heart of Pylux. Must be the single source of truth for all protocol behavior
 
 | Path | Responsibility |
 |------|---------------|
-| `ios/Pylux/` | Swift / ObjC source |
-| `ios/Pylux.xcodeproj/` | Xcode project |
+| `ios/AstraPlay/` | Swift / ObjC source |
+| `ios/AstraPlay.xcodeproj/` | Xcode project |
 | `ios/CMakeLists.txt` | C lib build for iOS (arm64) |
 | `ios/build.sh` | Build script (`dev`, `iterate`, `launch`, `logs`, `stop-logs`) |
 
@@ -106,21 +106,21 @@ A lightweight Node.js / Express server used as a one-time-code relay so mobile u
 ```
 Client App           psstream-server          Browser (user)
 ─────────────────────────────────────────────────────────────
-POST /pylux/create-code {code}
+POST /astraplay/create-code {code}
                      store code → npsso: null
                      ─────────────────────────►
                                               User enters code at /login
                                               PSN OAuth → npsso token
                      ◄─────────────────────────
                      store npsso for code
-POST /pylux/get-tokens {code}
+POST /astraplay/get-tokens {code}
                      return npsso, delete code
 Token received ◄────
 ```
 
 | File | Purpose |
 |------|---------|
-| `server.js` | Express app; `/pylux/create-code`, `/pylux/get-tokens`, `/pylux/validate-code`, `/pylux/submit-token` |
+| `server.js` | Express app; `/astraplay/create-code`, `/astraplay/get-tokens`, `/astraplay/validate-code`, `/astraplay/submit-token` |
 | `docker-compose.yml` | Container deployment |
 | `public/` | Static web UI for browser-side login |
 | Code TTL | 15 minutes; cleaned up every 60 s |
@@ -252,5 +252,5 @@ CI injects these into iOS `MARKETING_VERSION`, Android `versionName`, and macOS 
 
 1. Add remote: `git remote add upstream https://github.com/streetpea/chiaki-ng`
 2. Cherry-pick individual commits that touch `lib/` or protocol logic
-3. Skip/adapt commits that touch Qt GUI files already diverged in Pylux
-4. New Pylux features → new files → no upstream conflicts
+3. Skip/adapt commits that touch Qt GUI files already diverged in AstraPlay
+4. New AstraPlay features → new files → no upstream conflicts

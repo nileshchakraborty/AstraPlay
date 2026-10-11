@@ -195,11 +195,11 @@ endif()
 set_target_properties(chiaki PROPERTIES
 		MACOSX_BUNDLE TRUE
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/MacOSXBundleInfo.plist.in"
-		MACOSX_BUNDLE_BUNDLE_NAME Pylux
+		MACOSX_BUNDLE_BUNDLE_NAME AstraPlay
 		MACOSX_BUNDLE_SHORT_VERSION_STRING "${CHIAKI_VERSION}"
 		MACOSX_BUNDLE_BUNDLE_VERSION "${MACOSX_BUNDLE_BUILD_VERSION}"
 		MACOSX_BUNDLE_COPYRIGHT "thestr4ng3r (AGPLv3)"
-		MACOSX_BUNDLE_GUI_IDENTIFIER "com.pylux.stream"
+		MACOSX_BUNDLE_GUI_IDENTIFIER "com.astraplay.stream"
 		MACOSX_BUNDLE_ICON_FILE chiaking.icns
 		RESOURCE "${RESOURCE_FILES}")
 
@@ -213,6 +213,6 @@ endif()
 install(TARGETS chiaki
 		RUNTIME DESTINATION bin
 		BUNDLE DESTINATION bin)
-install(FILES io.github.ForWard_Technologies_LLC.Pylux.desktop DESTINATION share/applications)
+install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
 install(FILES chiaking.png DESTINATION share/icons/hicolor/512x512/apps)
-install(FILES io.github.ForWard_Technologies_LLC.Pylux.metainfo.xml DESTINATION share/metainfo)
+install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)

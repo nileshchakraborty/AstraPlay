@@ -21,11 +21,11 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.common.DonationPromptCoordinator
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.ext.viewModelFactory
-import com.pylux.stream.databinding.ActivityStreamBinding
+import com.astraplay.stream.databinding.ActivityStreamBinding
 import com.metallic.chiaki.lib.ConnectInfo
 import com.metallic.chiaki.lib.ConnectVideoProfile
 import com.metallic.chiaki.lib.StreamMetrics

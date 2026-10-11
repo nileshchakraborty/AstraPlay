@@ -46,7 +46,7 @@ set -e
 export LD_LIBRARY_PATH="`pwd`/sdl2-prefix/lib:$LD_LIBRARY_PATH"
 export EXTRA_QT_PLUGINS=opengl
 
-./linuxdeploy-x86_64.AppImage --appdir="${appdir}" -e "${appdir}/usr/bin/chiaki" -d "${appdir}/usr/share/applications/io.github.ForWard_Technologies_LLC.Pylux.desktop" --plugin qt --output appimage
+./linuxdeploy-x86_64.AppImage --appdir="${appdir}" -e "${appdir}/usr/bin/chiaki" -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" --plugin qt --output appimage
 # appimagetool names output from the .desktop Name= field (Pylux).
 if [ -f "Pylux-x86_64.AppImage" ]; then
     mv "Pylux-x86_64.AppImage" pylux-compatibility.AppImage

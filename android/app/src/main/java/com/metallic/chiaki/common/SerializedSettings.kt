@@ -11,7 +11,7 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.room.*
 import com.metallic.chiaki.common.ext.alertDialogBuilder
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.lib.Target
 import com.squareup.moshi.*
 import io.reactivex.Completable

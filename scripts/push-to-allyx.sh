@@ -6,7 +6,7 @@ ALLYX_HOST="${ALLYX_HOST:-allyx.local}"
 ALLYX_USER="${ALLYX_USER:-niles}"
 REPO="nileshchakraborty/Pylux"
 
-echo "=== Pylux Ally X Deployment ==="
+echo "=== AstraPlay Ally X Deployment ==="
 
 # Check connection
 echo "Checking connection to ${ALLYX_USER}@${ALLYX_HOST}..."
@@ -26,7 +26,7 @@ gh release download --repo "$REPO" --dir "$TEMP_DIR" --pattern "*.msi" || true
 gh release download --repo "$REPO" --dir "$TEMP_DIR" --pattern "*.exe" || true
 
 MSI_FILE=$(find "$TEMP_DIR" -type f -name "*.msi" | head -n 1 || true)
-EXE_FILE=$(find "$TEMP_DIR" -type f -name "pylux*.exe" | head -n 1 || true)
+EXE_FILE=$(find "$TEMP_DIR" -type f \( -name "astraplay*.exe" -o -name "pylux*.exe" \) | head -n 1 || true)
 
 if [ -n "$MSI_FILE" ]; then
     FILENAME=$(basename "$MSI_FILE")

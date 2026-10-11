@@ -1,8 +1,8 @@
-# Pylux — Security Document
+# AstraPlay — Security Document
 
 ## 1. Threat Model
 
-Pylux is a Remote Play client that authenticates to PlayStation Network and maintains long-lived streaming sessions. The primary threat surfaces are:
+AstraPlay is a Remote Play client that authenticates to PlayStation Network and maintains long-lived streaming sessions. The primary threat surfaces are:
 
 | Threat | Description | Severity |
 |--------|-------------|----------|
@@ -40,15 +40,15 @@ Pylux is a Remote Play client that authenticates to PlayStation Network and main
 
 **Recommended rate limits:**
 ```
-POST /pylux/create-code  → 5 req / min per IP
-POST /pylux/get-tokens   → 30 req / min per IP (polling)
-POST /pylux/validate-code → 10 req / min per IP
+POST /astraplay/create-code  → 5 req / min per IP
+POST /astraplay/get-tokens   → 30 req / min per IP (polling)
+POST /astraplay/validate-code → 10 req / min per IP
 ```
 
 ### 2.3 Console Registration
 
 - Registration keys (`rpkey`, `morning`) are stored encrypted in platform settings.
-- PIN-based registration uses a time-limited code displayed on the console screen; Pylux does not generate or store PINs.
+- PIN-based registration uses a time-limited code displayed on the console screen; AstraPlay does not generate or store PINs.
 
 ---
 
@@ -72,7 +72,7 @@ All outbound HTTP calls to Sony APIs use:
 
 ### 3.3 Internet Play (RUDP / Kamaji / Gaikai)
 
-Sessions are brokered by Sony's servers. Transport encryption is established by the PSN infrastructure. Pylux implements the RUDP hole-punch but does not manage key exchange for cloud sessions independently.
+Sessions are brokered by Sony's servers. Transport encryption is established by the PSN infrastructure. AstraPlay implements the RUDP hole-punch but does not manage key exchange for cloud sessions independently.
 
 ---
 
@@ -161,7 +161,7 @@ The iOS ↔ C library boundary is a security-relevant correctness concern:
 
 ## 9. Responsible Disclosure
 
-Security issues should be reported to [forward.technologies.llc@gmail.com](mailto:forward.technologies.llc@gmail.com) with subject `[SECURITY] Pylux`.
+Security issues should be reported to [forward.technologies.llc@gmail.com](mailto:forward.technologies.llc@gmail.com) with subject `[SECURITY] AstraPlay`.
 
 - Do not open public GitHub issues for security vulnerabilities.
 - Maintainers will acknowledge within 72 hours.
@@ -171,6 +171,6 @@ Security issues should be reported to [forward.technologies.llc@gmail.com](mailt
 
 ## 10. Out-of-Scope Security Considerations
 
-- Pylux does not implement DRM; all content protection is Sony's responsibility on the console side.
-- Pylux does not circumvent copy protection. If Sony's protocol is reversed-engineered by the upstream chiaki project, Pylux inherits that work and the associated legal/ethical analysis is unchanged.
+- AstraPlay does not implement DRM; all content protection is Sony's responsibility on the console side.
+- AstraPlay does not circumvent copy protection. If Sony's protocol is reversed-engineered by the upstream chiaki project, AstraPlay inherits that work and the associated legal/ethical analysis is unchanged.
 - Jailbreak / root device support is not a goal; behavior on such devices is untested and unsupported.

@@ -43,9 +43,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.metallic.chiaki.stream.StreamViewModel
-import com.pylux.stream.R
-import com.pylux.stream.databinding.DialogSupportPaywallBinding
-import com.pylux.stream.databinding.ItemSupportTierBinding
+import com.astraplay.stream.R
+import com.astraplay.stream.databinding.DialogSupportPaywallBinding
+import com.astraplay.stream.databinding.ItemSupportTierBinding
 
 /**
  * Optional donation UI (stream auto-prompt or Settings). Multiple INAPP tiers;

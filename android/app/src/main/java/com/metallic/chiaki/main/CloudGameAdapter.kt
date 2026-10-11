@@ -9,10 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.dispose
 import coil.load
 import coil.request.CachePolicy
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.cloudplay.model.CloudGame
 import com.metallic.chiaki.common.ext.enableFocusableInTouchModeForTv
-import com.pylux.stream.databinding.ItemCloudGameBinding
+import com.astraplay.stream.databinding.ItemCloudGameBinding
 
 class CloudGameAdapter(
 	private val onGameClick: (CloudGame) -> Unit,

@@ -53,7 +53,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLCHAIN_URL="https://raw.githubusercontent.com/leetal/ios-cmake/master/ios.toolchain.cmake"
 TOOLCHAIN_FILE="$SCRIPT_DIR/ios.toolchain.cmake"
 SCHEME="Pylux"
-BUNDLE_ID="com.pylux.stream"
+BUNDLE_ID="com.astraplay.stream"
 PYLUX_XCODE_CONFIGURATION="${PYLUX_XCODE_CONFIGURATION:-Debug}"
 
 # xcodebuild prints full compile output by default. Set PYLUX_XCODE_QUIET=1 to reduce noise.
@@ -524,7 +524,7 @@ run_launch() {
         echo "Found physical device: $DEVICE_NAME ($DEVICE_UDID)"
         echo ""
         echo "=== Launching app with console log capture (CoreDevice, Wi-Fi or USB) ==="
-        launch_phys_with_console_log_bg "$DEVICE_UDID" com.pylux.stream
+        launch_phys_with_console_log_bg "$DEVICE_UDID" com.astraplay.stream
         echo ""
         echo "App launched on physical device: $DEVICE_NAME"
     else
@@ -540,7 +540,7 @@ run_launch() {
         fi
         
         echo "Launching app on simulator: $SIMULATOR_UDID"
-        xcrun simctl launch "$SIMULATOR_UDID" com.pylux.stream
+        xcrun simctl launch "$SIMULATOR_UDID" com.astraplay.stream
         echo ""
         start_sim_log_capture_bg
     fi
@@ -662,7 +662,7 @@ start_sim_log_capture_bg() {
     stop_logs >/dev/null 2>&1 || true
     printf '\n########## SIM SESSION %s ##########\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$LOG_FILE"
     nohup xcrun simctl spawn booted log stream \
-        --predicate 'subsystem == "com.pylux.stream"' --level info >> "$LOG_FILE" 2>&1 </dev/null &
+        --predicate 'subsystem == "com.astraplay.stream"' --level info >> "$LOG_FILE" 2>&1 </dev/null &
     local pid=$!
     disown "$pid" 2>/dev/null || true
     echo "$pid" > "$CAPTURE_PID_FILE"

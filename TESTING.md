@@ -1,4 +1,4 @@
-# Pylux — Testing Document
+# AstraPlay — Testing Document
 
 ## 1. Testing Philosophy
 
@@ -113,7 +113,7 @@ Before merging any change, confirm the build succeeds on the affected platform(s
 ./scripts/build-macos.sh arm64 --iterate --skip-deps --ad-hoc \
     --no-credentials-file --skip-notary-keychain --no-steamworks
 # Then run:
-open build-output/Pylux.app
+open build-output/AstraPlay.app
 # Check logs:
 ./scripts/build-macos.sh logs
 ```
@@ -159,7 +159,7 @@ Run:
 
 ### 5.2 iOS (XCTest)
 
-Test location: `ios/PyluxTests/` (unit) and `ios/PyluxUITests/` (UI)
+Test location: `ios/AstraPlayTests/` (unit) and `ios/AstraPlayUITests/` (UI)
 
 Key test cases:
 - `SessionBridgeTests` — verifies all `_ex` wrapper calls compile and link
@@ -195,10 +195,10 @@ Recommended framework: Jest + supertest
 const request = require('supertest');
 const app = require('../server');
 
-describe('POST /pylux/create-code', () => {
+describe('POST /astraplay/create-code', () => {
     it('returns success with valid code', async () => {
         const res = await request(app)
-            .post('/pylux/create-code')
+            .post('/astraplay/create-code')
             .send({ code: 'ABC123' });
         expect(res.status).toBe(200);
         expect(res.body.result).toBe('success');
@@ -206,16 +206,16 @@ describe('POST /pylux/create-code', () => {
     });
 
     it('returns 400 for missing code', async () => {
-        const res = await request(app).post('/pylux/create-code').send({});
+        const res = await request(app).post('/astraplay/create-code').send({});
         expect(res.status).toBe(400);
     });
 });
 
-describe('POST /pylux/get-tokens', () => {
+describe('POST /astraplay/get-tokens', () => {
     it('returns 404 when token not yet ready', async () => {
-        await request(app).post('/pylux/create-code').send({ code: 'XYZ999' });
+        await request(app).post('/astraplay/create-code').send({ code: 'XYZ999' });
         const res = await request(app)
-            .post('/pylux/get-tokens')
+            .post('/astraplay/get-tokens')
             .send({ code: 'XYZ999' });
         expect(res.status).toBe(404);
         expect(res.body.error).toMatch(/not ready/i);
@@ -302,9 +302,9 @@ When a test fails or a stream is broken, collect logs from the correct location:
 
 | Platform | Log location | Command |
 |----------|-------------|---------|
-| macOS | `tmp/pylux-macos.log` | `./scripts/build-macos.sh logs` |
-| iOS | `ios/logs/pylux.log` | `./ios/build.sh logs` |
-| Android | Logcat | `adb logcat -s Chiaki Pylux` |
-| Desktop (Linux/Win) | stdout / file | `CHIAKI_LOG_LEVEL=verbose ./pylux` |
+| macOS | `tmp/astraplay-macos.log` | `./scripts/build-macos.sh logs` |
+| iOS | `ios/logs/astraplay.log` | `./ios/build.sh logs` |
+| Android | Logcat | `adb logcat -s Chiaki AstraPlay` |
+| Desktop (Linux/Win) | stdout / file | `CHIAKI_LOG_LEVEL=verbose ./astraplay` |
 
 **Log diff technique:** Capture logs from a working platform and the broken platform; diff them to find the first divergence. Compare suspect files against `upstream/main` if cross-platform behavior differs.

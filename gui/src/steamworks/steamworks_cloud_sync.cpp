@@ -422,9 +422,9 @@ bool SteamCloudSync::deleteProfileFromCloud(const QString &profileName)
     // Convert profile name to cloud filename
     QString cloudFilename;
     if (profileName.isEmpty() || profileName == "default") {
-        cloudFilename = "pylux.conf";
+        cloudFilename = "astraplay.conf";
     } else {
-        cloudFilename = QString("pylux-%1.conf").arg(profileName);
+        cloudFilename = QString("astraplay-%1.conf").arg(profileName);
     }
 
     // Check if file exists in cloud
@@ -560,12 +560,19 @@ QString SteamCloudSync::extractProfileName(const QString &filename) const
     QFileInfo fileInfo(filename);
     QString basename = fileInfo.fileName();
     
-    // pylux.conf -> "default"
-    if (basename == "pylux.conf") {
+    // astraplay.conf or pylux.conf -> "default"
+    if (basename == "astraplay.conf" || basename == "pylux.conf") {
         return "default";
     }
     
-    // pylux-2333.conf -> "2333"
+    // astraplay-2333.conf -> "2333"
+    if (basename.startsWith("astraplay-") && basename.endsWith(".conf")) {
+        QString profile = basename.mid(10); // Remove "astraplay-"
+        profile = profile.left(profile.length() - 5); // Remove ".conf"
+        return profile;
+    }
+
+    // legacy pylux-2333.conf -> "2333"
     if (basename.startsWith("pylux-") && basename.endsWith(".conf")) {
         QString profile = basename.mid(6); // Remove "pylux-"
         profile = profile.left(profile.length() - 5); // Remove ".conf"
@@ -627,9 +634,9 @@ QStringList SteamCloudSync::getLocalConfigFiles() const
         return QStringList();
     }
 
-    // Find pylux.conf and pylux-*.conf files
+    // Find astraplay.conf, astraplay-*.conf and legacy pylux files
     QStringList filters;
-    filters << "pylux.conf" << "pylux-*.conf";
+    filters << "astraplay.conf" << "astraplay-*.conf" << "pylux.conf" << "pylux-*.conf";
     
     QFileInfoList files = configDir.entryInfoList(filters, QDir::Files);
     QStringList paths;
@@ -657,8 +664,8 @@ QStringList SteamCloudSync::getCloudConfigFiles() const
         const char *filename = remoteStorage->GetFileNameAndSize(i, &fileSize);
         
         QString name = QString::fromUtf8(filename);
-        // Only include pylux config files
-        if (name.startsWith("pylux") && name.endsWith(".conf")) {
+        // Only include astraplay and pylux config files
+        if ((name.startsWith("astraplay") || name.startsWith("pylux")) && name.endsWith(".conf")) {
             cloudFiles.append(name);
         }
     }

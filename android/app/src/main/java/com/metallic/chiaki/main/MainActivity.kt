@@ -21,13 +21,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.common.AppIntegrityManager
 import com.metallic.chiaki.common.InAppReviewHelper
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.ext.viewModelFactory
 import com.metallic.chiaki.common.getDatabase
-import com.pylux.stream.databinding.ActivityMainBinding
+import com.astraplay.stream.databinding.ActivityMainBinding
 import com.metallic.chiaki.settings.SettingsActivity
 
 class MainActivity : AppCompatActivity()

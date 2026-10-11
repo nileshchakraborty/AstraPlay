@@ -25,10 +25,10 @@ BEGIN
             VALUE "CompanyName", "Forward Technologies"
             VALUE "FileDescription", "Remote Play Client"
             VALUE "FileVersion", VER_FILEVERSION_STR
-            VALUE "InternalName", "pylux"
-            VALUE "LegalCopyright", "AGPLv3 Stret Pea 2022"
-            VALUE "OriginalFilename", "pylux.exe"
-            VALUE "ProductName", "pylux"
+            VALUE "InternalName", "astraplay"
+            VALUE "LegalCopyright", "AGPLv3 (Chiaki community)"
+            VALUE "OriginalFilename", "astraplay.exe"
+            VALUE "ProductName", "AstraPlay"
             VALUE "ProductVersion", VER_PRODUCTVERSION_STR
         END
     END

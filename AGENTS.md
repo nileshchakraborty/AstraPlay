@@ -1,12 +1,12 @@
-# Pylux — Agents Guide
+# AstraPlay — Agents Guide
 
-This file is the **AI agent operating manual** for the Pylux codebase. Read it completely before making any changes. It extends `CLAUDE.md` with expanded context for autonomous agents.
+This file is the **AI agent operating manual** for the AstraPlay codebase. Read it completely before making any changes. It extends `CLAUDE.md` with expanded context for autonomous agents.
 
 ---
 
-## 1. What Pylux Is
+## 1. What AstraPlay Is
 
-Pylux is a free, open-source PS4 / PS5 Remote Play and Internet/Cloud Play client for Android, iOS, macOS, Windows, Linux, and Steam Deck. It is a fork of [chiaki-ng](https://github.com/streetpea/chiaki-ng), extended with:
+AstraPlay is a free, open-source PS4 / PS5 Remote Play and Internet/Cloud Play client for Android, iOS, macOS, Windows, Linux, and Steam Deck. It is a fork of [chiaki-ng](https://github.com/streetpea/chiaki-ng), extended with:
 
 - App-store distribution (Google Play, App Store, Mac App Store, Flathub)
 - Internet/Cloud Play (PSN game catalog streaming via Kamaji and Gaikai)
@@ -41,7 +41,7 @@ third-party/    nanopb, Jerasure, etc.
 
 - ✅ **DO:** Use `CHIAKI_EXPORT` `_ex` wrappers in `lib/src/ios_bridge_helpers.c`
 - ✅ **DO:** Allocate `ChiakiSession` via `chiaki_session_get_sizeof()`
-- ❌ **DON'T:** Call `chiaki_session_set_*` inline setters from `ios/Pylux/**`
+- ❌ **DON'T:** Call `chiaki_session_set_*` inline setters from `ios/AstraPlay/**`
 - `ios/build.sh` runs `check_forbidden_inline_setters` — it will fail the build on violation
 
 ### 2.3 ID Normalization Rule
@@ -70,9 +70,9 @@ Scripts are self-documenting. Always `head -30 <script>` before running.
 ./scripts/build-macos.sh arm64 --iterate --skip-deps --ad-hoc \
     --no-credentials-file --skip-notary-keychain --no-steamworks
 # Open the app:
-open build-output/Pylux.app
+open build-output/AstraPlay.app
 # View logs:
-./scripts/build-macos.sh logs   # → tmp/pylux-macos.log
+./scripts/build-macos.sh logs   # → tmp/astraplay-macos.log
 ```
 
 ### iOS
@@ -80,7 +80,7 @@ open build-output/Pylux.app
 ./ios/build.sh dev          # full build (use when lib/ changes)
 ./ios/build.sh iterate      # incremental (UI-only changes)
 ./ios/build.sh launch       # install + launch on connected device
-./ios/build.sh logs         # stream Wi-Fi device log → ios/logs/pylux.log
+./ios/build.sh logs         # stream Wi-Fi device log → ios/logs/astraplay.log
 ./ios/build.sh stop-logs    # stop log capture (don't TERM the process)
 
 # Force full lib rebuild:
@@ -192,7 +192,7 @@ CI injects these into iOS `MARKETING_VERSION`, Android `versionName`, macOS bund
 ### Task: Add a PSStream server endpoint
 
 1. Add handler function in `psstream-server/server.js` (named function, not anonymous lambda)
-2. Register route for both `/psstream/*` and `/pylux/*` paths for compatibility
+2. Register route for both `/psstream/*` and `/astraplay/*` paths for compatibility
 3. Validate all `req.body` fields; return structured JSON errors
 4. Never log NPSSO tokens
 5. Add Jest test for the new endpoint
@@ -204,7 +204,7 @@ CI injects these into iOS `MARKETING_VERSION`, Android `versionName`, macOS bund
 git fetch upstream
 git log upstream/main --oneline -20   # identify candidate commits
 git cherry-pick <commit-sha>
-# If it touches Qt files Pylux has diverged: cherry-pick --no-commit, then manually integrate
+# If it touches Qt files AstraPlay has diverged: cherry-pick --no-commit, then manually integrate
 # Build and verify
 ```
 
@@ -224,7 +224,7 @@ git cherry-pick <commit-sha>
 |-------------|--------|
 | `LICENSES/` | Legal — never modify |
 | `COPYING` (AGPL-3.0) | Legal — never modify |
-| `ios/Pylux.xcodeproj/project.pbxproj` | Xcode project file — use `ios/build.sh` or the xcode-project-setup skill for SDK additions |
+| `ios/AstraPlay.xcodeproj/project.pbxproj` | Xcode project file — use `ios/build.sh` or the xcode-project-setup skill for SDK additions |
 | `android/app/google-services.json` | Platform config — managed by CI |
 | `.github/workflows/*.yml` | CI workflows — changes require maintainer review |
 | `third-party/nanopb/` | Submodule — update via `git submodule update`, not manual edits |

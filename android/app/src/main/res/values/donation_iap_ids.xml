@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Play Console one-time INAPP (non-consumable) donation tiers for com.pylux.stream.
+        Play Console one-time INAPP (non-consumable) donation tiers for com.astraplay.stream.
         Order = dialog order (low → high). Owning any listed product hides the prompt.
     -->
     <string-array name="donation_iap_product_ids" translatable="false">

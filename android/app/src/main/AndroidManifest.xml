@@ -23,7 +23,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <provider
-            android:authorities="com.pylux.stream.fileprovider"
+            android:authorities="com.astraplay.stream.fileprovider"
             android:name="androidx.core.content.FileProvider"
             android:grantUriPermissions="true"
             android:exported="false">

@@ -12,11 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.metallic.chiaki.common.ext.alertDialogBuilder
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.common.MacAddress
 import com.metallic.chiaki.common.ext.viewModelFactory
 import com.metallic.chiaki.common.getDatabase
-import com.pylux.stream.databinding.ActivityRegistExecuteBinding
+import com.astraplay.stream.databinding.ActivityRegistExecuteBinding
 import com.metallic.chiaki.lib.RegistInfo
 import kotlin.math.max
 

@@ -7,7 +7,7 @@ import android.content.Context
 import android.util.Log
 import com.metallic.chiaki.common.ext.alertDialogBuilder
 import com.android.billingclient.api.*
-import com.pylux.stream.BuildConfig
+import com.astraplay.stream.BuildConfig
 import kotlinx.coroutines.*
 
 /**

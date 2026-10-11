@@ -54,7 +54,7 @@ tasks.register("printPyluxVersionCode") {
 
 
 android {
-    namespace "com.pylux.stream"
+    namespace "com.astraplay.stream"
     compileSdk 35
     
     // Specify NDK version - r28+ required for 16KB page size alignment
@@ -62,7 +62,7 @@ android {
     ndkVersion "28.2.13676358" // NDK r28.2 - provides 16KB alignment by default
     
     defaultConfig {
-        applicationId "com.pylux.stream"
+        applicationId "com.astraplay.stream"
         minSdk 24
         targetSdk 35
         versionCode androidVersionCode
@@ -150,7 +150,19 @@ android {
         properties.load(propertiesFile.newDataInputStream())
     }
 
-	if(properties.containsKey("chiakiKeystore")) {
+    def envKeystore = System.getenv("ANDROID_KEYSTORE_FILE")
+    def envKeystorePw = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    def envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+    def envKeyPw = System.getenv("ANDROID_KEY_PASSWORD")
+
+    if (envKeystore != null && file(envKeystore).exists()) {
+        println("Enabling CI Release Signing from Environment")
+        buildTypes.release.signingConfig = signingConfigs.release
+        signingConfigs.release.storeFile = file(envKeystore)
+        signingConfigs.release.storePassword = envKeystorePw
+        signingConfigs.release.keyAlias = envKeyAlias
+        signingConfigs.release.keyPassword = envKeyPw
+    } else if (properties.containsKey("chiakiKeystore")) {
         println("Enabling Local Signing")
         buildTypes.release.signingConfig = signingConfigs.release
         buildTypes.debug.signingConfig = signingConfigs.release

@@ -202,9 +202,9 @@ if ($AppOnly) {
     
     # Launch the app
     Write-Host "Launching app..." -ForegroundColor Cyan
-    & $adb shell am force-stop com.pylux.stream 2>&1 | Out-Null
+    & $adb shell am force-stop com.astraplay.stream 2>&1 | Out-Null
     Start-Sleep -Milliseconds 500
-    & $adb shell am start -n com.pylux.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Null
+    & $adb shell am start -n com.astraplay.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Null
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "App launched successfully!" -ForegroundColor Green
@@ -254,7 +254,7 @@ if ($Launch) {
     
     Write-Host ""
     Write-Host "Launching app..." -ForegroundColor Cyan
-    & $adb shell am start -n com.pylux.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Host
+    & $adb shell am start -n com.astraplay.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Host
     if ($LASTEXITCODE -eq 0) {
         Write-Host "App launched successfully!" -ForegroundColor Green
     } else {
@@ -339,7 +339,7 @@ if ($Install) {
     if ($LASTEXITCODE -eq 0) {
         Write-Host "App installed successfully! (took $($installDuration.TotalSeconds.ToString('F2'))s)" -ForegroundColor Green
         Write-Host "Launching app..." -ForegroundColor Cyan
-        & $adb shell am start -n com.pylux.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Host
+        & $adb shell am start -n com.astraplay.stream/com.metallic.chiaki.main.MainActivity 2>&1 | Out-Host
         if ($LASTEXITCODE -eq 0) {
             Write-Host "App launched successfully!" -ForegroundColor Green
         } else {
@@ -730,7 +730,7 @@ if ($buildSucceeded) {
                     Write-Host "APK installed successfully!" -ForegroundColor Green
                     # Now launch the app
                     Write-Host "Launching app..." -ForegroundColor Yellow
-                    $launchOut = & $adb -s $targetDevice shell am start -n com.pylux.stream/com.metallic.chiaki.main.MainActivity 2>&1
+                    $launchOut = & $adb -s $targetDevice shell am start -n com.astraplay.stream/com.metallic.chiaki.main.MainActivity 2>&1
                     $launchOut | Write-Host
                     if ($LASTEXITCODE -eq 0) {
                         Write-Host "App launched successfully!" -ForegroundColor Green

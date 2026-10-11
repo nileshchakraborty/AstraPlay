@@ -3,7 +3,7 @@
 package com.metallic.chiaki.common
 
 import android.content.Context
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import org.json.JSONObject
 
 /**

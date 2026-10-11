@@ -1,8 +1,8 @@
-# Pylux — Product Requirements Document (PRD)
+# AstraPlay — Product Requirements Document (PRD)
 
 ## 1. Overview
 
-**Pylux** is a free, open-source, community-maintained PS4 and PS5 Remote Play + Internet/Cloud Play client targeting Android, Android TV, iOS, iPadOS, macOS, Windows, Linux, and Steam Deck. It is forked from [chiaki-ng](https://github.com/streetpea/chiaki-ng) and extends that work with app-store distribution, mobile-first UI, and Internet Play (game catalog streaming).
+**AstraPlay** is a free, open-source, community-maintained PS4 and PS5 Remote Play + Internet/Cloud Play client targeting Android, Android TV, iOS, iPadOS, macOS, Windows, Linux, and Steam Deck. It is forked from [chiaki-ng](https://github.com/streetpea/chiaki-ng) and extends that work with app-store distribution, mobile-first UI, and Internet Play (game catalog streaming).
 
 **License:** AGPL-3.0  
 **Current Version:** 2.11.4  
@@ -46,7 +46,7 @@ Wants to play their PlayStation catalog from a portable Linux device. Needs Flat
 Does not own a PS console or wants to play from a remote network. Subscribes to PlayStation Plus and uses the cloud catalog to stream titles directly.
 
 ### P5 — Developer / Contributor
-Builds on Pylux to add features, port to new platforms, or cherry-pick upstream fixes. Needs a clear C library boundary, documented build scripts, and safe merge patterns.
+Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstream fixes. Needs a clear C library boundary, documented build scripts, and safe merge patterns.
 
 ---
 
@@ -107,7 +107,7 @@ Builds on Pylux to add features, port to new platforms, or cherry-pick upstream 
 ## 6. User Stories
 
 - **US1:** As a mobile user I can log into PSN by entering a short code shown in the app on any web browser, so I do not need to type a URL on my phone.
-- **US2:** As a Steam Deck user I can launch Pylux from my Steam library and start streaming my PS5 without leaving Gaming Mode.
+- **US2:** As a Steam Deck user I can launch AstraPlay from my Steam library and start streaming my PS5 without leaving Gaming Mode.
 - **US3:** As an Internet Play subscriber I can browse and launch PSN catalog games without owning a PS console.
 - **US4:** As a developer I can cherry-pick a fix from chiaki-ng without merge conflicts because platform-specific code is isolated.
 

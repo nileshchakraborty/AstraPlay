@@ -532,7 +532,7 @@
 					"-framework",
 					CoreVideo,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.pylux.stream;
+				PRODUCT_BUNDLE_IDENTIFIER = com.astraplay.stream;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Pylux/Bridge/ChiakiBridge.h;
@@ -606,7 +606,7 @@
 					"-framework",
 					CoreVideo,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.pylux.stream;
+				PRODUCT_BUNDLE_IDENTIFIER = com.astraplay.stream;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = Pylux/Bridge/ChiakiBridge.h;

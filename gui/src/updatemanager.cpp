@@ -107,7 +107,7 @@ void UpdateManager::checkForUpdates(bool userInitiated)
 #endif
 
     QNetworkRequest request{QUrl(REPO_RELEASES_API)};
-    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Pylux-Updater/") + QStringLiteral(CHIAKI_VERSION));
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
 
     if (m_checkReply) {
@@ -240,11 +240,11 @@ void UpdateManager::startDownload()
     QString filename = QFileInfo(url.path()).fileName();
     if (filename.isEmpty()) {
 #if defined(Q_OS_WIN)
-        filename = QStringLiteral("pylux-update.exe");
+        filename = QStringLiteral("astraplay-update.exe");
 #elif defined(Q_OS_LINUX)
-        filename = QStringLiteral("pylux-update.AppImage");
+        filename = QStringLiteral("astraplay-update.AppImage");
 #else
-        filename = QStringLiteral("pylux-update.dmg");
+        filename = QStringLiteral("astraplay-update.dmg");
 #endif
     }
 
@@ -256,7 +256,7 @@ void UpdateManager::startDownload()
         file.remove();
 
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Pylux-Updater/") + QStringLiteral(CHIAKI_VERSION));
+    request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 
     if (m_downloadReply) {
@@ -351,7 +351,7 @@ void UpdateManager::installAndRestart()
 
     if (nativePath.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
         // Run MSI installer cleanly with msiexec in fully silent mode (/qn), purging .bak and .old files
-        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_msi.bat"));
+        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/astraplay_run_msi.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&batFile);
@@ -378,7 +378,7 @@ void UpdateManager::installAndRestart()
                (nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
                 nativePath.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
         // Run setup executable in fully silent mode (/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS), purging .bak and .old files
-        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_run_installer.bat"));
+        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/astraplay_run_installer.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&batFile);
@@ -403,7 +403,7 @@ void UpdateManager::installAndRestart()
         QGuiApplication::quit();
     } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
         // Direct executable replacement via temporary helper script, purging .bak files
-        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/pylux_update.bat"));
+        QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/astraplay_update.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
             QTextStream out(&batFile);

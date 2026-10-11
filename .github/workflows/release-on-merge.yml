@@ -558,26 +558,53 @@ jobs:
         working-directory: android
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Build Debug APK
+      - name: Setup Android Keystore (if secret present)
+        working-directory: android
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding release keystore from secrets..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+            echo "ANDROID_KEYSTORE_FILE=$(pwd)/release.keystore" >> "$GITHUB_ENV"
+            echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          else
+            echo "No release keystore secret configured; building debug APK."
+          fi
+
+      - name: Build Android Packages (APK and AAB)
         working-directory: android
         run: |
-          ./gradlew assembleDebug \
-            --parallel \
-            --build-cache \
-            -Dorg.gradle.java.home="$JAVA_HOME"
+          if [ -n "$ANDROID_KEYSTORE_FILE" ] && [ -f "$ANDROID_KEYSTORE_FILE" ]; then
+            ./gradlew assembleRelease bundleRelease \
+              --parallel \
+              --build-cache \
+              -Dorg.gradle.java.home="$JAVA_HOME"
+          else
+            ./gradlew assembleDebug \
+              --parallel \
+              --build-cache \
+              -Dorg.gradle.java.home="$JAVA_HOME"
+          fi
 
       - name: Stage Android Artifact
         run: |
           mkdir -p android_staging
-          APK_SRC=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          APK_SRC=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
           if [ -n "$APK_SRC" ]; then
-            cp "$APK_SRC" android_staging/Pylux-Android.apk
+            cp "$APK_SRC" android_staging/AstraPlay-Android.apk
+          fi
+          AAB_SRC=$(find android/app/build/outputs/bundle -name "*.aab" 2>/dev/null | head -n 1 || true)
+          if [ -n "$AAB_SRC" ]; then
+            cp "$AAB_SRC" android_staging/AstraPlay-Android.aab
           fi
 
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: pylux-android-build
+          name: astraplay-android-build
           path: android_staging/
           retention-days: 7
           if-no-files-found: warn
@@ -768,18 +795,20 @@ jobs:
 
           # 1. Windows x64 assets
           if [ -d artifacts/pylux-windows-x64-build ]; then
-            WIN_EXE=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "pylux.exe" | head -n 1)
+            WIN_EXE=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "astraplay.exe" -o -name "pylux.exe" | head -n 1)
             if [ -n "$WIN_EXE" ]; then
+              cp "$WIN_EXE" dist/astraplay.exe
+              cp "$WIN_EXE" dist/astraplay-windows-x64.exe
+              # Legacy alias for backward compatibility
               cp "$WIN_EXE" dist/pylux.exe
-              cp "$WIN_EXE" dist/pylux-windows-x64.exe
             fi
-            WIN_ZIP=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "pylux.zip" | head -n 1)
+            WIN_ZIP=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "*.zip" | head -n 1)
             if [ -n "$WIN_ZIP" ]; then
-              cp "$WIN_ZIP" dist/pylux-windows-x64.zip
+              cp "$WIN_ZIP" dist/astraplay-windows-x64.zip
             fi
             WIN_INST=$(find artifacts/pylux-windows-x64-build -maxdepth 2 -name "*installer*.exe" | head -n 1)
             if [ -n "$WIN_INST" ]; then
-              cp "$WIN_INST" dist/pylux-windows-installer.exe
+              cp "$WIN_INST" dist/astraplay-windows-installer.exe
             fi
           fi
 
@@ -787,15 +816,15 @@ jobs:
           if [ -d artifacts/pylux-windows-arm64-build ]; then
             WIN_ARM_EXE=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64.exe" | head -n 1)
             if [ -n "$WIN_ARM_EXE" ]; then
-              cp "$WIN_ARM_EXE" dist/pylux-windows-arm64.exe
+              cp "$WIN_ARM_EXE" dist/astraplay-windows-arm64.exe
             fi
             WIN_ARM_ZIP=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64.zip" | head -n 1)
             if [ -n "$WIN_ARM_ZIP" ]; then
-              cp "$WIN_ARM_ZIP" dist/pylux-windows-arm64.zip
+              cp "$WIN_ARM_ZIP" dist/astraplay-windows-arm64.zip
             fi
             WIN_ARM_INST=$(find artifacts/pylux-windows-arm64-build -maxdepth 2 -name "*arm64-installer.exe" | head -n 1)
             if [ -n "$WIN_ARM_INST" ]; then
-              cp "$WIN_ARM_INST" dist/pylux-windows-arm64-installer.exe
+              cp "$WIN_ARM_INST" dist/astraplay-windows-arm64-installer.exe
             fi
           fi
 
@@ -806,23 +835,23 @@ jobs:
             MSI_VER=$(echo "$VER_RAW" | awk -F. '{printf "%d.%d.%d", ($1 ? $1 : 1), ($2 ? $2 : 0), ($3 ? $3 : 0)}')
             
             # x64 MSI
-            if [ -f dist/pylux.exe ]; then
+            if [ -f dist/astraplay.exe ]; then
               echo "Compiling Windows x64 MSI installer..."
-              wixl --arch x64 -v -D SourceExe="dist/pylux.exe" -D Version="${MSI_VER}" -o dist/pylux-windows-x64.msi scripts/pylux.wxs || echo "wixl x64 failed, skipping MSI generation"
+              wixl --arch x64 -v -D SourceExe="dist/astraplay.exe" -D Version="${MSI_VER}" -o dist/astraplay-windows-x64.msi scripts/astraplay.wxs || echo "wixl x64 failed, skipping MSI generation"
             fi
           fi
 
           # 4. macOS Apple Silicon assets
           if [ -d artifacts/pylux-macos-arm64-build ]; then
-            MAC_ARM_DMG=$(find artifacts/pylux-macos-arm64-build -name "*arm64.dmg" -o -name "Pylux-macOS.dmg" | head -n 1)
+            MAC_ARM_DMG=$(find artifacts/pylux-macos-arm64-build -name "*arm64.dmg" -o -name "*.dmg" | head -n 1)
             if [ -n "$MAC_ARM_DMG" ]; then
-              cp "$MAC_ARM_DMG" dist/Pylux-macOS-arm64.dmg
-              cp "$MAC_ARM_DMG" dist/Pylux-macOS.dmg
+              cp "$MAC_ARM_DMG" dist/AstraPlay-macOS-arm64.dmg
+              cp "$MAC_ARM_DMG" dist/AstraPlay-macOS.dmg
             fi
-            MAC_ARM_ZIP=$(find artifacts/pylux-macos-arm64-build -name "*arm64.zip" -o -name "Pylux-macOS.zip" | head -n 1)
+            MAC_ARM_ZIP=$(find artifacts/pylux-macos-arm64-build -name "*arm64.zip" -o -name "*.zip" | head -n 1)
             if [ -n "$MAC_ARM_ZIP" ]; then
-              cp "$MAC_ARM_ZIP" dist/Pylux-macOS-arm64.zip
-              cp "$MAC_ARM_ZIP" dist/Pylux-macOS.zip
+              cp "$MAC_ARM_ZIP" dist/AstraPlay-macOS-arm64.zip
+              cp "$MAC_ARM_ZIP" dist/AstraPlay-macOS.zip
             fi
           fi
 
@@ -830,43 +859,48 @@ jobs:
           if [ -d artifacts/pylux-macos-intel-build ]; then
             MAC_INTEL_DMG=$(find artifacts/pylux-macos-intel-build -name "*x86_64.dmg" | head -n 1)
             if [ -n "$MAC_INTEL_DMG" ]; then
-              cp "$MAC_INTEL_DMG" dist/Pylux-macOS-x86_64.dmg
+              cp "$MAC_INTEL_DMG" dist/AstraPlay-macOS-x86_64.dmg
             fi
             MAC_INTEL_ZIP=$(find artifacts/pylux-macos-intel-build -name "*x86_64.zip" | head -n 1)
             if [ -n "$MAC_INTEL_ZIP" ]; then
-              cp "$MAC_INTEL_ZIP" dist/Pylux-macOS-x86_64.zip
+              cp "$MAC_INTEL_ZIP" dist/AstraPlay-macOS-x86_64.zip
             fi
           fi
 
           # 6a. Linux x86_64 assets
           if [ -d artifacts/pylux-linux-build ]; then
-            LIN_AI=$(find artifacts/pylux-linux-build -name "*x86_64.AppImage" -o -name "pylux.AppImage" -o -name "*.AppImage" | head -n 1)
+            LIN_AI=$(find artifacts/pylux-linux-build -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_AI" ]; then
-              cp "$LIN_AI" dist/Pylux-Linux-x86_64.AppImage
+              cp "$LIN_AI" dist/AstraPlay-Linux-x86_64.AppImage
             fi
-            LIN_ZIP=$(find artifacts/pylux-linux-build -name "*x86_64.zip" -o -name "pylux.zip" -o -name "*.zip" | head -n 1)
+            LIN_ZIP=$(find artifacts/pylux-linux-build -name "*.zip" | head -n 1)
             if [ -n "$LIN_ZIP" ]; then
-              cp "$LIN_ZIP" dist/Pylux-Linux-x86_64.zip
+              cp "$LIN_ZIP" dist/AstraPlay-Linux-x86_64.zip
             fi
           fi
 
           # 6b. Linux ARM64 assets
           if [ -d artifacts/pylux-linux-arm64-build ]; then
-            LIN_ARM_AI=$(find artifacts/pylux-linux-arm64-build -name "*aarch64.AppImage" -o -name "pylux.AppImage" -o -name "*.AppImage" | head -n 1)
+            LIN_ARM_AI=$(find artifacts/pylux-linux-arm64-build -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_ARM_AI" ]; then
-              cp "$LIN_ARM_AI" dist/Pylux-Linux-aarch64.AppImage
+              cp "$LIN_ARM_AI" dist/AstraPlay-Linux-aarch64.AppImage
             fi
-            LIN_ARM_ZIP=$(find artifacts/pylux-linux-arm64-build -name "*aarch64.zip" -o -name "pylux.zip" -o -name "*.zip" | head -n 1)
+            LIN_ARM_ZIP=$(find artifacts/pylux-linux-arm64-build -name "*.zip" | head -n 1)
             if [ -n "$LIN_ARM_ZIP" ]; then
-              cp "$LIN_ARM_ZIP" dist/Pylux-Linux-aarch64.zip
+              cp "$LIN_ARM_ZIP" dist/AstraPlay-Linux-aarch64.zip
             fi
           fi
 
           # 7. Android assets
-          if [ -d artifacts/pylux-android-build ]; then
-            AND_APK=$(find artifacts/pylux-android-build -name "*.apk" | head -n 1)
+          if [ -d artifacts/astraplay-android-build ] || [ -d artifacts/pylux-android-build ]; then
+            AND_DIR=$([ -d artifacts/astraplay-android-build ] && echo "artifacts/astraplay-android-build" || echo "artifacts/pylux-android-build")
+            AND_APK=$(find "$AND_DIR" -name "*.apk" | head -n 1)
             if [ -n "$AND_APK" ]; then
-              cp "$AND_APK" dist/Pylux-Android.apk
+              cp "$AND_APK" dist/AstraPlay-Android.apk
+            fi
+            AND_AAB=$(find "$AND_DIR" -name "*.aab" | head -n 1)
+            if [ -n "$AND_AAB" ]; then
+              cp "$AND_AAB" dist/AstraPlay-Android.aab
             fi
           fi
 
@@ -874,7 +908,7 @@ jobs:
           if [ -d artifacts/pylux-ios-build ]; then
             IOS_IPA=$(find artifacts/pylux-ios-build -name "*.ipa" | head -n 1)
             if [ -n "$IOS_IPA" ]; then
-              cp "$IOS_IPA" dist/Pylux-iOS.ipa
+              cp "$IOS_IPA" dist/AstraPlay-iOS.ipa
             fi
           fi
 
@@ -912,7 +946,7 @@ jobs:
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --target master \
-            --title "Pylux ${TAG}" \
+            --title "AstraPlay ${TAG}" \
             --notes-file "${{ steps.notes.outputs.notes_file }}" \
             dist/*
 

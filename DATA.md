@@ -1,8 +1,8 @@
-# Pylux — Data Document
+# AstraPlay — Data Document
 
 ## 1. Overview
 
-Pylux handles several distinct data domains: PSN authentication tokens, console metadata, cloud game catalog entries, session state, and streaming media. This document defines what data is stored, where, how long, and under what access model.
+AstraPlay handles several distinct data domains: PSN authentication tokens, console metadata, cloud game catalog entries, session state, and streaming media. This document defines what data is stored, where, how long, and under what access model.
 
 ---
 
@@ -131,7 +131,7 @@ const char *cc_stable_key(const char *title_id);
 | Cloud catalog cache | 24 h or TTL expiry | App clears cache on refresh; OS clears on low storage |
 | PSStream relay codes | 15 min | Server auto-expiry; one-time use after token retrieved |
 | Session buffers | Duration of stream session | Freed on session end |
-| Log files | 7 rolling days | `logs` rotation in `tmp/pylux-macos.log`, `ios/logs/pylux.log` |
+| Log files | 7 rolling days | `logs` rotation in `tmp/astraplay-macos.log`, `ios/logs/astraplay.log` |
 
 ---
 
@@ -154,9 +154,9 @@ const char *cc_stable_key(const char *title_id);
 
 ## 6. Privacy
 
-- **No telemetry or analytics** — Pylux does not send usage data to any Pylux/ForWard Technologies endpoint.
+- **No telemetry or analytics** — AstraPlay does not send usage data to any AstraPlay/ForWard Technologies endpoint.
 - **No user tracking** — No device IDs, no fingerprinting.
-- **PSN data** — All PSN API calls go directly to Sony. Pylux does not proxy or log PSN API responses except in debug log files on the local device.
+- **PSN data** — All PSN API calls go directly to Sony. AstraPlay does not proxy or log PSN API responses except in debug log files on the local device.
 - **Log files** — May contain IP addresses, console IDs, and timing data. Users should not share logs publicly without redacting sensitive fields.
 
 ---

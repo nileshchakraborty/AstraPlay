@@ -20,7 +20,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import coil.load
 import com.google.android.material.appbar.MaterialToolbar
-import com.pylux.stream.R
+import com.astraplay.stream.R
 import com.metallic.chiaki.common.SecureTokenManager
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.common.PsnTokenManager
