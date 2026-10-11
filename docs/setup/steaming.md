@@ -92,7 +92,7 @@
 
     1. Acquire pictures to use for the game library in Steam
 
-        1. Get the official AstraPlay images [here](https://raw.githubusercontent.com/ForWard-Technologies-LLC/Pylux/main/assets/PyluxImages.tar.xz){target="_blank" rel="noopener"}.
+        1. Get the official AstraPlay images [here](https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/assets/AstraPlayImages.tar.xz){target="_blank" rel="noopener"}.
 
         2. Extract the package to a folder of your choice (such as your `Documents` folder).
         
@@ -104,7 +104,7 @@
 
             !!! note
                 
-                This will create a folder named `Pylux-images` in the folder you choose to extract to
+                This will create a folder named `AstraPlay-images` in the folder you choose to extract to
 
     2. If it is not already open, launch Steam and go to your game `Library`.
 
@@ -116,7 +116,7 @@
 
         1. Rename it AstraPlay
 
-        2. Click on the blank square to add an image and navigate to the `Pylux-images` folder you created in step 1 above and select the icon image (`steam_icon.png`).
+        2. Click on the blank square to add an image and navigate to the `AstraPlay-images` folder you created in step 1 above and select the icon image (`steam_icon.png`).
 
         3. Click the x to exit the window
 
@@ -134,13 +134,13 @@
         
             1. Right-click on the blank space and select `Set Custom Background`
 
-            2. Browse to the `Pylux-images` folder you created earlier and select the background image (`steam_hero.png`)
+            2. Browse to the `AstraPlay-images` folder you created earlier and select the background image (`steam_hero.png`)
 
         2. Customize the logo
 
             1. Right-click on the blank space and select `Set Custom Logo`
 
-            2. Browse to the `Pylux-images` folder you created earlier and select the logo image (`steam_logo.png`)
+            2. Browse to the `AstraPlay-images` folder you created earlier and select the logo image (`steam_logo.png`)
 
         ???+ example "Finished AstraPlay Home Page"
 
@@ -156,13 +156,13 @@
 
             ![Custom W Cap](images/SetCustomWCap.png)
 
-        4. Browse to the `Pylux-images` folder you created earlier and select the wide capsule (wcap) image (`steam_landscape.png`)
+        4. Browse to the `AstraPlay-images` folder you created earlier and select the wide capsule (wcap) image (`steam_landscape.png`)
 
         5. Launch a different game and close it (this moves AstraPlay into the second slot in recent games)
 
         6. Right-click on the blank picture for AstraPlay (should be 2nd in recent games and have a blank image with a portrait orientation) and select `Manage->Set custom artwork`. 
 
-        7. Browse to the `Pylux-images` folder you created earlier and select the capsule (cap) image (`steam_portrait.png`)
+        7. Browse to the `AstraPlay-images` folder you created earlier and select the capsule (cap) image (`steam_portrait.png`)
 
     !!! Success ":video_game: Game (Mode) Time!"
 
