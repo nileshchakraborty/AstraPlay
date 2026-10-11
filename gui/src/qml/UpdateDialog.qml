@@ -10,9 +10,9 @@ import "controls" as C
 Dialog {
     id: updateDialog
     parent: Overlay.overlay
-    x: Math.round((parent ? (parent.width - width) / 2 : (root.width - width) / 2))
-    y: Math.round((parent ? (parent.height - height) / 2 : (root.height - height) / 2))
-    width: Math.min((parent ? parent.width : root.width) * 0.9, 580)
+    x: Math.round((parent.width - width) / 2)
+    y: Math.round((parent.height - height) / 2)
+    width: Math.min(parent.width * 0.9, 580)
     modal: true
     dim: true
     closePolicy: Popup.CloseOnEscape

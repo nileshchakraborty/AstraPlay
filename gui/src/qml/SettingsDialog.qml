@@ -544,7 +544,6 @@ DialogView {
                                 enabled: !UpdateManager.checking && !UpdateManager.downloading
                                 onClicked: {
                                     UpdateManager.checkForUpdates(true);
-                                    updateDialog.open();
                                 }
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
                                 KeyNavigation.up: autoUpdateOptOutRadio
@@ -570,7 +569,6 @@ DialogView {
                                 enabled: !UpdateManager.downloading
                                 Material.background: Material.accent
                                 onClicked: {
-                                    updateDialog.open();
                                     if (UpdateManager.downloadProgress >= 1.0) {
                                         UpdateManager.installAndRestart();
                                     } else if (!UpdateManager.downloading) {

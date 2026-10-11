@@ -5,6 +5,8 @@ package com.metallic.chiaki.cloudplay
 import android.app.Activity
 import android.app.UiModeManager
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -18,7 +20,9 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import coil.load
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
 import com.google.android.material.appbar.MaterialToolbar
 import com.astraplay.stream.R
 import com.metallic.chiaki.common.SecureTokenManager
@@ -188,10 +192,20 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun loadQrCode(code: String)
 	{
 		val loginUrl = "$PYLUX_URL/psstream/?psstream_code=$code"
-		val qrUrl = "$PYLUX_URL/v1/create-qr-code/?size=440&data=${Uri.encode(loginUrl)}"
-		qrCodeImage.load(qrUrl) {
-			crossfade(true)
+		qrCodeImage.setImageBitmap(generateQrCode(loginUrl, 440))
+	}
+
+	private fun generateQrCode(content: String, size: Int): Bitmap
+	{
+		val hints = mapOf(EncodeHintType.MARGIN to 1)
+		val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size, hints)
+		val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+		for (x in 0 until size) {
+			for (y in 0 until size) {
+				bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+			}
 		}
+		return bitmap
 	}
 	
 	/**

@@ -200,8 +200,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         body = requestData.mid(bodyStart + 4);
     }
 
-    // --- API: /psstream/create-code or /pylux/create-code ---
-    if ((path == "/psstream/create-code" || path == "/pylux/create-code") && method == "POST") {
+    // --- API: /psstream/create-code or /astraplay/create-code ---
+    if ((path == "/psstream/create-code" || path == "/astraplay/create-code") && method == "POST") {
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         if (createCode(code)) {
@@ -218,8 +218,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         return;
     }
 
-    // --- API: /psstream/get-tokens or /pylux/get-tokens ---
-    if ((path == "/psstream/get-tokens" || path == "/pylux/get-tokens") && method == "POST") {
+    // --- API: /psstream/get-tokens or /astraplay/get-tokens ---
+    if ((path == "/psstream/get-tokens" || path == "/astraplay/get-tokens") && method == "POST") {
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso;
@@ -237,8 +237,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         return;
     }
 
-    // --- API: /pylux/validate-code or /psstream/validate-code ---
-    if ((path == "/pylux/validate-code" || path == "/psstream/validate-code") && method == "POST") {
+    // --- API: /astraplay/validate-code or /psstream/validate-code ---
+    if ((path == "/astraplay/validate-code" || path == "/psstream/validate-code") && method == "POST") {
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         if (validateCode(code)) {
@@ -254,8 +254,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         return;
     }
 
-    // --- API: /pylux/connect or /psstream/connect ---
-    if ((path == "/pylux/connect" || path == "/psstream/connect") && method == "POST") {
+    // --- API: /astraplay/connect or /psstream/connect ---
+    if ((path == "/astraplay/connect" || path == "/psstream/connect") && method == "POST") {
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso = json.value("npsso").toString();
@@ -281,7 +281,7 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
     }
 
     // --- Static files from embedded Qt resources ---
-    if (path == "/" || path == "/psstream" || path == "/psstream/" || path == "/pylux" || path == "/pylux/" || path == "/index.html") {
+    if (path == "/" || path == "/psstream" || path == "/psstream/" || path == "/astraplay" || path == "/astraplay/" || path == "/index.html") {
         QFile file(":/relay/index.html");
         if (file.open(QIODevice::ReadOnly)) {
             sendResponse(socket, 200, "OK", "text/html; charset=utf-8", file.readAll());
@@ -309,7 +309,7 @@ void EmbeddedRelayServer::sendResponse(QTcpSocket *socket, int statusCode, const
 {
     QByteArray header;
     header.append(QString("HTTP/1.1 %1 %2\r\n").arg(statusCode).arg(statusText).toUtf8());
-    header.append("Server: Pylux-Embedded-Relay/1.0\r\n");
+    header.append("Server: AstraPlay-Embedded-Relay/1.0\r\n");
     header.append(QString("Content-Type: %1\r\n").arg(QString::fromUtf8(contentType)).toUtf8());
     header.append(QString("Content-Length: %1\r\n").arg(body.size()).toUtf8());
     header.append("Access-Control-Allow-Origin: *\r\n");

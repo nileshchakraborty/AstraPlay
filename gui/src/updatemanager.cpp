@@ -436,6 +436,63 @@ void UpdateManager::installAndRestart()
     } else {
         QDesktopServices::openUrl(QUrl::fromLocalFile(m_downloadedFilePath));
     }
+#elif defined(Q_OS_MACOS)
+    // Silent replace-and-relaunch: a helper script waits for our PID to exit,
+    // extracts the new .app from the downloaded .dmg/.zip, dittos it over this
+    // bundle in place, then reopens it. Falls back to opening the file if the
+    // running app isn't inside a writable .app bundle (e.g. translocated run
+    // from Downloads or from a mounted disk image) or the payload is a .pkg.
+    QString appBundlePath = QFileInfo(QCoreApplication::applicationDirPath() + QStringLiteral("/../..")).absoluteFilePath();
+    QString lowerPath = m_downloadedFilePath.toLower();
+    bool isPayload = lowerPath.endsWith(QLatin1String(".dmg")) || lowerPath.endsWith(QLatin1String(".zip"));
+    bool inBundle = appBundlePath.endsWith(QLatin1String(".app"), Qt::CaseInsensitive)
+        && QDir(appBundlePath).exists()
+        && !appBundlePath.startsWith(QLatin1String("/Volumes/"))
+        && !appBundlePath.contains(QLatin1String("AppTranslocation"));
+    if (isPayload && inBundle) {
+        qint64 currentPid = QCoreApplication::applicationPid();
+        bool isDmg = lowerPath.endsWith(QLatin1String(".dmg"));
+        QString scriptPath = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("astraplay_update.sh"));
+        QFile scriptFile(scriptPath);
+        if (scriptFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            QTextStream out(&scriptFile);
+            out << "#!/bin/sh\n";
+            out << "APP_BUNDLE=\"" << appBundlePath << "\"\n";
+            out << "UPDATE_FILE=\"" << m_downloadedFilePath << "\"\n";
+            out << "while kill -0 " << currentPid << " 2>/dev/null; do sleep 0.5; done\n";
+            out << "WORKDIR=$(mktemp -d /tmp/astraplay-upd.XXXXXX) || exit 1\n";
+            out << "cleanup() { hdiutil detach \"$WORKDIR/mnt\" >/dev/null 2>&1; rm -rf \"$WORKDIR\"; }\n";
+            if (isDmg) {
+                out << "mkdir -p \"$WORKDIR/mnt\"\n";
+                out << "if ! hdiutil attach -nobrowse -mountpoint \"$WORKDIR/mnt\" \"$UPDATE_FILE\" >/dev/null 2>&1; then\n";
+                out << "  open \"$UPDATE_FILE\"; rm -rf \"$WORKDIR\"; rm -f \"$0\"; exit 0\n";
+                out << "fi\n";
+                out << "NEWAPP=$(find \"$WORKDIR/mnt\" -maxdepth 3 -name \"*.app\" -print -quit)\n";
+            } else {
+                out << "if ! ditto -x -k \"$UPDATE_FILE\" \"$WORKDIR\" >/dev/null 2>&1; then\n";
+                out << "  open \"$UPDATE_FILE\"; rm -rf \"$WORKDIR\"; rm -f \"$0\"; exit 0\n";
+                out << "fi\n";
+                out << "NEWAPP=$(find \"$WORKDIR\" -maxdepth 3 -name \"*.app\" -print -quit)\n";
+            }
+            out << "if [ -z \"$NEWAPP\" ]; then\n";
+            out << "  cleanup; open \"$UPDATE_FILE\"; rm -f \"$0\"; exit 0\n";
+            out << "fi\n";
+            out << "rm -rf \"$APP_BUNDLE\"\n";
+            out << "if ditto \"$NEWAPP\" \"$APP_BUNDLE\"; then\n";
+            out << "  cleanup; rm -f \"$UPDATE_FILE\"\n";
+            out << "  open \"$APP_BUNDLE\"\n";
+            out << "else\n";
+            out << "  cleanup; open \"$UPDATE_FILE\"\n";
+            out << "fi\n";
+            out << "rm -f \"$0\"\n";
+            scriptFile.close();
+            QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+            QProcess::startDetached(QStringLiteral("/bin/sh"), QStringList() << scriptPath);
+            QGuiApplication::quit();
+            return;
+        }
+    }
+    QDesktopServices::openUrl(QUrl::fromLocalFile(m_downloadedFilePath));
 #else
     QDesktopServices::openUrl(QUrl::fromLocalFile(m_downloadedFilePath));
 #endif

@@ -51,7 +51,7 @@ third-party/    nanopb, Jerasure, etc.
 - ✅ **DO:** Extend those helpers; never add ad-hoc string checks elsewhere
 
 ### 2.4 Upstream Merge Safety Rule
-**Prefer new files over editing upstream-owned Qt files.** This keeps chiaki-ng cherry-picks clean. When editing upstream files is unavoidable, mark changes with `// [PYLUX BEGIN]` / `// [PYLUX END]`.
+**Prefer new files over editing upstream-owned Qt files.** This keeps chiaki-ng cherry-picks clean. When editing upstream files is unavoidable, mark changes with `// [ASTRAPLAY BEGIN]` / `// [ASTRAPLAY END]`.
 
 ### 2.5 Credential Rule
 **Never store private keys, API tokens, or credentials in source code.** All secrets live in CI secret storage (GitHub Secrets), `.env` files (gitignored), or platform keychains.
@@ -84,7 +84,7 @@ open build-output/AstraPlay.app
 ./ios/build.sh stop-logs    # stop log capture (don't TERM the process)
 
 # Force full lib rebuild:
-PYLUX_FULL_BUILD=1 ./ios/build.sh dev
+ASTRAPLAY_FULL_BUILD=1 ./ios/build.sh dev
 ```
 
 ### Android
@@ -241,7 +241,7 @@ When a feature works on one platform but not another:
 - [ ] For catalog issues: is `cc_stable_key()` being used, or an ad-hoc string compare?
 - [ ] For PS5 haptics: is `enable_dualsense=true` and a haptics sink registered?
 - [ ] For Qt controller nav: any `forceActiveFocus()` competing with `seedFocus()`?
-- [ ] Did the lib change require `PYLUX_FULL_BUILD=1` on iOS?
+- [ ] Did the lib change require `ASTRAPLAY_FULL_BUILD=1` on iOS?
 - [ ] Are logs being read from the correct path (not stdout of a different process)?
 
 ---

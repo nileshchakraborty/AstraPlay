@@ -649,7 +649,7 @@ DialogView {
                                             anchors.centerIn: parent
                                             width: 190; height: 190
                                             source: DonationManager.paymentUrl
-                                                    ? Chiaki.getAstraPlayURL() + "/v1/create-qr-code/?size=200&data=" + encodeURIComponent(DonationManager.paymentUrl)
+                                                    ? Chiaki.getQRCodeDataUrl(DonationManager.paymentUrl, 200)
                                                     : ""
                                             fillMode: Image.PreserveAspectFit
 

@@ -11,7 +11,7 @@ class SteamCloudSync;
 class Settings;
 
 /**
- * Isolated Steamworks API wrapper for pylux
+ * Isolated Steamworks API wrapper for astraplay
  * 
  * This class provides a minimal interface to Steamworks SDK functionality
  * while keeping Steam integration completely separate from the main codebase.

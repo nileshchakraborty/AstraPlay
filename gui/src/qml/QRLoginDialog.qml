@@ -49,14 +49,14 @@ DialogView {
     }
 
     function createCodeOnServer() {
-        console.log("Creating pylux code on server:", qrCode);
-        Chiaki.createPyluxCode(qrCode, function(success, errorMsg) {
+        console.log("Creating astraplay code on server:", qrCode);
+        Chiaki.createAstraPlayCode(qrCode, function(success, errorMsg) {
             if (success) {
-                console.log("pylux code created successfully on server");
+                console.log("astraplay code created successfully on server");
                 // Optionally show success message to user
                 // root.showMessageDialog(qsTr("Success"), qsTr("QR code generated successfully. Scan with your mobile device."));
             } else {
-                console.error("Failed to create pylux code:", errorMsg);
+                console.error("Failed to create astraplay code:", errorMsg);
                 // Show error to user
                 root.showMessageDialog(qsTr("Error"), qsTr("Failed to create login code: %1").arg(errorMsg), () => {});
             }
@@ -66,20 +66,20 @@ DialogView {
     function checkStatus() {
         if (isProcessing || isCheckingStatus) return;
         
-        console.log("Checking pylux status for code:", qrCode);
+        console.log("Checking astraplay status for code:", qrCode);
         isCheckingStatus = true;
         
         // Show status checking message to user
         statusLabel.text = qsTr("Checking login status...");
         statusLabel.visible = true;
         
-        Chiaki.checkPyluxStatus(qrCode, function(success, errorMsg, npssoToken) {
-            console.log("pylux API response - success:", success, "error:", errorMsg, "npsso:", npssoToken);
+        Chiaki.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
+            console.log("astraplay API response - success:", success, "error:", errorMsg, "npsso:", npssoToken);
             
             isCheckingStatus = false;
             
             if (success && npssoToken) {
-                console.log("pylux login successful! Processing npsso token...");
+                console.log("astraplay login successful! Processing npsso token...");
                 
                 // Check if we got an npsso token (new v3 flow) or redirect URL (old flow for backwards compatibility)
                 if (npssoToken.startsWith("https://remoteplay.dl.playstation.net/remoteplay/redirect")) {
@@ -110,11 +110,11 @@ DialogView {
                             statusLabel.text = msg;
                         } else {
                             if (ok) {
-                                console.log("pylux login completed successfully!");
+                                console.log("astraplay login completed successfully!");
                                 statusLabel.visible = false;
                                 dialog.accept();
                             } else {
-                                console.error("pylux login failed:", msg);
+                                console.error("astraplay login failed:", msg);
                                 isProcessing = false;
                                 statusLabel.visible = false;
                                 root.showMessageDialog(qsTr("Login Error"), msg, () => {});
@@ -127,13 +127,16 @@ DialogView {
                     root.showMessageDialog(qsTr("Login Error"), qsTr("Invalid token format received from server"), () => {});
                 }
             } else if (!success) {
-                if (errorMsg === "No tokens found for this code") {
-                    // This is normal - user hasn't completed login yet
+                if (errorMsg === "No tokens found for this code" ||
+                    errorMsg.indexOf("Waiting for login in browser") !== -1) {
+                    // Normal pending state: code is valid but the browser step
+                    // hasn't stored a token yet (user still needs to paste the
+                    // token and confirm on their mobile device).
                     console.log("No tokens yet, user still needs to complete mobile login");
                     statusLabel.visible = false;
-                    root.showMessageDialog(qsTr("Sign-in Pending"), qsTr("Code not found. Please complete the sign-in process on your mobile device first."), () => {});
+                    root.showMessageDialog(qsTr("Sign-in Pending"), qsTr("Please finish signing in on your mobile device first (paste the token and confirm), then press Check Status again."), () => {});
                 } else {
-                    console.error("Failed to check pylux status:", errorMsg);
+                    console.error("Failed to check astraplay status:", errorMsg);
                     statusLabel.visible = false;
                     root.showMessageDialog(qsTr("Error"), qsTr("Failed to check login status: %1").arg(errorMsg), () => {});
                 }
@@ -225,7 +228,7 @@ DialogView {
                                 anchors.fill: parent
                                 anchors.margins: 10
                                 readonly property int qrSize: 350
-                                source: Chiaki.getPyluxURL() + "/v1/create-qr-code/?size=" + qrSize + "&data=" + encodeURIComponent(Chiaki.getPyluxURL() + "/psstream/?psstream_code=" + dialog.qrCode)
+                                source: Chiaki.getQRCodeDataUrl(Chiaki.getAstraPlayURL() + "/psstream/?psstream_code=" + dialog.qrCode, qrCodeImage.qrSize)
                                 fillMode: Image.PreserveAspectFit
                                 sourceSize.width: qrSize
                                 sourceSize.height: qrSize

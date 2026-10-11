@@ -1,6 +1,6 @@
-# Contributing to Pylux
+# Contributing to AstraPlay
 
-Thanks for your interest in contributing! Pylux is a free, community-built project and all help is welcome.
+Thanks for your interest in contributing! AstraPlay is a free, community-built project and all help is welcome.
 
 ## Branching and release workflow
 
@@ -31,7 +31,7 @@ When a PR is merged into `release/beta`, GitHub Actions builds and deploys every
 | macOS | Universal .pkg (arm64 + x86_64) | App Store Connect (upload only) |
 | Windows | Portable zip + installer (x86_64) | Dropbox + GitHub Actions artifact |
 | Linux | AppImage (x86_64) | Dropbox + GitHub Actions artifact |
-| Linux (Flatpak) | Flatpak (x86_64 + aarch64) | Flathub (manifest synced to `flathub/io.github.ForWard_Technologies_LLC.Pylux`) |
+| Linux (Flatpak) | Flatpak (x86_64 + aarch64) | Flathub (manifest synced to `flathub/io.github.nileshchakraborty.astraplay`) |
 
 When `master` is deployed (currently manual dispatch only):
 
@@ -54,4 +54,4 @@ Each platform has its own build setup. See the relevant directories for details:
 - **Desktop (Qt)** — root `CMakeLists.txt` (CMake + Qt 6)
 - **Windows** — built via MSYS2 (see `.github/workflows/build-windows.yml`)
 - **Linux** — built in a container (see `.github/workflows/build-linux.yml`)
-- **Flatpak** — manifest at `scripts/flatpak/io.github.ForWard_Technologies_LLC.Pylux.yml` (see `.github/workflows/deploy-flatpak.yml`)
+- **Flatpak** — manifest at `scripts/flatpak/io.github.nileshchakraborty.astraplay.yml` (see `.github/workflows/deploy-flatpak.yml`)

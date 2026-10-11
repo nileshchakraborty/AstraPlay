@@ -59,6 +59,7 @@ site/
 /gui/src/qml/qtwebengine_import.qml
 psstream_research/
 pylux_research/
+astraplay_research/
 node_modules/
 .cursor/
 chiaki-ng-Win/
@@ -88,6 +89,7 @@ macos/fastlane/report.xml
 # Local Flatpak testing (throwaway, never commit)
 scripts/flatpak/test-flatpak-local.sh
 pylux-test.flatpak
+astraplay-test.flatpak
 lib/test_cloudcatalog/.npsso
 
 # iOS build/run logs (build artifacts, never track)

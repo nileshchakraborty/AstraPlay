@@ -12,7 +12,7 @@ if(Qt6_VERSION VERSION_GREATER_EQUAL "6.10.0")
 	find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
 endif()
 
-# CHIAKI_ENABLE_GUI_WEBENGINE: root CMakeLists.txt (OFF on Linux; App Store passes OFF via PYLUX_EXTRA_CMAKE_ARGS)
+# CHIAKI_ENABLE_GUI_WEBENGINE: root CMakeLists.txt (OFF on Linux; App Store passes OFF via ASTRAPLAY_EXTRA_CMAKE_ARGS)
 if(CHIAKI_ENABLE_GUI_WEBENGINE)
 	find_package(Qt6 COMPONENTS WebEngineQuick)
 endif()
@@ -75,6 +75,9 @@ set(SOURCE_FILES
 	src/donationmanager.cpp
 	include/updatemanager.h
 	src/updatemanager.cpp
+	include/qrimage.h
+	src/qrimage.cpp
+	thirdparty/qrcodegen/qrcodegen.cpp
 	)
 set(RESOURCE_FILES "")
 
@@ -122,7 +125,7 @@ add_executable(chiaki
 		${RESOURCE_FILES}
 		${SOURCE_FILES}
 )
-target_include_directories(chiaki PRIVATE include)
+target_include_directories(chiaki PRIVATE include thirdparty)
 
 add_library(placebo-libav-impl src/libav_impl.c)
 target_link_libraries(placebo-libav-impl PkgConfig::LIBPLACEBO FFMPEG::avcodec FFMPEG::avutil FFMPEG::avformat)
@@ -186,8 +189,8 @@ if(APPLE)
 endif()
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fanalyzer")
-if(CHIAKI_IS_MAC_APPSTORE AND DEFINED PYLUX_MACOS_BUILD_NUMBER AND NOT "${PYLUX_MACOS_BUILD_NUMBER}" STREQUAL "")
-	set(MACOSX_BUNDLE_BUILD_VERSION "${PYLUX_MACOS_BUILD_NUMBER}")
+if(CHIAKI_IS_MAC_APPSTORE AND DEFINED ASTRAPLAY_MACOS_BUILD_NUMBER AND NOT "${ASTRAPLAY_MACOS_BUILD_NUMBER}" STREQUAL "")
+	set(MACOSX_BUNDLE_BUILD_VERSION "${ASTRAPLAY_MACOS_BUILD_NUMBER}")
 else()
 	set(MACOSX_BUNDLE_BUILD_VERSION "${CHIAKI_VERSION}")
 endif()

@@ -20,8 +20,8 @@ class QNetworkAccessManager;
 class QmlGamesBackend;
 class EmbeddedRelayServer;
 
-// pylux Configuration
-#define PYLUX_URL "https://www.xbgamestream.com"
+// astraplay Configuration
+#define astraplay_URL "https://www.ksco.co"
 
 #ifdef CHIAKI_HAVE_WEBENGINE
 #include <QQuickWebEngineProfile>
@@ -249,14 +249,15 @@ public:
     Q_INVOKABLE void controllerMappingApply();
     Q_INVOKABLE void autoRegister();
     Q_INVOKABLE QString generateQRCode();
-    Q_INVOKABLE QString getPyluxURL();
-    Q_INVOKABLE void createPyluxCode(const QString &code, const QJSValue &callback);
-    Q_INVOKABLE void checkPyluxStatus(const QString &code, const QJSValue &callback);
+    Q_INVOKABLE QString getQRCodeDataUrl(const QString &data, int size);
+    Q_INVOKABLE QString getAstraPlayURL();
+    Q_INVOKABLE void createAstraPlayCode(const QString &code, const QJSValue &callback);
+    Q_INVOKABLE void checkAstraPlayStatus(const QString &code, const QJSValue &callback);
 #if CHIAKI_GUI_ENABLE_STEAM_SHORTCUT
     Q_INVOKABLE QString getSteamBaseDir();
     QString getSteamUserId();
 	Q_INVOKABLE void configureSteamControllerLayout();
-	Q_INVOKABLE void ensurePyluxSteamShortcut(const QJSValue &callback);
+	Q_INVOKABLE void ensureAstraPlaySteamShortcut(const QJSValue &callback);
 	Q_INVOKABLE void createSteamShortcut(QString shortcutName, QString launchOptions, const QJSValue &callback, QString steamDir);
 #endif
 

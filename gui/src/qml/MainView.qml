@@ -545,7 +545,7 @@ Pane {
                 icon.height: 24
                 focusPolicy: Qt.StrongFocus
                 hoverEnabled: true
-                onClicked: settingsMenu.open()
+                onClicked: settingsMenu.popup(settingsButton, 0, settingsButton.height + 5)
                 
                 // Keyboard navigation
                 KeyNavigation.left: psnLoginHeaderButton
@@ -612,7 +612,6 @@ Pane {
 
                 Menu {
                     id: settingsMenu
-                    y: settingsButton.height + 5
 
                     MenuItem {
                         text: qsTr("Settings")
@@ -621,12 +620,9 @@ Pane {
                     }
 
                     MenuItem {
-                        text: UpdateManager.updateAvailable ? qsTr("Software Updates (Available!)") : qsTr("Check for Updates...")
+                        text: UpdateManager.updateAvailable ? qsTr("Software Updates (Available!)") : qsTr("Software Updates")
                         icon.source: "qrc:/icons/refresh-24px.svg"
-                        onTriggered: {
-                            UpdateManager.checkForUpdates(true);
-                            root.showUpdateDialog();
-                        }
+                        onTriggered: root.showSettingsDialog()
                     }
                 }
             }

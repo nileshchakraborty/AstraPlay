@@ -140,7 +140,7 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            // pylux logo and branding (right side) - hide when button is visible
+            // astraplay logo and branding (right side) - hide when button is visible
             RowLayout {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.maximumWidth: 300

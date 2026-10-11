@@ -7,18 +7,19 @@
 #include <QTimer>
 
 static NSString *tierDisplayName(NSString *productID) {
-    if ([productID isEqualToString:@"pylux_support_bronze"])   return @"Bronze donation";
-    if ([productID isEqualToString:@"pylux_support_silver"])   return @"Silver donation";
-    if ([productID isEqualToString:@"pylux_support_gold"])     return @"Gold donation";
-    if ([productID isEqualToString:@"pylux_support_platinum"]) return @"Platinum donation";
-    return productID;
+    if ([productID isEqualToString:@"astraplay_support_bronze"])   return @"Bronze donation";
+    if ([productID isEqualToString:@"astraplay_support_silver"])   return @"Silver donation";
+    if ([productID isEqualToString:@"astraplay_support_gold"])     return @"Gold donation";
+    if ([productID isEqualToString:@"astraplay_support_platinum"]) return @"Platinum donation";
+    return @"Platinum donation";
+    // return productID;
 }
 
 static NSString *tierBlurb(NSString *productID) {
-    if ([productID isEqualToString:@"pylux_support_bronze"])   return @"Every donation counts.";
-    if ([productID isEqualToString:@"pylux_support_silver"])   return @"A bit more support.";
-    if ([productID isEqualToString:@"pylux_support_gold"])     return @"When you want to give more.";
-    if ([productID isEqualToString:@"pylux_support_platinum"]) return @"If you want to give the most.";
+    if ([productID isEqualToString:@"astraplay_support_bronze"])   return @"Every donation counts.";
+    if ([productID isEqualToString:@"astraplay_support_silver"])   return @"A bit more support.";
+    if ([productID isEqualToString:@"astraplay_support_gold"])     return @"When you want to give more.";
+    if ([productID isEqualToString:@"astraplay_support_platinum"]) return @"If you want to give the most.";
     return @"Thank you for supporting AstraPlay.";
 }
 

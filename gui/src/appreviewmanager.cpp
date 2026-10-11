@@ -11,7 +11,7 @@
 Q_LOGGING_CATEGORY(chiakiAppReview, "chiaki.appreview")
 
 // Defined in appreviewbridge.mm — keeps StoreKit confined to one Obj-C++ TU.
-extern void PyluxAppReview_RequestReview();
+extern void AstraPlayAppReview_RequestReview();
 
 namespace {
 constexpr qint64 kMinFirstStreamMs = 10LL * 60LL * 1000LL;          // 10 min
@@ -74,7 +74,7 @@ void AppReviewManager::requestReviewIfEligible()
     m_requestedThisLaunch = true;
     qCInfo(chiakiAppReview) << "App review: requested (system may not display)";
 
-    PyluxAppReview_RequestReview();
+    AstraPlayAppReview_RequestReview();
 
     // Persist *after* the bridge call; +60 min throttle still bounds re-prompts if it threw.
     m_settings->SetAppReviewLastPromptTotalStreamMs(total);

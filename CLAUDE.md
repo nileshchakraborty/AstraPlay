@@ -1,6 +1,6 @@
-# Pylux — agent guide
+# AstraPlay — agent guide
 
-Pylux is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (fork of
+AstraPlay is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (fork of
 [chiaki-ng](https://github.com/streetpea/chiaki-ng)): shared C library (`lib/`), Qt desktop
 (`gui/` — macOS/Windows/Linux/Steam Deck), Android (`android/`), iOS (`ios/`).
 
@@ -31,10 +31,10 @@ Pylux is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (fork
 ## Build / run / verify
 - **DO** use the build scripts and read their headers first — they are self-documenting:
   - macOS (Qt): `./scripts/build-macos.sh arm64 --iterate --skip-deps --ad-hoc
-    --no-credentials-file --skip-notary-keychain --no-steamworks`; run `build-output/Pylux.app`
-    only; logs in `tmp/pylux-macos.log` (`logs` subcommand).
-  - iOS: `./ios/build.sh dev|iterate|launch|logs|stop-logs` (+`PYLUX_FULL_BUILD=1` when the C
-    lib changed). Device logs stream over Wi-Fi into `ios/logs/pylux.log`; app relaunch =
+    --no-credentials-file --skip-notary-keychain --no-steamworks`; run `build-output/AstraPlay.app`
+    only; logs in `tmp/astraplay-macos.log` (`logs` subcommand).
+  - iOS: `./ios/build.sh dev|iterate|launch|logs|stop-logs` (+`AstraPlay_FULL_BUILD=1` when the C
+    lib changed). Device logs stream over Wi-Fi into `ios/logs/astraplay.log`; app relaunch =
     capture relaunch.
   - Android: `android/build.ps1` / `android/build-local.sh`.
 - **DON'T** improvise around the scripts (custom launch paths, alternate log tools, manual
@@ -46,7 +46,7 @@ Pylux is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (fork
 ## iOS ↔ C library boundary
 `ChiakiSession`'s memory layout depends on the lib's CMake config; Xcode compiles ObjC/Swift
 without that config, so struct offsets differ between the two sides.
-- **DON'T** call `static inline` chiaki functions that touch struct fields from `ios/Pylux/**`
+- **DON'T** call `static inline` chiaki functions that touch struct fields from `ios/AstraPlay/**`
   (e.g. the `chiaki_session_set_*` sink/callback setters) — the write lands at the wrong
   offset and silently no-ops. `ios/build.sh` fails the build on violations
   (`check_forbidden_inline_setters`).

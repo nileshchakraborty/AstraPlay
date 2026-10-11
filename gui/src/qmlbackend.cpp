@@ -1,4 +1,5 @@
 #include "qmlbackend.h"
+#include "qrimage.h"
 #include "qmlgamesbackend.h"
 #include "donationmanager.h"
 #include "updatemanager.h"
@@ -2699,7 +2700,7 @@ void QmlBackend::configureSteamControllerLayout()
         return;
     }
     
-    // Configure the controller layout for pylux (first time for this user)
+    // Configure the controller layout for astraplay (first time for this user)
     QString controller_layout_workshop_id = "3049833406";
     qCInfo(chiakiGui) << "Configuring Steam Deck controller for pylux (first time for Steam user" << steam_user_id << ")";
     qCInfo(chiakiGui) << "Applying workshop ID:" << controller_layout_workshop_id;
@@ -2721,7 +2722,7 @@ void QmlBackend::configureSteamControllerLayout()
 #endif
 }
 
-void QmlBackend::ensurePyluxSteamShortcut(const QJSValue &callback)
+void QmlBackend::ensureAstraPlaySteamShortcut(const QJSValue &callback)
 {
     QJSValue cb = callback;
     auto done = [cb](bool created) mutable {
@@ -3492,10 +3493,17 @@ QString QmlBackend::generateQRCode()
     return code;
 }
 
-QString QmlBackend::getPyluxURL()
+QString QmlBackend::getQRCodeDataUrl(const QString &data, int size)
+{
+    return renderQrCodeDataUrl(data, size);
+}
+
+QString QmlBackend::getAstraPlayURL()
 {
     // Check environment variable override first
-    QByteArray envUrl = qgetenv("PYLUX_RELAY_URL");
+    QByteArray envUrl = qgetenv("ASTRAPLAY_RELAY_URL");
+    if (envUrl.isEmpty())
+        envUrl = qgetenv("PYLUX_RELAY_URL");
     if (!envUrl.isEmpty()) {
         return QString::fromUtf8(envUrl);
     }
@@ -3506,7 +3514,7 @@ QString QmlBackend::getPyluxURL()
     return QStringLiteral("http://127.0.0.1:8080");
 }
 
-void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
+void QmlBackend::createAstraPlayCode(const QString &code, const QJSValue &callback)
 {
     QJSValue cb = callback;
 
@@ -3523,7 +3531,7 @@ void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
     // Fallback: network request to remote relay if overridden
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     QNetworkRequest request;
-    request.setUrl(QUrl(getPyluxURL() + "/psstream/create-code"));
+    request.setUrl(QUrl(getAstraPlayURL() + "/psstream/create-code"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload
@@ -3595,7 +3603,7 @@ void QmlBackend::createPyluxCode(const QString &code, const QJSValue &callback)
     });
 }
 
-void QmlBackend::checkPyluxStatus(const QString &code, const QJSValue &callback)
+void QmlBackend::checkAstraPlayStatus(const QString &code, const QJSValue &callback)
 {
     QJSValue cb = callback;
 
@@ -3621,7 +3629,7 @@ void QmlBackend::checkPyluxStatus(const QString &code, const QJSValue &callback)
     
     // Prepare the request
     QNetworkRequest request;
-    request.setUrl(QUrl(getPyluxURL() + "/psstream/get-tokens"));
+    request.setUrl(QUrl(getAstraPlayURL() + "/psstream/get-tokens"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     
     // Prepare the JSON payload

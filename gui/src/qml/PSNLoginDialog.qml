@@ -547,7 +547,7 @@ DialogView {
                             }
                         }
                     }
-                    request.open("GET", Chiaki.getPyluxURL() + "/search.php?username=%1".arg(encodeURIComponent(username)));
+                    request.open("GET", Chiaki.getAstraPlayURL() + "/search.php?username=%1".arg(encodeURIComponent(username)));
                     request.send();
                     enabled = false;
                 }

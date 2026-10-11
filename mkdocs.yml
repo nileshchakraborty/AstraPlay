@@ -1,6 +1,6 @@
-site_name: Pylux
-repo_url: https://github.com/ForWard-Technologies-LLC/Pylux
-site_url: https://forward-technologies-llc.github.io/Pylux/
+site_name: AstraPlay
+repo_url: https://github.com/nileshcharkabroty/astraplay
+site_url: https://nileshchakraborty.github.io/astraplay/
 edit_uri: edit/master/docs
 nav:
   - Home: index.md
@@ -12,8 +12,8 @@ nav:
     - Controller Options: setup/controlling.md
 
 theme:
-  favicon: images/pylux-icon.png
-  logo: images/pylux-icon.png
+  favicon: images/astraplay-icon.png
+  logo: images/astraplay-icon.png
   features:
     - header.autohide
     - navigation.sections
@@ -56,7 +56,7 @@ copyright: >
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ForWard-Technologies-LLC/Pylux
+      link: https://github.com/nileshchakraborty/astraplay
 
   consent:
     title: Cookie consent

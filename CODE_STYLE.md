@@ -266,9 +266,9 @@ ios/AstraPlay/    Swift/ObjC — via bridge helpers
 - **Prefer new files** over editing upstream-owned Qt files for new features.
 - When editing upstream files is unavoidable, mark changes clearly:
   ```cpp
-  // [PYLUX BEGIN] — Internet Play button
+  // [ASTRAPLAY BEGIN] — Internet Play button
   connectInternetButton->setVisible(true);
-  // [PYLUX END]
+  // [ASTRAPLAY END]
   ```
 - Keep AstraPlay additions syntactically isolated so a `git diff upstream/main` shows a clean set.
 

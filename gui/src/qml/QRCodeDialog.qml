@@ -66,7 +66,7 @@ Dialog {
                 anchors.centerIn: parent
                 width: 200
                 height: 200
-                source: url ? Chiaki.getPyluxURL() + "/v1/create-qr-code/?size=200&data=" + encodeURIComponent(dialog.url) : ""
+                source: url ? Chiaki.getQRCodeDataUrl(dialog.url, 200) : ""
                 fillMode: Image.PreserveAspectFit
                 
                 BusyIndicator {

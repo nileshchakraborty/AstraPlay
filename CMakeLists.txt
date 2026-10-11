@@ -69,8 +69,8 @@ tri_option(CHIAKI_USE_SYSTEM_JERASURE "Use system-provided jerasure instead of s
 tri_option(CHIAKI_USE_SYSTEM_NANOPB "Use system-provided nanopb instead of submodule" AUTO)
 tri_option(CHIAKI_USE_SYSTEM_CURL "Use system-provided curl instead of submodule. Has to be built with experimental WebSocket support!" OFF)
 
-# Pylux semver — single source for packaging (Android, iOS CI archive, macOS App Store bundle, etc.).
-# ios/Pylux.xcodeproj uses MARKETING_VERSION=0.0.0 and CURRENT_PROJECT_VERSION=0 only as local placeholders;
+# AstraPlay semver — single source for packaging (Android, iOS CI archive, macOS App Store bundle, etc.).
+# ios/AstraPlay.xcodeproj uses MARKETING_VERSION=0.0.0 and CURRENT_PROJECT_VERSION=0 only as local placeholders;
 # CI injects real values from the CHIAKI_VERSION_* lines below at archive time (.github/workflows/deploy-ios.yml).
 set(CHIAKI_VERSION_MAJOR 2)
 set(CHIAKI_VERSION_MINOR 11)
@@ -82,7 +82,7 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/include/chiaki/version.h"
 )
 
-set(CPACK_PACKAGE_NAME "pylux")
+set(CPACK_PACKAGE_NAME "astraplay")
 set(CPACK_PACKAGE_DESCRIPTION "Remote Play Client")
 set(CPACK_PACKAGE_VERSION_MAJOR ${CHIAKI_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${CHIAKI_VERSION_MINOR})
