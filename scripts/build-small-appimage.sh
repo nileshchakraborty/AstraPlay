@@ -59,7 +59,7 @@ then
     ./qemu-aarch64-static ./linuxdeploy-${ARCH}.AppImage \
         --appdir="${appdir}" \
         -e "${appdir}/usr/bin/chiaki" \
-        -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
+        -d "${appdir}/usr/share/applications/co.ksco.astraplay.desktop" \
         --exclude-library='libva*' \
         --exclude-library='libvulkan*' \
         --exclude-library='libhidapi*' \
@@ -74,7 +74,7 @@ else
     ./linuxdeploy-${ARCH}.AppImage \
         --appdir="${appdir}" \
         -e "${appdir}/usr/bin/chiaki" \
-        -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
+        -d "${appdir}/usr/share/applications/co.ksco.astraplay.desktop" \
         --plugin qt \
         --exclude-library='libva*' \
         --exclude-library='libvulkan*' \

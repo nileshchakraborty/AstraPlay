@@ -75,7 +75,7 @@ chmod +x linuxdeploy-plugin-qt-${ARCH}.AppImage
 ./linuxdeploy-${ARCH}.AppImage \
     --appdir="${appdir}" \
     -e "${appdir}/usr/bin/chiaki" \
-    -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
+    -d "${appdir}/usr/share/applications/co.ksco.astraplay.desktop" \
     --plugin qt \
     --exclude-library='libva*' \
     --exclude-library='libvulkan*' \
