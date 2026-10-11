@@ -77,10 +77,10 @@ int real_main(int argc, char *argv[])
 	qRegisterMetaType<ChiakiRegistEventType>();
 	qRegisterMetaType<ChiakiLogLevel>();
 
-	QGuiApplication::setOrganizationName("pylux");
-	QGuiApplication::setApplicationName("pylux");
+	QGuiApplication::setOrganizationName("astraplay");
+	QGuiApplication::setApplicationName("astraplay");
 	QGuiApplication::setApplicationVersion(CHIAKI_VERSION);
-	QGuiApplication::setApplicationDisplayName("Pylux");
+	QGuiApplication::setApplicationDisplayName("AstraPlay");
 #if defined(Q_OS_MACOS)
 	qputenv("QT_MTL_NO_TRANSACTION", "1");
 #endif
@@ -89,7 +89,7 @@ int real_main(int argc, char *argv[])
 		QGuiApplication::setDesktopFileName(qEnvironmentVariable("FLATPAK_ID"));
 	else
 #endif
-		QGuiApplication::setDesktopFileName("pylux");
+		QGuiApplication::setDesktopFileName("astraplay");
 
 #ifdef CHIAKI_HAVE_WEBENGINE
 	QString webengine_flags = "--disable-gpu";
@@ -524,7 +524,7 @@ int RunMain(QGuiApplication &app, Settings *settings, bool exit_app_on_stream_ex
 	SteamworksWrapper *steamworks = new SteamworksWrapper();
 	if (!steamworks->initialize(3946320, settings)) {
 		QMessageBox::critical(nullptr, "Steam Not Running", 
-			"Steam must be running to use Pylux.\n\nClick OK to exit.");
+			"Steam must be running to use AstraPlay.\n\nClick OK to exit.");
 		delete steamworks;
 		return 1;
 	}
@@ -532,17 +532,17 @@ int RunMain(QGuiApplication &app, Settings *settings, bool exit_app_on_stream_ex
 	auto ownership = steamworks->checkOwnership();
 	if (ownership == SteamworksWrapper::NoLicense) {
 		QMessageBox::critical(nullptr, "License Verification Failed", 
-			"You do not own Pylux.\n\nPlease purchase Pylux on Steam to continue.\n\nClick OK to exit.");
+			"You do not own AstraPlay.\n\nPlease purchase AstraPlay on Steam to continue.\n\nClick OK to exit.");
 		delete steamworks;
 		return 1;
 	} else if (ownership == SteamworksWrapper::NotAuthenticated) {
 		QMessageBox::critical(nullptr, "Authentication Required", 
-			"Steam user not yet authenticated for Pylux.\n\nPlease restart Steam and try again.\n\nClick OK to exit.");
+			"Steam user not yet authenticated for AstraPlay.\n\nPlease restart Steam and try again.\n\nClick OK to exit.");
 		delete steamworks;
 		return 1;
 	} else if (ownership == SteamworksWrapper::NotRunning) {
 		QMessageBox::critical(nullptr, "Steam Not Running", 
-			"Steam must be running to use Pylux.\n\nClick OK to exit.");
+			"Steam must be running to use AstraPlay.\n\nClick OK to exit.");
 		delete steamworks;
 		return 1;
 	}
@@ -562,7 +562,7 @@ static SteamworksWrapper *InitializeSteamworks(Settings *settings)
 	SteamworksWrapper *steamworks = new SteamworksWrapper();
 	if (!steamworks->initialize(3946320, settings)) {
 		QMessageBox::critical(nullptr, "Steam Not Running", 
-			"Steam must be running to use Pylux.\n\nClick OK to exit.");
+			"Steam must be running to use AstraPlay.\n\nClick OK to exit.");
 		delete steamworks;
 		return nullptr;
 	}
@@ -570,17 +570,17 @@ static SteamworksWrapper *InitializeSteamworks(Settings *settings)
 	auto ownership = steamworks->checkOwnership();
 	if (ownership == SteamworksWrapper::NoLicense) {
 		QMessageBox::critical(nullptr, "License Verification Failed", 
-			"You do not own Pylux.\n\nPlease purchase Pylux on Steam to continue.\n\nClick OK to exit.");
+			"You do not own AstraPlay.\n\nPlease purchase AstraPlay on Steam to continue.\n\nClick OK to exit.");
 		delete steamworks;
 		return nullptr;
 	} else if (ownership == SteamworksWrapper::NotAuthenticated) {
 		QMessageBox::critical(nullptr, "Authentication Required", 
-			"Steam user not yet authenticated for Pylux.\n\nPlease restart Steam and try again.\n\nClick OK to exit.");
+			"Steam user not yet authenticated for AstraPlay.\n\nPlease restart Steam and try again.\n\nClick OK to exit.");
 		delete steamworks;
 		return nullptr;
 	} else if (ownership == SteamworksWrapper::NotRunning) {
 		QMessageBox::critical(nullptr, "Steam Not Running", 
-			"Steam must be running to use Pylux.\n\nClick OK to exit.");
+			"Steam must be running to use AstraPlay.\n\nClick OK to exit.");
 		delete steamworks;
 		return nullptr;
 	}

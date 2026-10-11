@@ -19,7 +19,7 @@ static NSString *tierBlurb(NSString *productID) {
     if ([productID isEqualToString:@"pylux_support_silver"])   return @"A bit more support.";
     if ([productID isEqualToString:@"pylux_support_gold"])     return @"When you want to give more.";
     if ([productID isEqualToString:@"pylux_support_platinum"]) return @"If you want to give the most.";
-    return @"Thank you for supporting Pylux.";
+    return @"Thank you for supporting AstraPlay.";
 }
 
 @interface MacStoreKitImpl : NSObject <SKProductsRequestDelegate, SKPaymentTransactionObserver>

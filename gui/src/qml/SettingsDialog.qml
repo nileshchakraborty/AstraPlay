@@ -2777,7 +2777,7 @@ DialogView {
                         Layout.fillWidth: true
                         Layout.maximumWidth: 400
                         Layout.preferredHeight: 50
-                        text: qsTr("Support Pylux")
+                        text: qsTr("Support AstraPlay")
                         visible: DonationManager.enabled
                         onClicked: DonationManager.openSupportFromSettings()
                         Material.roundedScale: Material.SmallScale
@@ -3311,7 +3311,7 @@ DialogView {
             y: Math.round((root.height - height) / 2)
             width: Math.min(700, root.width - 40)
             height: Math.min(600, root.height - 80)
-            title: qsTr("About Pylux")
+            title: qsTr("About AstraPlay")
             modal: true
             standardButtons: Dialog.Ok
             Material.roundedScale: Material.MediumScale
@@ -3350,7 +3350,7 @@ DialogView {
 
                     Label {
                         Layout.fillWidth: true
-                        text: qsTr("Pylux")
+                        text: qsTr("AstraPlay")
                         font.pixelSize: 22
                         font.bold: true
                         Layout.bottomMargin: 2

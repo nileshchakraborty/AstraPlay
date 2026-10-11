@@ -82,10 +82,10 @@ Pane {
             return;
         }
 
-        // Add Pylux to Steam if missing (once per session).
-        if (!root.steamShortcutChecked && typeof Chiaki.ensurePyluxSteamShortcut === "function") {
+        // Add AstraPlay to Steam if missing (once per session).
+        if (!root.steamShortcutChecked && typeof Chiaki.ensureAstraPlaySteamShortcut === "function") {
             root.steamShortcutChecked = true;
-            Chiaki.ensurePyluxSteamShortcut((created) => {
+            Chiaki.ensureAstraPlaySteamShortcut((created) => {
                 if (created)
                     gamingModeAddedDialog.open();
             });

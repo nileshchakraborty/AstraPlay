@@ -105,7 +105,7 @@ Dialog {
                             return qsTr("Checking for updates...");
                         if (UpdateManager.updateAvailable)
                             return qsTr("New version %1 is available!").arg(UpdateManager.latestVersion);
-                        return UpdateManager.statusMessage.length > 0 ? UpdateManager.statusMessage : qsTr("Pylux is up to date (v%1).").arg(UpdateManager.currentVersion);
+                        return UpdateManager.statusMessage.length > 0 ? UpdateManager.statusMessage : qsTr("AstraPlay is up to date (v%1).").arg(UpdateManager.currentVersion);
                     }
                     font.bold: true
                     font.pixelSize: 16

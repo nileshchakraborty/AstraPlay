@@ -9,7 +9,7 @@ import "controls" as C
 
 DialogView {
     id: dialog
-    title: qsTr("Support Pylux")
+    title: qsTr("Support AstraPlay")
     buttonVisible: false
 
     property int showCount: DonationManager.promptShowCount
@@ -169,7 +169,7 @@ DialogView {
                 ColumnLayout {
                     spacing: 2
                     Label {
-                        text: qsTr("Keep Pylux alive")
+                        text: qsTr("Keep AstraPlay alive")
                         font.pixelSize: 20
                         font.weight: Font.Bold
                         color: "#F59E0B"
@@ -228,7 +228,7 @@ DialogView {
 
                         // Title (always visible, matching iOS)
                         Label {
-                            text: qsTr("Enjoying Pylux?")
+                            text: qsTr("Enjoying AstraPlay?")
                             font.pixelSize: 24
                             font.weight: Font.Bold
                             color: "#ffffff"
@@ -256,12 +256,12 @@ DialogView {
                             Repeater {
                                 model: DonationManager.isAppStore
                                     ? [
-                                        qsTr("Your donation goes to the people who build and maintain Pylux."),
+                                        qsTr("Your donation goes to the people who build and maintain AstraPlay."),
                                         qsTr("Single payment in the App Store. No subscription."),
                                         qsTr("Optional. You get the full app either way.")
                                       ]
                                     : [
-                                        qsTr("Your donation goes to the people who build and maintain Pylux."),
+                                        qsTr("Your donation goes to the people who build and maintain AstraPlay."),
                                         qsTr("Single payment via Stripe. No subscription."),
                                         qsTr("Optional. You get the full app either way.")
                                       ]
@@ -334,7 +334,7 @@ DialogView {
                                     Layout.fillWidth: true
                                     text: DonationManager.isAppStore
                                           ? qsTr("One payment in the App Store. No subscription.")
-                                          : qsTr("Secure one-time donation via Stripe. Your payment info never touches Pylux.")
+                                          : qsTr("Secure one-time donation via Stripe. Your payment info never touches AstraPlay.")
                                     font.pixelSize: 13
                                     color: Qt.rgba(1, 1, 1, 0.5)
                                     wrapMode: Text.Wrap
@@ -649,7 +649,7 @@ DialogView {
                                             anchors.centerIn: parent
                                             width: 190; height: 190
                                             source: DonationManager.paymentUrl
-                                                    ? Chiaki.getPyluxURL() + "/v1/create-qr-code/?size=200&data=" + encodeURIComponent(DonationManager.paymentUrl)
+                                                    ? Chiaki.getAstraPlayURL() + "/v1/create-qr-code/?size=200&data=" + encodeURIComponent(DonationManager.paymentUrl)
                                                     : ""
                                             fillMode: Image.PreserveAspectFit
 

@@ -251,7 +251,7 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
         // Connect session quit handler
         connect(session, &StreamSession::SessionQuit, this, [this](ChiakiQuitReason reason, const QString &reason_str) {
             if (chiaki_quit_reason_is_error(reason)) {
-                QString m = tr("Pylux Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
+                QString m = tr("AstraPlay Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
                 if (!reason_str.isEmpty())
                     m += "\n" + tr("Reason") + ": \"" + reason_str + "\"";
                 emit sessionError(tr("Session has quit"), m);
@@ -1248,7 +1248,7 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
 
     connect(session, &StreamSession::SessionQuit, this, [this](ChiakiQuitReason reason, const QString &reason_str) {
         if (chiaki_quit_reason_is_error(reason)) {
-            QString m = tr("Pylux Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
+            QString m = tr("AstraPlay Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
             if (!reason_str.isEmpty())
                 m += "\n" + tr("Reason") + ": \"" + reason_str + "\"";
             emit sessionError(tr("Session has quit"), m);
@@ -2730,8 +2730,8 @@ void QmlBackend::ensurePyluxSteamShortcut(const QJSValue &callback)
     };
 
     const QString profile = settings->GetCurrentProfile();
-    const QString name = profile.isEmpty() ? QStringLiteral("Pylux")
-                                           : QStringLiteral("Pylux %1").arg(profile);
+    const QString name = profile.isEmpty() ? QStringLiteral("AstraPlay")
+                                           : QStringLiteral("AstraPlay %1").arg(profile);
     const QString launchOptions = profile.isEmpty() ? QString()
                                                     : QStringLiteral("--profile=%1").arg(profile);
 
@@ -2744,7 +2744,8 @@ void QmlBackend::ensurePyluxSteamShortcut(const QJSValue &callback)
 
     QVector<SteamShortcutEntry> shortcuts = steam.parseShortcuts();
     for (auto &entry : shortcuts) {
-        if (entry.getAppName().contains(QStringLiteral("Pylux"), Qt::CaseInsensitive)) {
+        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive) ||
+            entry.getAppName().contains(QStringLiteral("Pylux"), Qt::CaseInsensitive)) {
             done(false);
             return;
         }
