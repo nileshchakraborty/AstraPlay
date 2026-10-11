@@ -5,64 +5,90 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/nileshchakraborty/AstraPlay/blob/master/LICENSES/AGPL-3.0-only-OpenSSL.txt)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20(x64%20%2B%20ARM64)%20%7C%20macOS%20(Apple%20Silicon%20%2B%20Intel)%20%7C%20Linux%20(x86__64%20%2B%20ARM64)%20%7C%20Android%20%7C%20iOS-brightgreen)](https://github.com/nileshchakraborty/AstraPlay/releases)
 [![Build Status](https://github.com/nileshchakraborty/AstraPlay/actions/workflows/release-on-merge.yml/badge.svg)](https://github.com/nileshchakraborty/AstraPlay/actions/workflows/release-on-merge.yml)
+[![Release](https://img.shields.io/github/v/release/nileshchakraborty/AstraPlay?color=purple)](https://github.com/nileshchakraborty/AstraPlay/releases/latest)
 
-**AstraPlay is an open-source, multi-device PS4 and PS5 Remote Play client for Windows, macOS, Linux, SteamOS, Bazzite, Android, and iOS.** It features seamless console discovery, Internet Play, automatic background update checking, and high-performance hardware-accelerated AV1 / HEVC / H.264 video decoding.
+**AstraPlay is a high-performance, 100% free and open-source PlayStation (PS4 & PS5) Remote Play client for Windows, macOS, Linux, SteamOS, Bazzite, Android, and iOS.**
+
+Engineered for ultra-low latency, crisp visuals, and cross-platform flexibility, AstraPlay delivers native hardware-accelerated video streaming, seamless local and Internet Play, gamepad navigation for handheld devices, and private self-hosted authentication options.
 
 ---
 
-## Downloads & Supported Platforms
+## Key Highlights
 
-All release packages and binary checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
+- **100% Free & Open-Source**: Zero paywalls, zero locked features, zero subscription gates, and zero donation nags. All features are fully unlocked for everyone.
+- **True Multi-Platform**: Native binaries for Windows (x64 and ARM64), macOS (Apple Silicon and Intel), Linux (x86_64 and aarch64), Android (Phones, Tablets, and Android TV), and iOS/iPadOS.
+- **Handheld-First Design**: Tailored for the **ROG Xbox Ally X**, **Steam Deck**, **Lenovo Legion Go**, and **MSI Claw** with gamepad UI navigation, customizable controller bindings, and Quick Access Menu (QAM) integrations.
+- **Ultra-Low Latency & High Fidelity**: Hardware-accelerated decoding via **Vulkan**, **Metal**, **D3D11VA**, **VAAPI**, **VideoToolbox**, and **AMediaCodec** with full support for HDR, AV1, HEVC, and H.264 codecs.
+- **Inbuilt QR Code Authentication**: Pair and sign in to PlayStation Network seamlessly using the built-in, offline QR code generator directly inside the Settings and Login dialogs.
+- **Private Self-Hosted Token Relay**: Full support for self-hosting the authentication relay via `psstream-server` for zero third-party telemetry and complete network sovereignty.
+- **Seamless Settings Migration**: Automatically discovers and inherits configurations from `pylux.conf` and `Chiaki.conf` so previously registered consoles, keys, and bitrate settings carry over instantly.
+- **Integrated In-App Updates**: Built-in background update checker (`UpdateManager`) in Settings with one-click download, automated package extraction, and stale file cleanup.
 
-| Operating System | Architectures | Download Packages | Description |
+---
+
+## Downloads & Supported Packages
+
+All release binaries, packages, and SHA-256 checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
+
+| Operating System | Architectures | Available Packages | Notes |
 | :--- | :--- | :--- | :--- |
-| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X)<br>**ARM64** (Snapdragon X Elite, WoA) | [`.msi Installer (x64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`astraplay.exe Standalone`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Full Inno Setup installer, WiX `.msi` package, portable ZIP with bundled Qt6 & FFmpeg DLLs, or standalone executable for the in-app updater. |
-| **macOS** | **Apple Silicon** (`arm64`: M1/M2/M3/M4)<br>**Intel** (`x86_64`) | [`.dmg Disk Image`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native drag-and-drop `.dmg` installers and portable `AstraPlay.app` archives for both Apple Silicon and Intel Macs. |
-| **Linux / Handhelds** | **x86_64** (Desktop, SteamOS, Bazzite)<br>**ARM64** (`aarch64`: Raspberry Pi 5, ARM SBCs) | [`.AppImage Executable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Standalone portable AppImage executables and Steam-ready ZIP packages with `launch.sh`. |
-| **Android** | **ARM64 / Universal** (Phones, Tablets, Android TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable APK and Google Play Store App Bundle (`com.astraplay.stream`). |
-| **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable IPA (install via AltStore, Sideloadly, or TrollStore) or TestFlight. |
+| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X)<br>**ARM64** (Snapdragon X Elite, WoA) | [`.msi Installer (x64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`astraplay.exe Standalone`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Complete Inno Setup installer, WiX `.msi` package, portable ZIP with all bundled Qt6 / FFmpeg runtimes, or standalone binary. |
+| **macOS** | **Apple Silicon** (`arm64`: M1–M4)<br>**Intel** (`x86_64`) | [`.dmg Disk Image`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Drag-and-drop `.dmg` installers and compressed `AstraPlay.app` bundles for both Apple Silicon and Intel Macs. |
+| **Linux & Handhelds** | **x86_64** (Desktop, SteamOS, Bazzite)<br>**ARM64** (`aarch64`: SBCs, Raspberry Pi 5) | [`.AppImage Executable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Self-contained AppImage binaries and Steam-ready ZIP archives with launch scripts for Steam Deck and Bazzite Gaming Mode. |
+| **Android** | **Universal / ARM64** (Phones, Tablets, Android TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab App Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable release APK and Google Play Store App Bundle (`com.astraplay.stream`). |
+| **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable IPA (compatible with AltStore, Sideloadly, LiveContainer, or TrollStore) and TestFlight. |
 
 ---
 
-## Features
+## Features & Capabilities
 
-- **Multi-Device Support**: Native packages for Windows (x64 & ARM64), macOS (Apple Silicon & Intel), Linux (x86_64 & aarch64), Android, and iOS.
-- **Handheld Optimized**: Native controller support, gamepad navigation, and Quick Access Menu integrations for the ROG Xbox Ally X, Steam Deck, Legion Go, and Claw.
-- **In-App Auto-Updater**: Built-in background update checker (`UpdateManager`) that fetches latest releases, downloads packages, purges stale `.bak` files, and applies updates seamlessly.
-- **Seamless Settings Migration**: Automatically picks up existing `pylux.conf` and `Chiaki.conf` configurations so existing paired consoles and preferences carry over without reconfiguration.
-- **Console Discovery**: Automatic broadcast discovery of PS4 and PS5 consoles on local networks with PIN pairing.
-- **Internet Play**: Connect and stream from registered consoles over WAN and mobile networks.
-- **Modern Hardware Decoding**: Accelerated decoding with Vulkan, Metal, D3D11VA, VAAPI, VideoToolbox, and AMediaCodec.
-- **Touch & Gamepad Controls**: On-screen overlay controls for touch devices alongside full DualSense, DualShock 4, and Xbox controller support with haptics.
+### Console Discovery & Remote Play
+- **Local Network Broadcast**: Automatic discovery of PS4 and PS5 consoles on local networks via standard discovery protocols.
+- **PIN Pairing**: Fast pairing using the official PlayStation Remote Play registration PIN.
+- **Internet Remote Play**: Connect to your home consoles over WAN and mobile networks with port forwarding or UPnP.
+
+### Video & Audio Performance
+- **Codec Support**: AV1, HEVC (H.265), and H.264 streaming up to 1080p @ 60 FPS (and PS5 Pro dynamic resolutions).
+- **Hardware Decoders**:
+  - Windows: D3D11VA, Direct3D12, Vulkan
+  - macOS & iOS: Apple VideoToolbox (Metal-backed)
+  - Linux: VAAPI, VDPAU, Vulkan Video
+  - Android: Android MediaCodec (AMediaCodec NDK)
+- **Audio Engines**: Low-latency audio with SDL, Oboe (Android), CoreAudio (Apple), and PulseAudio / PipeWire (Linux).
+
+### Controller & Input Support
+- **DualSense & DualShock 4**: Full support for haptic feedback, adaptive triggers, motion sensors (gyro/accelerometer), and touchpad navigation.
+- **Xbox & Handheld Controllers**: Native mapping for Xbox wireless controllers, ROG Ally controls, Steam Deck controls, and third-party XInput / DirectInput controllers.
+- **Touchscreen Controls**: Highly responsive on-screen overlay controls with multi-touch support for iOS and Android.
 
 ---
 
-## Project Specifications & Architecture
+## Technical Documentation & Architecture
 
-Comprehensive technical documentation for AstraPlay is available in the repository root:
+Comprehensive architectural and design documents are available in the repository root:
 
-- [**PRD.md**](PRD.md) — Product Requirements Document and roadmap
-- [**DESIGN.md**](DESIGN.md) — UI/UX guidelines, design systems, and handheld input paradigms
-- [**ARCHITECTURE.md**](ARCHITECTURE.md) — System architecture, cross-platform subsystems, and build pipeline
-- [**DATA.md**](DATA.md) — Data storage, configuration models, and state persistence
-- [**SECURITY.md**](SECURITY.md) — Security policies, cryptographic keys, credentials, and network privacy
-- [**CODE_STYLE.md**](CODE_STYLE.md) — Code style guides for C++, Qt, QML, Python, and shell scripts
-- [**TESTING.md**](TESTING.md) — Testing strategy, unit tests, integration tests, and hardware validation
-- [**AGENTS.md**](AGENTS.md) — Autonomous development agents, operating instructions, and CI/CD policies
+- [**PRD.md**](PRD.md) — Product Requirements Document, platform roadmap, and UX specifications
+- [**ARCHITECTURE.md**](ARCHITECTURE.md) — Subsystem architecture, cross-platform bridging, and data flow
+- [**DESIGN.md**](DESIGN.md) — Design systems, UI components, and handheld ergonomics
+- [**DATA.md**](DATA.md) — Configuration persistence, token management, and data contracts
+- [**SECURITY.md**](SECURITY.md) — Security guardrails, cryptographic keys, and credential boundaries
+- [**CODE_STYLE.md**](CODE_STYLE.md) — Engineering standards for C++, Qt/QML, Kotlin, Swift, and CMake
+- [**TESTING.md**](TESTING.md) — Testing methodologies, automation suites, and device verification
+- [**AGENTS.md**](AGENTS.md) — Developer operating guide and CI/CD policies
 
 ---
 
 ## Building from Source
 
 ### Prerequisites
-- CMake 3.25+
-- Ninja build system
-- Python 3.10+ (with `protobuf`)
-- Qt 6.6+ (`Core`, `Gui`, `Quick`, `Qml`, `Network`, `Svg`, `Widgets`)
-- FFmpeg 6.0+ (or bundled static libraries)
-- SDL 2.0+
+- **CMake** 3.25+
+- **Ninja** build system
+- **Python** 3.10+ (with `protobuf`)
+- **Qt 6.6+** (`Core`, `Gui`, `Quick`, `Qml`, `Network`, `Svg`, `Widgets`)
+- **FFmpeg 6.0+**
+- **SDL 2.0+**
 
-### Linux / macOS
+### Linux / macOS Desktop
 ```bash
 git clone --recursive https://github.com/nileshchakraborty/AstraPlay.git
 cd astraplay
@@ -70,32 +96,49 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-### Windows (MSYS2 MinGW64 or ClangARM64)
+### Windows (MSYS2 MinGW64 / ClangARM64)
 ```bash
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
+### Android Build
+```bash
+cd android
+./gradlew assembleRelease
+# Or use the local automated build helper:
+bash build-local.sh
+```
+
+### iOS / iPadOS Build
+```bash
+bash ios/build.sh
+```
+
 ---
 
-## ROG Xbox Ally X Deployment Helper
+## Self-Hosted Token Relay (`psstream-server`)
 
-To push and test the latest build on an ROG Xbox Ally X Windows host over SSH:
+If you prefer to authenticate PlayStation Network accounts entirely within your local network without external cloud services:
 
 ```bash
-bash scripts/push-to-allyx.sh
+cd psstream-server
+npm install
+npm start
 ```
+
+The server provides a local web UI on port `8080` to log in to PSN, capture authorization tokens, and relay them to AstraPlay securely.
 
 ---
 
 ## Responsible Use
 
-AstraPlay is intended for use with games and hardware you own or are legally licensed to access with a valid account. It does not circumvent copy protection, distribute proprietary firmware, or facilitate piracy.
+AstraPlay is intended for use with games and hardware you legally own and are licensed to access. It does not circumvent digital rights management (DRM), distribute proprietary firmware, or facilitate piracy.
 
-This project is an independent community project and is not endorsed or certified by Sony Interactive Entertainment Inc. PlayStation, PS4, PS5, DualSense, and DualShock are registered trademarks of Sony Interactive Entertainment Inc.
+AstraPlay is an independent community project and is not affiliated with, endorsed by, or certified by Sony Interactive Entertainment Inc. PlayStation, PS4, PS5, DualSense, and DualShock are trademarks or registered trademarks of Sony Interactive Entertainment Inc.
 
 ---
 
-## Credits
+## Credits & Acknowledgments
 
-AstraPlay is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng), and succeeds the **Pylux** project. Special thanks to the original Chiaki development team, the chiaki-ng maintainers, and the Pylux community and contributors for their excellent foundational work. AstraPlay extends that work with a focus on app-store distribution, mobile and Android TV support, and Internet Play.
+AstraPlay is built upon the foundational work of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng), and succeeds the **Pylux** project. Heartfelt thanks go to the original Chiaki authors, the chiaki-ng maintainers, and open-source contributors across the handheld gaming ecosystem.
