@@ -138,7 +138,7 @@ DialogView {
                 z: 10
                 radius: 12
                 color: Qt.rgba(10/255, 15/255, 26/255, 0.95)
-                border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                 border.width: 1
 
                 // Subtle glow effect
@@ -147,7 +147,7 @@ DialogView {
                     anchors.margins: -2
                     radius: parent.radius + 1
                     color: "transparent"
-                    border.color: Qt.rgba(0, 212/255, 255/255, 0.2)
+                    border.color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
                     border.width: 1
                     z: -1
                 }
@@ -174,10 +174,10 @@ DialogView {
                         
                         background: Rectangle {
                             radius: 8
-                            color: parent.pressed ? Qt.rgba(0, 212/255, 255/255, 0.3) : 
-                                   parent.hovered ? Qt.rgba(0, 212/255, 255/255, 0.2) : 
-                                   Qt.rgba(0, 212/255, 255/255, 0.1)
-                            border.color: Qt.rgba(0, 212/255, 255/255, 0.6)
+                            color: parent.pressed ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : 
+                                   parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : 
+                                   Qt.rgba(245/255, 158/255, 11/255, 0.1)
+                            border.color: Qt.rgba(245/255, 158/255, 11/255, 0.6)
                             border.width: 1
                             
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -198,7 +198,7 @@ DialogView {
                                 Layout.fillWidth: true
                                 text: parent.parent.text
                                 font: parent.parent.font
-                                color: "#00d4ff"
+                                color: "#F59E0B"
                                 horizontalAlignment: Text.AlignLeft
                                 verticalAlignment: Text.AlignVCenter
                             }
@@ -231,7 +231,7 @@ DialogView {
                                     width: parent.width * (browserProgresss.value / 100)
                                     height: parent.height
                                     radius: 3
-                                    color: Qt.rgba(0, 212/255, 255/255, 0.8)
+                                    color: Qt.rgba(245/255, 158/255, 11/255, 0.8)
                                     
                                     Behavior on width { NumberAnimation { duration: 100 } }
                                 }
@@ -465,7 +465,7 @@ DialogView {
                         Layout.preferredWidth: 0
                         color: Qt.rgba(0, 0, 0, 0.3)
                         radius: 10
-                        border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                        border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                         border.width: 1
 
                         ColumnLayout {
@@ -478,7 +478,7 @@ DialogView {
                                 text: qsTr("Step 1: Open Login Page")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
-                                color: "#00d4ff"
+                                color: "#F59E0B"
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
                             }
@@ -546,7 +546,7 @@ DialogView {
                         Layout.preferredWidth: 0
                         color: Qt.rgba(0, 0, 0, 0.3)
                         radius: 10
-                        border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                        border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                         border.width: 1
 
                         ColumnLayout {
@@ -559,7 +559,7 @@ DialogView {
                                 text: qsTr("Step 2: Open NPSSO Page")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
-                                color: "#00d4ff"
+                                color: "#F59E0B"
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
                             }
@@ -605,7 +605,7 @@ DialogView {
                         Layout.preferredWidth: 0
                         color: Qt.rgba(0, 0, 0, 0.3)
                         radius: 10
-                        border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                        border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                         border.width: 1
 
                         ColumnLayout {
@@ -618,7 +618,7 @@ DialogView {
                                 text: qsTr("Step 3: Paste NPSSO Token")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
-                                color: "#00d4ff"
+                                color: "#F59E0B"
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
                             }

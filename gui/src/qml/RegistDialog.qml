@@ -121,8 +121,8 @@ DialogView {
                     
                     background: Rectangle {
                         radius: 6
-                        color: parent.hovered ? Qt.rgba(0, 212/255, 255/255, 0.3) : Qt.rgba(0, 212/255, 255/255, 0.2)
-                        border.color: "#00d4ff"
+                        color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : Qt.rgba(245/255, 158/255, 11/255, 0.2)
+                        border.color: "#F59E0B"
                         border.width: 2
                     }
                 }
@@ -142,8 +142,8 @@ DialogView {
                     
                     background: Rectangle {
                         radius: 6
-                        color: parent.hovered ? Qt.rgba(0, 212/255, 255/255, 0.3) : Qt.rgba(0, 212/255, 255/255, 0.2)
-                        border.color: "#00d4ff"
+                        color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : Qt.rgba(245/255, 158/255, 11/255, 0.2)
+                        border.color: "#F59E0B"
                         border.width: 2
                     }
                 }

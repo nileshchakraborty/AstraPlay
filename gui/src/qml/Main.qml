@@ -11,7 +11,7 @@ Item {
     property bool steamShortcutChecked: false
     property bool updateChecked: false
     Material.theme: Material.Dark
-    Material.accent: "#00d4ff"
+    Material.accent: "#F59E0B"
 
     function controllerButton(name) {
         let type = "deck";

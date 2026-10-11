@@ -54,7 +54,7 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 52
-            color: Qt.rgba(0, 212/255, 255/255, 0.1)
+            color: Qt.rgba(245/255, 158/255, 11/255, 0.1)
 
             Label {
                 anchors.fill: parent
@@ -83,7 +83,7 @@ Dialog {
                 Layout.preferredWidth: 44
                 Layout.preferredHeight: 44
                 radius: 22
-                color: Qt.rgba(0, 212/255, 255/255, 0.15)
+                color: Qt.rgba(245/255, 158/255, 11/255, 0.15)
                 border.color: Material.accent
                 border.width: 1
 
@@ -158,7 +158,7 @@ Dialog {
             ProgressBar {
                 Layout.fillWidth: true
                 value: UpdateManager.downloadProgress
-                Material.accent: "#00d4ff"
+                Material.accent: "#F59E0B"
             }
 
             Label {

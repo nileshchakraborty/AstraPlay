@@ -87,7 +87,7 @@ DialogView {
             height: 60
             color: Qt.rgba(255, 255, 255, 0.05)
             radius: 12
-            border.color: Qt.rgba(0, 212/255, 255/255, 0.2)
+            border.color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
             border.width: 1
 
             RowLayout {

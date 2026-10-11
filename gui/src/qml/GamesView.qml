@@ -118,8 +118,8 @@ Pane {
         
         gradient: Gradient {
             orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: Qt.rgba(0, 212/255, 255/255, 0.15) }
-            GradientStop { position: 1.0; color: Qt.rgba(0, 212/255, 255/255, 0.05) }
+            GradientStop { position: 0.0; color: Qt.rgba(245/255, 158/255, 11/255, 0.15) }
+            GradientStop { position: 1.0; color: Qt.rgba(245/255, 158/255, 11/255, 0.05) }
         }
         
         Rectangle {
@@ -173,7 +173,7 @@ Pane {
                 
                 background: Rectangle {
                     radius: 4
-                    color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.3) : Qt.rgba(255, 255, 255, 0.08)
+                    color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : Qt.rgba(255, 255, 255, 0.08)
                     border.width: parent.activeFocus ? 2 : 1
                     border.color: parent.activeFocus ? Material.accent : Qt.rgba(255, 255, 255, 0.2)
                 }

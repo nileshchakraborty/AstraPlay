@@ -89,9 +89,9 @@ struct ContentView: View {
 
     // MARK: - Custom toolbar matching Android's MaterialToolbar with island layout
     
-    // Pylux blue accent color from logo
-    private let pyluxBlue = Color(red: 0.0, green: 0.62, blue: 0.89)  // #009FE3
-    private let pyluxBlueGlow = Color(red: 0.0, green: 0.62, blue: 0.89).opacity(0.3)
+    // AstraPlay Nebula Gold accent color from logo (#F59E0B)
+    private let pyluxBlue = Color(red: 245.0 / 255.0, green: 158.0 / 255.0, blue: 11.0 / 255.0)
+    private let pyluxBlueGlow = Color(red: 245.0 / 255.0, green: 158.0 / 255.0, blue: 11.0 / 255.0).opacity(0.3)
 
     private var toolbarView: some View {
         // Overlay layout: title is absolutely centered over the full bar width,

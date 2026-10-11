@@ -36,7 +36,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(10/255, 15/255, 26/255, 0.4)
-        border.color: Qt.rgba(0, 212/255, 255/255, 0.2)
+        border.color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
         border.width: 1
         z: 0
     }
@@ -96,7 +96,7 @@ Item {
         
         background: Rectangle {
             color: "#0a0f1a"
-            border.color: Qt.rgba(0, 212/255, 255/255, 0.2)
+            border.color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
             border.width: 1
         }
 
@@ -122,8 +122,8 @@ Item {
                 
                 background: Rectangle {
                     radius: 8
-                    color: parent.hovered ? Qt.rgba(0, 212/255, 255/255, 0.1) : "transparent"
-                    border.color: parent.hovered ? "#00d4ff" : "transparent"
+                    color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.1) : "transparent"
+                    border.color: parent.hovered ? "#F59E0B" : "transparent"
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: 200 } }
                     Behavior on border.color { ColorAnimation { duration: 200 } }
@@ -132,7 +132,7 @@ Item {
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: "#00d4ff"
+                    color: "#F59E0B"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -153,11 +153,11 @@ Item {
                     
                     Label {
                         width: parent.width
-                        text: "PYLUX"
+                        text: "ASTRAPLAY"
                         font.pixelSize: 18
                         font.weight: Font.Bold
                         font.letterSpacing: 1.5
-                        color: "#00d4ff"
+                        color: "#F59E0B"
                         horizontalAlignment: Text.AlignRight
                         elide: Text.ElideRight
                     }
@@ -226,15 +226,15 @@ Item {
                     radius: 8
                     color: {
                         if (!parent.enabled) return Qt.rgba(0.3, 0.3, 0.3, 0.2);
-                        if (parent.activeFocus) return Qt.rgba(0, 212/255, 255/255, 0.4);
-                        if (parent.hovered) return Qt.rgba(0, 212/255, 255/255, 0.2);
-                        return Qt.rgba(0, 212/255, 255/255, 0.1);
+                        if (parent.activeFocus) return Qt.rgba(245/255, 158/255, 11/255, 0.4);
+                        if (parent.hovered) return Qt.rgba(245/255, 158/255, 11/255, 0.2);
+                        return Qt.rgba(245/255, 158/255, 11/255, 0.1);
                     }
                     border.color: {
                         if (!parent.enabled) return Qt.rgba(0.5, 0.5, 0.5, 0.5);
-                        if (parent.activeFocus) return "#00d4ff";
-                        if (parent.hovered) return Qt.rgba(0, 212/255, 255/255, 0.9);
-                        return Qt.rgba(0, 212/255, 255/255, 0.8);
+                        if (parent.activeFocus) return "#F59E0B";
+                        if (parent.hovered) return Qt.rgba(245/255, 158/255, 11/255, 0.9);
+                        return Qt.rgba(245/255, 158/255, 11/255, 0.8);
                     }
                     border.width: parent.activeFocus ? 3 : 2
                     opacity: parent.enabled ? 1.0 : 0.6
@@ -250,7 +250,7 @@ Item {
                         anchors.margins: -2
                         radius: parent.radius + 1
                         color: "transparent"
-                        border.color: parent.enabled && parent.activeFocus ? "#00d4ff" : "transparent"
+                        border.color: parent.enabled && parent.activeFocus ? "#F59E0B" : "transparent"
                         border.width: 2
                         opacity: parent.enabled && parent.activeFocus ? 0.8 : 0
                         visible: parent.enabled && parent.activeFocus
@@ -271,7 +271,7 @@ Item {
                     font: parent.font
                     color: {
                         if (!parent.enabled) return Qt.rgba(0.7, 0.7, 0.7, 0.8);
-                        return "#00d4ff";
+                        return "#F59E0B";
                     }
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -291,7 +291,7 @@ Item {
             verticalAlignment: Qt.AlignVCenter
             font.bold: true
             font.pixelSize: 20
-            color: "#00d4ff"
+            color: "#F59E0B"
             font.letterSpacing: 1
         }
 

@@ -158,8 +158,8 @@ Pane {
         
         gradient: Gradient {
             orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: Qt.rgba(0, 212/255, 255/255, 0.15) }
-            GradientStop { position: 1.0; color: Qt.rgba(0, 212/255, 255/255, 0.05) }
+            GradientStop { position: 0.0; color: Qt.rgba(245/255, 158/255, 11/255, 0.15) }
+            GradientStop { position: 1.0; color: Qt.rgba(245/255, 158/255, 11/255, 0.05) }
         }
         
         Rectangle {
@@ -218,11 +218,11 @@ Pane {
                 Layout.alignment: Qt.AlignVCenter
                 
                 Label {
-                    text: "PYLUX"
+                    text: "ASTRAPLAY"
                     font.pixelSize: 24
                     font.weight: Font.Bold
                     font.letterSpacing: 2
-                    color: "#00d4ff"
+                    color: "#F59E0B"
                 }
                 Label {
                     text: "Remote Play Client"
@@ -310,8 +310,8 @@ Pane {
                 }
                 
                 background: Rectangle {
-                    color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                    border.color: parent.activeFocus ? "#00d4ff" : "transparent"
+                    color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                    border.color: parent.activeFocus ? "#F59E0B" : "transparent"
                     border.width: parent.activeFocus ? 1 : 0
                     radius: 4
                     
@@ -323,7 +323,7 @@ Pane {
                             bottom: parent.bottom
                         }
                         height: 3
-                        color: parent.parent.checked ? "#00d4ff" : "transparent"
+                        color: parent.parent.checked ? "#F59E0B" : "transparent"
                         radius: 1.5
                         
                         Behavior on color { ColorAnimation { duration: 200 } }
@@ -336,7 +336,7 @@ Pane {
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: parent.checked ? "#00d4ff" : (parent.activeFocus ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.7))
+                    color: parent.checked ? "#F59E0B" : (parent.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.7))
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -393,8 +393,8 @@ Pane {
                 }
                 
                 background: Rectangle {
-                    color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                    border.color: parent.activeFocus ? "#00d4ff" : "transparent"
+                    color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                    border.color: parent.activeFocus ? "#F59E0B" : "transparent"
                     border.width: parent.activeFocus ? 1 : 0
                     radius: 4
                     
@@ -406,7 +406,7 @@ Pane {
                             bottom: parent.bottom
                         }
                         height: 3
-                        color: parent.parent.checked ? "#00d4ff" : "transparent"
+                        color: parent.parent.checked ? "#F59E0B" : "transparent"
                         radius: 1.5
                         
                         Behavior on color { ColorAnimation { duration: 200 } }
@@ -419,7 +419,7 @@ Pane {
                 contentItem: Text {
                     text: parent.text
                     font: parent.font
-                    color: parent.checked ? "#00d4ff" : (parent.activeFocus ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.7))
+                    color: parent.checked ? "#F59E0B" : (parent.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.7))
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -506,14 +506,14 @@ Pane {
                     
                     background: Rectangle {
                         radius: 8
-                        color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
-                        border.color: parent.activeFocus ? "#ffffff" : "#00d4ff"
+                        color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
+                        border.color: parent.activeFocus ? "#ffffff" : "#F59E0B"
                         border.width: parent.activeFocus ? 2 : 1
                         
                         Rectangle {
                             anchors.fill: parent
                             radius: parent.radius
-                            color: "#00d4ff"
+                            color: "#F59E0B"
                             opacity: parent.parent.hovered ? 0.3 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
                         }
@@ -523,7 +523,7 @@ Pane {
                             anchors.fill: parent
                             radius: parent.radius
                             color: "transparent"
-                            border.color: "#00d4ff"
+                            border.color: "#F59E0B"
                             border.width: 2
                             opacity: parent.parent.activeFocus ? 0.6 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -567,14 +567,14 @@ Pane {
                     
                 background: Rectangle {
                     radius: 8
-                    color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
-                    border.color: parent.activeFocus ? "#ffffff" : (UpdateManager.updateAvailable ? Material.accent : "#00d4ff")
+                    color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
+                    border.color: parent.activeFocus ? "#ffffff" : (UpdateManager.updateAvailable ? Material.accent : "#F59E0B")
                     border.width: parent.activeFocus ? 2 : 1
                     
                     Rectangle {
                         anchors.fill: parent
                         radius: parent.radius
-                        color: "#00d4ff"
+                        color: "#F59E0B"
                         opacity: parent.parent.hovered ? 0.3 : 0
                         Behavior on opacity { NumberAnimation { duration: 200 } }
                     }
@@ -584,7 +584,7 @@ Pane {
                         anchors.fill: parent
                         radius: parent.radius
                         color: "transparent"
-                        border.color: "#00d4ff"
+                        border.color: "#F59E0B"
                         border.width: 2
                         opacity: parent.parent.activeFocus ? 0.6 : 0
                         Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -598,7 +598,7 @@ Pane {
                         width: 8
                         height: 8
                         radius: 4
-                        color: "#00d4ff"
+                        color: "#F59E0B"
                         visible: UpdateManager.updateAvailable
                     }
                     
@@ -980,8 +980,8 @@ Pane {
                                 Layout.preferredWidth: 100
                                 Layout.preferredHeight: 100
                                 radius: 8
-                                color: Qt.rgba(0, 212/255, 255/255, 0.1)
-                                border.color: Qt.rgba(0, 212/255, 255/255, 0.3)
+                                color: Qt.rgba(245/255, 158/255, 11/255, 0.1)
+                                border.color: Qt.rgba(245/255, 158/255, 11/255, 0.3)
                                 border.width: 1
 
                 Image {
@@ -1020,7 +1020,7 @@ Pane {
                                         return status;
                                     }
                                     font.pixelSize: 16
-                                    color: "#00d4ff"
+                                    color: "#F59E0B"
                                     elide: Text.ElideRight
                                 }
                                 
@@ -1294,7 +1294,7 @@ Pane {
         height: contentColumn.implicitHeight + 60
         radius: 12
         color: Qt.rgba(10/255, 15/255, 26/255, 0.9)
-        border.color: Qt.rgba(0, 212/255, 255/255, 0.3)
+        border.color: Qt.rgba(245/255, 158/255, 11/255, 0.3)
         border.width: 1
         visible: hostsView.count === 0 && mainTabBar.currentIndex === 0  // Only show on Remote Play tab
         
@@ -1334,7 +1334,7 @@ Pane {
                 text: qsTr("No Consoles Found")
                 font.pixelSize: 24
                 font.weight: Font.Bold
-                color: "#00d4ff"
+                color: "#F59E0B"
             }
             
             // Main description text
@@ -1355,8 +1355,8 @@ Pane {
                 Layout.preferredWidth: 420
                 Layout.preferredHeight: instructionsColumn.implicitHeight + 30
                 radius: 8
-                color: Qt.rgba(0, 212/255, 255/255, 0.05)
-                border.color: Qt.rgba(0, 212/255, 255/255, 0.2)
+                color: Qt.rgba(245/255, 158/255, 11/255, 0.05)
+                border.color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
                 border.width: 1
                 
                 Column {
@@ -1370,7 +1370,7 @@ Pane {
                         text: qsTr("Enable Remote Play on your console:")
                         font.pixelSize: 14
                         font.weight: Font.Medium
-                        color: "#00d4ff"
+                        color: "#F59E0B"
                     }
                     
                     Column {
@@ -1420,14 +1420,14 @@ Pane {
                     
                     background: Rectangle {
                         radius: 8
-                        color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(0, 212/255, 255/255, 0.1)
-                        border.color: parent.activeFocus ? "#ffffff" : "#00d4ff"
+                        color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(245/255, 158/255, 11/255, 0.1)
+                        border.color: parent.activeFocus ? "#ffffff" : "#F59E0B"
                         border.width: parent.activeFocus ? 2 : 1
                         
                         Rectangle {
                             anchors.fill: parent
                             radius: parent.radius
-                            color: "#00d4ff"
+                            color: "#F59E0B"
                             opacity: parent.parent.hovered ? 0.2 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
                         }
@@ -1437,7 +1437,7 @@ Pane {
                             anchors.fill: parent
                             radius: parent.radius
                             color: "transparent"
-                            border.color: "#00d4ff"
+                            border.color: "#F59E0B"
                             border.width: 2
                             opacity: parent.parent.activeFocus ? 0.5 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -1447,7 +1447,7 @@ Pane {
                     contentItem: Text {
                         text: parent.text
                         font: parent.font
-                        color: parent.activeFocus ? "#ffffff" : "#00d4ff"
+                        color: parent.activeFocus ? "#ffffff" : "#F59E0B"
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         Behavior on color { ColorAnimation { duration: 200 } }
@@ -1484,14 +1484,14 @@ Pane {
                     
                     background: Rectangle {
                         radius: 8
-                        color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(0, 212/255, 255/255, 0.1)
-                        border.color: parent.activeFocus ? "#ffffff" : "#00d4ff"
+                        color: parent.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(245/255, 158/255, 11/255, 0.1)
+                        border.color: parent.activeFocus ? "#ffffff" : "#F59E0B"
                         border.width: parent.activeFocus ? 2 : 1
                         
                         Rectangle {
                             anchors.fill: parent
                             radius: parent.radius
-                            color: "#00d4ff"
+                            color: "#F59E0B"
                             opacity: parent.parent.hovered ? 0.2 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
                         }
@@ -1501,7 +1501,7 @@ Pane {
                             anchors.fill: parent
                             radius: parent.radius
                             color: "transparent"
-                            border.color: "#00d4ff"
+                            border.color: "#F59E0B"
                             border.width: 2
                             opacity: parent.parent.activeFocus ? 0.5 : 0
                             Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -1511,7 +1511,7 @@ Pane {
                     contentItem: Text {
                         text: parent.text
                         font: parent.font
-                        color: parent.activeFocus ? "#ffffff" : "#00d4ff"
+                        color: parent.activeFocus ? "#ffffff" : "#F59E0B"
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         Behavior on color { ColorAnimation { duration: 200 } }
@@ -1803,10 +1803,10 @@ Pane {
             radius: width / 2  // Perfect circle
             color: {
                 if (parent.activeFocus) return Qt.rgba(255, 255, 255, 0.15)
-                else if (parent.checked) return Qt.rgba(0, 212/255, 255/255, 0.2)
+                else if (parent.checked) return Qt.rgba(245/255, 158/255, 11/255, 0.2)
                 else return Qt.rgba(255, 255, 255, 0.1)
             }
-            border.color: parent.activeFocus ? "#00d4ff" : (parent.checked ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.3))
+            border.color: parent.activeFocus ? "#F59E0B" : (parent.checked ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.3))
             border.width: parent.activeFocus ? 2 : 1
             
             // Shadow effect
@@ -1822,7 +1822,7 @@ Pane {
             Rectangle {
                 anchors.fill: parent
                 radius: parent.radius
-                color: "#00d4ff"
+                color: "#F59E0B"
                 opacity: parent.parent.hovered ? 0.15 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
@@ -1832,7 +1832,7 @@ Pane {
                 anchors.fill: parent
                 radius: parent.radius
                 color: "transparent"
-                border.color: "#00d4ff"
+                border.color: "#F59E0B"
                 border.width: 2
                 opacity: parent.parent.activeFocus ? 0.6 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -1845,7 +1845,7 @@ Pane {
         icon.source: "qrc:/icons/discover-" + (checked ? "" : "off-") + "24px.svg"
         icon.width: 24
         icon.height: 24
-        icon.color: checked ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.8)
+        icon.color: checked ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.8)
     }
     
     // Floating "Add Console Manually" button - bottom right corner (Remote Play only)
@@ -1879,7 +1879,7 @@ Pane {
         background: Rectangle {
             radius: width / 2  // Perfect circle
             color: parent.activeFocus ? Qt.rgba(255, 255, 255, 0.15) : Qt.rgba(255, 255, 255, 0.1)
-            border.color: parent.activeFocus ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.3)
+            border.color: parent.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.3)
             border.width: parent.activeFocus ? 2 : 1
             
             // Shadow effect
@@ -1895,7 +1895,7 @@ Pane {
             Rectangle {
                 anchors.fill: parent
                 radius: parent.radius
-                color: "#00d4ff"
+                color: "#F59E0B"
                 opacity: parent.parent.hovered ? 0.15 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
             }
@@ -1905,7 +1905,7 @@ Pane {
                 anchors.fill: parent
                 radius: parent.radius
                 color: "transparent"
-                border.color: "#00d4ff"
+                border.color: "#F59E0B"
                 border.width: 2
                 opacity: parent.parent.activeFocus ? 0.6 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }

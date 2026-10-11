@@ -11,11 +11,11 @@ private let paywallLog = OSLog(subsystem: "com.pylux.stream", category: "Donatio
 private extension Color {
     static let paywallBg = Color(red: 0x0D/255, green: 0x11/255, blue: 0x17/255)           // primary_dark #0D1117
     static let headerPrimary = Color(red: 0x1A/255, green: 0x23/255, blue: 0x32/255)       // primary #1A2332
-    static let pyluxBlue = Color(red: 0x00/255, green: 0x9F/255, blue: 0xE3/255)           // #009FE3
+    static let pyluxBlue = Color(red: 0xF5/255, green: 0x9E/255, blue: 0x0B/255)           // #F59E0B Nebula Gold
     static let tierCardBg = Color(red: 0x1A/255, green: 0x23/255, blue: 0x32/255)          // support_tier_card_bg
-    static let tierCardStroke = Color(red: 0x00/255, green: 0x9F/255, blue: 0xE3/255).opacity(0.25)  // pylux_blue_border
+    static let tierCardStroke = Color(red: 0xF5/255, green: 0x9E/255, blue: 0x0B/255).opacity(0.25)  // astraplay_gold_border
     static let supportTextSecondary = Color(red: 0xB8/255, green: 0xC5/255, blue: 0xD6/255) // #B8C5D6
-    static let accentLight = Color(red: 0x6B/255, green: 0xB6/255, blue: 0xFF/255)         // #6BB6FF
+    static let accentLight = Color(red: 0xFB/255, green: 0xBF/255, blue: 0x24/255)         // #FBBF24 Celestial Amber
     static let divider = Color.white.opacity(0.2)                                           // #33FFFFFF
     static let taglineTint = Color(red: 0xE3/255, green: 0xEA/255, blue: 0xF2/255)         // #E3EAF2
 }

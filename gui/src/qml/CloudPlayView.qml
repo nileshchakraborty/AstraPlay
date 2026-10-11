@@ -377,7 +377,7 @@ Pane {
                 bottom: parent.bottom
             }
             height: 1
-            color: Qt.rgba(0, 212/255, 255/255, 0.2)
+            color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
         }
         
         RowLayout {
@@ -398,8 +398,8 @@ Pane {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: filterToggle.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                    border.color: filterToggle.activeFocus ? "#00d4ff" : "transparent"
+                    color: filterToggle.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                    border.color: filterToggle.activeFocus ? "#F59E0B" : "transparent"
                     border.width: filterToggle.activeFocus ? 1 : 0
                     radius: 4
                 }
@@ -409,7 +409,7 @@ Pane {
                     anchors.centerIn: parent
                     spacing: 6
                     property bool filtersActive: activeTagFilters && activeTagFilters.length > 0
-                    property color tint: filtersActive ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.6)
+                    property color tint: filtersActive ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.6)
 
                     // Funnel / "decrease" filter glyph (matches iOS line.3.horizontal.decrease)
                     Canvas {
@@ -466,7 +466,7 @@ Pane {
                 Layout.preferredWidth: searchContainer.activeFocus || searchField.activeFocus || searchField.text.length > 0 ? 360 : 36
                 radius: 18
                 color: searchContainer.activeFocus || searchField.activeFocus ? Qt.rgba(255, 255, 255, 0.15) : Qt.rgba(255, 255, 255, 0.1)
-                border.color: searchContainer.activeFocus || searchField.activeFocus ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.2)
+                border.color: searchContainer.activeFocus || searchField.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.2)
                 border.width: searchContainer.activeFocus || searchField.activeFocus ? 2 : 1
                 focusPolicy: Qt.StrongFocus
                 // Keep search OUT of the automatic focus chain so it never grabs default
@@ -537,7 +537,7 @@ Pane {
                             anchors.fill: parent
                             onPaint: {
                                 var ctx = getContext("2d");
-                                ctx.strokeStyle = searchField.activeFocus ? "#00d4ff" : Qt.rgba(255, 255, 255, 0.7);
+                                ctx.strokeStyle = searchField.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.7);
                                 ctx.lineWidth = 2;
                                 ctx.lineCap = "round";
                                 
@@ -665,7 +665,7 @@ Pane {
                     background: Rectangle {
                         color: Qt.rgba(10/255, 20/255, 38/255, 0.98)
                         radius: 12
-                        border.color: "#00d4ff"
+                        border.color: "#F59E0B"
                         border.width: 2
                     }
 
@@ -754,8 +754,8 @@ Pane {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: favoritesToggle.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                        border.color: favoritesToggle.activeFocus ? "#00d4ff" : "transparent"
+                        color: favoritesToggle.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                        border.color: favoritesToggle.activeFocus ? "#F59E0B" : "transparent"
                         border.width: favoritesToggle.activeFocus ? 1 : 0
                         radius: 4
                     }
@@ -826,8 +826,8 @@ Pane {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: refreshButton.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                        border.color: refreshButton.activeFocus ? "#00d4ff" : "transparent"
+                        color: refreshButton.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                        border.color: refreshButton.activeFocus ? "#F59E0B" : "transparent"
                         border.width: refreshButton.activeFocus ? 1 : 0
                         radius: 4
                     }
@@ -865,8 +865,8 @@ Pane {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: sortToggle.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : "transparent"
-                        border.color: sortToggle.activeFocus ? "#00d4ff" : "transparent"
+                        color: sortToggle.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : "transparent"
+                        border.color: sortToggle.activeFocus ? "#F59E0B" : "transparent"
                         border.width: sortToggle.activeFocus ? 1 : 0
                         radius: 4
                     }
@@ -883,7 +883,7 @@ Pane {
                             onPaint: {
                                 var ctx = getContext("2d");
                                 ctx.reset();
-                                ctx.strokeStyle = "#00d4ff";
+                                ctx.strokeStyle = "#F59E0B";
                                 ctx.lineWidth = 1.8; ctx.lineCap = "round"; ctx.lineJoin = "round";
                                 ctx.beginPath();
                                 ctx.moveTo(5, 15); ctx.lineTo(5, 3);
@@ -902,7 +902,7 @@ Pane {
                             text: sortState === 1 ? qsTr("A → Z") : (sortState === 2 ? qsTr("Z → A") : qsTr("Playable"))
                             font.pixelSize: 13
                             font.weight: Font.Medium
-                            color: "#00d4ff"
+                            color: "#F59E0B"
                         }
                     }
 

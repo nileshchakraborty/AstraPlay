@@ -36,7 +36,7 @@ Dialog {
             radius: 10
             color: "transparent"
             border.width: 6
-            border.color: Qt.rgba(0, 212/255, 255/255, 0.3)
+            border.color: Qt.rgba(245/255, 158/255, 11/255, 0.3)
             z: -1
         }
     }
@@ -44,7 +44,7 @@ Dialog {
     // Custom header inside the border
     header: Rectangle {
         height: 50
-        color: Qt.rgba(0, 212/255, 255/255, 0.1)
+        color: Qt.rgba(245/255, 158/255, 11/255, 0.1)
         radius: 8
         
         Label {
@@ -427,7 +427,7 @@ Dialog {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 100
-            color: Qt.rgba(0, 212/255, 255/255, 0.05)
+            color: Qt.rgba(245/255, 158/255, 11/255, 0.05)
             
             RowLayout {
                 anchors.fill: parent
@@ -586,7 +586,7 @@ Dialog {
                             font.weight: currentGroupIndex === index ? Font.Bold : Font.Normal
                             
                             background: Rectangle {
-                                color: currentGroupIndex === index ? Qt.rgba(0, 212/255, 255/255, 0.2) : "transparent"
+                                color: currentGroupIndex === index ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : "transparent"
                                 Rectangle {
                                     anchors.bottom: parent.bottom
                                     width: parent.width
@@ -753,7 +753,7 @@ Dialog {
                     Layout.fillHeight: true
                     Layout.topMargin: 12
                     Layout.bottomMargin: 12
-                    color: Qt.rgba(0, 212/255, 255/255, 0.3)
+                    color: Qt.rgba(245/255, 158/255, 11/255, 0.3)
                 }
                 
                 // Filter Section
@@ -904,7 +904,7 @@ Dialog {
             model: cachedFilteredTrophies
             
             highlight: Rectangle {
-                color: Qt.rgba(0, 212/255, 255/255, 0.15)
+                color: Qt.rgba(245/255, 158/255, 11/255, 0.15)
                 border.color: Material.accent
                 border.width: 2
             }
@@ -1033,9 +1033,9 @@ Dialog {
                                 Layout.preferredHeight: 18
                                 radius: 3
                                 visible: !!(modelData.trophyEarnedRate !== undefined)
-                                color: Qt.rgba(0, 212/255, 255/255, 0.15)
+                                color: Qt.rgba(245/255, 158/255, 11/255, 0.15)
                                 border.width: 1
-                                border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                                border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                                 
                                 RowLayout {
                                     id: earnedContent
@@ -1163,7 +1163,7 @@ Dialog {
                                     radius: 8
                                     color: Qt.rgba(0, 0, 0, 0.3)
                                     border.width: 1
-                                    border.color: Qt.rgba(0, 212/255, 255/255, 0.4)
+                                    border.color: Qt.rgba(245/255, 158/255, 11/255, 0.4)
                                     
                                     Rectangle {
                                         width: Math.max(16, parent.width * ((modelData.progressRate || 0) / 100))

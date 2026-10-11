@@ -13,8 +13,8 @@ TextField {
     // Enhanced futuristic styling
     background: Rectangle {
         radius: 8
-        color: control.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.15) : Qt.rgba(0, 212/255, 255/255, 0.05)
-        border.color: control.activeFocus ? "#00d4ff" : Qt.rgba(0, 212/255, 255/255, 0.3)
+        color: control.activeFocus ? Qt.rgba(245/255, 158/255, 11/255, 0.15) : Qt.rgba(245/255, 158/255, 11/255, 0.05)
+        border.color: control.activeFocus ? "#F59E0B" : Qt.rgba(245/255, 158/255, 11/255, 0.3)
         border.width: control.activeFocus ? 2 : 1
         
         Behavior on color { ColorAnimation { duration: 200 } }
@@ -26,7 +26,7 @@ TextField {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
-            border.color: "#00d4ff"
+            border.color: "#F59E0B"
             border.width: 2
             opacity: control.activeFocus ? 0.5 : 0
             visible: opacity > 0
@@ -44,7 +44,7 @@ TextField {
     
     color: "#ffffff"
     placeholderTextColor: Qt.rgba(255, 255, 255, 0.5)
-    selectionColor: "#00d4ff"
+    selectionColor: "#F59E0B"
     selectedTextColor: "#000000"
 
     onActiveFocusChanged: {

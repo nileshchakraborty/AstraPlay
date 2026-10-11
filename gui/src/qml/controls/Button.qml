@@ -14,8 +14,8 @@ Button {
     // Enhanced futuristic styling
     background: Rectangle {
         radius: 8
-        color: control.visualFocus ? "#00d4ff" : Qt.rgba(0, 212/255, 255/255, 0.1)
-        border.color: control.visualFocus ? "transparent" : "#00d4ff"
+        color: control.visualFocus ? "#F59E0B" : Qt.rgba(245/255, 158/255, 11/255, 0.1)
+        border.color: control.visualFocus ? "transparent" : "#F59E0B"
         border.width: control.visualFocus ? 0 : 1
         
         Behavior on color { ColorAnimation { duration: 200 } }
@@ -26,7 +26,7 @@ Button {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
-            border.color: "#00d4ff"
+            border.color: "#F59E0B"
             border.width: 2
             opacity: control.visualFocus ? 0.6 : 0
             visible: opacity > 0
@@ -45,7 +45,7 @@ Button {
     contentItem: Text {
         text: control.text
         font: control.font
-        color: control.visualFocus ? "#000000" : "#00d4ff"
+        color: control.visualFocus ? "#000000" : "#F59E0B"
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         Behavior on color { ColorAnimation { duration: 200 } }

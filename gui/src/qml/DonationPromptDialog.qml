@@ -172,7 +172,7 @@ DialogView {
                         text: qsTr("Keep Pylux alive")
                         font.pixelSize: 20
                         font.weight: Font.Bold
-                        color: "#00d4ff"
+                        color: "#F59E0B"
                         font.letterSpacing: 0.5
                     }
                     Label {
@@ -193,7 +193,7 @@ DialogView {
                 height: 1
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "#00d4ff" }
+                    GradientStop { position: 0.0; color: "#F59E0B" }
                     GradientStop { position: 0.5; color: Qt.rgba(0, 0.83, 1.0, 0.3) }
                     GradientStop { position: 1.0; color: "transparent" }
                 }
@@ -277,7 +277,7 @@ DialogView {
                                         Layout.alignment: Qt.AlignTop
                                         Layout.topMargin: 8
                                         radius: 3
-                                        color: "#00d4ff"
+                                        color: "#F59E0B"
                                     }
 
                                     Label {
@@ -490,7 +490,7 @@ DialogView {
                                             width: 28; height: 28
                                             running: DonationManager.purchasingProductId === modelData.id
                                             visible: running
-                                            Material.accent: "#00d4ff"
+                                            Material.accent: "#F59E0B"
                                         }
 
                                         Row {
@@ -506,7 +506,7 @@ DialogView {
                                                 text: modelData.price
                                                 font.pixelSize: 17
                                                 font.weight: Font.Bold
-                                                color: "#00d4ff"
+                                                color: "#F59E0B"
                                             }
 
                                             Label {
@@ -535,7 +535,7 @@ DialogView {
                                     Layout.topMargin: 24
                                     running: DonationManager.iapTiers.length === 0 && !DonationManager.iapLoadFailed
                                     visible: running
-                                    Material.accent: "#00d4ff"
+                                    Material.accent: "#F59E0B"
                                 }
 
                                 Label {
@@ -657,7 +657,7 @@ DialogView {
                                                 anchors.centerIn: parent
                                                 running: qrCodeImage.status === Image.Loading
                                                 visible: running
-                                                Material.accent: "#00d4ff"
+                                                Material.accent: "#F59E0B"
                                             }
                                         }
                                     }
@@ -682,7 +682,7 @@ DialogView {
                                     radius: 22
                                     visible: DonationManager.paymentUrl !== ""
                                     color: browserBtnMouse.containsMouse ? Qt.rgba(0, 0.83, 1.0, 0.25) : Qt.rgba(0, 0.83, 1.0, 0.15)
-                                    border.color: "#00d4ff"
+                                    border.color: "#F59E0B"
                                     border.width: 1
 
                                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -692,7 +692,7 @@ DialogView {
                                         text: qsTr("Open in Browser")
                                         font.pixelSize: 15
                                         font.weight: Font.Medium
-                                        color: "#00d4ff"
+                                        color: "#F59E0B"
                                         font.letterSpacing: 0.3
                                     }
 

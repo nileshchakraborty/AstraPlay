@@ -23,13 +23,13 @@ Slider {
         Rectangle {
             width: control.visualPosition * parent.width
             height: parent.height
-            color: "#00d4ff"
+            color: "#F59E0B"
             radius: parent.radius
             
             Rectangle {
                 anchors.fill: parent
                 radius: parent.radius
-                color: "#00d4ff"
+                color: "#F59E0B"
                 opacity: 0.5
                 
                 layer.enabled: true
@@ -48,7 +48,7 @@ Slider {
         implicitWidth: 20
         implicitHeight: 20
         radius: 10
-        color: control.pressed ? "#ffffff" : "#00d4ff"
+        color: control.pressed ? "#ffffff" : "#F59E0B"
         border.color: control.visualFocus ? "#ffffff" : "transparent"
         border.width: control.visualFocus ? 2 : 0
         
@@ -60,7 +60,7 @@ Slider {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
-            border.color: "#00d4ff"
+            border.color: "#F59E0B"
             border.width: 2
             opacity: control.visualFocus ? 0.7 : 0
             visible: opacity > 0
