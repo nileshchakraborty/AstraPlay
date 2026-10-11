@@ -4,8 +4,8 @@
 #define MyAppName "AstraPlay"
 #define MyAppPublisher "Forward Technologies"
 #define MyAppURL "https://www.xbgamestream.com"
-#define MyAppExeName "astraplay.exe"
-#define MyAppPath "..\astraplay"
+#define MyAppExeName "pylux.exe"
+#define MyAppPath "..\pylux"
 #define MyAppVersion() \
   GetVersionComponents(MyAppPath + "\" + MyAppExeName, Local[0], Local[1], Local[2], Local[3]), \
   Str(Local[0]) + "." + Str(Local[1]) + "." + Str(Local[2])
