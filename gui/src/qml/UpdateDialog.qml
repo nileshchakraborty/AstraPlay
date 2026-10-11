@@ -9,20 +9,33 @@ import "controls" as C
 
 Dialog {
     id: updateDialog
-    title: UpdateManager.updateAvailable ? qsTr("Update Available") : qsTr("Software Update")
     parent: Overlay.overlay
-    x: Math.round((parent.width - width) / 2)
-    y: Math.round((parent.height - height) / 2)
-    width: Math.min(600, parent.width - 40)
+    x: Math.round((parent ? (parent.width - width) / 2 : (root.width - width) / 2))
+    y: Math.round((parent ? (parent.height - height) / 2 : (root.height - height) / 2))
+    width: Math.min((parent ? parent.width : root.width) * 0.9, 580)
     modal: true
+    dim: true
+    closePolicy: Popup.CloseOnEscape
     Material.roundedScale: Material.MediumScale
+    padding: 0
+    topPadding: 0
+    bottomPadding: 0
+    leftPadding: 0
+    rightPadding: 0
+
+    Overlay.modal: Rectangle {
+        color: Qt.rgba(0, 0, 0, 0.75)
+    }
 
     background: Rectangle {
-        color: Material.dialogColor
+        color: "#111827"
         radius: 12
         border.color: Material.accent
         border.width: 2
+        clip: true
     }
+
+    Component.onCompleted: header.visible = false
 
     onOpened: {
         if (UpdateManager.updateAvailable)
@@ -33,9 +46,33 @@ Dialog {
             closeButton.forceActiveFocus(Qt.TabFocusReason);
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 16
+    contentItem: ColumnLayout {
+        id: dialogContentLayout
+        spacing: 0
+
+        // Custom Header Title Bar matching app styling
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 52
+            color: Qt.rgba(0, 212/255, 255/255, 0.1)
+
+            Label {
+                anchors.fill: parent
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 20
+                font.bold: true
+                color: Material.accent
+                text: UpdateManager.updateAvailable ? qsTr("Update Available") : qsTr("Software Update")
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.margins: 20
+            spacing: 16
 
         // Header / Version info
         RowLayout {
@@ -103,6 +140,7 @@ Dialog {
                 TextArea {
                     readOnly: true
                     text: UpdateManager.releaseNotes
+                    textFormat: Text.MarkdownText
                     wrapMode: Text.WordWrap
                     color: "white"
                     font.pixelSize: 12
@@ -184,6 +222,7 @@ Dialog {
                 }
             }
         }
+    }
     }
 
     Connections {

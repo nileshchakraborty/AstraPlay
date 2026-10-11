@@ -536,58 +536,19 @@ Pane {
             }
 
             Button {
-                id: updateNotificationButton
+                id: settingsButton
                 Layout.preferredHeight: 48
-                visible: UpdateManager.updateAvailable
+                Layout.preferredWidth: 48
                 flat: true
-                icon.source: "qrc:/icons/refresh-24px.svg"
+                icon.source: "qrc:/icons/settings-20px.svg"
                 icon.width: 24
                 icon.height: 24
                 focusPolicy: Qt.StrongFocus
                 hoverEnabled: true
-                ToolTip.visible: hovered
-                ToolTip.text: qsTr("Update Available: %1. Click to install.").arg(UpdateManager.latestVersion)
-                onClicked: root.showUpdateDialog()
-
-                KeyNavigation.left: psnLoginHeaderButton
-                KeyNavigation.right: settingsButton
-                KeyNavigation.down: settingsButton.KeyNavigation.down
-                Keys.onReturnPressed: {
-                    clicked();
-                    event.accepted = true;
-                }
-
-                background: Rectangle {
-                    radius: 8
-                    color: updateNotificationButton.hovered ? Qt.rgba(0, 212/255, 255/255, 0.25) : Qt.rgba(0, 212/255, 255/255, 0.12)
-                    border.color: "#00d4ff"
-                    border.width: 1.5
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: parent.radius
-                        color: "transparent"
-                        border.color: "#00d4ff"
-                        border.width: 2
-                        opacity: updateNotificationButton.activeFocus ? 0.8 : 0
-                    }
-                }
-            }
-
-            Button {
-                id: settingsButton
-                    Layout.preferredHeight: 48
-                    Layout.preferredWidth: 48
-                flat: true
-                    icon.source: "qrc:/icons/settings-20px.svg"
-                    icon.width: 24
-                    icon.height: 24
-                focusPolicy: Qt.StrongFocus
-                hoverEnabled: true
-                onClicked: root.showSettingsDialog()
+                onClicked: settingsMenu.open()
                 
                 // Keyboard navigation
-                KeyNavigation.left: updateNotificationButton.visible ? updateNotificationButton : psnLoginHeaderButton
+                KeyNavigation.left: psnLoginHeaderButton
                 KeyNavigation.right: closeButton
                 KeyNavigation.down: {
                     if (mainTabBar.currentIndex === 1 && cloudPlayLoader.active) {
@@ -604,41 +565,73 @@ Pane {
                     event.accepted = true;
                 }
                     
-                    background: Rectangle {
-                        radius: 8
-                        color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
-                        border.color: parent.activeFocus ? "#ffffff" : "#00d4ff"
-                        border.width: parent.activeFocus ? 2 : 1
-                        
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: parent.radius
-                            color: "#00d4ff"
-                            opacity: parent.parent.hovered ? 0.3 : 0
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
-                        }
-                        
-                        // Focus glow effect
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: parent.radius
-                            color: "transparent"
-                            border.color: "#00d4ff"
-                            border.width: 2
-                            opacity: parent.parent.activeFocus ? 0.6 : 0
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
-                        }
-                        
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                        Behavior on border.color { ColorAnimation { duration: 200 } }
-                        Behavior on border.width { NumberAnimation { duration: 200 } }
+                background: Rectangle {
+                    radius: 8
+                    color: parent.activeFocus ? Qt.rgba(0, 212/255, 255/255, 0.2) : Qt.rgba(255, 255, 255, 0.1)
+                    border.color: parent.activeFocus ? "#ffffff" : (UpdateManager.updateAvailable ? Material.accent : "#00d4ff")
+                    border.width: parent.activeFocus ? 2 : 1
+                    
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        color: "#00d4ff"
+                        opacity: parent.parent.hovered ? 0.3 : 0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
                     }
                     
-                    ToolTip.visible: hovered || activeFocus
-                    ToolTip.text: qsTr("Settings")
+                    // Focus glow effect
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        color: "transparent"
+                        border.color: "#00d4ff"
+                        border.width: 2
+                        opacity: parent.parent.activeFocus ? 0.6 : 0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
+                    
+                    // Small subtle indicator badge if update is available
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.margins: 4
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: "#00d4ff"
+                        visible: UpdateManager.updateAvailable
+                    }
+                    
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                    Behavior on border.width { NumberAnimation { duration: 200 } }
                 }
+                
+                ToolTip.visible: hovered || activeFocus
+                ToolTip.text: qsTr("Settings & Options")
 
-                Button {
+                Menu {
+                    id: settingsMenu
+                    y: settingsButton.height + 5
+
+                    MenuItem {
+                        text: qsTr("Settings")
+                        icon.source: "qrc:/icons/settings-20px.svg"
+                        onTriggered: root.showSettingsDialog()
+                    }
+
+                    MenuItem {
+                        text: UpdateManager.updateAvailable ? qsTr("Software Updates (Available!)") : qsTr("Check for Updates...")
+                        icon.source: "qrc:/icons/refresh-24px.svg"
+                        onTriggered: {
+                            UpdateManager.checkForUpdates(true);
+                            root.showUpdateDialog();
+                        }
+                    }
+                }
+            }
+
+            Button {
                     id: closeButton
                     Layout.preferredHeight: 48
                     Layout.preferredWidth: 48

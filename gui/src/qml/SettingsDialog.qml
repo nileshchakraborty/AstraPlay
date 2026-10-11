@@ -2791,6 +2791,18 @@ DialogView {
                     }
 
                     C.Button {
+                        id: softwareUpdatesButton
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: 400
+                        Layout.preferredHeight: 50
+                        text: UpdateManager.updateAvailable ? qsTr("Software Updates (Update Available!)") : qsTr("Software Updates")
+                        Material.background: UpdateManager.updateAvailable ? Material.accent : undefined
+                        onClicked: root.showUpdateDialog()
+                        Material.roundedScale: Material.SmallScale
+                    }
+
+                    C.Button {
                         id: aboutButton
                         Layout.alignment: Qt.AlignHCenter
                         Layout.fillWidth: true
