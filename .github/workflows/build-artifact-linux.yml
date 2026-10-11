@@ -4,14 +4,28 @@ name: Build Linux (artifact)
 
 on:
   workflow_dispatch:
+    inputs:
+      arch:
+        description: "Target Linux Architecture"
+        required: true
+        type: choice
+        default: "x86_64"
+        options:
+          - "x86_64"
+          - "aarch64"
+          - "both"
 
 concurrency:
-  group: build-artifact-linux-${{ github.ref }}
+  group: build-artifact-linux-${{ github.ref }}-${{ inputs.arch }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  # =========================================================================
+  # LINUX X86_64
+  # =========================================================================
+  build-x86_64:
     name: Build Linux x86_64 (artifact)
+    if: inputs.arch == 'x86_64' || inputs.arch == 'both' || inputs.arch == ''
     runs-on: ubuntu-latest
     steps:
       - name: Install tools
@@ -43,7 +57,7 @@ jobs:
 
       - name: Package portable zip
         working-directory: pylux/appimage
-        run: zip -r pylux.zip pylux
+        run: zip -r pylux-x86_64.zip pylux
 
       - name: Extract version
         id: extract_version
@@ -54,7 +68,7 @@ jobs:
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Linux-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.AppImage
+          name: Pylux-Linux-x86_64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.AppImage
           path: pylux/appimage/pylux.AppImage
           retention-days: 14
           if-no-files-found: error
@@ -62,7 +76,69 @@ jobs:
       - name: Upload portable zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Pylux-Linux-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
-          path: pylux/appimage/pylux.zip
+          name: Pylux-Linux-x86_64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: pylux/appimage/pylux-x86_64.zip
+          retention-days: 14
+          if-no-files-found: error
+
+  # =========================================================================
+  # LINUX AARCH64 (ARM64)
+  # =========================================================================
+  build-aarch64:
+    name: Build Linux ARM64 (artifact)
+    if: inputs.arch == 'aarch64' || inputs.arch == 'both'
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+    steps:
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get -y install podman zip jq
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: pylux
+
+      - name: Set short commit hash
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Add QmlWebEngine import
+        working-directory: pylux
+        run: cp scripts/qtwebengine_import.qml gui/src/qml/
+
+      - name: Build in container
+        working-directory: pylux
+        run: |
+          podman run --rm \
+            -v "$PWD:/build/chiaki" \
+            -w "/build/chiaki" \
+            --device /dev/fuse \
+            --cap-add SYS_ADMIN \
+            -t docker.io/streetpea/chiaki-ng-builder:qt6.9 \
+            /bin/bash -c "sudo -E scripts/build-appimage.sh /build/appdir"
+
+      - name: Package portable zip
+        working-directory: pylux/appimage
+        run: zip -r pylux-aarch64.zip pylux
+
+      - name: Extract version
+        id: extract_version
+        uses: ./pylux/.github/actions/extract-version
+        with:
+          cmakelists: pylux/CMakeLists.txt
+
+      - name: Upload ARM64 AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pylux-Linux-aarch64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.AppImage
+          path: pylux/appimage/pylux.AppImage
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload ARM64 portable zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pylux-Linux-aarch64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
+          path: pylux/appimage/pylux-aarch64.zip
           retention-days: 14
           if-no-files-found: error

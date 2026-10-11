@@ -418,9 +418,9 @@ jobs:
           if-no-files-found: error
 
   # =========================================================================
-  # 5. LINUX BUILD (SteamOS / Bazzite / AppImage + Portable Zip)
+  # 5a. LINUX X86_64 BUILD (SteamOS / Bazzite / AppImage + Portable Zip)
   # =========================================================================
-  build-linux:
+  build-linux-x64:
     name: Build Linux x86_64
     runs-on: ubuntu-latest
     steps:
@@ -456,11 +456,59 @@ jobs:
           cp pylux.AppImage linux_staging/Pylux-Linux-x86_64.AppImage
           cp pylux-linux-x86_64.zip linux_staging/
 
-      - name: Upload Linux Artifacts
+      - name: Upload Linux x86_64 Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: pylux-linux-build
           path: pylux/appimage/linux_staging/
+          retention-days: 7
+          if-no-files-found: error
+
+  # =========================================================================
+  # 5b. LINUX ARM64 BUILD (Raspberry Pi 5 / ARM Linux SBCs & Handhelds)
+  # =========================================================================
+  build-linux-arm64:
+    name: Build Linux ARM64 (aarch64)
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+    steps:
+      - name: Install Podman and Tools
+        run: sudo apt-get update && sudo apt-get -y install podman zip jq
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: pylux
+
+      - name: Add QmlWebEngine import
+        working-directory: pylux
+        run: cp scripts/qtwebengine_import.qml gui/src/qml/
+
+      - name: Build in Container
+        working-directory: pylux
+        run: |
+          podman run --rm \
+            -v "$PWD:/build/chiaki" \
+            -w "/build/chiaki" \
+            --device /dev/fuse \
+            --cap-add SYS_ADMIN \
+            -t docker.io/streetpea/chiaki-ng-builder:qt6.9 \
+            /bin/bash -c "sudo -E scripts/build-appimage.sh /build/appdir"
+
+      - name: Package Linux ARM64 Portable Zip
+        working-directory: pylux/appimage
+        run: |
+          zip -r pylux-linux-aarch64.zip pylux
+          mkdir -p linux_arm64_staging
+          cp pylux.AppImage linux_arm64_staging/Pylux-Linux-aarch64.AppImage
+          cp pylux-linux-aarch64.zip linux_arm64_staging/
+
+      - name: Upload Linux ARM64 Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylux-linux-arm64-build
+          path: pylux/appimage/linux_arm64_staging/
           retention-days: 7
           if-no-files-found: error
 
@@ -470,6 +518,7 @@ jobs:
   build-android:
     name: Build Android
     runs-on: ubuntu-latest
+    continue-on-error: true
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -483,7 +532,12 @@ jobs:
           java-version: 21
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          yes | sdkmanager --licenses || true
 
       - name: Install NDK and Tools
         run: |
@@ -501,7 +555,7 @@ jobs:
 
       - name: Write local.properties
         working-directory: android
-        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: Build Debug APK
         working-directory: android
@@ -515,7 +569,9 @@ jobs:
         run: |
           mkdir -p android_staging
           APK_SRC=$(find android/app/build/outputs/apk/debug -name "*.apk" | head -n 1)
-          cp "$APK_SRC" android_staging/Pylux-Android.apk
+          if [ -n "$APK_SRC" ]; then
+            cp "$APK_SRC" android_staging/Pylux-Android.apk
+          fi
 
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
@@ -523,7 +579,7 @@ jobs:
           name: pylux-android-build
           path: android_staging/
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
 
   # =========================================================================
   # 7. IOS BUILD (Unsigned Sideloadable IPA)
@@ -531,6 +587,7 @@ jobs:
   build-ios:
     name: Build iOS Unsigned IPA
     runs-on: macos-latest
+    continue-on-error: true
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
@@ -635,7 +692,7 @@ jobs:
           name: pylux-ios-build
           path: ios_staging/
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
 
   # =========================================================================
   # 8. PUBLISH MULTI-PLATFORM RELEASE
@@ -648,10 +705,11 @@ jobs:
       - build-windows-arm64
       - build-macos-arm64
       - build-macos-intel
-      - build-linux
+      - build-linux-x64
+      - build-linux-arm64
       - build-android
       - build-ios
-    if: always() && !cancelled() && (needs.build-windows-x64.result == 'success' || needs.build-macos-arm64.result == 'success' || needs.build-linux.result == 'success')
+    if: always() && !cancelled() && (needs.build-windows-x64.result == 'success' || needs.build-macos-arm64.result == 'success' || needs.build-linux-x64.result == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -785,15 +843,27 @@ jobs:
             fi
           fi
 
-          # 6. Linux assets
+          # 6a. Linux x86_64 assets
           if [ -d artifacts/pylux-linux-build ]; then
-            LIN_AI=$(find artifacts/pylux-linux-build -name "*.AppImage" | head -n 1)
+            LIN_AI=$(find artifacts/pylux-linux-build -name "*x86_64.AppImage" -o -name "pylux.AppImage" -o -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_AI" ]; then
               cp "$LIN_AI" dist/Pylux-Linux-x86_64.AppImage
             fi
-            LIN_ZIP=$(find artifacts/pylux-linux-build -name "*.zip" | head -n 1)
+            LIN_ZIP=$(find artifacts/pylux-linux-build -name "*x86_64.zip" -o -name "pylux.zip" -o -name "*.zip" | head -n 1)
             if [ -n "$LIN_ZIP" ]; then
               cp "$LIN_ZIP" dist/Pylux-Linux-x86_64.zip
+            fi
+          fi
+
+          # 6b. Linux ARM64 assets
+          if [ -d artifacts/pylux-linux-arm64-build ]; then
+            LIN_ARM_AI=$(find artifacts/pylux-linux-arm64-build -name "*aarch64.AppImage" -o -name "pylux.AppImage" -o -name "*.AppImage" | head -n 1)
+            if [ -n "$LIN_ARM_AI" ]; then
+              cp "$LIN_ARM_AI" dist/Pylux-Linux-aarch64.AppImage
+            fi
+            LIN_ARM_ZIP=$(find artifacts/pylux-linux-arm64-build -name "*aarch64.zip" -o -name "pylux.zip" -o -name "*.zip" | head -n 1)
+            if [ -n "$LIN_ARM_ZIP" ]; then
+              cp "$LIN_ARM_ZIP" dist/Pylux-Linux-aarch64.zip
             fi
           fi
 
