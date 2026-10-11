@@ -893,6 +893,7 @@ jobs:
 
           # 7. Android assets
           AND_DIR=artifacts/astraplay-android-build
+          if [ -d "$AND_DIR" ]; then
             AND_APK=$(find "$AND_DIR" -name "*.apk" | head -n 1)
             if [ -n "$AND_APK" ]; then
               cp "$AND_APK" dist/AstraPlay-Android.apk
@@ -904,7 +905,8 @@ jobs:
           fi
 
           # 8. iOS assets
-          IOS_IPA=$(find artifacts/astraplay-ios-build -name "*.ipa" | head -n 1)
+          if [ -d artifacts/astraplay-ios-build ]; then
+            IOS_IPA=$(find artifacts/astraplay-ios-build -name "*.ipa" | head -n 1)
             if [ -n "$IOS_IPA" ]; then
               cp "$IOS_IPA" dist/AstraPlay-iOS.ipa
             fi
