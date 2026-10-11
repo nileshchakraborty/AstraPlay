@@ -98,4 +98,4 @@ This project is an independent community project and is not endorsed or certifie
 
 ## Credits
 
-AstraPlay is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng). Special thanks to the Chiaki and chiaki-ng maintainers and community contributors for their foundational Remote Play engineering.
+AstraPlay is built on top of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng). Special thanks to the original Chiaki development team and the chiaki-ng maintainers for their excellent foundational work. AstraPlay extends that work with a focus on app-store distribution, mobile and Android TV support, and Internet Play.
