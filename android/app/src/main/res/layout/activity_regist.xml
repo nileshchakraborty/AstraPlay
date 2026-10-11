@@ -101,11 +101,25 @@
                         android:layout_weight="1"/>
             </RadioGroup>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/psnLoginAutoFillButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/action_sign_in_psn_autofill"
+                app:icon="@drawable/ic_console_simple"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="#F59E0B"
+                app:strokeWidth="1.5dp"
+                android:textColor="#F59E0B"
+                app:iconTint="#F59E0B"
+                app:layout_constraintTop_toBottomOf="@id/ps4VersionRadioGroup"
+                android:layout_marginTop="12dp"/>
+
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/psnAccountIdHelpTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/ps4VersionRadioGroup"
+                app:layout_constraintTop_toBottomOf="@id/psnLoginAutoFillButton"
                 android:text="@string/regist_psn_account_id_help"
                 android:gravity="center_horizontal"
                 android:textAppearance="?attr/textAppearanceBody1"
@@ -128,7 +142,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
-                app:constraint_referenced_ids="psnAccountIdHelpTextView,psnAccountIdHelpURLTextView"/>
+                app:constraint_referenced_ids="psnLoginAutoFillButton,psnAccountIdHelpTextView,psnAccountIdHelpURLTextView"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/psnIdTextInputLayout"

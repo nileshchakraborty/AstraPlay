@@ -28,10 +28,12 @@ class RegistActivity: AppCompatActivity(), RevealActivity
 		private const val PIN_LENGTH = 8
 
 		private const val REQUEST_REGIST = 1
+		private const val REQUEST_PSN_LOGIN_AUTOFILL = 2
 	}
 
 	private lateinit var viewModel: RegistViewModel
 	private lateinit var binding: ActivityRegistBinding
+	private lateinit var preferences: com.metallic.chiaki.common.Preferences
 
 	override val revealWindow: Window get() = window
 	override val revealIntent: Intent get() = intent
@@ -44,10 +46,19 @@ class RegistActivity: AppCompatActivity(), RevealActivity
 		setContentView(binding.root)
 		handleReveal()
 
+		preferences = com.metallic.chiaki.common.Preferences(this)
 		viewModel = ViewModelProvider(this).get(RegistViewModel::class.java)
 
 		binding.hostEditText.setText(intent.getStringExtra(EXTRA_HOST) ?: "255.255.255.255")
 		binding.broadcastCheckBox.isChecked = intent.getBooleanExtra(EXTRA_BROADCAST, true)
+
+		// Auto-fill Account ID from existing PSN login if available
+		applySavedAccountId()
+
+		binding.psnLoginAutoFillButton.setOnClickListener {
+			val loginIntent = Intent(this, com.metallic.chiaki.cloudplay.PsnLoginActivity::class.java)
+			startActivityForResult(loginIntent, REQUEST_PSN_LOGIN_AUTOFILL)
+		}
 
 		binding.registButton.setOnClickListener { doRegist() }
 
@@ -79,6 +90,16 @@ class RegistActivity: AppCompatActivity(), RevealActivity
 			binding.pinHelpBeforeTextView.setText(if(it.isPS5) R.string.regist_pin_instructions_ps5_before else R.string.regist_pin_instructions_ps4_before)
 			binding.pinHelpNavigationTextView.setText(if(it.isPS5) R.string.regist_pin_instructions_ps5_navigation else R.string.regist_pin_instructions_ps4_navigation)
 		})
+	}
+
+	private fun applySavedAccountId()
+	{
+		val savedId = preferences.psnAccountId
+		if (savedId.isNotEmpty()) {
+			binding.psnIdEditText.setText(savedId)
+			binding.psnLoginAutoFillButton.text = getString(R.string.psn_account_id_autofilled)
+			binding.psnLoginAutoFillButton.alpha = 0.85f
+		}
 	}
 
 	private fun doRegist()
@@ -144,5 +165,10 @@ class RegistActivity: AppCompatActivity(), RevealActivity
 		super.onActivityResult(requestCode, resultCode, data)
 		if(requestCode == REQUEST_REGIST && resultCode == RESULT_OK)
 			finish()
+		else if(requestCode == REQUEST_PSN_LOGIN_AUTOFILL && resultCode == RESULT_OK)
+		{
+			applySavedAccountId()
+			android.widget.Toast.makeText(this, R.string.psn_account_id_autofilled, android.widget.Toast.LENGTH_SHORT).show()
+		}
 	}
 }

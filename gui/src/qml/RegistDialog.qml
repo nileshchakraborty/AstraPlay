@@ -151,14 +151,14 @@ DialogView {
 
             Label {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("Account-ID:")
+                text: Chiaki.settings.psnAccountId ? qsTr("Account-ID (Auto-filled):") : qsTr("Account-ID:")
                 visible: !ps4_7.checked
             }
 
             C.TextField {
                 id: accountId
                 echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
-                placeholderText: qsTr("base64")
+                placeholderText: Chiaki.settings.psnAccountId ? qsTr("Auto-filled from PlayStation login") : qsTr("base64")
                 Layout.preferredWidth: 400
                 visible: !ps4_7.checked
                 KeyNavigation.up: byLoginButton

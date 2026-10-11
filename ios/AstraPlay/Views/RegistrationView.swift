@@ -41,6 +41,7 @@ struct RegistrationView: View {
     @State private var resultMessage: String?
     @State private var registSuccess = false
     @State private var registService: AstraPlayRegistService?
+    @State private var showingLoginSheet = false
 
     var body: some View {
         ScrollView {
@@ -82,16 +83,32 @@ struct RegistrationView: View {
                     }
                 }
 
-                // PSN Account ID help (matches Android's psnAccountIdHelpGroup)
+                // PSN Account ID help & auto-fill
                 if consoleVersion != .ps4LT7 {
-                    VStack(spacing: 4) {
-                        Text("About obtaining your Account ID, see")
-                            .font(.callout)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        Link("chiaki README",
-                             destination: URL(string: "https://git.sr.ht/~thestr4ng3r/chiaki/tree/master/item/README.md#obtaining-your-psn-accountid")!)
-                            .font(.caption)
+                    VStack(spacing: 8) {
+                        Button {
+                            showingLoginSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.crop.circle.badge.checkmark")
+                                Text(psnId.isEmpty ? "Sign in to PlayStation to Auto-Fill" : "Signed in to PlayStation (Auto-Filled)")
+                            }
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Color(red: 0.96, green: 0.62, blue: 0.04))
+
+                        VStack(spacing: 2) {
+                            Text("Or enter your 8-byte Account ID manually")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Link("How to obtain manually",
+                                 destination: URL(string: "https://git.sr.ht/~thestr4ng3r/chiaki/tree/master/item/README.md#obtaining-your-psn-accountid")!)
+                                .font(.caption2)
+                        }
                     }
                 }
 
@@ -179,6 +196,30 @@ struct RegistrationView: View {
                 Button("Cancel") {
                     registService?.stop()
                     dismiss()
+                }
+            }
+        }
+        .onAppear {
+            let savedId = SecureStore.shared.accountId
+            if !savedId.isEmpty && psnId.isEmpty {
+                psnId = savedId
+            }
+        }
+        .sheet(isPresented: $showingLoginSheet) {
+            LoginWebViewContainer(url: PsnAuthConstants.loginUrl) { npsso in
+                showingLoginSheet = false
+                PsnTokenManager.shared.exchangeNpsso(npsso: npsso) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success:
+                            let savedId = SecureStore.shared.accountId
+                            if !savedId.isEmpty {
+                                psnId = savedId
+                            }
+                        case .failure(let err):
+                            resultMessage = "PSN login error: \(err.localizedDescription)"
+                        }
+                    }
                 }
             }
         }
