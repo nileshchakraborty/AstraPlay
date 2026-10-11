@@ -35,7 +35,7 @@ Replace `YOUR_KEYSTORE_PASSWORD` and `YOUR_KEY_PASSWORD` with your actual passwo
 To build a signed AAB for Google Play:
 
 ```powershell
-cd c:\Users\User\repos\chiaki-ng\android
+cd <repo>\android
 .\build.ps1 release -bundle
 ```
 
@@ -53,6 +53,26 @@ android\app\build\outputs\bundle\release\app-release.aab
 ```
 
 This file is ready to upload to Google Play Console!
+
+### PSN Login Relay URL
+
+The QR / Android TV login flow needs a relay server URL baked in at build time.
+Never commit a personal LAN hostname; each publisher sets their own host via the
+`AstraPlayRelayUrl` Gradle property — either in your (uncommitted)
+`~/.gradle/gradle.properties`:
+
+```properties
+AstraPlayRelayUrl=https://relay.example.com:8080
+```
+
+or directly on the Gradle command line:
+
+```bash
+./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:8080
+```
+
+Without it, the login screen reports that no relay is configured. See
+`../../psstream-server/README.md` for how to self-host the relay.
 
 ## Build Options
 

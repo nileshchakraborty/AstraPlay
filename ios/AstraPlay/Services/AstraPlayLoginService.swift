@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
-// AstraPlay xbgamestream.com login service
+// AstraPlay relay login service
 // Mirrors Android's PsnLoginActivity.kt exactly
 
 import Foundation
@@ -10,8 +10,11 @@ private let loginLog = OSLog(subsystem: "com.astraplay.stream", category: "Astra
 class AstraPlayLoginService {
     static let shared = AstraPlayLoginService()
     
+    // Relay host for PSN login. Set ASTRAPLAY_RELAY_URL in the Xcode scheme
+    // (or your CI environment); empty means relay login is disabled.
+    // Never commit a personal LAN hostname here.
     private var astraplayURL: String {
-        ProcessInfo.processInfo.environment["ASTRAPLAY_RELAY_URL"] ?? "http://fedora.local:8080"
+        ProcessInfo.processInfo.environment["ASTRAPLAY_RELAY_URL"] ?? ""
     }
     
     /// Generate UUID v4 for OAuth cid parameter
@@ -51,7 +54,7 @@ class AstraPlayLoginService {
         return String((0..<6).map { _ in chars.randomElement()! })
     }
     
-    /// Create code on xbgamestream server
+    /// Create code on the relay server
     /// Reference: gui/src/qmlbackend.cpp lines 3363-3440
     func createCode(_ code: String) async -> Bool {
         guard let url = URL(string: "\(astraplayURL)/psstream/create-code") else {
@@ -91,7 +94,7 @@ class AstraPlayLoginService {
                 return false
             }
             
-            os_log(.info, log: loginLog, "Code created successfully on xbgamestream")
+            os_log(.info, log: loginLog, "Code created successfully on relay server")
             return true
             
         } catch {
@@ -100,7 +103,7 @@ class AstraPlayLoginService {
         }
     }
     
-    /// Check token status on xbgamestream server
+    /// Check token status on the relay server
     /// Reference: gui/src/qmlbackend.cpp lines 3442-3525
     func checkTokenStatus(_ code: String) async -> String? {
         guard let url = URL(string: "\(astraplayURL)/psstream/get-tokens") else {

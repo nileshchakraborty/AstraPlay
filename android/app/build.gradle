@@ -67,6 +67,11 @@ android {
         targetSdk 35
         versionCode androidVersionCode
         versionName chiakiVersion
+        // PSN login relay server (QR/TV flow). Each publisher sets their own host
+        // via -PAstraPlayRelayUrl=https://your-relay-host:8080 and must never commit
+        // a personal LAN hostname here. Empty means relay login is disabled.
+        def relayUrl = project.findProperty("AstraPlayRelayUrl") ?: ""
+        buildConfigField("String", "ASTRAPLAY_RELAY_URL", "\"${relayUrl}\"")
         ndk {
             // For local development: arm64-v8a only
             // For production builds: include all ABIs (armeabi-v7a, arm64-v8a, x86, x86_64)

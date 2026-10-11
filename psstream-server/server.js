@@ -74,7 +74,7 @@ app.post('/astraplay/create-code', handleCreateCode);
 app.post('/psstream/get-tokens', handleGetTokens);
 app.post('/astraplay/get-tokens', handleGetTokens);
 
-// --- 2. Web UI endpoints (called by web browser on fedora.local) ---
+// --- 2. Web UI endpoints (called by the web browser on the relay host) ---
 
 function handleValidateCode(req, res) {
   const code = (req.body && req.body.code ? String(req.body.code).trim().toUpperCase() : '');

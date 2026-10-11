@@ -932,7 +932,7 @@ struct AccountView: View {
     @State private var showLogoutConfirm: Bool = false
     @State private var showWebView: Bool = false
     
-    // Manual login (xbgamestream) state
+    // Manual login (relay) state
     @State private var showManualLogin: Bool = false
     @State private var loginCode: String = ""
     @State private var loginStatus: String = ""
@@ -1118,7 +1118,7 @@ struct AccountView: View {
         }
     }
     
-    // MARK: - Manual Login (xbgamestream flow)
+    // MARK: - Manual Login (relay flow)
     
     private var manualLoginSheet: some View {
         NavigationStack {

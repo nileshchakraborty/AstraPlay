@@ -194,6 +194,7 @@
     <string name="psn_login_not_complete">Login not complete yet. Complete the login in your browser first.</string>
     <string name="psn_login_not_complete_toast">Please complete the login in your browser first</string>
     <string name="psn_login_server_error">Failed to connect to login server</string>
+    <string name="psn_login_relay_not_configured">Login relay is not configured in this build. The publisher must set a relay server URL (see BUILD_FOR_GOOGLE_PLAY.md).</string>
     
     <!-- D-pad touch combo buttons (indices match Qt SettingsDialog model) -->
     <string-array name="dpad_touch_button_entries">

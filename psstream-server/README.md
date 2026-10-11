@@ -1,29 +1,32 @@
-# AstraPlay PSN Token Relay Server (fedora.local)
+# AstraPlay PSN Token Relay Server
 
-This directory contains a lightweight, self-hosted Node.js / Express clone of the AstraPlay login token relay service. It replaces the external `xbgamestream.com` relay server with your own local service running on `fedora.local`.
+This directory contains a lightweight, self-hosted Node.js / Express implementation
+of the AstraPlay login token relay service. Run it on a machine on your own network
+(any host you control — the examples below use `relay.example.com` as a placeholder;
+never commit a personal LAN hostname to the repo).
 
 ## Features
-- **Zero Third-Party Relays:** PSN token authentication stays strictly on your local network (`fedora.local:8080`).
+- **Zero Third-Party Relays:** PSN token authentication stays on your own network.
 - **No Metrics or Donation Checks:** Clean, transparent, open-source relay with no external telemetry or payment pings.
 - **Full Compatibility:** Supports all AstraPlay endpoints (`/psstream/create-code`, `/psstream/get-tokens`, `/astraplay/validate-code`, `/astraplay/connect`) and serves the clean mobile-friendly auth UI.
 
 ---
 
-## Deployment on `fedora.local`
+## Deployment on your own server
 
 ### Option 1: Run with Docker Compose (Recommended)
-1. Copy the `psstream-server` folder to your Fedora machine (or clone the repo on `fedora.local`):
+1. Copy the `psstream-server` folder to your server (or clone the repo there):
    ```bash
-   scp -r psstream-server user@fedora.local:~/psstream-server
+   scp -r psstream-server user@relay.example.com:~/psstream-server
    ```
-2. On `fedora.local`:
+2. On your server:
    ```bash
    cd ~/psstream-server
    docker compose up -d --build
    ```
 
 ### Option 2: Run directly with Node.js
-On `fedora.local`:
+On your server:
 ```bash
 cd ~/psstream-server
 npm install
@@ -58,8 +61,21 @@ sudo systemctl enable --now astraplay-relay
 
 ## Client Configuration
 
-The AstraPlay client is configured to default to `http://fedora.local:8080`.
-You can also override the URL dynamically using the environment variable:
-```bash
-export ASTRAPLAY_RELAY_URL="http://fedora.local:8080"
-```
+Each AstraPlay client must be told where your relay runs. Replace
+`https://relay.example.com:8080` with your own host in every case, and keep
+personal hostnames out of version control.
+
+- **Desktop (Qt):** the app uses its embedded relay automatically. To point it
+  at a remote relay instead:
+  ```bash
+  export ASTRAPLAY_RELAY_URL="https://relay.example.com:8080"
+  ```
+- **Android:** bake the URL in at build time (it cannot be changed at runtime):
+  ```bash
+  ./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:8080
+  ```
+  Without this flag the QR/TV login flow reports that no relay is configured.
+  See `android/BUILD_FOR_GOOGLE_PLAY.md`.
+- **iOS:** set `ASTRAPLAY_RELAY_URL` in your Xcode scheme's environment (or CI
+  environment). Without it, relay login calls fail gracefully and the UI
+  reports that login could not start.

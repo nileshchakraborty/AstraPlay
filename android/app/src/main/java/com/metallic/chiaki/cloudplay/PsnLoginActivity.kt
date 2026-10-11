@@ -24,6 +24,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.android.material.appbar.MaterialToolbar
+import com.astraplay.stream.BuildConfig
 import com.astraplay.stream.R
 import com.metallic.chiaki.common.SecureTokenManager
 import com.metallic.chiaki.common.Preferences
@@ -44,7 +45,6 @@ class PsnLoginActivity : AppCompatActivity()
 	companion object
 	{
 		private const val TAG = "PsnLoginActivity"
-		private const val ASTRAPLAY_URL = "http://fedora.local:8080"
 		const val EXTRA_NPSSO_TOKEN = "npsso_token"
 		const val RESULT_LOGIN_SUCCESS = Activity.RESULT_OK
 		const val RESULT_LOGIN_CANCELLED = Activity.RESULT_CANCELED
@@ -72,6 +72,10 @@ class PsnLoginActivity : AppCompatActivity()
 	
 	private var loginCode: String = ""
 	private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+	// PSN login relay host baked in at build time via -PAstraPlayRelayUrl.
+	// Empty when the publisher did not configure one: relay login is disabled.
+	private fun relayBaseUrl(): String = BuildConfig.ASTRAPLAY_RELAY_URL.trim().trimEnd('/')
 	
 
 	override fun onCreate(savedInstanceState: Bundle?)
@@ -151,6 +155,19 @@ class PsnLoginActivity : AppCompatActivity()
 	
 	private fun startLogin()
 	{
+		if (relayBaseUrl().isEmpty()) {
+			val msg = getString(R.string.psn_login_relay_not_configured)
+			Log.w(TAG, msg)
+			if (isOnTv) {
+				tvStatusTextView.text = msg
+				tvProgressBar.visibility = View.GONE
+			} else {
+				statusTextView.text = msg
+				progressBar.visibility = View.GONE
+			}
+			return
+		}
+
 		val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 		loginCode = (1..6).map { chars.random() }.joinToString("")
 
@@ -191,7 +208,7 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun loadQrCode(code: String)
 	{
-		val loginUrl = "$ASTRAPLAY_URL/psstream/?psstream_code=$code"
+		val loginUrl = "${relayBaseUrl()}/psstream/?psstream_code=$code"
 		qrCodeImage.setImageBitmap(generateQrCode(loginUrl, 440))
 	}
 
@@ -216,7 +233,7 @@ class PsnLoginActivity : AppCompatActivity()
 	{
 		try
 		{
-			val url = URL("$ASTRAPLAY_URL/psstream/create-code")
+			val url = URL("${relayBaseUrl()}/psstream/create-code")
 			val connection = url.openConnection() as HttpURLConnection
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
@@ -310,7 +327,7 @@ class PsnLoginActivity : AppCompatActivity()
 	{
 		try
 		{
-			val url = URL("$ASTRAPLAY_URL/psstream/get-tokens")
+			val url = URL("${relayBaseUrl()}/psstream/get-tokens")
 			val connection = url.openConnection() as HttpURLConnection
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
@@ -397,7 +414,7 @@ class PsnLoginActivity : AppCompatActivity()
 	{
 		try
 		{
-			val relayUrl = "$ASTRAPLAY_URL/psstream/?psstream_code=$loginCode"
+			val relayUrl = "${relayBaseUrl()}/psstream/?psstream_code=$loginCode"
 			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(relayUrl))
 			startActivity(intent)
 			Log.i(TAG, "Opened relay URL in browser: $relayUrl")
