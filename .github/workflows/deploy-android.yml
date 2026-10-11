@@ -65,8 +65,8 @@ jobs:
         id: play_links
         if: always()
         run: |
-          echo "play_testing_url=https://play.google.com/apps/testing/com.astraplay.stream" >> "$GITHUB_OUTPUT"
-          echo "play_store_url=https://play.google.com/store/apps/details?id=com.astraplay.stream" >> "$GITHUB_OUTPUT"
+          echo "play_testing_url=https://play.google.com/apps/testing/io.github.nileshchakraborty.astraplay" >> "$GITHUB_OUTPUT"
+          echo "play_store_url=https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay" >> "$GITHUB_OUTPUT"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
