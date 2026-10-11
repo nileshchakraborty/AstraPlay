@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+def generate_release_notes(notes_path: str, tag: str, ver: str, changes: str = ""):
+    lines = [
+        f"## Pylux {tag}",
+        "",
+        "Automated multi-device build release from `master` branch.",
+        "",
+        "### Platform Binaries & Packages",
+        "",
+        "#### Windows (Desktop & ROG Xbox Ally X)",
+        "- **`pylux-windows-x64.msi`** — Windows Installer package with automated `*.bak` file purging",
+        "- **`pylux-windows-installer.exe`** — Complete Inno Setup installer package",
+        "- **`pylux-windows-x64.exe`** — Standalone 64-bit executable (in-app updater compatible)",
+        "- **`pylux.exe`** — Standalone executable alias",
+        "- **`pylux-windows-x64.zip`** — Portable zip archive with bundled Qt6 runtime libraries",
+        "",
+        "#### macOS (Apple Silicon)",
+        "- **`Pylux-macOS.dmg`** — Drag-and-drop disk image installer",
+        "- **`Pylux-macOS.zip`** — Portable `Pylux.app` application bundle",
+        "",
+        "#### Linux / SteamOS / Bazzite (Handhelds & Desktop)",
+        "- **`Pylux-Linux-x86_64.AppImage`** — Standalone AppImage executable",
+        "- **`Pylux-Linux-x86_64.zip`** — Steam-compatible portable zip with `launch.sh` and bundled libs",
+        "",
+        "#### Android (Phones, Tablets & Handhelds)",
+        "- **`Pylux-Android.apk`** — Sideloadable debug APK package",
+        "",
+        "#### iOS",
+        "- **`Pylux-iOS.ipa`** — Sideloadable unsigned IPA (install via AltStore, Sideloadly, or TrollStore)",
+        "",
+        "### SHA-256 Checksums",
+        "```text",
+    ]
+
+    checksums_file = "dist/SHA256SUMS.txt"
+    if os.path.exists(checksums_file):
+        with open(checksums_file, "r", encoding="utf-8") as f:
+            lines.append(f.read().strip())
+    else:
+        lines.append("(No checksums file found)")
+
+    lines.extend([
+        "```",
+        "",
+        "### Recent Commits",
+        "```text",
+        changes.strip() if changes else "(No commit history available)",
+        "```",
+        "",
+    ])
+
+    with open(notes_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    print(f"Generated release notes at {notes_path}")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: generate_release_notes.py <output_path> <tag> [version] [changes]")
+        sys.exit(1)
+    out_path = sys.argv[1]
+    tag_val = sys.argv[2]
+    ver_val = sys.argv[3] if len(sys.argv) > 3 else tag_val.lstrip("v")
+    changes_val = sys.argv[4] if len(sys.argv) > 4 else ""
+    generate_release_notes(out_path, tag_val, ver_val, changes_val)
