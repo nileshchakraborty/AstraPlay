@@ -173,7 +173,7 @@ void UpdateManager::onCheckFinished()
         QString dlUrl = asset.value("browser_download_url").toString();
 
 #if defined(Q_OS_WIN)
-        // Prefer MSI installer (.msi), then exe installer, fallback to portable zip or pylux.exe
+        // Prefer MSI installer (.msi), then exe installer, fallback to portable zip or astraplay.exe
         if (name.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
             m_downloadUrl = dlUrl;
             break;

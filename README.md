@@ -29,7 +29,7 @@ All release packages and binary checksums are published on the [**GitHub Release
 - **Multi-Device Support**: Native packages for Windows (x64 & ARM64), macOS (Apple Silicon & Intel), Linux (x86_64 & aarch64), Android, and iOS.
 - **Handheld Optimized**: Native controller support, gamepad navigation, and Quick Access Menu integrations for the ROG Xbox Ally X, Steam Deck, Legion Go, and Claw.
 - **In-App Auto-Updater**: Built-in background update checker (`UpdateManager`) that fetches latest releases, downloads packages, purges stale `.bak` files, and applies updates seamlessly.
-- **Seamless Settings Migration**: Automatically migrates previous `astraplay.conf` and `Chiaki.conf` configurations so existing paired consoles and preferences carry over without reconfiguration.
+- **Seamless Settings Migration**: Automatically picks up existing `pylux.conf` and `Chiaki.conf` configurations so existing paired consoles and preferences carry over without reconfiguration.
 - **Console Discovery**: Automatic broadcast discovery of PS4 and PS5 consoles on local networks with PIN pairing.
 - **Internet Play**: Connect and stream from registered consoles over WAN and mobile networks.
 - **Modern Hardware Decoding**: Accelerated decoding with Vulkan, Metal, D3D11VA, VAAPI, VideoToolbox, and AMediaCodec.

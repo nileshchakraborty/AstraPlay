@@ -31,7 +31,7 @@
 #   ./build.sh release           - Build archive for App Store upload
 #
 # Env knobs:
-#   PYLUX_FULL_BUILD=1 ./build.sh iterate  - Rebuild chiaki-lib via CMake first
+#   ASTRAPLAY_FULL_BUILD=1 ./build.sh iterate  - Rebuild chiaki-lib via CMake first
 #   PYLUX_XCODE_QUIET=1        - Pass xcodebuild -quiet (default: full build log to terminal)
 #   PYLUX_XCODE_CONFIGURATION=Release ./build.sh dev|iterate  - Release build; default Debug
 #   PYLUX_LOG_MINUTES=N        - Background capture auto-stops after N minutes (default 20)
@@ -605,8 +605,8 @@ run_iterate() {
     stop_logs
     rm -f "$CAPTURE_PID_FILE"
 
-    if [ "${PYLUX_FULL_BUILD:-0}" = "1" ]; then
-        echo "=== PYLUX_FULL_BUILD=1: rebuilding chiaki-lib ==="
+    if [ "${ASTRAPLAY_FULL_BUILD:-${PYLUX_FULL_BUILD:-0}}" = "1" ]; then
+        echo "=== ASTRAPLAY_FULL_BUILD=1: rebuilding chiaki-lib ==="
         build_lib
     fi
 
@@ -628,7 +628,7 @@ run_iterate() {
         -derivedDataPath "$SCRIPT_DIR/build-derived" \
         -allowProvisioningUpdates \
         "${_PYLUX_XCODE_EXTRA[@]}") || {
-        echo "ERROR: xcodebuild failed. Fix errors or run: PYLUX_FULL_BUILD=1 $0 iterate"
+        echo "ERROR: xcodebuild failed. Fix errors or run: ASTRAPLAY_FULL_BUILD=1 $0 iterate"
         exit 1
     }
 

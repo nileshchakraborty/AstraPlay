@@ -2702,10 +2702,10 @@ void QmlBackend::configureSteamControllerLayout()
     
     // Configure the controller layout for astraplay (first time for this user)
     QString controller_layout_workshop_id = "3049833406";
-    qCInfo(chiakiGui) << "Configuring Steam Deck controller for pylux (first time for Steam user" << steam_user_id << ")";
+    qCInfo(chiakiGui) << "Configuring Steam Deck controller for astraplay (first time for Steam user" << steam_user_id << ")";
     qCInfo(chiakiGui) << "Applying workshop ID:" << controller_layout_workshop_id;
     
-    // Pass "pylux" - it will be lowercased to "pylux" internally by updateControllerConfig
+    // Apply the community controller layout to this Steam user via updateControllerConfig
     try {
         steam_tools->updateControllerConfig("3946320", controller_layout_workshop_id);
     } catch (const std::exception& e) {
@@ -3574,7 +3574,7 @@ void QmlBackend::createAstraPlayCode(const QString &code, const QJSValue &callba
             QString responseBody = QString::fromUtf8(responseData);
             
             // Log detailed error information for debugging
-            qDebug() << "Network error creating pylux code:" << reply->errorString();
+            qDebug() << "Network error creating astraplay code:" << reply->errorString();
             qDebug() << "HTTP status code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
             qDebug() << "Response body:" << responseBody;
             

@@ -1,4 +1,4 @@
-# iOS Support for Chiaki (Pylux)
+# iOS Support for Chiaki (AstraPlay)
 
 This folder contains the iOS build for the Chiaki library and a minimal iOS app.
 
@@ -55,7 +55,7 @@ One script with dev/release modes:
 
 **Dev mode:** If no simulator is booted, shows a warning and the manual command to install/launch.
 
-**Release mode:** Creates `build-derived/Pylux.xcarchive`. Requires code signing: in Xcode, open Pylux.xcodeproj > Signing & Capabilities > select your Development Team. Then open Organizer to distribute to App Store or TestFlight.
+**Release mode:** Creates `build-derived/AstraPlay.xcarchive`. Requires code signing: in Xcode, open AstraPlay.xcodeproj > Signing & Capabilities > select your Development Team. Then open Organizer to distribute to App Store or TestFlight.
 
 **Ship / TestFlight upload (intended workflow: Apple Store MCP):** With **apple-store-mcp** (the `ios_store_mcp` / `apple_store_mcp` server) enabled in Cursor and `secrets/.env` configured in that repo, call MCP tool **`ios_repo_run_build_ship`** with **`repo_root`** = this repo’s root (parent of `ios/`). That runs `ios/build.sh ship` on the Mac that hosts the MCP server (Xcode + **fastlane** + signing required).
 
@@ -70,7 +70,7 @@ After processing, the build appears under **TestFlight**; App Store review submi
 | chiaki-lib (device) | `build-iphoneos/parent/lib/libchiaki.a` |
 | chiaki-lib (simulator) | `build-iphonesimulator/parent/lib/libchiaki.a` |
 | Combined libs | `build-iphoneos/libchiaki_complete.a`, `build-iphonesimulator/libchiaki_complete.a` |
-| Release archive | `build-derived/Pylux.xcarchive` |
+| Release archive | `build-derived/AstraPlay.xcarchive` |
 | Exported IPA (`ship`) | `build-derived/export/*.ipa` |
 
 The app links **chiaki-lib** via `libchiaki_complete.a`; Objective-C bridges expose Chiaki C APIs (for example `chiaki_error_string` via `ChiakiBridge`).

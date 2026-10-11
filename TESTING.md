@@ -126,7 +126,7 @@ open build-output/AstraPlay.app
 ./ios/build.sh stop-logs        # stop log capture
 
 # Full rebuild when lib/ changes:
-PYLUX_FULL_BUILD=1 ./ios/build.sh dev
+ASTRAPLAY_FULL_BUILD=1 ./ios/build.sh dev
 ```
 
 ### 4.3 Android
@@ -159,7 +159,7 @@ Run:
 
 ### 5.2 iOS (XCTest)
 
-Test location: `ios/AstraPlayTests/` (unit) and `ios/AstraPlayUITests/` (UI)
+Test location: `ios/PyluxTests/` (unit) and `ios/PyluxUITests/` (UI)
 
 Key test cases:
 - `SessionBridgeTests` — verifies all `_ex` wrapper calls compile and link

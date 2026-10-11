@@ -1,11 +1,11 @@
-# Pylux PSN Token Relay Server (fedora.local)
+# AstraPlay PSN Token Relay Server (fedora.local)
 
-This directory contains a lightweight, self-hosted Node.js / Express clone of the Pylux login token relay service. It replaces the external `xbgamestream.com` relay server with your own local service running on `fedora.local`.
+This directory contains a lightweight, self-hosted Node.js / Express clone of the AstraPlay login token relay service. It replaces the external `xbgamestream.com` relay server with your own local service running on `fedora.local`.
 
 ## Features
 - **Zero Third-Party Relays:** PSN token authentication stays strictly on your local network (`fedora.local:8080`).
 - **No Metrics or Donation Checks:** Clean, transparent, open-source relay with no external telemetry or payment pings.
-- **Full Compatibility:** Supports all Pylux endpoints (`/psstream/create-code`, `/psstream/get-tokens`, `/pylux/validate-code`, `/pylux/connect`) and serves the clean mobile-friendly auth UI.
+- **Full Compatibility:** Supports all AstraPlay endpoints (`/psstream/create-code`, `/psstream/get-tokens`, `/pylux/validate-code`, `/pylux/connect`) and serves the clean mobile-friendly auth UI.
 
 ---
 
@@ -31,10 +31,10 @@ node server.js
 ```
 
 ### Option 3: Run as a Systemd Service
-Create `/etc/systemd/system/pylux-relay.service`:
+Create `/etc/systemd/system/astraplay-relay.service`:
 ```ini
 [Unit]
-Description=Pylux PSN Token Relay Server
+Description=AstraPlay PSN Token Relay Server
 After=network.target
 
 [Service]
@@ -51,14 +51,14 @@ WantedBy=multi-user.target
 Enable and start:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now pylux-relay
+sudo systemctl enable --now astraplay-relay
 ```
 
 ---
 
 ## Client Configuration
 
-The Pylux client is configured to default to `http://fedora.local:8080`.
+The AstraPlay client is configured to default to `http://fedora.local:8080`.
 You can also override the URL dynamically using the environment variable:
 ```bash
 export PYLUX_RELAY_URL="http://fedora.local:8080"

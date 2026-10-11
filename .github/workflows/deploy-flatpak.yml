@@ -7,7 +7,7 @@
 # Users on Steam Deck should install from Flathub for automatic updates via Discover.
 #
 # Manifest is kept in sync with:
-#   https://github.com/flathub/io.github.ForWard_Technologies_LLC.Pylux
+#   https://github.com/flathub/io.github.nileshchakraborty.AstraPlay
 
 name: Deploy Flatpak (Flathub)
 
@@ -64,13 +64,13 @@ jobs:
             s|      - type: git|      - type: dir|
             s|        url:.*|        path: ../../|
             /commit:/d
-          }' scripts/flatpak/io.github.ForWard_Technologies_LLC.Pylux.yml
+          }' scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         id: flatpak_build
         with:
           bundle: pylux-x64.flatpak
-          manifest-path: scripts/flatpak/io.github.ForWard_Technologies_LLC.Pylux.yml
+          manifest-path: scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml
           branch: stable
           cache-key: flatpak-builder-${{ github.sha }}
           arch: x86_64
@@ -99,7 +99,7 @@ jobs:
           fi
           URL="${{ steps.flatpak_dropbox.outputs.url }}"
           INSTALL="curl -fsSL -o ${BUNDLE} \"${URL}\" && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install --user -y ${BUNDLE}"
-          RUN="flatpak run io.github.ForWard_Technologies_LLC.Pylux"
+          RUN="flatpak run io.github.nileshchakraborty.AstraPlay"
           {
             echo "install<<EOF"
             echo "$INSTALL"
@@ -130,9 +130,9 @@ jobs:
               echo ""
               if [ -n "${DROPBOX_URL}" ]; then
                 INSTALL="curl -fsSL -o ${ROLLING_NAME} \"${DROPBOX_URL}\" && flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && flatpak install --user -y ${ROLLING_NAME}"
-                RUN="flatpak run io.github.ForWard_Technologies_LLC.Pylux"
+                RUN="flatpak run io.github.nileshchakraborty.AstraPlay"
                 echo "### Install (Dropbox bundle — sideload)"
-                echo "Prefer Flathub: \`flatpak install flathub io.github.ForWard_Technologies_LLC.Pylux\`. To sideload this CI bundle:"
+                echo "Prefer Flathub: \`flatpak install flathub io.github.nileshchakraborty.AstraPlay\`. To sideload this CI bundle:"
                 echo ""
                 echo '```bash'
                 printf '%s\n' "$INSTALL"
@@ -152,13 +152,13 @@ jobs:
               fi
               echo ""
               echo "### Flathub (recommended)"
-              echo "\`flatpak install flathub io.github.ForWard_Technologies_LLC.Pylux\` — [store listing](https://flathub.org/apps/io.github.ForWard_Technologies_LLC.Pylux)"
+              echo "\`flatpak install flathub io.github.nileshchakraborty.AstraPlay\` — [store listing](https://flathub.org/apps/io.github.nileshchakraborty.AstraPlay)"
             else
               echo "Flatpak build step outcome: **${{ steps.flatpak_build.outcome }}**. Fix manifest or build errors above."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Optional: uncomment to auto-sync manifest commit to flathub/io.github.ForWard_Technologies_LLC.Pylux on each deploy.
+  # Optional: uncomment to auto-sync manifest commit to flathub/io.github.nileshchakraborty.AstraPlay on each deploy.
   # Requires FLATHUB_TOKEN secret (PAT with write access to that repo).
   #
   # sync-to-flathub:
@@ -175,7 +175,7 @@ jobs:
   #     - name: Checkout Flathub repo
   #       uses: actions/checkout@v4
   #       with:
-  #         repository: flathub/io.github.ForWard_Technologies_LLC.Pylux
+  #         repository: flathub/io.github.nileshchakraborty.AstraPlay
   #         token: ${{ secrets.FLATHUB_TOKEN }}
   #         path: flathub
   #
@@ -185,7 +185,7 @@ jobs:
   #
   #         # Patch the commit hash in the manifest to match this exact build
   #         sed "s|commit: .*|commit: ${PYLUX_COMMIT}|" \
-  #           pylux/scripts/flatpak/io.github.ForWard_Technologies_LLC.Pylux.yml > flathub/io.github.ForWard_Technologies_LLC.Pylux.yml
+  #           pylux/scripts/flatpak/io.github.nileshchakraborty.AstraPlay.yml > flathub/io.github.nileshchakraborty.AstraPlay.yml
   #
   #         cp pylux/scripts/flatpak/0001-vulkan-ignore-frames-without-hw-context.patch \
   #            flathub/0001-vulkan-ignore-frames-without-hw-context.patch

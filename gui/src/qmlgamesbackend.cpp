@@ -867,7 +867,7 @@ void QmlGamesBackend::createGameSteamShortcut(const QString &titleId, const QStr
     // Load fixed assets
     qCInfo(chiakiGuiGames) << "Loading fixed assets...";
     QPixmap icon(":/icons/game_shortcut_icon.png");
-    // Same Pylux logo the app-level startup shortcut uses (the old game_shortcut_logo.png
+    // Same AstraPlay logo the app-level startup shortcut uses (the old game_shortcut_logo.png
     // still carried PS Stream branding)
     QPixmap logo(":/icons/steam_logo.png");
     

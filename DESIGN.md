@@ -15,7 +15,7 @@
 ### 2.1 Branding
 - **Logo:** `astraplay-logo.png` — dark purple/violet mark with a lightning-bolt P
 - **App ID (Android):** `com.astraplay.stream`
-- **Bundle ID (iOS/macOS):** `io.github.ForWard_Technologies_LLC.AstraPlay`
+- **Bundle ID (iOS/macOS):** `io.github.nileshchakraborty.AstraPlay`
 
 ### 2.2 Color Palette (Qt / QML)
 Inherits from chiaki-ng palette with AstraPlay-specific accent overrides:
@@ -208,5 +208,5 @@ Cloud session negotiated → stream starts
 | App logo | `astraplay-logo.png` |
 | Store badges | `assets/*.svg` |
 | Android screenshots | `assets/screenshots/android-phones/` |
-| Desktop metadata | `gui/io.github.ForWard_Technologies_LLC.AstraPlay.metainfo.xml` |
+| Desktop metadata | `gui/io.github.nileshchakraborty.AstraPlay.metainfo.xml` |
 | macOS bundle plist template | `gui/MacOSXBundleInfo.plist.in` |

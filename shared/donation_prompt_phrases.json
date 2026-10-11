@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "product_name": "Pylux",
+  "product_name": "AstraPlay",
   "description": "Short donation lines in three buckets: mild, playful, and mean-jokey. Written for quick laughs, not long reads.",
   "category_order": [
     "mild",
@@ -12,13 +12,13 @@
       "label": "Mild",
       "tone": "Friendly nudges, no bite.",
       "phrases": [
-        "Hi again. If Pylux helps, toss us a tip?",
-        "Psst. Enjoying Pylux? If you can, toss a small tip.",
+        "Hi again. If AstraPlay helps, toss us a tip?",
+        "Psst. Enjoying AstraPlay? If you can, toss a small tip.",
         "No ads, no tracking, just one polite donation ask.",
         "Open source runs on code, coffee, and donations.",
         "Breaking news: generous user spotted near this button.",
         "Your future self says, \"Nice, I donated.\"",
-        "Thanks for using Pylux. Even a small tip helps."
+        "Thanks for using AstraPlay. Even a small tip helps."
       ]
     },
     "playful": {

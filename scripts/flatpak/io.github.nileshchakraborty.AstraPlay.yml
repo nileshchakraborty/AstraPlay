@@ -1,8 +1,8 @@
-# Pylux Flatpak manifest — keep in sync with Flathub (update commit hash on each release):
-#   https://github.com/flathub/io.github.ForWard_Technologies_LLC.Pylux
+# AstraPlay Flatpak manifest — keep in sync with Flathub (update commit hash on each release):
+#   https://github.com/flathub/io.github.nileshchakraborty.AstraPlay
 # deploy-flatpak.yml builds from local checkout (dir source) for CI; Flathub repo pins git commit.
 
-app-id: io.github.ForWard_Technologies_LLC.Pylux
+app-id: io.github.nileshchakraborty.AstraPlay
 runtime: org.kde.Platform
 runtime-version: '6.10'
 sdk: org.kde.Sdk
@@ -121,12 +121,12 @@ modules:
         tag: miniupnpc_2_3_0
         commit: f39e4997591a98e7ee6711eabc8b50feeef1bd67
 
-  - name: pylux
+  - name: astraplay
     buildsystem: cmake-ninja
     builddir: true
     config-opts:
       - -DCHIAKI_ENABLE_TESTS=OFF
     sources:
       - type: git
-        url: https://github.com/ForWard-Technologies-LLC/Pylux.git
+        url: https://github.com/nileshchakraborty/AstraPlay.git
         commit: 3b2265771d516928d5eb86625b980e8090e2698e

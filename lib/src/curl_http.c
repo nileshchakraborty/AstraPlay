@@ -11,7 +11,7 @@
 #include <strings.h> // strncasecmp
 
 #define CHIAKI_HTTP_DEFAULT_TIMEOUT_MS 30000L
-#define CHIAKI_HTTP_USER_AGENT "pylux-cloudcatalog/1.0"
+#define CHIAKI_HTTP_USER_AGENT "astraplay-cloudcatalog/1.0"
 
 typedef struct grow_buffer_t
 {

@@ -6,7 +6,7 @@
 
 **License:** AGPL-3.0  
 **Current Version:** 2.11.4  
-**Organization:** ForWard Technologies LLC
+**Organization:** nileshchakraborty
 
 ---
 
@@ -146,7 +146,7 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 
 | Role | Party |
 |------|-------|
-| Owner / Maintainer | ForWard Technologies LLC |
+| Owner / Maintainer | nileshchakraborty |
 | Platform reviewers | Google Play, Apple App Store, Flathub |
 | Community contributors | Open-source contributors via GitHub PRs |
 | Upstream | chiaki-ng (streetpea), Chiaki (thestr4ng3r) |

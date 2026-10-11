@@ -32,18 +32,18 @@
     <color name="psn_blue">#2563EB</color>
     
     <!-- AstraPlay Brand Colors (Nebula Gold & Celestial Amber) -->
-    <color name="pylux_blue">#F59E0B</color>              <!-- AstraPlay brand gold -->
-    <color name="pylux_blue_glow">#4DF59E0B</color>       <!-- 30% opacity glow -->
-    <color name="pylux_blue_border">#40F59E0B</color>     <!-- 25% opacity border -->
-    <color name="pylux_blue_selected">#26F59E0B</color>   <!-- 15% opacity selected bg -->
-    <color name="pylux_blue_selected_border">#66F59E0B</color> <!-- 40% opacity selected border -->
+    <color name="astraplay_gold">#F59E0B</color>              <!-- AstraPlay brand gold -->
+    <color name="astraplay_gold_glow">#4DF59E0B</color>       <!-- 30% opacity glow -->
+    <color name="astraplay_gold_border">#40F59E0B</color>     <!-- 25% opacity border -->
+    <color name="astraplay_gold_selected">#26F59E0B</color>   <!-- 15% opacity selected bg -->
+    <color name="astraplay_gold_selected_border">#66F59E0B</color> <!-- 40% opacity selected border -->
     <color name="toolbar_bg">#14161F</color>              <!-- Dark toolbar background -->
 
     <!-- Support / paywall sheet -->
     <color name="support_header_icon_scrim">#33FFFFFF</color>
     <color name="support_drag_handle">#66FFFFFF</color>
     <color name="support_tier_card_bg">#1A2332</color>
-    <color name="support_tier_card_stroke">@color/pylux_blue_border</color>
+    <color name="support_tier_card_stroke">@color/astraplay_gold_border</color>
     <color name="support_text_secondary">#B8C5D6</color>
     <color name="support_paywall_divider">#33FFFFFF</color>
     <color name="support_badge_bg">#40009FE3</color>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-pylux is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This license requires that when distributing binary versions, you must provide access to the corresponding source code.
+astraplay is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This license requires that when distributing binary versions, you must provide access to the corresponding source code.
 
 ## How It Works
 
@@ -10,7 +10,7 @@ pylux is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). T
 
 The GitHub Action `.github/workflows/upload-source-code.yml` automatically:
 - Creates a complete source code archive when code is pushed
-- Uploads it to Dropbox under `/pylux-sources/`
+- Uploads it to Dropbox under `/astraplay-sources/`
 - Runs on:
   - Manual trigger (`workflow_dispatch`)
   - Push to main/master branches
@@ -23,7 +23,7 @@ Build scripts use the helper function `add_agpl_compliance()` from `scripts/add-
 - **`usr/share/licenses/pylux/COPYING`**: Full AGPL-3.0 license text
 - **`usr/share/licenses/pylux/SOURCE_CODE.txt`**: Notice with link to download source code
 
-Files are placed in `usr/share/licenses/pylux/` to follow Linux standards while being less prominent to end users.
+Files are placed in `usr/share/licenses/astraplay/` to follow Linux standards while being less prominent to end users.
 
 ### 3. Reusable Helper Script
 
@@ -80,7 +80,7 @@ cd appimage
 ```
 
 This will automatically:
-- Create `usr/share/licenses/pylux/` directory
+- Create `usr/share/licenses/astraplay/` directory
 - Copy `COPYING` license file
 - Generate `SOURCE_CODE.txt` with build information
 
@@ -150,12 +150,12 @@ If you modify and distribute the software:
 
 After building, check that the files exist in the distribution:
 ```bash
-ls pylux/usr/share/licenses/pylux/COPYING        # License file exists
-ls pylux/usr/share/licenses/pylux/SOURCE_CODE.txt # Source info exists
-cat pylux/usr/share/licenses/pylux/SOURCE_CODE.txt # URL is correct
+ls astraplay/usr/share/licenses/pylux/COPYING        # License file exists
+ls astraplay/usr/share/licenses/pylux/SOURCE_CODE.txt # Source info exists
+cat astraplay/usr/share/licenses/pylux/SOURCE_CODE.txt # URL is correct
 ```
 
-The files are intentionally placed in a standard but less prominent location (`usr/share/licenses/pylux/`) to comply with AGPL while not being immediately visible to end users.
+The files are intentionally placed in a standard but less prominent location (`usr/share/licenses/astraplay/`) to comply with AGPL while not being immediately visible to end users.
 
 ## References
 

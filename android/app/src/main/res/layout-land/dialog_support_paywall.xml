@@ -29,7 +29,7 @@
                 android:contentDescription="@string/donation_paywall_logo_content_description"
                 android:importantForAccessibility="yes"
                 android:scaleType="fitCenter"
-                android:src="@drawable/pylux_mark_square" />
+                android:src="@drawable/astraplay_mark_square" />
 
             <LinearLayout
                 android:layout_width="0dp"

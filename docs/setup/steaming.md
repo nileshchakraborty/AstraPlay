@@ -1,4 +1,4 @@
-# Adding Pylux to Steam
+# Adding AstraPlay to Steam
 
 === "Automatic Process for Auto-connect or Standard Launch"
 
@@ -19,7 +19,7 @@
 
     !!! Success ":video_game: Game (Mode) Time!"
 
-        You have successfully added Pylux to Steam with pictures and (if on Steam Deck) set the `pylux+ mic` Steam Deck controller shortcut. :fireworks:
+        You have successfully added AstraPlay to Steam with pictures and (if on Steam Deck) set the `pylux+ mic` Steam Deck controller shortcut. :fireworks:
         
         You can now close any open applications and or terminals (forcing them to close if necessary) and then switch to **Game Mode** by clicking on the `Return to Gaming Mode` desktop icon.
 
@@ -29,7 +29,7 @@
 
     !!! Info "Another Non-Steam Game"
 
-        This is the same process as with other non-Steam games, tailored to the Pylux script and images.
+        This is the same process as with other non-Steam games, tailored to the AstraPlay script and images.
 
     1. Open the `Add a Non-Steam Game` prompt
 
@@ -67,7 +67,7 @@
 
         1. Choose `File type: All Files` at the bottom of the screen
 
-        2. Choose `/home/deck` from the dropdown at the top of the screen and then navigate by clicking on each folder to the folder `/home/deck/.var/app/io.github.ForWard_Technologies_LLC.Pylux/config/Chiaki`
+        2. Choose `/home/deck` from the dropdown at the top of the screen and then navigate by clicking on each folder to the folder `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki`
 
         3. Click on the `Chiaki-launcher.sh` file in that directory
 
@@ -84,15 +84,15 @@
 
     !!! Warning "Steam Application Name Matters!"
 
-        For Non-Steam games (i.e., Pylux), the `Community Layouts` controller layouts are based on the name the user set for the game in Steam when they exported it. Thus, in order to find the controller profiles I created for the game in your `Community Layouts` section later in this guide, your game name will need to the same as mine, (i.e., Pylux). This naming is done in step 4 (below) and it's recommended that you just keep your game name as Pylux to make your life easier.
+        For Non-Steam games (i.e., AstraPlay), the `Community Layouts` controller layouts are based on the name the user set for the game in Steam when they exported it. Thus, in order to find the controller profiles I created for the game in your `Community Layouts` section later in this guide, your game name will need to the same as mine, (i.e., AstraPlay). This naming is done in step 4 (below) and it's recommended that you just keep your game name as AstraPlay to make your life easier.
 
-        !!! Question "What if naming Pylux something else fills me with determination...?"
+        !!! Question "What if naming AstraPlay something else fills me with determination...?"
 
-            If you want to use a different game name (i.e., `Playstation Launcher Thingamajig`) and want to use some or all of the controller layouts I have created (either directly or to download them and use them as a starting point to tinker from), name your game what you want in step 4. Then, when you get to the controller section, follow [Retrieving Pylux Controller Layouts when Using An Alternate Game Name](controlling.md#retrieving-Pylux-controller-layouts-when-using-an-alternate-game-name-most-users-can-skip-this){target="_blank" rel="noopener"}. This walks you through temporarily renaming the app to Pylux to access the controller layouts and save them as `Personal Save`s to access in the `Your Layouts` tab. Finally, you can rename you game to what you want and apply your layout to this differently named Steam game.
+            If you want to use a different game name (i.e., `Playstation Launcher Thingamajig`) and want to use some or all of the controller layouts I have created (either directly or to download them and use them as a starting point to tinker from), name your game what you want in step 4. Then, when you get to the controller section, follow [Retrieving AstraPlay Controller Layouts when Using An Alternate Game Name](controlling.md#retrieving-AstraPlay-controller-layouts-when-using-an-alternate-game-name-most-users-can-skip-this){target="_blank" rel="noopener"}. This walks you through temporarily renaming the app to AstraPlay to access the controller layouts and save them as `Personal Save`s to access in the `Your Layouts` tab. Finally, you can rename you game to what you want and apply your layout to this differently named Steam game.
 
     1. Acquire pictures to use for the game library in Steam
 
-        1. Get the official Pylux images [here](https://raw.githubusercontent.com/ForWard-Technologies-LLC/Pylux/main/assets/PyluxImages.tar.xz){target="_blank" rel="noopener"}.
+        1. Get the official AstraPlay images [here](https://raw.githubusercontent.com/ForWard-Technologies-LLC/Pylux/main/assets/PyluxImages.tar.xz){target="_blank" rel="noopener"}.
 
         2. Extract the package to a folder of your choice (such as your `Documents` folder).
         
@@ -114,19 +114,19 @@
 
     4. In the properties window that comes up rename `Chiaki-launcher.sh` and add the icon image
 
-        1. Rename it Pylux
+        1. Rename it AstraPlay
 
         2. Click on the blank square to add an image and navigate to the `Pylux-images` folder you created in step 1 above and select the icon image (`steam_icon.png`).
 
         3. Click the x to exit the window
 
-        ???+ example "Finished Pylux Properties"
+        ???+ example "Finished AstraPlay Properties"
 
-            ![Finished Pylux Properties](images/FinishedPyluxProperties.png)
+            ![Finished AstraPlay Properties](images/FinishedPyluxProperties.png)
 
-    5. Go to your `Library` in Steam and select Pylux from the left-hand list or one of the `Library` categories to go to Pylux's game page.
+    5. Go to your `Library` in Steam and select AstraPlay from the left-hand list or one of the `Library` categories to go to AstraPlay's game page.
 
-    6. Customize the background and logo for Pylux
+    6. Customize the background and logo for AstraPlay
 
         ![Set Background and Logo](images/SetBackgroundLogo.png)
 
@@ -142,31 +142,31 @@
 
             2. Browse to the `Pylux-images` folder you created earlier and select the logo image (`steam_logo.png`)
 
-        ???+ example "Finished Pylux Home Page"
+        ???+ example "Finished AstraPlay Home Page"
 
             ![Finished Background and Logo](images/FinishedBackgroundLogo.png)
 
     7. Customize the wide capsule and capsule images
 
-        1. Launch Pylux via Steam by hitting the `Play` button or any other method and then close.
+        1. Launch AstraPlay via Steam by hitting the `Play` button or any other method and then close.
         
         2. Go to your `Library` in Steam and scroll to your `RECENT GAMES` section.
 
-        3. Right-click on the blank picture for Pylux (should be 1st in `RECENT GAMES` and have a blank image with a landscape orientation) and select `Manage->Set custom artwork`
+        3. Right-click on the blank picture for AstraPlay (should be 1st in `RECENT GAMES` and have a blank image with a landscape orientation) and select `Manage->Set custom artwork`
 
             ![Custom W Cap](images/SetCustomWCap.png)
 
         4. Browse to the `Pylux-images` folder you created earlier and select the wide capsule (wcap) image (`steam_landscape.png`)
 
-        5. Launch a different game and close it (this moves Pylux into the second slot in recent games)
+        5. Launch a different game and close it (this moves AstraPlay into the second slot in recent games)
 
-        6. Right-click on the blank picture for Pylux (should be 2nd in recent games and have a blank image with a portrait orientation) and select `Manage->Set custom artwork`. 
+        6. Right-click on the blank picture for AstraPlay (should be 2nd in recent games and have a blank image with a portrait orientation) and select `Manage->Set custom artwork`. 
 
         7. Browse to the `Pylux-images` folder you created earlier and select the capsule (cap) image (`steam_portrait.png`)
 
     !!! Success ":video_game: Game (Mode) Time!"
 
-        You have successfully added Pylux to Steam with pictures. :fireworks:
+        You have successfully added AstraPlay to Steam with pictures. :fireworks:
         
         You can now close any open applications and or terminals (forcing them to close if necessary) and then switch to **Game Mode** by clicking on the `Return to Gaming Mode` desktop icon.
 

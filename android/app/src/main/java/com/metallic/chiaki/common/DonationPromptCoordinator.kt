@@ -176,7 +176,7 @@ class DonationPromptCoordinator private constructor(
 	private fun startSupportPaywallBorderPulse(sheet: FrameLayout)
 	{
 		val strokePx = activity.resources.getDimensionPixelSize(R.dimen.support_paywall_frame_stroke)
-		val blue = ContextCompat.getColor(activity, R.color.pylux_blue)
+		val blue = ContextCompat.getColor(activity, R.color.astraplay_gold)
 		val border = GradientDrawable().apply {
 			shape = GradientDrawable.RECTANGLE
 			setColor(0)
@@ -310,7 +310,7 @@ class DonationPromptCoordinator private constructor(
 
 		val res = activity.resources
 		val strokePx = res.getDimensionPixelSize(R.dimen.support_tier_sweep_stroke)
-		val blue = ContextCompat.getColor(activity, R.color.pylux_blue)
+		val blue = ContextCompat.getColor(activity, R.color.astraplay_gold)
 		val cornerPx = when {
 			card.radius > 0f -> card.radius
 			else -> res.getDimension(R.dimen.support_tier_card_corner_radius)
@@ -1009,7 +1009,7 @@ class DonationPromptCoordinator private constructor(
 		val dm = activity.resources.displayMetrics
 		val endStrokePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, dm).toInt()
 		val startStrokePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2.5f, dm).toInt()
-		val startColor = ContextCompat.getColor(activity, R.color.pylux_blue)
+		val startColor = ContextCompat.getColor(activity, R.color.astraplay_gold)
 		val endColor = ContextCompat.getColor(activity, R.color.support_tier_card_stroke)
 
 		card.alpha = 0f

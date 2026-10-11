@@ -154,7 +154,7 @@ const char *cc_stable_key(const char *title_id);
 
 ## 6. Privacy
 
-- **No telemetry or analytics** — AstraPlay does not send usage data to any AstraPlay/ForWard Technologies endpoint.
+- **No telemetry or analytics** — AstraPlay does not send usage data to any AstraPlay server or endpoint.
 - **No user tracking** — No device IDs, no fingerprinting.
 - **PSN data** — All PSN API calls go directly to Sony. AstraPlay does not proxy or log PSN API responses except in debug log files on the local device.
 - **Log files** — May contain IP addresses, console IDs, and timing data. Users should not share logs publicly without redacting sensitive fields.

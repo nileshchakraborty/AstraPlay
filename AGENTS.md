@@ -41,7 +41,7 @@ third-party/    nanopb, Jerasure, etc.
 
 - ✅ **DO:** Use `CHIAKI_EXPORT` `_ex` wrappers in `lib/src/ios_bridge_helpers.c`
 - ✅ **DO:** Allocate `ChiakiSession` via `chiaki_session_get_sizeof()`
-- ❌ **DON'T:** Call `chiaki_session_set_*` inline setters from `ios/AstraPlay/**`
+- ❌ **DON'T:** Call `chiaki_session_set_*` inline setters from `ios/Pylux/**`
 - `ios/build.sh` runs `check_forbidden_inline_setters` — it will fail the build on violation
 
 ### 2.3 ID Normalization Rule
@@ -224,7 +224,7 @@ git cherry-pick <commit-sha>
 |-------------|--------|
 | `LICENSES/` | Legal — never modify |
 | `COPYING` (AGPL-3.0) | Legal — never modify |
-| `ios/AstraPlay.xcodeproj/project.pbxproj` | Xcode project file — use `ios/build.sh` or the xcode-project-setup skill for SDK additions |
+| `ios/Pylux.xcodeproj/project.pbxproj` | Xcode project file — use `ios/build.sh` or the xcode-project-setup skill for SDK additions |
 | `android/app/google-services.json` | Platform config — managed by CI |
 | `.github/workflows/*.yml` | CI workflows — changes require maintainer review |
 | `third-party/nanopb/` | Submodule — update via `git submodule update`, not manual edits |

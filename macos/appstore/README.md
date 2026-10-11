@@ -1,4 +1,4 @@
-# Mac App Store packaging (Pylux)
+# Mac App Store packaging (AstraPlay)
 
 This folder holds **Mac App Store–only** assets. The usual **Developer ID + DMG + notarization** flow is unchanged; see [scripts/build-macos.sh](../../scripts/build-macos.sh).
 

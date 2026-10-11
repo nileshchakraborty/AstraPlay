@@ -94,7 +94,7 @@ jobs:
 
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
           TF_URL="${TF_JOIN:-https://testflight.apple.com/join/V8pv6cXK}"
-          FLATHUB_URL="https://flathub.org/apps/io.github.ForWard_Technologies_LLC.Pylux"
+          FLATHUB_URL="https://flathub.org/apps/io.github.nileshchakraborty.AstraPlay"
           IOS_APPSTORE_URL="https://apps.apple.com/app/pylux-remote-play/id6761292658"
           MACOS_APPSTORE_URL="https://apps.apple.com/app/pylux-remote-play/id6761292658"
           {
@@ -165,12 +165,12 @@ jobs:
             else
               FP_INSTALL=""
             fi
-            FP_RUN="${FLATPAK_RUN:-flatpak run io.github.ForWard_Technologies_LLC.Pylux}"
+            FP_RUN="${FLATPAK_RUN:-flatpak run io.github.nileshchakraborty.AstraPlay}"
             echo "### Flatpak (Flathub — recommended for Steam Deck)"
             echo ""
-            echo "**Get it:** [Flathub — io.github.ForWard_Technologies_LLC.Pylux](${FLATHUB_URL})"
+            echo "**Get it:** [Flathub — io.github.nileshchakraborty.AstraPlay](${FLATHUB_URL})"
             echo ""
-            echo "- Install: \`flatpak install flathub io.github.ForWard_Technologies_LLC.Pylux\`"
+            echo "- Install: \`flatpak install flathub io.github.nileshchakraborty.AstraPlay\`"
             echo "- Run: \`${FP_RUN}\`"
             echo "- Update: \`flatpak update\` (or via Discover on Steam Deck)"
             echo "- **CI verify build succeeded:** ${FLATPAK_OK}"

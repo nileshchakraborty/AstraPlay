@@ -1,6 +1,6 @@
 # Steamworks Integration Module
 
-This module provides isolated Steamworks SDK integration for pylux.
+This module provides isolated Steamworks SDK integration for astraplay.
 
 ## Purpose
 - Provides Steam overlay integration for PSN OAuth workflow

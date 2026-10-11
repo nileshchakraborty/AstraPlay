@@ -1,10 +1,10 @@
-# Installing Pylux
+# Installing AstraPlay
 
 === "Android / Android TV"
 
     Install directly from the Play Store:
 
-    [Get it on Google Play](https://play.google.com/store/apps/details?id=com.pylux.stream){ target="_blank" rel="noopener" }
+    [Get it on Google Play](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
     Works on phones, tablets, and Android TV devices.
 
@@ -12,18 +12,20 @@
 
     Install from the App Store:
 
-    [Download on the App Store](https://apps.apple.com/us/app/pylux-remote-play/id6761292658){ target="_blank" rel="noopener" }
+    [Download on the App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
 === "macOS"
 
     Install from the Mac App Store:
 
-    [Download on the Mac App Store](https://apps.apple.com/us/app/pylux-remote-play/id6761292658){ target="_blank" rel="noopener" }
+    [Download on the Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
 === "Windows"
 
-    - [Installer](https://www.dropbox.com/scl/fi/wf9cr349acdwkih0syrva/pylux-windows-installer-latest.exe?rlkey=m2egtuj8z7f5se6405gg09wct&dl=1){ target="_blank" rel="noopener" } — recommended for most users
-    - [Portable zip](https://www.dropbox.com/scl/fi/153m9nvy9jluxcjvngmwb/pylux-latest.zip?rlkey=l3bxdp67hu2apfazjs27edxtw&dl=1){ target="_blank" rel="noopener" } — unzip and run, no install required
+    Get the latest release from the [releases page](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }:
+
+    - **Installer** — recommended for most users
+    - **Portable zip** — unzip and run, no install required
 
 === "Linux / Steam Deck"
 
@@ -42,7 +44,7 @@
 
                 ![Open Discover](images/OpenDiscover.png)
 
-            2. Search for `Pylux` in the search bar
+            2. Search for `AstraPlay` in the search bar
 
             3. Click Install
 
@@ -51,24 +53,24 @@
             1. Run the following command in the `konsole`
 
                 ```
-                flatpak install flathub io.github.ForWard_Technologies_LLC.Pylux -y
+                flatpak install flathub io.github.nileshchakraborty.AstraPlay -y
                 ```
 
-        !!! Note "About the Pylux Flatpak"
+        !!! Note "About the AstraPlay Flatpak"
 
-            The Pylux flatpak is available on [Flathub](https://flathub.org/apps/io.github.ForWard_Technologies_LLC.Pylux){ target="_blank" rel="noopener" }.
+            The AstraPlay flatpak is available on [Flathub](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }.
 
             You can also build the flatpak yourself by following the instructions in [Building the Flatpak Yourself](../diy/buildit.md){ target="_blank" rel="noopener" }.
 
     === "AppImage"
 
-        1. Download the [AppImage](https://www.dropbox.com/scl/fi/wi8bjilwiklv7fde0b4ea/pylux-latest.AppImage?rlkey=3xne4ltuiq54ogfmng4gq24mp&dl=1){ target="_blank" rel="noopener" }
+        1. Download the [AppImage for your architecture](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
         2. Make it executable and run it:
 
             ```bash
-            chmod +x pylux-latest.AppImage
-            ./pylux-latest.AppImage
+            chmod +x AstraPlay-Linux-x86_64.AppImage
+            ./AstraPlay-Linux-x86_64.AppImage
             ```
 
             !!! Tip "Steam Deck / Steam"
@@ -76,6 +78,6 @@
 
     === "Portable zip"
 
-        1. Download the [portable zip](https://www.dropbox.com/scl/fi/86rm2424t8jv1h4p2id2b/pylux-latest.zip?rlkey=w69lgzvauq43wpi35wtqac2h0&dl=1){ target="_blank" rel="noopener" }
+        1. Download the [portable zip for your platform](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
         2. Unzip and run `launch.sh` (sets up bundled libs and OpenSSL fallback automatically)

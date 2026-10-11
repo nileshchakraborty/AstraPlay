@@ -168,34 +168,36 @@ static void MigrateControllerMappings(QSettings *settings)
 	settings->endArray();
 }
 
-static void EnsureAstraPlayConfigMigrated(const QString &targetFile, const QString &conf)
+static QString ConfigFileForName(const QString &base, const QString &conf)
 {
-	if (QFile::exists(targetFile))
-		return;
+	return conf.isEmpty() ? (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + base + ".conf")
+		: (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QString("/%1-%2.conf").arg(base, conf));
+}
 
-	QString appData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-	QString legacyPylux = conf.isEmpty() ? (appData + "/pylux.conf") : (appData + QString("/pylux-%1.conf").arg(conf));
-	QString legacyChiaki = conf.isEmpty() ? (appData + "/Chiaki.conf") : (appData + QString("/Chiaki-%1.conf").arg(conf));
+// Canonical config file is pylux.conf; astraplay.conf is honored in addition.
+// Resolution: use astraplay.conf when present (rebrand-era installs), otherwise
+// pylux.conf (existing installs and fresh installs). As a last resort, import a
+// legacy Chiaki.conf once by copying it to the canonical pylux.conf name.
+static QString ResolveConfigFile(const QString &conf)
+{
+	QString astraplayFile = ConfigFileForName("astraplay", conf);
+	if(QFile::exists(astraplayFile))
+		return astraplayFile;
 
-	if (QFile::exists(legacyPylux)) {
-		QFile::copy(legacyPylux, targetFile);
-	} else if (QFile::exists(legacyChiaki)) {
-		QFile::copy(legacyChiaki, targetFile);
-	}
+	QString pyluxFile = ConfigFileForName("pylux", conf);
+	if(QFile::exists(pyluxFile))
+		return pyluxFile;
+
+	QString legacyChiaki = ConfigFileForName("Chiaki", conf);
+	if(QFile::exists(legacyChiaki))
+		QFile::copy(legacyChiaki, pyluxFile);
+	return pyluxFile;
 }
 
 Settings::Settings(const QString &conf, QObject *parent) : QObject(parent),
 	time_format("yyyy-MM-dd HH:mm:ss t"),
-	settings([&]() {
-		QString target = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + (conf.isEmpty() ? "/astraplay.conf" : QString("/astraplay-%1.conf").arg(conf));
-		EnsureAstraPlayConfigMigrated(target, conf);
-		return target;
-	}(), QSettings::IniFormat),
-	default_settings([&]() {
-		QString target = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/astraplay.conf";
-		EnsureAstraPlayConfigMigrated(target, QString());
-		return target;
-	}(), QSettings::IniFormat),
+	settings(ResolveConfigFile(conf), QSettings::IniFormat),
+	default_settings(ResolveConfigFile(QString()), QSettings::IniFormat),
 	placebo_settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/pl_render_params.conf", QSettings::IniFormat)
 {
 	settings.setFallbacksEnabled(false);
@@ -320,7 +322,7 @@ void Settings::ImportSettings(QString filepath)
 	}
 	else
 	{
-		QSettings profile_settings(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QString("/astraplay-%1.conf").arg(profile), QSettings::IniFormat);
+		QSettings profile_settings(ResolveConfigFile(profile), QSettings::IniFormat);
 		profile_settings.clear();
 		SaveRegisteredHosts(&profile_settings);
 		SaveHiddenHosts(&profile_settings);
@@ -2341,14 +2343,13 @@ void Settings::DeleteProfile(QString profile)
 	QString currentProfile = GetCurrentProfile();
 	bool isDeletingCurrent = (currentProfile == profile);
 	
-	QString astraplayDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-	QString astraplayFile = isDefaultProfile ? (astraplayDir + "/astraplay.conf") : (astraplayDir + QString("/astraplay-%1.conf").arg(profile));
-	
-	CHIAKI_LOGI(NULL, "Settings: Clearing data for profile at: %s", astraplayFile.toUtf8().constData());
-	
+	QString configFile = isDefaultProfile ? ResolveConfigFile(QString()) : ResolveConfigFile(profile);
+
+	CHIAKI_LOGI(NULL, "Settings: Clearing data for profile at: %s", configFile.toUtf8().constData());
+
 	// ORIGINAL LOGIC - always clear the data (in separate scope so file gets closed)
 	{
-		QSettings delete_profile(astraplayFile, QSettings::IniFormat);
+		QSettings delete_profile(configFile, QSettings::IniFormat);
 		registered_hosts.clear();
 		manual_hosts.clear();
 		controller_mappings.clear();
@@ -2361,18 +2362,18 @@ void Settings::DeleteProfile(QString profile)
 	
 	// Only delete file and remove from list if NOT default profile
 	if (!isDefaultProfile) {
-		CHIAKI_LOGI(NULL, "Settings: File exists before delete: %s", QFile::exists(astraplayFile) ? "YES" : "NO");
-		
-		if (QFile::exists(astraplayFile)) {
-			if (QFile::remove(astraplayFile)) {
-				CHIAKI_LOGI(NULL, "Settings: ✓ Successfully deleted astraplay file: %s", astraplayFile.toUtf8().constData());
+		CHIAKI_LOGI(NULL, "Settings: File exists before delete: %s", QFile::exists(configFile) ? "YES" : "NO");
+
+		if (QFile::exists(configFile)) {
+			if (QFile::remove(configFile)) {
+				CHIAKI_LOGI(NULL, "Settings: ✓ Successfully deleted config file: %s", configFile.toUtf8().constData());
 			} else {
-				CHIAKI_LOGE(NULL, "Settings: ✗ Failed to delete astraplay file: %s", astraplayFile.toUtf8().constData());
+				CHIAKI_LOGE(NULL, "Settings: ✗ Failed to delete config file: %s", configFile.toUtf8().constData());
 			}
 		} else {
-			CHIAKI_LOGW(NULL, "Settings: File not found: %s", astraplayFile.toUtf8().constData());
+			CHIAKI_LOGW(NULL, "Settings: File not found: %s", configFile.toUtf8().constData());
 		}
-		
+
 		profiles.removeOne(profile);
 		SaveProfiles();
 		emit ProfilesUpdated();

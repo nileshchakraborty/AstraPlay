@@ -1,4 +1,4 @@
-# Building Pylux for Google Play Store
+# Building AstraPlay for Google Play Store
 
 This guide explains how to build an Android App Bundle (AAB) for uploading to Google Play Console.
 

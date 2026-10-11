@@ -8,24 +8,24 @@ Connect to your PS4 or PS5 from outside your home network. There are two methods
 
 **IPv4 only** — PlayStation only supports IPv4 for Remote Play.
 
-Pylux uses PSN servers as a go-between to initiate a direct connection between your device and your PlayStation using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching){target="_blank" rel="noopener"}, replicating the behavior of Sony's official Remote Play app.
+AstraPlay uses PSN servers as a go-between to initiate a direct connection between your device and your PlayStation using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching){target="_blank" rel="noopener"}, replicating the behavior of Sony's official Remote Play app.
 
 ### Requirements
 
 1. Console must be on the latest firmware
 2. Console must be registered locally before using remote connection via PSN
 3. The console must not be reachable on your local network — remote connection is only shown when the console isn't found locally
-4. **PS4 only:** remote connection via PSN works only with your PSN account's main registered console *(Sony limitation, not specific to Pylux)*
+4. **PS4 only:** remote connection via PSN works only with your PSN account's main registered console *(Sony limitation, not specific to AstraPlay)*
 
 !!! warning "Not All Networks Supported"
 
     UDP hole punching doesn't work on all network types. If you consistently see *Couldn't contact PlayStation over established connection, likely unsupported network type* after 5+ attempts, your network is unsupported and you'll need to use the [manual connection](#manual-remote-connection) instead.
 
-    If you see *Connection over PSN failed closing ...*, please open an issue or add your logs to an existing one on the [Pylux GitHub](https://github.com/ForWard-Technologies-LLC/Pylux/issues){target="_blank" rel="noopener"}.
+    If you see *Connection over PSN failed closing ...*, please open an issue or add your logs to an existing one on the [AstraPlay GitHub](https://github.com/nileshchakraborty/AstraPlay/issues){target="_blank" rel="noopener"}.
 
 ### Setup
 
-1. Open Pylux and go to **Settings** (gear icon on the main page)
+1. Open AstraPlay and go to **Settings** (gear icon on the main page)
 2. Go to the **Config** tab and click **Login to PSN**
 3. A login dialog opens with two options:
 
@@ -33,7 +33,7 @@ Pylux uses PSN servers as a go-between to initiate a direct connection between y
 
         1. A QR code is displayed — scan it with your phone
         2. Complete the PSN sign-in on your phone
-        3. Back in Pylux, click **Check Status** to confirm the login went through
+        3. Back in AstraPlay, click **Check Status** to confirm the login went through
 
     === "Login on This Device"
 
@@ -41,7 +41,7 @@ Pylux uses PSN servers as a go-between to initiate a direct connection between y
 
         **Step 1 — Open Login Page**
 
-        Click **Open Login Page**. Your external browser opens the PSN login page. Sign in to your PlayStation account. After logging in, Remote Play redirects to a blank page — that's expected, just come back to Pylux.
+        Click **Open Login Page**. Your external browser opens the PSN login page. Sign in to your PlayStation account. After logging in, Remote Play redirects to a blank page — that's expected, just come back to AstraPlay.
 
         **Step 2 — Open NPSSO Page**
 
@@ -52,9 +52,9 @@ Pylux uses PSN servers as a go-between to initiate a direct connection between y
 
         **Step 3 — Paste Token**
 
-        Paste the token into the field in Pylux (or click **Paste from Clipboard**), then click **Connect**.
+        Paste the token into the field in AstraPlay (or click **Paste from Clipboard**), then click **Connect**.
 
-4. Once authenticated, Pylux refreshes the token automatically. You'll only need to repeat this if PSN requires a new one.
+4. Once authenticated, AstraPlay refreshes the token automatically. You'll only need to repeat this if PSN requires a new one.
 
 ### Connecting
 
@@ -119,9 +119,9 @@ On a device connected to your home network (disconnect from any VPN first):
     curl checkip.amazonaws.com
     ```
 
-### 4. Add the Remote Console in Pylux
+### 4. Add the Remote Console in AstraPlay
 
-1. Click the **+** icon on Pylux's main screen
+1. Click the **+** icon on AstraPlay's main screen
 2. Enter your router's public IP (or hostname) in the remote IP field
 3. Select the locally registered console you want to connect to remotely
 4. Click **Add**, then connect to it from the main list
@@ -137,4 +137,4 @@ On a device connected to your home network (disconnect from any VPN first):
 
 !!! question "Connection was working but stopped?"
 
-    Check whether your router's public IP has changed by re-running the IP lookup above. If it has, update the IP in Pylux's remote connection entry.
+    Check whether your router's public IP has changed by re-running the IP lookup above. If it has, update the IP in AstraPlay's remote connection entry.

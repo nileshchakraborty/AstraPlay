@@ -1,8 +1,8 @@
-# pylux Steamworks Integration
+# astraplay Steamworks Integration
 
 ## 🎮 **Overview**
 
-This integration adds Steamworks SDK support to pylux, enabling the PlayStation OAuth login flow to open in Steam's overlay instead of a separate browser window.
+This integration adds Steamworks SDK support to astraplay, enabling the PlayStation OAuth login flow to open in Steam's overlay instead of a separate browser window.
 
 ## 📁 **Integration Architecture**
 
@@ -113,7 +113,7 @@ var useSteamOverlay = true; // Set this bool based on your preference
 1. **Set your Steam App ID** in `steamworks_api.cpp`
 2. **Place Steamworks SDK** in `gui/third_party/steamworks_sdk/`
 3. **Build with** `-DCHIAKI_ENABLE_STEAMWORKS=ON`
-4. **Run pylux through Steam** (required for overlay)
+4. **Run astraplay through Steam** (required for overlay)
 5. **Click "Login to PSN"** → Opens in Steam overlay! 🎉
 
 ## ⚠️ **Requirements**
@@ -121,7 +121,7 @@ var useSteamOverlay = true; // Set this bool based on your preference
 - Valid Steam developer account and App ID
 - Steamworks SDK from Valve
 - Steam client running when using overlay
-- pylux launched through Steam for overlay access
+- astraplay launched through Steam for overlay access
 
 This integration enhances the user experience while maintaining complete backward compatibility and build flexibility!
 

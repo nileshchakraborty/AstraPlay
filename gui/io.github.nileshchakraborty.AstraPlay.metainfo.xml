@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.nileshcharkaborty.astraplay</id>
-  <launchable type="desktop-id">io.github.nileshcharkaborty.astraplay.desktop</launchable>
+  <id>io.github.nileshchakraborty.AstraPlay</id>
+  <launchable type="desktop-id">io.github.nileshchakraborty.AstraPlay.desktop</launchable>
   <name>AstraPlay</name>
   <summary>Free and Open Source Remote Play Client</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>AGPL-3.0-only</project_license>
   <developer id="co.ksco.astraplay">
-    <name>ForWard Technologies LLC</name>
+    <name>nileshchakraborty</name>
   </developer>
   <url type="homepage">https://github.com/nileshchakraborty/astraplay</url>
   <url type="bugtracker">https://github.com/nileshchakraborty/astraplay/issues</url>
