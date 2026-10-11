@@ -162,14 +162,18 @@ android {
         signingConfigs.release.storePassword = envKeystorePw
         signingConfigs.release.keyAlias = envKeyAlias
         signingConfigs.release.keyPassword = envKeyPw
-    } else if (properties.containsKey("chiakiKeystore")) {
+    } else if (properties.containsKey("astraplayKeystore") || properties.containsKey("chiakiKeystore")) {
         println("Enabling Local Signing")
         buildTypes.release.signingConfig = signingConfigs.release
         buildTypes.debug.signingConfig = signingConfigs.release
-        signingConfigs.release.storeFile = file(properties.get("chiakiKeystore"))
-        signingConfigs.release.storePassword = properties.get("chiakiKeystorePW")
-        signingConfigs.release.keyAlias = properties.get("chiakiKeyAlias")
-        signingConfigs.release.keyPassword = properties.get("chiakiKeyPW")
+        def kStore = properties.get("astraplayKeystore") ?: properties.get("chiakiKeystore")
+        def kStorePw = properties.get("astraplayKeystorePW") ?: properties.get("chiakiKeystorePW")
+        def kAlias = properties.get("astraplayKeyAlias") ?: properties.get("chiakiKeyAlias")
+        def kAliasPw = properties.get("astraplayKeyPW") ?: properties.get("chiakiKeyPW")
+        signingConfigs.release.storeFile = file(kStore)
+        signingConfigs.release.storePassword = kStorePw
+        signingConfigs.release.keyAlias = kAlias
+        signingConfigs.release.keyPassword = kAliasPw
     } else {
         println("Signing not enabled")
     }

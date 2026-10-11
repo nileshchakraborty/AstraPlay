@@ -50,7 +50,7 @@ jobs:
           pip3 install 'protobuf>=5,<6' 'grpcio-tools>=1.60'
 
       # No keystore/signing: assembleDebug uses the auto-generated debug key.
-      # We only need sdk.dir; the chiakiKeystore block in app/build.gradle stays
+      # We only need sdk.dir; the astraplayKeystore block in app/build.gradle stays
       # disabled, so the build is debug-signed (no release keystore secret needed).
       - name: Write local.properties
         working-directory: android

@@ -1,4 +1,4 @@
-# Simple Android build script for chiaki-ng
+# Simple Android build script for AstraPlay
 # Usage: .\build.ps1 [debug|release] [-quick] [-clean] [-abi <abi>] [-install] [-launch] [-apponly] [-bundle]
 
 param(
@@ -15,7 +15,7 @@ param(
 $ErrorActionPreference = "Continue"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Chiaki-ng Android Build Script" -ForegroundColor Cyan
+Write-Host "AstraPlay Android Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

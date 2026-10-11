@@ -256,6 +256,7 @@ write_local_properties() {
   fi
 
   for candidate in \
+    "$SECRETS_DIR/astraplay-release.keystore" \
     "$SECRETS_DIR/chiaki-release.keystore" \
     "$SECRETS_DIR/release.jks"
   do
@@ -264,10 +265,10 @@ write_local_properties() {
 
   if [[ -n "$keystore" && -n "$store_pw" && -n "$key_alias" && -n "$key_pw" ]]; then
     cat >> "$props_file" <<EOF
-chiakiKeystore=$keystore
-chiakiKeystorePW=$store_pw
-chiakiKeyAlias=$key_alias
-chiakiKeyPW=$key_pw
+astraplayKeystore=$keystore
+astraplayKeystorePW=$store_pw
+astraplayKeyAlias=$key_alias
+astraplayKeyPW=$key_pw
 EOF
     log "Signing configured from secrets/android/"
   else

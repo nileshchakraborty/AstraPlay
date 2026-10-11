@@ -8,9 +8,9 @@ This guide explains how to build an Android App Bundle (AAB) for uploading to Go
 
 If you don't already have a keystore, create one:
 
-```powershell
-cd c:\Users\User\repos\chiaki-ng\android
-keytool -genkey -v -keystore chiaki-release.keystore -alias chiaki -keyalg RSA -keysize 2048 -validity 10000
+```bash
+cd <repo>/android
+keytool -genkeypair -v -keystore astraplay-release.keystore -alias astraplay -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 **IMPORTANT**: Save the passwords you create! You'll need them for every release.
@@ -20,10 +20,10 @@ keytool -genkey -v -keystore chiaki-release.keystore -alias chiaki -keyalg RSA -
 Edit `android/local.properties` and add your keystore details:
 
 ```properties
-chiakiKeystore=chiaki-release.keystore
-chiakiKeystorePW=YOUR_KEYSTORE_PASSWORD
-chiakiKeyAlias=chiaki
-chiakiKeyPW=YOUR_KEY_PASSWORD
+astraplayKeystore=astraplay-release.keystore
+astraplayKeystorePW=YOUR_KEYSTORE_PASSWORD
+astraplayKeyAlias=astraplay
+astraplayKeyPW=YOUR_KEY_PASSWORD
 ```
 
 Replace `YOUR_KEYSTORE_PASSWORD` and `YOUR_KEY_PASSWORD` with your actual passwords.

@@ -117,10 +117,10 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           if [ "$SIGNING_CONFIGURED" = "true" ]; then
             cat >> local.properties <<PROPS
-          chiakiKeystore=${{ env.KEYSTORE_PATH }}
-          chiakiKeystorePW=$KEYSTORE_PASSWORD
-          chiakiKeyAlias=$KEY_ALIAS
-          chiakiKeyPW=$KEY_PASSWORD
+          astraplayKeystore=${{ env.KEYSTORE_PATH }}
+          astraplayKeystorePW=$KEYSTORE_PASSWORD
+          astraplayKeyAlias=$KEY_ALIAS
+          astraplayKeyPW=$KEY_PASSWORD
           PROPS
             echo "Signing configured in local.properties"
           else

@@ -30,6 +30,6 @@ Where to get the service account JSON:
 Where to get the upload keystore:
   If Google Play App Signing is managing your key, you still need
   an upload key. Check your local android/local.properties for the
-  chiakiKeystore path, or create a new one:
-    keytool -genkey -v -keystore release.jks \
-      -keyalg RSA -keysize 2048 -validity 10000 -alias <alias>
+  astraplayKeystore path, or create a new one:
+    keytool -genkeypair -v -keystore astraplay-release.keystore \
+      -keyalg RSA -keysize 2048 -validity 10000 -alias astraplay
