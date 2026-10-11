@@ -2,6 +2,9 @@
 <component type="desktop-application">
   <id>co.ksco.astraplay</id>
   <launchable type="desktop-id">co.ksco.astraplay.desktop</launchable>
+  <provides>
+    <id>io.github.nileshchakraborty.AstraPlay</id>
+  </provides>
   <name>AstraPlay</name>
   <summary>Free and Open Source Remote Play Client</summary>
   <metadata_license>CC0-1.0</metadata_license>
