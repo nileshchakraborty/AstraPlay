@@ -740,12 +740,12 @@ jobs:
               TAG="v${BASE_VER}"
               VER="${BASE_VER}"
             else
-              N=1
-              while git rev-parse -q --verify "refs/tags/v${BASE_VER}.${N}" >/dev/null 2>&1 || gh release view "v${BASE_VER}.${N}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; do
-                N=$((N + 1))
+              BUILD_NUM=$((PATCH + 1))
+              while git rev-parse -q --verify "refs/tags/v${MAJOR}.${MINOR}.${BUILD_NUM}" >/dev/null 2>&1 || gh release view "v${MAJOR}.${MINOR}.${BUILD_NUM}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; do
+                BUILD_NUM=$((BUILD_NUM + 1))
               done
-              TAG="v${BASE_VER}.${N}"
-              VER="${BASE_VER}.${N}"
+              TAG="v${MAJOR}.${MINOR}.${BUILD_NUM}"
+              VER="${MAJOR}.${MINOR}.${BUILD_NUM}"
             fi
           fi
 

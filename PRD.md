@@ -5,7 +5,7 @@
 **AstraPlay** is a free, open-source, community-maintained PS4 and PS5 Remote Play + Internet/Cloud Play client targeting Android, Android TV, iOS, iPadOS, macOS, Windows, Linux, and Steam Deck. It is forked from [chiaki-ng](https://github.com/streetpea/chiaki-ng) and extends that work with app-store distribution, mobile-first UI, and Internet Play (game catalog streaming).
 
 **License:** AGPL-3.0  
-**Current Version:** 2.11.4  
+**Current Version:** 2.12.0  
 **Organization:** nileshchakraborty
 
 ---

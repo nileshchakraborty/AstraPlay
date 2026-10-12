@@ -1,9 +1,9 @@
 # AstraPlay Release Notes
 
-## Version 2.11.4
+## Version 2.12.0
 
 ### Overview
-AstraPlay 2.11.4 is a major release introducing end-to-end rebranding from Pylux/Chiaki to AstraPlay, critical network and registration reliability improvements, audio and video enhancements, rich controller HUD integrations, and expanded installer options for Windows and handheld devices.
+AstraPlay 2.12.0 is a major release introducing end-to-end rebranding from Pylux/Chiaki to AstraPlay, critical network and registration reliability improvements, audio and video enhancements, rich controller HUD integrations, and expanded installer options for Windows and handheld devices.
 
 ---
 

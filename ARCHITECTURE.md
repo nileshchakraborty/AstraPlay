@@ -239,8 +239,8 @@ Store deployments use separate manually dispatched workflows.
 Single source of truth in `CMakeLists.txt`:
 ```cmake
 set(CHIAKI_VERSION_MAJOR 2)
-set(CHIAKI_VERSION_MINOR 11)
-set(CHIAKI_VERSION_PATCH 4)
+set(CHIAKI_VERSION_MINOR 12)
+set(CHIAKI_VERSION_PATCH 0)
 ```
 
 CI injects these into iOS `MARKETING_VERSION`, Android `versionName`, and macOS bundle.
