@@ -103,6 +103,7 @@ typedef struct ChiakiSessionBridgeConnectInfo {
     uint32_t cloud_mtu_in;             // MTU in from ping (0 = use default)
     uint32_t cloud_mtu_out;            // MTU out from ping (0 = use default)
     uint64_t cloud_rtt_us;             // RTT in microseconds from ping (0 = use default)
+    int audio_buffer_size;             // 2..10 (burst count / tens of ms, default 5)
 } ChiakiSessionBridgeConnectInfo;
 
 

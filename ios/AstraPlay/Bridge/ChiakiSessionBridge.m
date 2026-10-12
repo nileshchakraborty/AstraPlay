@@ -255,7 +255,8 @@ ChiakiSessionRef chiaki_session_bridge_create(const ChiakiSessionBridgeConnectIn
     /* ChiakiOpusDecoder + ios_chiaki_audio_output: header_cb configures Opus; frame_cb receives raw packets (codec 5).
      * PS Cloud vs other modes differ inside lib/audioreceiver.c only; the session audio_sink contract is the same. */
     s->use_opus_audio = false;
-    s->audio_output = ios_chiaki_audio_output_create();
+    int buf_multiplier = connect_info->audio_buffer_size > 0 ? connect_info->audio_buffer_size : 5;
+    s->audio_output = ios_chiaki_audio_output_create(buf_multiplier);
     if (!s->audio_output) {
         os_log_with_type(s_log, OS_LOG_TYPE_ERROR, "Audio: failed to alloc output (service_type=%d)", connect_info->service_type);
     } else {

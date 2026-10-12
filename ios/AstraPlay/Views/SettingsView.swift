@@ -75,6 +75,7 @@ struct StreamPreferences: Codable {
     var fps: Int = 60
     var bitrate: Int = 0               // 0 = auto (matches Android null -> auto)
     var codec: Int = 1                 // 0=H264, 1=H265 (matches Android default H265)
+    var audioBufferSize: Int = 5       // 2..10 (tens of ms, default 5 = 50ms)
 
     // General
     var swapCrossMoon: Bool = false
@@ -126,7 +127,7 @@ struct StreamPreferences: Codable {
     static let cloudBitrateDefaultKbps = 20000
 
     private enum CodingKeys: String, CodingKey {
-        case resolutionIndex, fps, bitrate, codec
+        case resolutionIndex, fps, bitrate, codec, audioBufferSize
         case swapCrossMoon, rumbleEnabled, rumbleIntensity, motionSource, touchHapticsEnabled, logVerbose
         case motionEnabled // legacy bool, migrated into motionSource
         case adaptiveTriggersEnabled
@@ -143,6 +144,7 @@ struct StreamPreferences: Codable {
         fps: Int = 60,
         bitrate: Int = 0,
         codec: Int = 1,
+        audioBufferSize: Int = 5,
         swapCrossMoon: Bool = false,
         rumbleEnabled: Bool = true,
         rumbleIntensity: Int = 100,
@@ -188,6 +190,7 @@ struct StreamPreferences: Codable {
         fps = try c.decodeIfPresent(Int.self, forKey: .fps) ?? 60
         bitrate = try c.decodeIfPresent(Int.self, forKey: .bitrate) ?? 0
         codec = try c.decodeIfPresent(Int.self, forKey: .codec) ?? 1
+        audioBufferSize = try c.decodeIfPresent(Int.self, forKey: .audioBufferSize) ?? 5
         swapCrossMoon = try c.decodeIfPresent(Bool.self, forKey: .swapCrossMoon) ?? false
         rumbleEnabled = try c.decodeIfPresent(Bool.self, forKey: .rumbleEnabled) ?? true
         rumbleIntensity = Self.clampRumbleIntensity(
@@ -230,6 +233,7 @@ struct StreamPreferences: Codable {
         try c.encode(fps, forKey: .fps)
         try c.encode(bitrate, forKey: .bitrate)
         try c.encode(codec, forKey: .codec)
+        try c.encode(audioBufferSize, forKey: .audioBufferSize)
         try c.encode(swapCrossMoon, forKey: .swapCrossMoon)
         try c.encode(rumbleEnabled, forKey: .rumbleEnabled)
         try c.encode(rumbleIntensity, forKey: .rumbleIntensity)
@@ -752,6 +756,16 @@ struct SettingsView: View {
                 Text("H.265 (PS5 only)").tag(1)
             }
             .onChange(of: prefs.codec) { _ in prefs.save() }
+
+            // Audio Buffer Size
+            Picker("Audio Buffer Size", selection: $prefs.audioBufferSize) {
+                Text("Ultra Low (20 ms)").tag(2)
+                Text("Low Latency (40 ms)").tag(4)
+                Text("Normal (50 ms / Default)").tag(5)
+                Text("Safe (80 ms)").tag(8)
+                Text("High (100 ms)").tag(10)
+            }
+            .onChange(of: prefs.audioBufferSize) { _ in prefs.save() }
         } header: {
             Text("Remote Play Settings")
         }

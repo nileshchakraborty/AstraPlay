@@ -94,6 +94,8 @@
     <string name="preferences_fps_title">FPS</string>
     <string name="preferences_bitrate_title">Bitrate</string>
     <string name="preferences_codec_title">Codec</string>
+    <string name="preferences_audio_buffer_size_title">Audio Buffer Size</string>
+    <string name="preferences_audio_buffer_size_summary">Low latency (safe on fast Wi-Fi) or higher buffer (prevents audio crackling)</string>
     <string name="preferences_log_verbose_title">Verbose Logging</string>
     <string name="preferences_log_verbose_summary">Warning: This logs a LOT! Don\'t enable for regular use.</string>
     <string name="preferences_resolution_title_360p">360p</string>
@@ -298,6 +300,21 @@
     <string name="preferences_fps_key">stream_fps</string>
     <string name="preferences_bitrate_key">stream_bitrate</string>
     <string name="preferences_codec_key">stream_codec</string>
+    <string name="preferences_audio_buffer_size_key">stream_audio_buffer_size</string>
+    <string-array name="audio_buffer_size_entries">
+        <item>Ultra Low (20 ms / 2 bursts)</item>
+        <item>Low Latency (40 ms / 4 bursts)</item>
+        <item>Normal (50 ms / Default)</item>
+        <item>Safe (80 ms / 8 bursts)</item>
+        <item>High (100 ms / Unstable Wi-Fi)</item>
+    </string-array>
+    <string-array name="audio_buffer_size_values">
+        <item>2</item>
+        <item>4</item>
+        <item>5</item>
+        <item>8</item>
+        <item>10</item>
+    </string-array>
     <string name="preferences_cloud_datacenter_psnow_key">cloud_datacenter_psnow</string>
     <string name="preferences_cloud_datacenters_json_psnow_key">cloud_datacenters_json_psnow</string>
     <string name="preferences_cloud_datacenter_pscloud_key">cloud_datacenter_pscloud</string>

@@ -324,7 +324,15 @@ class RemotePlayFragment : Fragment()
 		if(registeredHost != null)
 		{
 			fun connect() {
-				val connectInfo = ConnectInfo(host.isPS5, host.host, registeredHost.rpRegistKey, registeredHost.rpKey, Preferences(requireContext()).videoProfile)
+				val prefs = Preferences(requireContext())
+				val connectInfo = ConnectInfo(
+					ps5 = host.isPS5,
+					host = host.host,
+					registKey = registeredHost.rpRegistKey,
+					morning = registeredHost.rpKey,
+					videoProfile = prefs.videoProfile,
+					audioBufferSize = prefs.audioBufferSize
+				)
 				Intent(requireContext(), StreamActivity::class.java).let {
 					it.putExtra(StreamActivity.EXTRA_CONNECT_INFO, connectInfo)
 					startActivity(it)
@@ -514,7 +522,8 @@ class RemotePlayFragment : Fragment()
 				videoProfile = prefs.videoProfile,
 				duid = host.duid,
 				psnToken = prefs.psnAuthToken,
-				psnAccountId = prefs.psnAccountId
+				psnAccountId = prefs.psnAccountId,
+				audioBufferSize = prefs.audioBufferSize
 			)
 			Intent(requireContext(), StreamActivity::class.java).let {
 				it.putExtra(StreamActivity.EXTRA_CONNECT_INFO, connectInfo)

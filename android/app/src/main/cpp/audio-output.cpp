@@ -31,16 +31,17 @@ public:
 struct AudioOutput
 {
 	ChiakiLog *log;
+	int buffer_multiplier;
 	oboe::ManagedStream stream;
 	AudioOutputCallback stream_callback;
 	AudioBuffer buf;
 
-	AudioOutput() : stream_callback(this) {}
+	AudioOutput(int buffer_multiplier = 5) : buffer_multiplier(buffer_multiplier), stream_callback(this) {}
 };
 
-extern "C" void *android_chiaki_audio_output_new(ChiakiLog *log)
+extern "C" void *android_chiaki_audio_output_new(ChiakiLog *log, int buffer_multiplier)
 {
-	auto r = new AudioOutput();
+	auto r = new AudioOutput(buffer_multiplier > 0 ? buffer_multiplier : 5);
 	r->log = log;
 	return r;
 }
@@ -68,7 +69,19 @@ extern "C" void android_chiaki_audio_output_settings(uint32_t channels, uint32_t
 
 	auto result = builder.openManagedStream(ao->stream);
 	if(result == oboe::Result::OK)
+	{
 		CHIAKI_LOGI(ao->log, "Audio Output opened Oboe stream");
+		int32_t burst = ao->stream->getFramesPerBurst();
+		if(burst > 0)
+		{
+			int32_t target_frames = burst * ao->buffer_multiplier;
+			auto res = ao->stream->setBufferSizeInFrames(target_frames);
+			if(res.hasValue())
+				CHIAKI_LOGI(ao->log, "Oboe buffer size set to %d frames (%d bursts of %d)", res.value(), ao->buffer_multiplier, burst);
+			else
+				CHIAKI_LOGW(ao->log, "Failed to set Oboe buffer size: %s", oboe::convertToText(res.error()));
+		}
+	}
 	else
 		CHIAKI_LOGE(ao->log, "Audio Output failed to open Oboe stream: %s", oboe::convertToText(result));
 

@@ -85,7 +85,8 @@ data class ConnectInfo(
 	val psnToken: String? = null,
 	val psnAccountId: String? = null, // base64-encoded 8-byte account ID
 	val holepunchSessionPtr: Long = 0L,
-	val autoRegist: Boolean = false // true for PSN auto-registration via holepunch
+	val autoRegist: Boolean = false, // true for PSN auto-registration via holepunch
+	val audioBufferSize: Int = 5 // 2..10 (burst count / tens of ms)
 ): Parcelable
 
 /** Device info returned by PSN holepunch device listing */

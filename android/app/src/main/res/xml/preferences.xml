@@ -121,6 +121,15 @@
             app:title="@string/preferences_codec_title"
             app:summary="%s"
             app:icon="@drawable/ic_codec"/>
+
+        <ListPreference
+            app:key="@string/preferences_audio_buffer_size_key"
+            app:title="@string/preferences_audio_buffer_size_title"
+            app:summary="%s"
+            app:entries="@array/audio_buffer_size_entries"
+            app:entryValues="@array/audio_buffer_size_values"
+            app:defaultValue="5"
+            app:icon="@drawable/ic_resolution"/>
     </PreferenceCategory>
 
     <PreferenceCategory

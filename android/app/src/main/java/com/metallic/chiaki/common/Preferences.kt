@@ -282,6 +282,11 @@ class Preferences(context: Context)
 		}  ?: codecDefault
 		set(value) { sharedPreferences.edit().putString(codecKey, value.value).apply() }
 
+	val audioBufferSizeKey get() = resources.getString(R.string.preferences_audio_buffer_size_key)
+	var audioBufferSize: Int // 2, 4, 5, 8, 10 (multiplied by 10 for ms)
+		get() = sharedPreferences.getString(audioBufferSizeKey, "5")?.toIntOrNull() ?: 5
+		set(value) { sharedPreferences.edit().putString(audioBufferSizeKey, value.toString()).apply() }
+
 	private val videoProfileDefaultBitrate get() = ConnectVideoProfile.preset(resolution.preset, fps.preset, codec.codec)
 	val videoProfile get() = videoProfileDefaultBitrate.let {
 		val bitrate = bitrate
