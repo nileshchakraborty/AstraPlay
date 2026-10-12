@@ -25,7 +25,7 @@ This audit documents pending items, enhancement opportunities, and technical tas
 ## Issue 2: [Windows] Authenticode Code Signing for `.msi` and `.exe` Installers
 - **Type**: Enhancement / Security
 - **Priority**: Medium
-- **Components**: `scripts/chiaki-ng.iss`, `scripts/astraplay.wxs`, `.github/workflows/release-on-merge.yml`
+- **Components**: `scripts/astraplay.iss`, `scripts/astraplay.wxs`, `.github/workflows/release-on-merge.yml`
 - **Description**:
   Windows SmartScreen may prompt untrusted publisher warnings for newly published binaries.
 - **Task**:

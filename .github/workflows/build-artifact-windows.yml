@@ -114,12 +114,12 @@ jobs:
 
       - name: Build AstraPlay
         run: |
-          cmake --build build --config Release --clean-first --target chiaki
+          cmake --build build --config Release --clean-first --target astraplay
 
       - name: Package AstraPlay
         run: |
           mkdir -p astraplay
-          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
+          [ -f build/gui/astraplay.exe ] && cp -f build/gui/astraplay.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/mingw64/share/qt6/bin/:/mingw64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/mingw64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/mingw64/share/qt6/qml"
@@ -189,7 +189,7 @@ jobs:
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: "scripts/chiaki-ng.iss"
+          path: "scripts/astraplay.iss"
           options: /O+
 
       - name: Rename installer with version
@@ -307,12 +307,12 @@ jobs:
 
       - name: Build AstraPlay ARM64
         run: |
-          cmake --build build --config Release --clean-first --target chiaki
+          cmake --build build --config Release --clean-first --target astraplay
 
       - name: Package AstraPlay ARM64
         run: |
           mkdir -p astraplay
-          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
+          [ -f build/gui/astraplay.exe ] && cp -f build/gui/astraplay.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
@@ -382,7 +382,7 @@ jobs:
         continue-on-error: true
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: "scripts/chiaki-ng.iss"
+          path: "scripts/astraplay.iss"
           options: /O+
 
       - name: Rename ARM64 installer with version
