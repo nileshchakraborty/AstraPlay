@@ -3,7 +3,7 @@
 ## Configuring Steam Deck Controller Profile
 
 !!! Tip
-    If you created the Steam Shortcut through the menu, it automatically adds the correct pylux+ mic controller profile for you on Steam Deck.
+    If you created the Steam Shortcut through the menu, it automatically adds the correct AstraPlay+ mic controller profile for you on Steam Deck.
 
 Get all of the shortcuts mapped to Steam Deck controls. Start by going to the AstraPlay game menu and selecting the controller layout to configure controller options.
 
@@ -33,7 +33,7 @@ Get all of the shortcuts mapped to Steam Deck controls. Start by going to the As
 
         1. Click the current layout box (it says: *Browse Community Layouts for games without official controller support* underneath it).
 
-        2. Move to the `COMMUNITY LAYOUTS` tab and select `pylux+ mic` by `gmoney23`
+        2. Move to the `COMMUNITY LAYOUTS` tab and select `AstraPlay+ mic` by `gmoney23`
 
             ![Default controller](images/StreetpeaChiaki4deckLayout.png)
 
@@ -75,7 +75,7 @@ The easiest way to configure all of the necessary shortcuts for AstraPlay is to 
 
 1. Click the current layout box (it says: *Browse Community Layouts for games without official controller support* underneath it).
 
-2. Move to the `COMMUNITY LAYOUTS` tab and select `pylux+ mic` by `gmoney23` (the `pylux+` layout was from before the toggle mic mute button mapping to the L4 back button was added and the original `pylux` layout was from before touchpad mapping to the trackpad and touchscreen was added)
+2. Move to the `COMMUNITY LAYOUTS` tab and select `AstraPlay+ mic` by `gmoney23` (the `AstraPlay+` layout was from before the toggle mic mute button mapping to the L4 back button was added and the original layout was from before touchpad mapping to the trackpad and touchscreen was added)
 
     ![Default controller](images/StreetpeaChiaki4deckLayout.png)
 
@@ -154,7 +154,7 @@ You can create your own controller profile by mapping the relevant buttons in St
 
 ### Using Steam Deck Controller Touchscreen in Your Custom Controller Profile
 
-In order to use the Steam Deck touchscreen as a touchscreen instead of a mouse in Game Mode, you need to enable `Touchscreen Native Support` for it in controller options (this is done for you in the default AstraPlay layout `pylux+ mic`). For your custom controller profile, do the following:
+In order to use the Steam Deck touchscreen as a touchscreen instead of a mouse in Game Mode, you need to enable `Touchscreen Native Support` for it in controller options (this is done for you in the default AstraPlay layout `AstraPlay+ mic`). For your custom controller profile, do the following:
 
 1. Edit your controller layout and scroll down to the `Action Sets` tab (on the left menu). 
     
@@ -174,7 +174,7 @@ In order to use the Steam Deck touchscreen as a touchscreen instead of a mouse i
 
 ### Gyro Controls
 
-Gryo directly maps for games that support it (i.e., Concrete genie, Astro's Playroom, The Last of Us, Ghost of Tsushima, etc.) for the Steam Deck controller (using native interface since SDL doesn't support motion or trackpad controls for Steam virtual controllers) as well as attached controllers that SDL supports with an accelerometer and gyro (i.e., DualSense, DualShock 4, etc.). For this to work, do the following based on your controller:
+Gyro directly maps for games that support it (i.e., Concrete genie, Astro's Playroom, The Last of Us, Ghost of Tsushima, etc.) for the Steam Deck controller (using native interface since SDL doesn't support motion or trackpad controls for Steam virtual controllers) as well as attached controllers that SDL supports with an accelerometer and gyro (i.e., DualSense, DualShock 4, etc.). For this to work, do the following based on your controller:
 
 - Steam Deck (works out of the box, nothing needed)
 - DualSense, DualShock4 or other controller with gyro + accelerometer supported by SDL
@@ -191,7 +191,7 @@ Once checked, haptics and adaptive triggers (DualSense only) will work in games 
 
 ### Microphone
 
-Unmute microphone with either ++ctrl+m++ or the mic button on the PlayStation controller. (This is set to `L4` in the default pylux+ mic controller layout.) Then, use the microphone as normal. You can choose your microphone in the Steam Deck settings as well as choosing between audio inputs in the AstraPlay menu.
+Unmute microphone with either ++ctrl+m++ or the mic button on the PlayStation controller. (This is set to `L4` in the default AstraPlay+ mic controller layout.) Then, use the microphone as normal. You can choose your microphone in the Steam Deck settings as well as choosing between audio inputs in the AstraPlay menu.
 
 !!! Note "Bluetooth headset microphones don't work on Steam Deck by default"
 

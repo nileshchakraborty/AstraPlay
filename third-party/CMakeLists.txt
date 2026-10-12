@@ -108,16 +108,16 @@ if (NOT CHIAKI_IS_SWITCH)
 		# though _fseeki64/__int64 are MSVC-only; formdata.c then fails to compile for iOS.
 		# Do not edit the curl submodule — strip the bogus #define from the generated header.
 		if(IOS)
-			set(_pylux_curl_config "${CMAKE_CURRENT_BINARY_DIR}/curl/lib/curl_config.h")
-			if(EXISTS "${_pylux_curl_config}")
-				file(READ "${_pylux_curl_config}" _pylux_curl_config_contents)
+			set(_astraplay_curl_config "${CMAKE_CURRENT_BINARY_DIR}/curl/lib/curl_config.h")
+			if(EXISTS "${_astraplay_curl_config}")
+				file(READ "${_astraplay_curl_config}" _astraplay_curl_config_contents)
 				string(REPLACE "#define HAVE__FSEEKI64 1"
 					"/* #undef HAVE__FSEEKI64 (iOS: not MSVC; use fseeko path in formdata.c) */"
-					_pylux_curl_config_contents "${_pylux_curl_config_contents}")
-				file(WRITE "${_pylux_curl_config}" "${_pylux_curl_config_contents}")
+					_astraplay_curl_config_contents "${_astraplay_curl_config_contents}")
+				file(WRITE "${_astraplay_curl_config}" "${_astraplay_curl_config_contents}")
 			endif()
-			unset(_pylux_curl_config)
-			unset(_pylux_curl_config_contents)
+			unset(_astraplay_curl_config)
+			unset(_astraplay_curl_config_contents)
 		endif()
 		# Exported library is CURL::libcurl_static
 	endif()

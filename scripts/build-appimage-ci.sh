@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# Build chiaki-ng AppImage exactly like the GitHub Action, then launch it.
-# - Uses the same Podman builder image: docker.io/streetpea/chiaki-ng-builder:qt6.9
+# Build AstraPlay AppImage exactly like the GitHub Action, then launch it.
+# - Uses the builder image: docker.io/streetpea/chiaki-ng-builder:qt6.9
 # - Mirrors the CI steps (including QML WebEngine import copy)
 # - Forces FUSE-less AppImage packaging and runtime via APPIMAGE_EXTRACT_AND_RUN=1
 # - Ensures local source changes are used (bind mounts repo into the container)
-# - Launches the produced AppImage in the background and logs to /tmp/chiaki_run.log
+# - Launches the produced AppImage in the background and logs to /tmp/astraplay_run.log
 
 set -euo pipefail
 

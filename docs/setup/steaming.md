@@ -19,7 +19,7 @@
 
     !!! Success ":video_game: Game (Mode) Time!"
 
-        You have successfully added AstraPlay to Steam with pictures and (if on Steam Deck) set the `pylux+ mic` Steam Deck controller shortcut. :fireworks:
+        You have successfully added AstraPlay to Steam with pictures and (if on Steam Deck) set the `AstraPlay+ mic` Steam Deck controller shortcut. :fireworks:
         
         You can now close any open applications and or terminals (forcing them to close if necessary) and then switch to **Game Mode** by clicking on the `Return to Gaming Mode` desktop icon.
 

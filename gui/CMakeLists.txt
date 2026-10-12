@@ -86,13 +86,13 @@ set(SOURCE_FILES
 set(RESOURCE_FILES "")
 
 if(APPLE)
-	list(APPEND RESOURCE_FILES "chiaking.icns")
+	list(APPEND RESOURCE_FILES "astraplay.icns")
 elseif(WIN32)
 	configure_file(
-		${CMAKE_CURRENT_SOURCE_DIR}/chiaking.rc.in
-		${CMAKE_CURRENT_SOURCE_DIR}/chiaking.rc
+		${CMAKE_CURRENT_SOURCE_DIR}/astraplay.rc.in
+		${CMAKE_CURRENT_SOURCE_DIR}/astraplay.rc
 		@ONLY)
-	list(APPEND RESOURCE_FILES "chiaking.rc")
+	list(APPEND RESOURCE_FILES "astraplay.rc")
 endif()
 
 if(CHIAKI_ENABLE_STEAMDECK_NATIVE AND LINUX)
@@ -208,7 +208,7 @@ if(APPLE)
 			MACOSX_BUNDLE_BUNDLE_VERSION "${MACOSX_BUNDLE_BUILD_VERSION}"
 			MACOSX_BUNDLE_COPYRIGHT "thestr4ng3r (AGPLv3)"
 			MACOSX_BUNDLE_GUI_IDENTIFIER "com.astraplay.stream"
-			MACOSX_BUNDLE_ICON_FILE chiaking.icns
+			MACOSX_BUNDLE_ICON_FILE astraplay.icns
 			RESOURCE "${RESOURCE_FILES}")
 else()
 	set_target_properties(chiaki PROPERTIES

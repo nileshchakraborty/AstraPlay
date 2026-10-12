@@ -1,6 +1,6 @@
 # PSN Trophy API Test Scripts
 
-This directory contains test scripts for accessing PlayStation Network Trophy and Store APIs directly using Chiaki-NG OAuth access tokens.
+This directory contains test scripts for accessing PlayStation Network Trophy and Store APIs directly using AstraPlay OAuth access tokens.
 
 ## 🎯 Purpose
 
@@ -8,7 +8,7 @@ These scripts demonstrate how to:
 - Retrieve user's game library via Trophy API
 - Get detailed trophy information for each game
 - Access game cover art from public PlayStation Store API
-- All using Chiaki-NG's existing OAuth authentication (no PSNAWP dependency)
+- All using AstraPlay's existing OAuth authentication (no PSNAWP dependency)
 
 ## 📋 Files
 
@@ -39,8 +39,8 @@ python3 test_trophy_api.py YOUR_ACCESS_TOKEN
 
 ## 🔑 Getting Access Token
 
-The access token is your existing Chiaki-NG OAuth token. You can find it in:
-- Chiaki-NG settings/config
+The access token is your existing AstraPlay OAuth token. You can find it in:
+- AstraPlay settings/config
 - Network logs when connecting to PSN
 
 ## 📚 API Endpoints Documentation
@@ -145,13 +145,13 @@ curl -s "https://store.playstation.com/store/api/chihiro/00_09_000/container/US/
 - Store API is **public** (no auth needed)
 
 ### Scope Requirements
-The Trophy API works with Chiaki-NG's default OAuth scopes:
+The Trophy API works with AstraPlay's default OAuth scopes:
 - `psn:clientapp`
 - `referenceDataService:countryConfig.read`
 - `pushNotification:webSocket.desktop.connect`
 - `sessionManager:remotePlaySession.system.update`
 
-## 🎮 Use Cases for Chiaki-NG
+## 🎮 Use Cases for AstraPlay
 
 These APIs enable:
 1. **Game Library Display**: Show user's played games with icons
@@ -173,4 +173,4 @@ These are unofficial/undocumented PlayStation APIs. Use responsibly to avoid pot
 
 ---
 
-**Created for Chiaki-NG** - Direct game launch feature research
+**Created for AstraPlay** - Direct game launch feature research

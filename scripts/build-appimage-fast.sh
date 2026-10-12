@@ -24,7 +24,7 @@ mkdir -p gui/src/qml
 cp -f scripts/qtwebengine_import.qml gui/src/qml/ || true
 
 # Persistent container
-container_name="chiaki-ng-dev"
+container_name="astraplay-dev"
 if ! podman container exists "$container_name"; then
   podman create --name "$container_name" \
     -v "$(pwd):/build/chiaki:Z" \
