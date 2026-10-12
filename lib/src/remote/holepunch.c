@@ -53,21 +53,21 @@
 
 #include <curl/curl.h>
 
-#ifdef CHIAKI_LIB_ENABLE_MBEDTLS
-// mbedTLS doesn't use the system trust store, so we must set CURLOPT_CAINFO explicitly.
-// Intercept all curl_easy_init() calls to set CURLOPT_CAINFO from CHIAKI_CA_BUNDLE env var.
-// Applies to Android, iOS, and any other platform using mbedTLS as the SSL backend.
-static inline CURL* _chiaki_mbedtls_curl_easy_init(void) {
+// Intercept all curl_easy_init() calls to set CURLOPT_CAINFO from CHIAKI_CA_BUNDLE env var or macOS default cert store.
+static inline CURL* _chiaki_curl_easy_init_with_ca(void) {
     CURL *curl = curl_easy_init();
     if(curl) {
         const char *ca_bundle = getenv("CHIAKI_CA_BUNDLE");
-        if(ca_bundle)
+#if defined(__APPLE__)
+        if((!ca_bundle || !*ca_bundle) && access("/etc/ssl/cert.pem", R_OK) == 0)
+            ca_bundle = "/etc/ssl/cert.pem";
+#endif
+        if(ca_bundle && *ca_bundle)
             curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle);
     }
     return curl;
 }
-#define curl_easy_init() _chiaki_mbedtls_curl_easy_init()
-#endif
+#define curl_easy_init() _chiaki_curl_easy_init_with_ca()
 #include <json-c/json_object.h>
 #include <json-c/json_tokener.h>
 #include <json-c/json_pointer.h>
