@@ -44,7 +44,7 @@
 
             !!! Tip "Connecting Outside of Your Local Network"
 
-                You can add an external IP or hostname in addition to your local one to connect from an external network. To do so, you need to set up port forwarding as detailed in the prior [remote connection section](remoteconnection.md){target="_blank" rel="noopener"}. Then, you can choose to setup an external IP/hostname as part of the setup script process. The automation will take your home network name (SSID) to check if you are home or not to use the correct IP/hostname automatically. The script will automatically detect your current SSID. Thus, if you are on your home network while running the setup script (`gen-launcher.sh`), it will detect your home ssid so you will just need to hit ++enter++. If not, you can enter ot manually (instead of using the default of your client device's [i.e., Steam Deck's] current network's SSID). You can get your home SSID for manual entry via `iwgetid -r` from the `konsole` when connected to your home network or by looking in your network history on your client device [i.e., Steam Deck] (it will be the connection name for your home network such as `StreetPea-5G`). Of course, if you want to skip this now and setup the external address later, you can always rerun the automation or choose a placeholder external IP now and manually edit it to your desired IP/hostname later.
+                You can add an external IP or hostname in addition to your local one to connect from an external network. To do so, you need to set up port forwarding as detailed in the prior [remote connection section](remoteconnection.md){target="_blank" rel="noopener"}. Then, you can choose to setup an external IP/hostname as part of the setup script process. The automation will take your home network name (SSID) to check if you are home or not to use the correct IP/hostname automatically. The script will automatically detect your current SSID. Thus, if you are on your home network while running the setup script (`gen-launcher.sh`), it will detect your home ssid so you will just need to hit ++enter++. If not, you can enter ot manually (instead of using the default of your client device's [i.e., Steam Deck's] current network's SSID). You can get your home SSID for manual entry via `iwgetid -r` from the `konsole` when connected to your home network or by looking in your network history on your client device [i.e., Steam Deck] (it will be the connection name for your home network such as `Home-WiFi-5G`). Of course, if you want to skip this now and setup the external address later, you can always rerun the automation or choose a placeholder external IP now and manually edit it to your desired IP/hostname later.
 
             ???- example "Example Output [click to expand me]"
 
@@ -72,7 +72,7 @@
 
                 Do you have a separate address (DNS or IP) to access this console away from home? (y/n):
                 y
-                Enter your home SSID [hit enter for default: StreetPea-5G]: 
+                Enter your home SSID [hit enter for default: Home-WiFi-5G]: 
 
 
 
@@ -401,7 +401,7 @@
 
                 === "Via GUI"
 
-                    The connection name/SSID for your home network in the client device's [i.e., Steam Deck] network settings such as `StreetPea-5G`.
+                    The connection name/SSID for your home network in the client device's [i.e., Steam Deck] network settings such as `Home-WiFi-5G`.
 
             2. `<local_addr>` with local PlayStation IP
 
@@ -461,7 +461,7 @@
                     echo "Error: Please change 35 to a higher number in your script if this persists." >&2
                     exit 1
                 }
-                if [ "$(iwgetid -r)" == "StreetPea-5G" ]
+                if [ "$(iwgetid -r)" == "Home-WiFi-5G" ]
                 then
                     addr="192.168.1.16"
                     local=true

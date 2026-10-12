@@ -23,11 +23,7 @@ appdir
 /sdl2-*
 /protoc*
 /openssl*
-scripts/chiaki-ng.iss
-scripts/Output
-.vs
-CMakeSettings.json
-chiaki.rb
+gui/astraplay.rc
 gui/chiaking.rc
 *.jks
 secret.tar

@@ -3,7 +3,7 @@
 ## Version 2.12.0
 
 ### Overview
-AstraPlay 2.12.0 is a major release introducing end-to-end rebranding from Pylux/Chiaki to AstraPlay, critical network and registration reliability improvements, audio and video enhancements, rich controller HUD integrations, and expanded installer options for Windows and handheld devices.
+AstraPlay 2.12.0 is a major release introducing end-to-end rebranding to AstraPlay, critical network and registration reliability improvements, audio and video enhancements, rich controller HUD integrations, and expanded installer options for Windows and handheld devices.
 
 ---
 
@@ -52,7 +52,7 @@ AstraPlay 2.12.0 is a major release introducing end-to-end rebranding from Pylux
 
 #### 💻 Platform & Packaging Polish
 - **macOS Native Branding**:
-  - Renamed executable bundle output to `AstraPlay.app` and canonical configuration path to `astraplay.conf` with automatic migration from legacy `pylux.conf` and `Chiaki.conf`.
+  - Renamed executable bundle output to `AstraPlay.app` and canonical configuration path to `astraplay.conf` with automatic migration from legacy configuration files.
 - **Windows Packaging Enhancements**:
   - Fixed Windows CI binary artifact preservation (`chiaki.exe` and `astraplay.exe`).
   - Complete WiX MSI installer (`astraplay-windows-x64.msi`) with configurable Start Menu and desktop shortcut parameters.

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.Material
 
-import org.streetpea.chiaking
+import org.astraplay
 
 // Simple controller overlay - shows how to open stream menu
 Item {

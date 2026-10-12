@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Effects
 
-import org.streetpea.chiaking
+import org.astraplay
 
 import "controls" as C
 

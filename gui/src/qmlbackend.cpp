@@ -135,12 +135,21 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     chiaki_log_init(&global_log, settings->GetLogLevelMask(), chiaki_log_cb_print, nullptr);
     qt_msg_handler = qInstallMessageHandler(msg_handler);
 
-    const char *uri = "org.streetpea.chiaking";
+    const char *uri = "org.astraplay";
+    const char *legacy_uri = "org.streetpea.chiaking";
+
+    qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlay", this);
     qmlRegisterSingletonInstance(uri, 1, 0, "Chiaki", this);
+    qmlRegisterSingletonInstance(legacy_uri, 1, 0, "Chiaki", this);
+
     games_backend = new QmlGamesBackend(settings, this);
+    qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlayGames", games_backend);
     qmlRegisterSingletonInstance(uri, 1, 0, "ChiakiGames", games_backend);
+    qmlRegisterSingletonInstance(legacy_uri, 1, 0, "ChiakiGames", games_backend);
+
     m_update_manager = new UpdateManager(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "UpdateManager", m_update_manager);
+    qmlRegisterSingletonInstance(legacy_uri, 1, 0, "UpdateManager", m_update_manager);
 #ifdef CHIAKI_IS_MAC_APPSTORE
     // Mac App Store: arm the SKStoreReviewController prompt for the next active transition.
     auto *appReviewManager = new AppReviewManager(settings, this);
@@ -298,9 +307,17 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
         qInfo() << "QmlBackend: Cloud streaming session registered successfully";
     });
     
+    qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "AstraPlayWindow", {});
     qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "ChiakiWindow", {});
+    qmlRegisterUncreatableType<QmlMainWindow>(legacy_uri, 1, 0, "ChiakiWindow", {});
+
+    qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "AstraPlaySettings", {});
     qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "ChiakiSettings", {});
+    qmlRegisterUncreatableType<QmlSettings>(legacy_uri, 1, 0, "ChiakiSettings", {});
+
+    qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "AstraPlaySession", {});
     qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "ChiakiSession", {});
+    qmlRegisterUncreatableType<StreamSession>(legacy_uri, 1, 0, "ChiakiSession", {});
 
     QObject *frame_obj = new QObject();
     frame_thread = new QThread(frame_obj);
@@ -2742,8 +2759,7 @@ void QmlBackend::ensureAstraPlaySteamShortcut(const QJSValue &callback)
 
     QVector<SteamShortcutEntry> shortcuts = steam.parseShortcuts();
     for (auto &entry : shortcuts) {
-        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive) ||
-            entry.getAppName().contains(QStringLiteral("Pylux"), Qt::CaseInsensitive)) {
+        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive)) {
             done(false);
             return;
         }

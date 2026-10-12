@@ -122,7 +122,7 @@
 
         ???+ example "Finished AstraPlay Properties"
 
-            ![Finished AstraPlay Properties](images/FinishedPyluxProperties.png)
+            ![Finished AstraPlay Properties](images/FinishedBackgroundLogo.png)
 
     5. Go to your `Library` in Steam and select AstraPlay from the left-hand list or one of the `Library` categories to go to AstraPlay's game page.
 

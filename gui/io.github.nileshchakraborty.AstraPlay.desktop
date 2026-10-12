@@ -2,6 +2,6 @@
 Type=Application
 Name=AstraPlay
 Comment=Remote Play Client
-Exec=chiaki
-Icon=chiaking
+Exec=astraplay
+Icon=astraplay
 Categories=Game;Network;RemoteAccess;

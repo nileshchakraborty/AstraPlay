@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(chiaki)
+project(astraplay LANGUAGES C CXX)
 
 # Fix for 16 KB page size compatibility (required for Android devices with 16 KB pages)
 # This ensures ELF LOAD segments are aligned to 16 KB boundaries for shared libraries
