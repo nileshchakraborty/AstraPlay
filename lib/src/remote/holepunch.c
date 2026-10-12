@@ -2323,6 +2323,11 @@ static void* websocket_thread_func(void *user) {
     if(res != CURLE_OK)
         CHIAKI_LOGW(session->log, "websocket_thread_func: CURL setopt CURLOPT_CONNECT_ONLY failed with CURL error %s", curl_easy_strerror(res));
 
+    // Sony's push notification servers (*.np.communication.playstation.net) omit the intermediate
+    // CA certificate from their TLS handshake, which causes OpenSSL-based libcurl to fail verification.
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
     res = curl_easy_perform(curl);
     curl_slist_free_all(headers);
     if (res != CURLE_OK)
