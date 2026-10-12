@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["dev", "master"]
 
+concurrency:
+  group: msbuild-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CHIAKI_ENABLE_STEAMWORKS: "OFF"
 

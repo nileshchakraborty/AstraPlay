@@ -58,7 +58,7 @@ then
     chmod +x appimagetool-aarch64.AppImage
     ./qemu-aarch64-static ./linuxdeploy-${ARCH}.AppImage \
         --appdir="${appdir}" \
-        -e "${appdir}/usr/bin/chiaki" \
+        -e "${appdir}/usr/bin/astraplay" \
         -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
         --exclude-library='libva*' \
         --exclude-library='libvulkan*' \
@@ -73,7 +73,7 @@ then
 else
     ./linuxdeploy-${ARCH}.AppImage \
         --appdir="${appdir}" \
-        -e "${appdir}/usr/bin/chiaki" \
+        -e "${appdir}/usr/bin/astraplay" \
         -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
         --plugin qt \
         --exclude-library='libva*' \
