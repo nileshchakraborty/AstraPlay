@@ -13,7 +13,6 @@
       <Directory Id="CommonProgramsFolder">
         <Directory Id="AstraPlayProgramMenuFolder" Name="AstraPlay">
           <Component Id="StartMenuShortcutComponent" Guid="64A6342D-1354-5D7D-B367-DCFF7CB69D66">
-            <Condition>CREATE_START_MENU_SHORTCUT="1"</Condition>
             <Shortcut Id="StartMenuShortcut" Name="AstraPlay" Target="[#AstraPlayEXE]" WorkingDirectory="INSTALLFOLDER" />
             <RemoveFolder Id="RemoveAstraPlayProgramMenuFolder" On="uninstall" />
             <RegistryValue Root="HKLM" Key="Software\AstraPlay" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
@@ -22,7 +21,6 @@
       </Directory>
       <Directory Id="CommonDesktopFolder">
         <Component Id="DesktopShortcutComponent" Guid="7CA15B2F-D065-5C61-908B-7D9F4832C441">
-          <Condition>CREATE_DESKTOP_SHORTCUT="1"</Condition>
           <Shortcut Id="DesktopShortcut" Name="AstraPlay" Target="[#AstraPlayEXE]" WorkingDirectory="INSTALLFOLDER" />
           <RegistryValue Root="HKLM" Key="Software\AstraPlay" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
         </Component>
