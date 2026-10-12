@@ -76,7 +76,7 @@ extern "C" void android_chiaki_audio_output_settings(uint32_t channels, uint32_t
 		{
 			int32_t target_frames = burst * ao->buffer_multiplier;
 			auto res = ao->stream->setBufferSizeInFrames(target_frames);
-			if(res.hasValue())
+			if(res)
 				CHIAKI_LOGI(ao->log, "Oboe buffer size set to %d frames (%d bursts of %d)", res.value(), ao->buffer_multiplier, burst);
 			else
 				CHIAKI_LOGW(ao->log, "Failed to set Oboe buffer size: %s", oboe::convertToText(res.error()));
