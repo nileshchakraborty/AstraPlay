@@ -46,7 +46,7 @@ User=root
 WorkingDirectory=/opt/psstream-server
 ExecStart=/usr/bin/node /opt/psstream-server/server.js
 Restart=always
-Environment=PORT=8080
+Environment=PORT=25525
 
 [Install]
 WantedBy=multi-user.target
@@ -62,17 +62,17 @@ sudo systemctl enable --now astraplay-relay
 ## Client Configuration
 
 Each AstraPlay client must be told where your relay runs. Replace
-`https://relay.example.com:8080` with your own host in every case, and keep
+`https://relay.example.com:25525` with your own host in every case, and keep
 personal hostnames out of version control.
 
 - **Desktop (Qt):** the app uses its embedded relay automatically. To point it
   at a remote relay instead:
   ```bash
-  export ASTRAPLAY_RELAY_URL="https://relay.example.com:8080"
+  export ASTRAPLAY_RELAY_URL="https://relay.example.com:25525"
   ```
 - **Android:** bake the URL in at build time (it cannot be changed at runtime):
   ```bash
-  ./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:8080
+  ./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:25525
   ```
   Without this flag the QR/TV login flow reports that no relay is configured.
   See `android/BUILD_FOR_GOOGLE_PLAY.md`.

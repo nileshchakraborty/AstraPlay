@@ -33,7 +33,7 @@ bool EmbeddedRelayServer::start(quint16 port)
         return true;
 
     m_port = port;
-    // Bind to all network interfaces so other devices (phone, laptop) on LAN can access http://<local-ip>:8080/psstream/
+    // Bind to all network interfaces so other devices (phone, laptop) on LAN can access http://<local-ip>:25525/psstream/
     if (!m_server->listen(QHostAddress::Any, m_port)) {
         // If preferred port is taken, try port 0 (OS assigns an available port)
         qWarning() << "[EmbeddedRelayServer] Failed to listen on port" << m_port << ":" << m_server->errorString();

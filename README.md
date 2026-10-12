@@ -142,7 +142,7 @@ npm install
 npm start
 ```
 
-The server provides a local web UI on port `8080` to log in to PSN, capture authorization tokens, and relay them to AstraPlay securely.
+The server provides a local web UI on port `25525` to log in to PSN, capture authorization tokens, and relay them to AstraPlay securely.
 
 ---
 

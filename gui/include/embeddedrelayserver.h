@@ -22,7 +22,7 @@ public:
     explicit EmbeddedRelayServer(QObject *parent = nullptr);
     ~EmbeddedRelayServer() override;
 
-    bool start(quint16 port = 8080);
+    bool start(quint16 port = 25525);
     void stop();
 
     bool isRunning() const { return m_server && m_server->isListening(); }
@@ -47,7 +47,7 @@ private:
     void sendJsonResponse(QTcpSocket *socket, int statusCode, const QJsonObject &json);
 
     QTcpServer *m_server = nullptr;
-    quint16 m_port = 8080;
+    quint16 m_port = 25525;
     QMap<QString, RelayCodeEntry> m_codes;
     QTimer *m_cleanupTimer = nullptr;
 };
