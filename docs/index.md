@@ -52,7 +52,7 @@ Head to the [Setup section](setup/index.md) to get AstraPlay running on your dev
 
 ## Contributing
 
-Fork the repo, create a branch off `release/beta`, and open a pull request. CI automatically builds and deploys to all platforms when merged. See [CONTRIBUTING.md](https://github.com/nileshchakraborty/AstraPlay/blob/master/CONTRIBUTING.md){ target="_blank" rel="noopener" } for the full workflow.
+Fork the repo, create a branch off `dev`, and open a pull request targeting `dev`. Release PRs go from `dev` to `master`; merging one triggers the release build. See [CONTRIBUTING.md](https://github.com/nileshchakraborty/AstraPlay/blob/master/CONTRIBUTING.md){ target="_blank" rel="noopener" } for the full workflow.
 
 ## Acknowledgements
 

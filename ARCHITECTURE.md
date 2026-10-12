@@ -215,20 +215,18 @@ Feedback Sender → TAKION (UDP) → PS Console
 ## 6. CI/CD Architecture
 
 ```
-GitHub Push / PR
+Feature / fix / docs branch
       │
-      ├── release/beta ──► GitHub Actions
-      │                        │
-      │         ┌──────────────┼────────────────┐
-      │         ▼              ▼                 ▼
-      │     Android         iOS/macOS         Desktop
-      │     (AAB)          (IPA/.pkg)      (AppImage/exe/Flatpak)
-      │         │              │                 │
-      │         ▼              ▼                 ▼
-      │    Google Play    TestFlight/     GitHub Releases
-      │    (beta track)   App Store        + Flathub
-      │
-      └── master ──► Manual dispatch ──► Production release
+      └── PR to dev ──► Integration and applicable CI checks
+                            │
+                            └── Release PR (dev → master)
+                                      │
+                                      └── Merge to master
+                                               │
+                                               └── release-on-merge.yml
+                                                    └── Platform binaries + GitHub Release
+
+Store deployments use separate manually dispatched workflows.
 ```
 
 **Key workflow files:** `.github/workflows/`

@@ -130,14 +130,15 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 | App Store rating | ≥ 4.0 |
 | Google Play rating | ≥ 4.0 |
 | CI build success rate | > 95% per platform |
-| Time-to-beta from PR merge | < 30 min (automated) |
+| Time from release PR merge to GitHub Release | < 30 min (target) |
 
 ---
 
 ## 9. Release Cadence
 
-- **Beta** — triggered on merge to `release/beta`; all platforms auto-deploy
-- **Production** — manual dispatch on `master`; Android promotes to production track, Apple platforms auto-submit for review
+- **Integration** — feature, fix, and documentation PRs merge into `dev`; this does not publish a release
+- **Release** — a release PR from `dev` to `master` triggers the platform build and GitHub Release workflow when merged
+- **Stores** — deployment uses the dedicated deploy workflows or manually dispatched `release-all.yml`
 
 ---
 

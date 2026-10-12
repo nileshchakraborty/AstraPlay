@@ -17,9 +17,10 @@ AstraPlay is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (
   fixes stay cherry-pickable.
 
 ## Workflow
-- Feature branches off `master`. PRs target **`release/beta`**, which auto-builds and deploys
-  BETA to all stores on merge. `master` deploys to production. **DON'T** push to release
-  branches casually.
+- Create feature, fix, and documentation branches from `dev`; their PRs target **`dev`**.
+  Release PRs go from **`dev` to `master`**. Merging a release PR triggers the
+  `release-on-merge.yml` build and GitHub Release workflow. Do not push directly to
+  `dev` or `master`.
 
 ## Data handling: title IDs, product IDs, entitlements
 - **DON'T** infer prefix/regex patterns from the ID samples you happen to see. PSN IDs are
