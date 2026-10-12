@@ -19,6 +19,11 @@ typedef struct chiaki_congestion_control_t
 	ChiakiBoolPredCond stop_cond;
 	double packet_loss;
 	double packet_loss_max;
+
+	/* Dynamic heuristics: rate scaling factor and congestion history */
+	double dynamic_scale;        /* 0.35 (severe congestion) to 1.0 (optimal) */
+	uint32_t congestion_ticks;   /* consecutive ticks with elevated packet loss */
+	uint32_t recovery_ticks;     /* consecutive ticks with zero packet loss */
 } ChiakiCongestionControl;
 
 CHIAKI_EXPORT ChiakiErrorCode chiaki_congestion_control_start(ChiakiCongestionControl *control, ChiakiTakion *takion, ChiakiPacketStats *stats, double packet_loss_max);
