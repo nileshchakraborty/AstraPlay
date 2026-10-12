@@ -43,6 +43,8 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
 
 The Windows `.exe` setup asks whether to create Start Menu and desktop shortcuts (Start Menu is selected by default). The MSI creates a Start Menu shortcut by default; administrators can opt out or add a desktop shortcut with `msiexec /i astraplay-windows-x64.msi CREATE_START_MENU_SHORTCUT=0 CREATE_DESKTOP_SHORTCUT=1`. The standalone `.exe` and portable ZIP do not run an installer or create shortcuts. After installation, launch AstraPlay and use **Pin to taskbar** from its taskbar icon if desired; Windows requires that choice to be made by the user.
 
+Windows MSIX packages are being prepared for Microsoft Store distribution; they are not yet a published install option. The on-demand development MSIX is unsigned and intended only for build validation. Store-distributed MSIX updates are managed by Windows; the existing GitHub EXE/MSI installers retain their in-app updater. See [Windows MSIX packaging](packaging/windows-msix/README.md) for the preparation and validation steps.
+
 ---
 
 ## Features & Capabilities
