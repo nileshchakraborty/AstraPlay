@@ -170,6 +170,7 @@ class StreamSession : public QObject
 	Q_PROPERTY(bool fullscreen READ GetFullscreen CONSTANT)
 	Q_PROPERTY(bool zoom READ GetZoom CONSTANT)
 	Q_PROPERTY(bool stretch READ GetStretch CONSTANT)
+	Q_PROPERTY(QString controllerBattery READ GetControllerBattery NOTIFY ControllerBatteryChanged)
 
 	private:
 		SessionLog log;
@@ -199,6 +200,7 @@ class StreamSession : public QObject
 		QList<double> packet_loss_history;
 		bool cant_display = false;
 		QString loading_message;
+		QString controller_battery;
 		int haptics_handheld;
 		float rumble_multiplier;
 		int ps5_rumble_intensity;
@@ -386,6 +388,7 @@ class StreamSession : public QObject
 		bool GetFullscreen() { return fullscreen; }
 		bool GetZoom() { return zoom; }
 		bool GetStretch() { return stretch; }
+		QString GetControllerBattery() { return controller_battery; }
 		ChiakiErrorCode ConnectPsnConnection(QString duid, bool ps5);
 		void CancelPsnConnection(bool stop_thread);
 
@@ -427,6 +430,7 @@ class StreamSession : public QObject
 		void MutedChanged();
 		void CantDisplayChanged(bool cant_display);
 		void LoadingMessageChanged();
+		void ControllerBatteryChanged();
 		void GameLaunchCompleted();
 		void PsChordFired(); // OPTIONS+SHARE chord fired -> open the in-stream menu
 

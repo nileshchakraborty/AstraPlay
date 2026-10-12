@@ -110,6 +110,9 @@ struct StreamView: View {
         parts.append(String(format: "%.0f FPS", m.fps))
         if m.rttMs > 0 { parts.append(String(format: "%.0f ms", m.rttMs)) }
         parts.append("\(m.width)×\(m.height)")
+        if let bat = session.input.controllerBattery {
+            parts.append("Bat \(bat)")
+        }
         statsText = parts.joined(separator: "   •   ")
     }
 
@@ -431,6 +434,20 @@ struct StreamView: View {
                     session.toggleMicrophone(muted: !enabled)
                     scheduleHideOverlay()
                 }
+
+            if let battery = session.input.controllerBattery {
+                HStack(spacing: 4) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 12))
+                    Text(battery)
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(0.15))
+                .cornerRadius(6)
+            }
 
             // Edit Layout button (matches Android's editLayoutButton)
             Button {

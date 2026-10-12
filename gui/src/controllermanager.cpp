@@ -749,6 +749,36 @@ QString Controller::GetGUIDString()
 #endif
 }
 
+QString Controller::GetBatteryLevel()
+{
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+	if(!controller)
+		return QString();
+	SDL_Joystick *js = SDL_GameControllerGetJoystick(controller);
+	if(!js)
+		return QString();
+	SDL_JoystickPowerLevel power = SDL_JoystickCurrentPowerLevel(js);
+	switch(power)
+	{
+		case SDL_JOYSTICK_POWER_EMPTY:
+			return QStringLiteral("5%");
+		case SDL_JOYSTICK_POWER_LOW:
+			return QStringLiteral("20%");
+		case SDL_JOYSTICK_POWER_MEDIUM:
+			return QStringLiteral("70%");
+		case SDL_JOYSTICK_POWER_FULL:
+			return QStringLiteral("100%");
+		case SDL_JOYSTICK_POWER_WIRED:
+			return QStringLiteral("Wired");
+		case SDL_JOYSTICK_POWER_UNKNOWN:
+		default:
+			return QString();
+	}
+#else
+	return QString();
+#endif
+}
+
 QString Controller::GetName()
 {
 #ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER

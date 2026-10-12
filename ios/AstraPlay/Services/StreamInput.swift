@@ -44,6 +44,14 @@ class StreamInput {
     /// The currently attached physical controller (if any). Used by `StreamRumbleFeedback` to route haptics.
     var currentController: GCController? { attachedController ?? GCController.controllers().first }
 
+    /// Formatted controller battery percentage and charging state, if available.
+    var controllerBattery: String? {
+        guard let battery = currentController?.battery else { return nil }
+        let capacity = Int((battery.batteryLevel * 100).rounded())
+        let charging = battery.batteryState == .charging || battery.batteryState == .full
+        return charging ? "\(capacity)%⚡" : "\(capacity)%"
+    }
+
     // MARK: - Lifecycle
 
     init() {

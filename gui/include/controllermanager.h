@@ -144,6 +144,7 @@ class Controller : public QObject
 		bool IsSteamVirtualUnmasked();
 		bool IsDualSenseEdge();
 		void resetMotionControls();
+		QString GetBatteryLevel();
 
 	signals:
 		void StateChanged();
