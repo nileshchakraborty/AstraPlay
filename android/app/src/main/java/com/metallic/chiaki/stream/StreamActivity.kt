@@ -194,17 +194,25 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		if(Preferences(this).rumbleEnabled)
 		{
 			val phoneVibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+			val phoneHapticsFallback = Preferences(this).phoneHapticsFallback
 			// User-scalable strength (0..500%). Read once at stream start (restart to change);
 			// avoids reading SharedPreferences on every rumble event (~80/s).
 			val rumbleScale = Preferences(this).rumbleIntensity / 100f
 			var lastVibrator: Vibrator? = null
 			viewModel.session.rumbleState.observe(this, Observer {
-				// Prefer the connected controller's own motor over the phone's
-				// (resolved per event so controller hotplug just works; the device
-				// list is tiny and rumble events are sparse). L/R are averaged into
-				// one amplitude because both targets expose a single channel here.
+				// Prefer the connected controller's own motor over the phone's.
+				// If a controller is attached but lacks rumble (e.g. mobile grips like
+				// Backbone One, Razer Kishi, GameSir), fall back to the phone vibrator
+				// if phoneHapticsFallback is enabled.
 				val cv = controllerVibrator()
-				val vibrator = cv ?: phoneVibrator
+				val vibrator = cv ?: if (phoneHapticsFallback || !hasConnectedGamepad()) phoneVibrator else null
+				if (vibrator == null)
+				{
+					lastVibrator?.cancel()
+					lastVibrator = null
+					return@Observer
+				}
+
 				val amplitude = (((it.left.toInt() + it.right.toInt()) / 2) * rumbleScale).toInt().coerceIn(0, 255)
 				// Cancel the PREVIOUS target too: when the target switches
 				// (controller connects/disconnects mid-rumble), cancelling only the
@@ -218,6 +226,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 					vibrator.vibrate(VibrationEffect.createOneShot(1000, amplitude))
 				else
+					@Suppress("DEPRECATION")
 					vibrator.vibrate(1000)
 			})
 		}
@@ -567,6 +576,14 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 					@Suppress("DEPRECATION") dev.vibrator.takeIf { it.hasVibrator() }
 			}
 			.firstOrNull()
+
+	private fun hasConnectedGamepad(): Boolean
+		= InputDevice.getDeviceIds().asSequence()
+			.mapNotNull { InputDevice.getDevice(it) }
+			.any {
+				it.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+					|| it.sources and InputDevice.SOURCE_CLASS_JOYSTICK == InputDevice.SOURCE_CLASS_JOYSTICK
+			}
 
 	/**
 	 * Physical controller touchpad (DualSense/DS4) support: Android only delivers

@@ -315,5 +315,8 @@
     <string name="preferences_touchpad_emulation_title">Touchpad Emulation for Mobile Grips</string>
     <string name="preferences_touchpad_emulation_summary">Enables floating touchpad button and top-screen gestures when using mobile controllers (Backbone, Kishi, GameSir)</string>
     <string name="touchpad_pill_desc">DualSense Touchpad</string>
+    <string name="preferences_phone_haptics_fallback_key">phone_haptics_fallback</string>
+    <string name="preferences_phone_haptics_fallback_title">Phone Haptics for Mobile Grips</string>
+    <string name="preferences_phone_haptics_fallback_summary">Vibrate phone motors when connected gamepad or telescopic grip lacks rumble</string>
 
 </resources>

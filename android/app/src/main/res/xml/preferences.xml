@@ -52,6 +52,14 @@
             app:showSeekBarValue="true"
             app:icon="@drawable/ic_rumble" />
 
+        <SwitchPreference
+            app:key="@string/preferences_phone_haptics_fallback_key"
+            app:title="@string/preferences_phone_haptics_fallback_title"
+            app:summary="@string/preferences_phone_haptics_fallback_summary"
+            app:dependency="@string/preferences_rumble_enabled_key"
+            app:defaultValue="true"
+            app:icon="@drawable/ic_rumble" />
+
         <ListPreference
             app:key="@string/preferences_motion_source_key"
             app:title="@string/preferences_motion_source_title"

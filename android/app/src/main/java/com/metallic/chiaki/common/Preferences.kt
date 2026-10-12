@@ -118,6 +118,11 @@ class Preferences(context: Context)
 			.coerceIn(RUMBLE_INTENSITY_MIN, RUMBLE_INTENSITY_MAX)
 		set(value) { sharedPreferences.edit().putInt(rumbleIntensityKey, value.coerceIn(RUMBLE_INTENSITY_MIN, RUMBLE_INTENSITY_MAX)).apply() }
 
+	val phoneHapticsFallbackKey get() = resources.getString(R.string.preferences_phone_haptics_fallback_key)
+	var phoneHapticsFallback
+		get() = sharedPreferences.getBoolean(phoneHapticsFallbackKey, true)
+		set(value) { sharedPreferences.edit().putBoolean(phoneHapticsFallbackKey, value).apply() }
+
 	/** Where the motion data (gyro/accel/orientation) streamed to the console comes
 	 * from. Matches iOS' MotionSource setting. */
 	enum class MotionSource(val value: String)
