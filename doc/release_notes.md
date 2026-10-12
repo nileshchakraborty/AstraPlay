@@ -1,9 +1,34 @@
 # AstraPlay Release Notes
 
-## Version 2.12.0
+## Version 2.12.3
 
-### Overview
-AstraPlay 2.12.0 is a major release introducing end-to-end rebranding to AstraPlay, critical network and registration reliability improvements, audio and video enhancements, rich controller HUD integrations, and expanded installer options for Windows and handheld devices.
+### Highlights & What's New
+- **Embedded PSN Relay Server Port Migration**:
+  - Moved the built-in and standalone PSN authentication token relay server from default port `8080` to dedicated port `25525`.
+  - Prevents port collision conflicts with local development web servers, proxies, and alternative services running on standard `8080`.
+  - Updated all client endpoints, `psstream-server` configuration, Dockerfiles, and compose manifests to port `25525`.
+
+---
+
+## Version 2.12.2
+
+### Highlights & What's New
+- **macOS Local Console Discovery Fix**:
+  - Resolved `errno 65 (No route to host)` broadcast routing failures on macOS by enabling active interface broadcast address traversal (`ifa_broadaddr`) via `getifaddrs`. Local PS4 and PS5 discovery now functions reliably on macOS networks.
+- **Complete QML UI Namespace Migration**:
+  - Migrated over 1,050 references across 27 QML interface components to native `AstraPlay.*`, `AstraPlayGames.*`, `AstraPlayWindow.*`, `controllerButtons`, and `controllerKeys` bindings, eliminating runtime evaluation errors and startup exit crashes.
+
+---
+
+## Version 2.12.1
+
+### Highlights & What's New
+- **Branding & Target Decoupling**:
+  - Cleaned up build targets, packaging recipes, and aliases across desktop and mobile distributions.
+
+---
+
+## Version 2.12.0
 
 ---
 

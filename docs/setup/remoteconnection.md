@@ -56,6 +56,9 @@ AstraPlay uses PSN servers as a go-between to initiate a direct connection betwe
 
 4. Once authenticated, AstraPlay refreshes the token automatically. You'll only need to repeat this if PSN requires a new one.
 
+!!! info "Embedded & Self-Hosted Token Relay"
+    AstraPlay runs an embedded local token relay server on port `25525` (`http://localhost:25525`) to handle local session tokens without port collisions. You can also self-host a standalone relay instance via `psstream-server` on your home network.
+
 ### Connecting
 
 1. Make sure the console is registered (done locally) and not currently reachable on your local network
