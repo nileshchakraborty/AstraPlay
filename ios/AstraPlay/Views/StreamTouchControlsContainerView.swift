@@ -121,6 +121,8 @@ final class StreamTouchControlsContainerView: UIView {
         touchpad.hapticLight = { [weak self] in self?.playLightHaptic() }
         touchpad.hapticMedium = { [weak self] in self?.playMediumHaptic() }
         dpad.hapticOnDirectionChange = { [weak self] in self?.playLightHaptic() }
+        leftStick.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
+        rightStick.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         l2v.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         r2v.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         wireButtons()
