@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.Material
 
-import org.astraplay
+import io.github.nileshchakraborty.astraplay
 
 Item {
     id: root

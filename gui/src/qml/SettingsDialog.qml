@@ -5,7 +5,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 
-import org.astraplay
+import io.github.nileshchakraborty.astraplay
 
 import "controls" as C
 

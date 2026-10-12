@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Effects
 
-import org.astraplay
+import io.github.nileshchakraborty.astraplay
 
 import "controls" as C
 
