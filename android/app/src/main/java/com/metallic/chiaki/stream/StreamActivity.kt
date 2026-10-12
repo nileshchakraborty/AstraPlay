@@ -195,6 +195,13 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			if (it > lastMenuRequest) showOverlay()
 			lastMenuRequest = it
 		})
+		// Initialize display mode from user settings preference if specified
+		val initialAspectPref = viewModel.preferences.aspectRatio
+		when (initialAspectPref) {
+			"zoom", "16_10", "20_9" -> binding.displayModeToggle.check(R.id.display_mode_zoom_button)
+			"stretch" -> binding.displayModeToggle.check(R.id.display_mode_stretch_button)
+			else -> binding.displayModeToggle.check(R.id.display_mode_normal_button)
+		}
 		adjustSurfaceViewAspect()
 
 		if (isTv()) {
@@ -851,7 +858,13 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	{
 		val videoProfile = viewModel.session.connectInfo.videoProfile
 		binding.aspectRatioLayout.aspectRatio = videoProfile.width.toFloat() / videoProfile.height.toFloat()
-		binding.aspectRatioLayout.mode = TransformMode.fromButton(binding.displayModeToggle.checkedButtonId)
+		val buttonMode = TransformMode.fromButton(binding.displayModeToggle.checkedButtonId)
+		val pref = viewModel.preferences.aspectRatio
+		binding.aspectRatioLayout.mode = if (buttonMode == TransformMode.ZOOM && (pref == "16_10" || pref == "20_9")) {
+			TransformMode.fromPreference(pref)
+		} else {
+			buttonMode
+		}
 	}
 
 	private var topGestureDetector: GestureDetector? = null
@@ -933,7 +946,9 @@ enum class TransformMode
 {
 	FIT,
 	STRETCH,
-	ZOOM;
+	ZOOM,
+	PRESET_16_10,
+	PRESET_20_9;
 
 	companion object
 	{
@@ -942,6 +957,16 @@ enum class TransformMode
 			{
 				R.id.display_mode_stretch_button -> STRETCH
 				R.id.display_mode_zoom_button -> ZOOM
+				else -> FIT
+			}
+
+		fun fromPreference(pref: String)
+			= when (pref)
+			{
+				"zoom" -> ZOOM
+				"stretch" -> STRETCH
+				"16_10" -> PRESET_16_10
+				"20_9" -> PRESET_20_9
 				else -> FIT
 			}
 	}
@@ -959,7 +984,7 @@ class TextureViewTransform(private val videoProfile: ConnectVideoProfile, privat
 		= when(mode)
 		{
 			TransformMode.STRETCH -> strechedResolution
-			TransformMode.ZOOM -> zoomedResolution
+			TransformMode.ZOOM, TransformMode.PRESET_16_10, TransformMode.PRESET_20_9 -> zoomedResolution
 			TransformMode.FIT -> normalResolution
 		}
 

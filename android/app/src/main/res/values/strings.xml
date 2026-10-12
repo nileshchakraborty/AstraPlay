@@ -96,6 +96,23 @@
     <string name="preferences_codec_title">Codec</string>
     <string name="preferences_audio_buffer_size_title">Audio Buffer Size</string>
     <string name="preferences_audio_buffer_size_summary">Low latency (safe on fast Wi-Fi) or higher buffer (prevents audio crackling)</string>
+    <string name="preferences_aspect_ratio_title">Aspect Ratio</string>
+    <string name="preferences_aspect_ratio_summary">Display presentation for ultrawide phones, 16:10 tablets &amp; Steam Deck</string>
+    <string-array name="aspect_ratio_entries">
+        <item>Fit (16:9 Black Bars)</item>
+        <item>Zoom (Crop to Fill Screen)</item>
+        <item>Stretch (Fill Entire Screen)</item>
+        <item>16:10 Preset (Steam Deck / Tablet)</item>
+        <item>20:9 Ultrawide Preset (Modern Phones)</item>
+    </string-array>
+    <string-array name="aspect_ratio_values">
+        <item>fit</item>
+        <item>zoom</item>
+        <item>stretch</item>
+        <item>16_10</item>
+        <item>20_9</item>
+    </string-array>
+    <string name="preferences_aspect_ratio_key">stream_aspect_ratio</string>
     <string name="preferences_log_verbose_title">Verbose Logging</string>
     <string name="preferences_log_verbose_summary">Warning: This logs a LOT! Don\'t enable for regular use.</string>
     <string name="preferences_resolution_title_360p">360p</string>

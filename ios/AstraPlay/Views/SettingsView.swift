@@ -76,6 +76,7 @@ struct StreamPreferences: Codable {
     var bitrate: Int = 0               // 0 = auto (matches Android null -> auto)
     var codec: Int = 1                 // 0=H264, 1=H265 (matches Android default H265)
     var audioBufferSize: Int = 5       // 2..10 (tens of ms, default 5 = 50ms)
+    var aspectRatio: String = "fit"    // "fit", "zoom", "stretch", "16_10", "20_9" (matches Android)
 
     // General
     var swapCrossMoon: Bool = false
@@ -127,7 +128,7 @@ struct StreamPreferences: Codable {
     static let cloudBitrateDefaultKbps = 20000
 
     private enum CodingKeys: String, CodingKey {
-        case resolutionIndex, fps, bitrate, codec, audioBufferSize
+        case resolutionIndex, fps, bitrate, codec, audioBufferSize, aspectRatio
         case swapCrossMoon, rumbleEnabled, rumbleIntensity, motionSource, touchHapticsEnabled, logVerbose
         case motionEnabled // legacy bool, migrated into motionSource
         case adaptiveTriggersEnabled
@@ -145,6 +146,7 @@ struct StreamPreferences: Codable {
         bitrate: Int = 0,
         codec: Int = 1,
         audioBufferSize: Int = 5,
+        aspectRatio: String = "fit",
         swapCrossMoon: Bool = false,
         rumbleEnabled: Bool = true,
         rumbleIntensity: Int = 100,
@@ -166,6 +168,8 @@ struct StreamPreferences: Codable {
         self.fps = fps
         self.bitrate = bitrate
         self.codec = codec
+        self.audioBufferSize = audioBufferSize
+        self.aspectRatio = aspectRatio
         self.swapCrossMoon = swapCrossMoon
         self.rumbleEnabled = rumbleEnabled
         self.rumbleIntensity = Self.clampRumbleIntensity(rumbleIntensity)
@@ -191,6 +195,7 @@ struct StreamPreferences: Codable {
         bitrate = try c.decodeIfPresent(Int.self, forKey: .bitrate) ?? 0
         codec = try c.decodeIfPresent(Int.self, forKey: .codec) ?? 1
         audioBufferSize = try c.decodeIfPresent(Int.self, forKey: .audioBufferSize) ?? 5
+        aspectRatio = try c.decodeIfPresent(String.self, forKey: .aspectRatio) ?? "fit"
         swapCrossMoon = try c.decodeIfPresent(Bool.self, forKey: .swapCrossMoon) ?? false
         rumbleEnabled = try c.decodeIfPresent(Bool.self, forKey: .rumbleEnabled) ?? true
         rumbleIntensity = Self.clampRumbleIntensity(
@@ -234,6 +239,7 @@ struct StreamPreferences: Codable {
         try c.encode(bitrate, forKey: .bitrate)
         try c.encode(codec, forKey: .codec)
         try c.encode(audioBufferSize, forKey: .audioBufferSize)
+        try c.encode(aspectRatio, forKey: .aspectRatio)
         try c.encode(swapCrossMoon, forKey: .swapCrossMoon)
         try c.encode(rumbleEnabled, forKey: .rumbleEnabled)
         try c.encode(rumbleIntensity, forKey: .rumbleIntensity)
@@ -766,6 +772,16 @@ struct SettingsView: View {
                 Text("High (100 ms)").tag(10)
             }
             .onChange(of: prefs.audioBufferSize) { _ in prefs.save() }
+
+            // Aspect Ratio Preset (matches Android)
+            Picker("Aspect Ratio", selection: $prefs.aspectRatio) {
+                Text("Fit (16:9 Letterbox)").tag("fit")
+                Text("Zoom (Fill / Crop)").tag("zoom")
+                Text("Stretch").tag("stretch")
+                Text("16:10 (iPad / Steam Deck)").tag("16_10")
+                Text("20:9 (Ultrawide)").tag("20_9")
+            }
+            .onChange(of: prefs.aspectRatio) { _ in prefs.save() }
         } header: {
             Text("Remote Play Settings")
         }

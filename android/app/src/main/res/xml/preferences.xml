@@ -130,6 +130,15 @@
             app:entryValues="@array/audio_buffer_size_values"
             app:defaultValue="5"
             app:icon="@drawable/ic_resolution"/>
+
+        <ListPreference
+            app:key="@string/preferences_aspect_ratio_key"
+            app:title="@string/preferences_aspect_ratio_title"
+            app:summary="%s"
+            app:entries="@array/aspect_ratio_entries"
+            app:entryValues="@array/aspect_ratio_values"
+            app:defaultValue="fit"
+            app:icon="@drawable/ic_display_normal"/>
     </PreferenceCategory>
 
     <PreferenceCategory

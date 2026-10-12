@@ -27,6 +27,8 @@ enum DisplayMode: String, CaseIterable {
     case fit = "Fit"
     case zoom = "Zoom"
     case stretch = "Stretch"
+    case ratio16_10 = "16:10"
+    case ratio20_9 = "20:9"
 }
 
 struct StreamView: View {
@@ -69,6 +71,15 @@ struct StreamView: View {
         _touchpadOnly = State(initialValue: tpOnly)
         _touchpadEmulation = State(initialValue: prefs.touchpadEmulationEnabled)
         _showStats = State(initialValue: prefs.streamStatsOverlayEnabled)
+        let initialMode: DisplayMode
+        switch prefs.aspectRatio {
+        case "zoom": initialMode = .zoom
+        case "stretch": initialMode = .stretch
+        case "16_10": initialMode = .ratio16_10
+        case "20_9": initialMode = .ratio20_9
+        default: initialMode = .fit
+        }
+        _displayMode = State(initialValue: initialMode)
         _touchOpacity = State(initialValue: Double(prefs.touchControlsOpacity) / 100.0)
         _touchScale = State(initialValue: CGFloat(prefs.touchControlsScale) / 100.0)
         _session = StateObject(wrappedValue: StreamSession(connectInfo: connectInfo, input: StreamInput()))
@@ -120,16 +131,20 @@ struct StreamView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Full-screen video bounds; fit/zoom/stretch come only from AVLayerVideoGravity (matches Android
-            // SurfaceView in a full-screen AspectRatioFrameLayout — a fixed 16:9 SwiftUI box made fit≈zoom for 16:9 streams).
-            StreamVideoView(
-                aspectRatio: CGFloat(connectInfo.videoWidth) / CGFloat(max(connectInfo.videoHeight, 1)),
-                displayMode: displayMode
-            ) { view in
-                videoHostView = view
-                session.attachToView(view)
+            // Video bounds with aspect ratio preset framing (matches Android AspectRatioFrameLayout)
+            GeometryReader { geo in
+                let targetSize = calculateVideoSize(mode: displayMode, containerSize: geo.size)
+
+                StreamVideoView(
+                    aspectRatio: CGFloat(connectInfo.videoWidth) / CGFloat(max(connectInfo.videoHeight, 1)),
+                    displayMode: displayMode
+                ) { view in
+                    videoHostView = view
+                    session.attachToView(view)
+                }
+                .frame(width: targetSize.width, height: targetSize.height)
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
             .clipped()
 
@@ -495,7 +510,7 @@ struct StreamView: View {
             // Display mode toggle group (matches Android's displayModeToggle)
             HStack(spacing: 0) {
                 displayModeButton(.fit, icon: "rectangle.arrowtriangle.2.inward")
-                displayModeButton(.zoom, icon: "arrow.up.left.and.arrow.down.right")
+                zoomModeButton()
                 displayModeButton(.stretch, icon: "arrow.left.and.right")
             }
             .background(
@@ -544,6 +559,48 @@ struct StreamView: View {
         .background(Color.black.opacity(0.6))
     }
 
+    private var zoomOrPresetMode: DisplayMode {
+        let pref = StreamPreferences.load().aspectRatio
+        switch pref {
+        case "16_10": return .ratio16_10
+        case "20_9": return .ratio20_9
+        default: return .zoom
+        }
+    }
+
+    private var isZoomOrPresetActive: Bool {
+        displayMode == .zoom || displayMode == .ratio16_10 || displayMode == .ratio20_9
+    }
+
+    private var zoomModeIcon: String {
+        switch displayMode {
+        case .ratio16_10: return "aspectratio"
+        case .ratio20_9: return "rectangle.ratio.16.to.9"
+        case .zoom: return "arrow.up.left.and.arrow.down.right"
+        default:
+            switch zoomOrPresetMode {
+            case .ratio16_10: return "aspectratio"
+            case .ratio20_9: return "rectangle.ratio.16.to.9"
+            default: return "arrow.up.left.and.arrow.down.right"
+            }
+        }
+    }
+
+    private func zoomModeButton() -> some View {
+        Menu {
+            Button("Zoom (Fill / Crop)") { displayMode = .zoom }
+            Button("16:10 (iPad / Steam Deck)") { displayMode = .ratio16_10 }
+            Button("20:9 (Ultrawide)") { displayMode = .ratio20_9 }
+        } label: {
+            Image(systemName: zoomModeIcon)
+                .font(.system(size: 14))
+                .foregroundColor(isZoomOrPresetActive ? .accentColor : .white.opacity(0.7))
+                .frame(width: 48, height: 36)
+        } primaryAction: {
+            displayMode = zoomOrPresetMode
+        }
+    }
+
     private func displayModeButton(_ mode: DisplayMode, icon: String) -> some View {
         Button {
             displayMode = mode
@@ -553,6 +610,33 @@ struct StreamView: View {
                 .foregroundColor(displayMode == mode ? .accentColor : .white.opacity(0.7))
                 .frame(width: 48, height: 36)
         }
+    }
+
+    private func calculateVideoSize(mode: DisplayMode, containerSize: CGSize) -> CGSize {
+        guard containerSize.width > 0 && containerSize.height > 0 else {
+            return containerSize
+        }
+        let containerAspect = containerSize.width / containerSize.height
+        let targetAspect: CGFloat
+        switch mode {
+        case .fit, .zoom, .stretch:
+            return containerSize
+        case .ratio16_10:
+            targetAspect = 16.0 / 10.0
+        case .ratio20_9:
+            targetAspect = 20.0 / 9.0
+        }
+
+        var width = containerSize.width
+        var height = containerSize.height
+
+        if containerAspect < targetAspect {
+            width = containerSize.height * targetAspect
+        } else {
+            height = containerSize.width / targetAspect
+        }
+
+        return CGSize(width: width, height: height)
     }
 
     private func scheduleHideOverlay() {

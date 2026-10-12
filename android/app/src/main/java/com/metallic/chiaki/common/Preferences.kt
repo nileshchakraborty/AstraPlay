@@ -287,6 +287,11 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getString(audioBufferSizeKey, "5")?.toIntOrNull() ?: 5
 		set(value) { sharedPreferences.edit().putString(audioBufferSizeKey, value.toString()).apply() }
 
+	val aspectRatioKey get() = resources.getString(R.string.preferences_aspect_ratio_key)
+	var aspectRatio: String // "fit", "zoom", "stretch", "16_10", "20_9"
+		get() = sharedPreferences.getString(aspectRatioKey, "fit") ?: "fit"
+		set(value) { sharedPreferences.edit().putString(aspectRatioKey, value).apply() }
+
 	private val videoProfileDefaultBitrate get() = ConnectVideoProfile.preset(resolution.preset, fps.preset, codec.codec)
 	val videoProfile get() = videoProfileDefaultBitrate.let {
 		val bitrate = bitrate
