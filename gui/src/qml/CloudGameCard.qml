@@ -27,7 +27,7 @@ Rectangle {
     property bool isFavorite: false // Whether this game is favorited
     
     // Steam library shortcut: shown when a Steam install is detected on this device (steam-shortcut build only)
-    readonly property bool showCloudSteamShortcut: Chiaki.cloudSteamShortcutEnabled
+    readonly property bool showCloudSteamShortcut: AstraPlay.cloudSteamShortcutEnabled
         && !needsAddToLibrary
     
     signal streamGame(string productId, string platform, string serviceType)
@@ -37,8 +37,8 @@ Rectangle {
     // Generate controller button icon path
     function getControllerIcon(buttonName) {
         let type = "deck";
-        for (let i = 0; i < Chiaki.controllers.length; ++i) {
-            if (Chiaki.controllers[i].playStation) {
+        for (let i = 0; i < AstraPlay.controllers.length; ++i) {
+            if (AstraPlay.controllers[i].playStation) {
                 type = "ps";
                 break;
             }

@@ -34,21 +34,21 @@ Dialog {
     }
     onRejected: {
         if(dialog.remotePlay)
-            Chiaki.settings.remotePlayAsk = false;
+            AstraPlay.settings.remotePlayAsk = false;
         else
-            Chiaki.settings.addSteamShortcutAsk = false;
+            AstraPlay.settings.addSteamShortcutAsk = false;
     }
     onClosed: {
         if(newDialogOpen)
             return;
         restoreFocus();
         // Commented out: Cascading Remote Play via PSN prompt after Steam shortcut dialog
-        // if(!remotePlay && Chiaki.settings.remotePlayAsk)
+        // if(!remotePlay && AstraPlay.settings.remotePlayAsk)
         // {
-        //     if(!Chiaki.settings.psnRefreshToken || !Chiaki.settings.psnAuthToken || !Chiaki.settings.psnAuthTokenExpiry || !Chiaki.settings.psnAccountId)
+        //     if(!AstraPlay.settings.psnRefreshToken || !AstraPlay.settings.psnAuthToken || !AstraPlay.settings.psnAuthTokenExpiry || !AstraPlay.settings.psnAccountId)
         //         root.showRemindDialog(qsTr("Remote Play via PSN"), qsTr("Would you like to connect to PSN?\nThis enables:\n- Automatic registration\n- Playing outside of your home network without port forwarding?") + "\n\n" + qsTr("(Note: If you select no now and want to do this later, go to the Config section of the settings.)"), true, () => root.showPSNTokenDialog(false));
         //     else
-        //         Chiaki.settings.remotePlayAsk = false;
+        //         AstraPlay.settings.remotePlayAsk = false;
         // }
     }
 

@@ -166,7 +166,7 @@ Dialog {
         
         // Request trophy data from games backend (with cache)
         // The backend will convert npTitleId to npCommunicationId internally
-        ChiakiGames.fetchTrophyData(npTitleId, false)
+        AstraPlayGames.fetchTrophyData(npTitleId, false)
     }
     
     function refreshTrophies() {
@@ -177,7 +177,7 @@ Dialog {
         cachedFilteredTrophies = []
         
         // Force refresh (bypass cache) - uses the npTitleId we saved when opening
-        ChiakiGames.fetchTrophyData(currentNpTitleId, true)
+        AstraPlayGames.fetchTrophyData(currentNpTitleId, true)
     }
     
     property var cachedFilteredTrophies: []
@@ -297,7 +297,7 @@ Dialog {
     }
     
     Connections {
-        target: ChiakiGames
+        target: AstraPlayGames
         
         function onTrophyDataReceived(npTitleId, data) {
             // The backend returns data keyed by the npTitleId we sent (e.g., CUSA01163_00)

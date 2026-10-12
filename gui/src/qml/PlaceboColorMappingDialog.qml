@@ -122,8 +122,8 @@ DialogView {
                         Layout.preferredWidth: 400
                         firstInFocusChain: true
                         model: [qsTr("Clip"), qsTr("Perceptual"), qsTr("Soft Clip"), qsTr("Relative"), qsTr("Saturation"), qsTr("Absolute"), qsTr("Desaturate"), qsTr("Darken"), qsTr("Highlight"), qsTr("Linear")]
-                        currentIndex: Chiaki.settings.placeboGamutMappingFunction
-                        onActivated: index => Chiaki.settings.placeboGamutMappingFunction = index
+                        currentIndex: AstraPlay.settings.placeboGamutMappingFunction
+                        onActivated: index => AstraPlay.settings.placeboGamutMappingFunction = index
                     }
 
                     Label {
@@ -134,7 +134,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Perceptual Deadzone:")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
                     }
 
                     C.Slider {
@@ -142,8 +142,8 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboGamutMappingPerceptualDeadzone
-                        onMoved: Chiaki.settings.placeboGamutMappingPerceptualDeadzone = value
+                        value: AstraPlay.settings.placeboGamutMappingPerceptualDeadzone
+                        onMoved: AstraPlay.settings.placeboGamutMappingPerceptualDeadzone = value
 
                         Label {
                             anchors {
@@ -153,19 +153,19 @@ DialogView {
                             }
                             text: qsTr(parent.value.toFixed(2))
                         }
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.30)")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Perceptual Strength:")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
                     }
 
                     C.Slider {
@@ -173,8 +173,8 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboGamutMappingPerceptualStrength
-                        onMoved: Chiaki.settings.placeboGamutMappingPerceptualStrength = value
+                        value: AstraPlay.settings.placeboGamutMappingPerceptualStrength
+                        onMoved: AstraPlay.settings.placeboGamutMappingPerceptualStrength = value
 
                         Label {
                             anchors {
@@ -184,20 +184,20 @@ DialogView {
                             }
                             text: qsTr(parent.value.toFixed(2))
                         }
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
 
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.80)")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Colorimetric Gamma:")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
                     }
 
                     C.Slider {
@@ -205,9 +205,9 @@ DialogView {
                         from: 0.00
                         to: 10.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboGamutMappingColorimetricGamma
-                        onMoved: Chiaki.settings.placeboGamutMappingColorimetricGamma = value
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
+                        value: AstraPlay.settings.placeboGamutMappingColorimetricGamma
+                        onMoved: AstraPlay.settings.placeboGamutMappingColorimetricGamma = value
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
 
                         Label {
                             anchors {
@@ -222,13 +222,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1.80)")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Relative || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Absolute || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Darken
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Soft Clip Knee:")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
                     }
 
                     C.Slider {
@@ -236,9 +236,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboGamutMappingSoftClipKnee
-                        onMoved: Chiaki.settings.placeboGamutMappingSoftClipKnee = value
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        value: AstraPlay.settings.placeboGamutMappingSoftClipKnee
+                        onMoved: AstraPlay.settings.placeboGamutMappingSoftClipKnee = value
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
 
                         Label {
                             anchors {
@@ -253,13 +253,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.70)")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.Perceptual || AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Soft Clip Desaturation:")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
                     }
 
                     C.Slider {
@@ -267,9 +267,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboGamutMappingSoftClipDesat
-                        onMoved: Chiaki.settings.placeboGamutMappingSoftClipDesat = value
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        value: AstraPlay.settings.placeboGamutMappingSoftClipDesat
+                        onMoved: AstraPlay.settings.placeboGamutMappingSoftClipDesat = value
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
 
                         Label {
                             anchors {
@@ -284,7 +284,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.35)")
-                        visible: Chiaki.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
+                        visible: AstraPlay.settings.placeboGamutMappingFunction == PlaceboColorMappingDialog.GamutMappingFunction.SoftClip
                     }
                 }
             }
@@ -311,8 +311,8 @@ DialogView {
                         from: 0
                         to: 1024
                         stepSize: 1
-                        value: Chiaki.settings.placeboGamutMappingLut3dSizeI
-                        onMoved: Chiaki.settings.placeboGamutMappingLut3dSizeI = value
+                        value: AstraPlay.settings.placeboGamutMappingLut3dSizeI
+                        onMoved: AstraPlay.settings.placeboGamutMappingLut3dSizeI = value
 
                         Label {
                             anchors {
@@ -339,8 +339,8 @@ DialogView {
                         from: 0
                         to: 1024
                         stepSize: 1
-                        value: Chiaki.settings.placeboGamutMappingLut3dSizeC
-                        onMoved: Chiaki.settings.placeboGamutMappingLut3dSizeC = value
+                        value: AstraPlay.settings.placeboGamutMappingLut3dSizeC
+                        onMoved: AstraPlay.settings.placeboGamutMappingLut3dSizeC = value
 
                         Label {
                             anchors {
@@ -367,8 +367,8 @@ DialogView {
                         from: 0
                         to: 1024
                         stepSize: 1
-                        value: Chiaki.settings.placeboGamutMappingLut3dSizeH
-                        onMoved: Chiaki.settings.placeboGamutMappingLut3dSizeH = value
+                        value: AstraPlay.settings.placeboGamutMappingLut3dSizeH
+                        onMoved: AstraPlay.settings.placeboGamutMappingLut3dSizeH = value
 
                         Label {
                             anchors {
@@ -392,8 +392,8 @@ DialogView {
 
                     C.CheckBox {
                         text: qsTr("Enable Tricubic Interpolation for 3DLUTs")
-                        checked: Chiaki.settings.placeboGamutMappingLut3dTricubicEnabled
-                        onToggled: Chiaki.settings.placeboGamutMappingLut3dTricubicEnabled = checked
+                        checked: AstraPlay.settings.placeboGamutMappingLut3dTricubicEnabled
+                        onToggled: AstraPlay.settings.placeboGamutMappingLut3dTricubicEnabled = checked
                     }
 
                     Label {
@@ -408,8 +408,8 @@ DialogView {
 
                     C.CheckBox {
                         text: qsTr("Enable Gamut Expansion")
-                        checked: Chiaki.settings.placeboGamutMappingGamutExpansionEnabled
-                        onToggled: Chiaki.settings.placeboGamutMappingGamutExpansionEnabled = checked
+                        checked: AstraPlay.settings.placeboGamutMappingGamutExpansionEnabled
+                        onToggled: AstraPlay.settings.placeboGamutMappingGamutExpansionEnabled = checked
                     }
 
                     Label {
@@ -440,8 +440,8 @@ DialogView {
                         Layout.preferredWidth: 400
                         firstInFocusChain: true
                         model: [qsTr("Clip"), qsTr("Spline"), qsTr("St2094-40"), qsTr("St-2094-10"), qsTr("Bt2390"), qsTr("Bt2446a"), qsTr("Reinhard"), qsTr("Mobius"), qsTr("Hable"), qsTr("Gamma"), qsTr("Linear"), qsTr("Linear Light")]
-                        currentIndex: Chiaki.settings.placeboToneMappingFunction
-                        onActivated: index => Chiaki.settings.placeboToneMappingFunction = index
+                        currentIndex: AstraPlay.settings.placeboToneMappingFunction
+                        onActivated: index => AstraPlay.settings.placeboToneMappingFunction = index
                     }
 
                     Label {
@@ -452,7 +452,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Knee Adaptation:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
                     }
 
                     C.Slider {
@@ -461,9 +461,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingKneeAdaptation
-                        onMoved: Chiaki.settings.placeboToneMappingKneeAdaptation = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
+                        value: AstraPlay.settings.placeboToneMappingKneeAdaptation
+                        onMoved: AstraPlay.settings.placeboToneMappingKneeAdaptation = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
 
                         Label {
                             anchors {
@@ -478,7 +478,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.40)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209440 || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.St209410
                     }
 
                     Label {
@@ -492,8 +492,8 @@ DialogView {
                         from: 0.00
                         to: 0.50
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingKneeMinimum
-                        onMoved: Chiaki.settings.placeboToneMappingKneeMinimum = value
+                        value: AstraPlay.settings.placeboToneMappingKneeMinimum
+                        onMoved: AstraPlay.settings.placeboToneMappingKneeMinimum = value
                         visible: kneeadaptation.visible
 
                         Label {
@@ -523,8 +523,8 @@ DialogView {
                         from: 0.50
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingKneeMaximum
-                        onMoved: Chiaki.settings.placeboToneMappingKneeMaximum = value
+                        value: AstraPlay.settings.placeboToneMappingKneeMaximum
+                        onMoved: AstraPlay.settings.placeboToneMappingKneeMaximum = value
                         visible: kneeadaptation.visible
 
                         Label {
@@ -553,8 +553,8 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingKneeDefault
-                        onMoved: Chiaki.settings.placeboToneMappingKneeDefault = value
+                        value: AstraPlay.settings.placeboToneMappingKneeDefault
+                        onMoved: AstraPlay.settings.placeboToneMappingKneeDefault = value
 
                         Label {
                             anchors {
@@ -574,7 +574,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Knee Offset:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
                     }
 
                     C.Slider {
@@ -582,9 +582,9 @@ DialogView {
                         from: 0.50
                         to: 2.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingKneeOffset
-                        onMoved: Chiaki.settings.placeboToneMappingKneeOffset = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
+                        value: AstraPlay.settings.placeboToneMappingKneeOffset
+                        onMoved: AstraPlay.settings.placeboToneMappingKneeOffset = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
 
                         Label {
                             anchors {
@@ -599,7 +599,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1.00)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Bt2390
                     }
                 }
             }
@@ -619,7 +619,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Slope Tuning:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     C.Slider {
@@ -627,9 +627,9 @@ DialogView {
                         from: 0.0
                         to: 10.0
                         stepSize: 0.1
-                        value: Chiaki.settings.placeboToneMappingSlopeTuning
-                        onMoved: Chiaki.settings.placeboToneMappingSlopeTuning = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        value: AstraPlay.settings.placeboToneMappingSlopeTuning
+                        onMoved: AstraPlay.settings.placeboToneMappingSlopeTuning = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
 
                         Label {
                             id: slopeTuningLabel
@@ -645,13 +645,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1.5)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Slope Offset:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     C.Slider {
@@ -659,9 +659,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingSlopeOffset
-                        onMoved: Chiaki.settings.placeboToneMappingSlopeOffset = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        value: AstraPlay.settings.placeboToneMappingSlopeOffset
+                        onMoved: AstraPlay.settings.placeboToneMappingSlopeOffset = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
 
                         Label {
                             anchors {
@@ -676,13 +676,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.20)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Spline Contrast:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     C.Slider {
@@ -690,9 +690,9 @@ DialogView {
                         from: 0.00
                         to: 1.50
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingSplineContrast
-                        onMoved: Chiaki.settings.placeboToneMappingSplineContrast = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        value: AstraPlay.settings.placeboToneMappingSplineContrast
+                        onMoved: AstraPlay.settings.placeboToneMappingSplineContrast = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
 
                         Label {
                             anchors {
@@ -707,13 +707,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.50)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Spline
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Reinhard Contrast:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
                     }
 
                     C.Slider {
@@ -721,9 +721,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingReinhardContrast
-                        onMoved: Chiaki.settings.placeboToneMappingReinhardContrast = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
+                        value: AstraPlay.settings.placeboToneMappingReinhardContrast
+                        onMoved: AstraPlay.settings.placeboToneMappingReinhardContrast = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
 
                         Label {
                             anchors {
@@ -738,13 +738,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.50)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Reinhard
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Linear Knee:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
                     }
 
                     C.Slider {
@@ -752,9 +752,9 @@ DialogView {
                         from: 0.00
                         to: 1.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingLinearKnee
-                        onMoved: Chiaki.settings.placeboToneMappingLinearKnee = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
+                        value: AstraPlay.settings.placeboToneMappingLinearKnee
+                        onMoved: AstraPlay.settings.placeboToneMappingLinearKnee = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
 
                         Label {
                             anchors {
@@ -769,13 +769,13 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(0.3)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Mobius || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Gamma
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Exposure:")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
                     }
 
                     C.Slider {
@@ -783,9 +783,9 @@ DialogView {
                         from: 0.0
                         to: 10.0
                         stepSize: 0.1
-                        value: Chiaki.settings.placeboToneMappingExposure
-                        onMoved: Chiaki.settings.placeboToneMappingExposure = value
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
+                        value: AstraPlay.settings.placeboToneMappingExposure
+                        onMoved: AstraPlay.settings.placeboToneMappingExposure = value
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
 
                         Label {
                             anchors {
@@ -800,7 +800,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1.0)")
-                        visible: Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || Chiaki.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
+                        visible: AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.Linear || AstraPlay.settings.placeboToneMappingFunction == PlaceboColorMappingDialog.ToneMappingFunction.LinearLight
                     }
                 }
             }
@@ -824,8 +824,8 @@ DialogView {
 
                     C.CheckBox {
                         text: qsTr("Enable Inverse Tone-mapping")
-                        checked: Chiaki.settings.placeboToneMappingInverseToneMappingEnabled
-                        onToggled: Chiaki.settings.placeboToneMappingInverseToneMappingEnabled = checked
+                        checked: AstraPlay.settings.placeboToneMappingInverseToneMappingEnabled
+                        onToggled: AstraPlay.settings.placeboToneMappingInverseToneMappingEnabled = checked
                     }
 
                     Label {
@@ -842,8 +842,8 @@ DialogView {
                         Layout.preferredWidth: 400
                         firstInFocusChain: true
                         model: [qsTr("Any"), qsTr("None"), qsTr("HDR10"), qsTr("HDR10 Plus"), qsTr("Cie_y")]
-                        currentIndex: Chiaki.settings.placeboToneMappingMetadata
-                        onActivated: index => Chiaki.settings.placeboToneMappingMetadata = index
+                        currentIndex: AstraPlay.settings.placeboToneMappingMetadata
+                        onActivated: index => AstraPlay.settings.placeboToneMappingMetadata = index
                     }
 
                     Label {
@@ -861,8 +861,8 @@ DialogView {
                         from: 0
                         to: 4096
                         stepSize: 1
-                        value: Chiaki.settings.placeboToneMappingToneLutSize
-                        onMoved: Chiaki.settings.placeboToneMappingToneLutSize = value
+                        value: AstraPlay.settings.placeboToneMappingToneLutSize
+                        onMoved: AstraPlay.settings.placeboToneMappingToneLutSize = value
 
                         Label {
                             anchors {
@@ -889,8 +889,8 @@ DialogView {
                         from: 0.00
                         to: 2.00
                         stepSize: 0.01
-                        value: Chiaki.settings.placeboToneMappingContrastRecovery
-                        onMoved: Chiaki.settings.placeboToneMappingContrastRecovery = value
+                        value: AstraPlay.settings.placeboToneMappingContrastRecovery
+                        onMoved: AstraPlay.settings.placeboToneMappingContrastRecovery = value
 
                         Label {
                             anchors {
@@ -917,8 +917,8 @@ DialogView {
                         from: 1.0
                         to: 32.0
                         stepSize: 0.1
-                        value: Chiaki.settings.placeboToneMappingContrastSmoothness
-                        onMoved: Chiaki.settings.placeboToneMappingContrastSmoothness = value
+                        value: AstraPlay.settings.placeboToneMappingContrastSmoothness
+                        onMoved: AstraPlay.settings.placeboToneMappingContrastSmoothness = value
 
                         Label {
                             anchors {

@@ -13,7 +13,7 @@ DialogView {
     buttonText: qsTr("Set")
     buttonEnabled: pin.acceptableInput
     onAccepted: {
-        Chiaki.setConsolePin(consoleIndex, pin.text.trim());
+        AstraPlay.setConsolePin(consoleIndex, pin.text.trim());
         stack.pop();
     }
     Item {
@@ -34,7 +34,7 @@ DialogView {
                         TextField {
                             id: pin
                             validator: RegularExpressionValidator { regularExpression: /[0-9]{4}/ }
-                            echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                            echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                             Layout.preferredWidth: 400
                         }
         }

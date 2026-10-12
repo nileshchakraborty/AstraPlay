@@ -13,7 +13,7 @@ Rectangle {
     function stop() {
         if (!allowClose)
             return;
-        Chiaki.stopAutoConnect();
+        AstraPlay.stopAutoConnect();
         root.showMainView();
     }
 
@@ -72,7 +72,7 @@ Rectangle {
             }
             opacity: textVisible ? 1.0: 0.0
             visible: opacity
-            text: qsTr("Press %1 to cancel connection").arg(Chiaki.controllers.length ? (root.controllerButton("circle").includes("deck") ? "B" : "Circle") : "escape or right-click")
+            text: qsTr("Press %1 to cancel connection").arg(AstraPlay.controllers.length ? (root.controllerButton("circle").includes("deck") ? "B" : "Circle") : "escape or right-click")
         }
     }
 
@@ -93,7 +93,7 @@ Rectangle {
     }
 
     Connections {
-        target: Chiaki
+        target: AstraPlay
 
         function onWakeupStartFailed() {
             view.textVisible = false;

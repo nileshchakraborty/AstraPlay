@@ -32,14 +32,14 @@ Dialog {
     onOpened: {
         mainContent.forceActiveFocus(Qt.TabFocusReason);
         if (upgradeUrl && upgradeUrl.length > 0) {
-            Chiaki.setClipboardText(upgradeUrl);
+            AstraPlay.setClipboardText(upgradeUrl);
         }
     }
     
     onUpgradeUrlChanged: {
         // Also copy when URL changes (in case it's set after dialog opens)
         if (visible && upgradeUrl && upgradeUrl.length > 0) {
-            Chiaki.setClipboardText(upgradeUrl);
+            AstraPlay.setClipboardText(upgradeUrl);
         }
     }
     
@@ -136,7 +136,7 @@ Dialog {
                 anchors.centerIn: parent
                 width: 200
                 height: 200
-                source: upgradeUrl ? Chiaki.getQRCodeDataUrl(dialog.upgradeUrl, 200) : ""
+                source: upgradeUrl ? AstraPlay.getQRCodeDataUrl(dialog.upgradeUrl, 200) : ""
                 fillMode: Image.PreserveAspectFit
                 
                 BusyIndicator {
@@ -173,7 +173,7 @@ Dialog {
             
             text: {
                 let buttonName = root.controllerButton("pyramid").includes("deck") ? "Y" : 
-                               (Chiaki.controllers.length > 0 && Chiaki.controllers[0].playStation ? "△" : "Y");
+                               (AstraPlay.controllers.length > 0 && AstraPlay.controllers[0].playStation ? "△" : "Y");
                 return qsTr("(Press %1 to ignore this warning forever)").arg(buttonName);
             }
         }

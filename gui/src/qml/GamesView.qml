@@ -24,8 +24,8 @@ Pane {
     
     function controllerButton(name) {
         let type = "deck";
-        for (let i = 0; i < Chiaki.controllers.length; ++i) {
-            if (Chiaki.controllers[i].playStation) {
+        for (let i = 0; i < AstraPlay.controllers.length; ++i) {
+            if (AstraPlay.controllers[i].playStation) {
                 type = "ps";
                 break;
             }
@@ -45,7 +45,7 @@ Pane {
     }
     
     function loadGames() {
-        let gamesJson = deviceId ? ChiakiGames.getGamesForDevice(deviceId) : Chiaki.getPsnInstalledGames()
+        let gamesJson = deviceId ? AstraPlayGames.getGamesForDevice(deviceId) : AstraPlay.getPsnInstalledGames()
         if (!gamesJson || gamesJson === "{}") {
             allGames = []
             currentPageGames = []
@@ -309,7 +309,7 @@ Pane {
                     if (root.serverIndex >= 0) {
                         // Connect to host with game name and title ID to trigger automation and show game image
                         // Pass deviceName (console nickname) for wakeup support
-                        Chiaki.connectToHost(root.serverIndex, root.deviceName, gameName, titleId)
+                        AstraPlay.connectToHost(root.serverIndex, root.deviceName, gameName, titleId)
                     } else {
                         console.error("No server index available for launching game")
                     }

@@ -46,8 +46,8 @@ Pane {
     
     function controllerButton(name) {
         let type = "deck";
-        for (let i = 0; i < Chiaki.controllers.length; ++i) {
-            if (Chiaki.controllers[i].playStation) {
+        for (let i = 0; i < AstraPlay.controllers.length; ++i) {
+            if (AstraPlay.controllers[i].playStation) {
                 type = "ps";
                 break;
             }
@@ -56,10 +56,10 @@ Pane {
     }
     
     Component.onCompleted: {
-        fallbackRegion = Chiaki.settings.cloudResolvedStoreCountry || "";
-        catalogNativeMode = Chiaki.settings.cloudCatalogNativeMode;
-        sortState = Chiaki.settings.cloudSortState || 0;
-        let savedTagFilters = Chiaki.settings.cloudTagFilters;
+        fallbackRegion = AstraPlay.settings.cloudResolvedStoreCountry || "";
+        catalogNativeMode = AstraPlay.settings.cloudCatalogNativeMode;
+        sortState = AstraPlay.settings.cloudSortState || 0;
+        let savedTagFilters = AstraPlay.settings.cloudTagFilters;
         if (savedTagFilters) {
             try {
                 let parsed = JSON.parse(savedTagFilters);
@@ -69,7 +69,7 @@ Pane {
                 console.warn("Failed to parse cloud tag filters:", e);
             }
         }
-        let savedFavorites = Chiaki.settings.cloudFavorites;
+        let savedFavorites = AstraPlay.settings.cloudFavorites;
         if (savedFavorites) {
             try {
                 favoriteProductIds = JSON.parse(savedFavorites);
@@ -98,7 +98,7 @@ Pane {
     // Account/profile switch, NPSSO change, or cloud-language change wipes the catalog cache in the
     // backend; reload here so the visible grid never keeps showing the previous account's games.
     Connections {
-        target: Chiaki.cloudCatalog
+        target: AstraPlay.cloudCatalog
         function onCacheInvalidated() {
             loadUnifiedCatalog();
         }
@@ -163,7 +163,7 @@ Pane {
 
     function setTagFilters(tags) {
         activeTagFilters = tags;
-        Chiaki.settings.cloudTagFilters = JSON.stringify(tags);
+        AstraPlay.settings.cloudTagFilters = JSON.stringify(tags);
         applySearchFilter();
     }
 
@@ -212,7 +212,7 @@ Pane {
     }
 
     function loadUnifiedCatalog() {
-        let npssoToken = Chiaki.settings.psnNpssoToken;
+        let npssoToken = AstraPlay.settings.psnNpssoToken;
         if (!npssoToken || npssoToken.trim().length === 0) {
             authErrorMessage = qsTr("NPSSO token is required for cloud games. Please login and enter a valid NPSSO token. You also need a valid PS Plus subscription.");
         } else {
@@ -232,7 +232,7 @@ Pane {
         currentPageGames = [];
         isLoading = true;
 
-        Chiaki.cloudCatalog.fetchUnifiedCatalog(function(success, message, jsonData) {
+        AstraPlay.cloudCatalog.fetchUnifiedCatalog(function(success, message, jsonData) {
             isLoading = false;
             if (!success || !jsonData) {
                 allGames = [];
@@ -247,8 +247,8 @@ Pane {
                     allGames = data.games;
                     fallbackRegion = data.fallbackRegion || "";
                     catalogNativeMode = data.nativeMode !== false;
-                    Chiaki.settings.cloudResolvedStoreCountry = fallbackRegion;
-                    Chiaki.settings.cloudCatalogNativeMode = catalogNativeMode;
+                    AstraPlay.settings.cloudResolvedStoreCountry = fallbackRegion;
+                    AstraPlay.settings.cloudCatalogNativeMode = catalogNativeMode;
                     if (data.warning)
                         authErrorMessage = data.warning;
                     else if (npssoToken && npssoToken.trim().length > 0)
@@ -332,7 +332,7 @@ Pane {
         favoriteProductIds = newFavorites;
         
         // Save to settings
-        Chiaki.settings.cloudFavorites = JSON.stringify(favoriteProductIds);
+        AstraPlay.settings.cloudFavorites = JSON.stringify(favoriteProductIds);
         
         // Re-apply filter to update view
         applySearchFilter();
@@ -821,7 +821,7 @@ Pane {
                         if (!enabled)
                             return;
                         // invalidateCache() emits cacheInvalidated, which triggers the reload above.
-                        Chiaki.cloudCatalog.invalidateCache();
+                        AstraPlay.cloudCatalog.invalidateCache();
                     }
 
                     Rectangle {
@@ -911,7 +911,7 @@ Pane {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             sortState = (sortState + 1) % 3;
-                            Chiaki.settings.cloudSortState = sortState;
+                            AstraPlay.settings.cloudSortState = sortState;
                             applySearchFilter();
                         }
                     }
@@ -923,7 +923,7 @@ Pane {
                     KeyNavigation.up: mainTabBar ? mainTabBar.itemAt(1) : null
                     Keys.onReturnPressed: {
                         sortState = (sortState + 1) % 3;
-                        Chiaki.settings.cloudSortState = sortState;
+                        AstraPlay.settings.cloudSortState = sortState;
                         applySearchFilter();
                         event.accepted = true;
                     }
@@ -1184,7 +1184,7 @@ Pane {
                             
                             // CloudGameCard now sends the correct identifier directly
                             // (entitlement ID for PSCloud, product ID for PSNOW)
-                            Chiaki.cloudStreaming.startCompleteCloudSession(
+                            AstraPlay.cloudStreaming.startCompleteCloudSession(
                                 serviceType,
                                 streamingId,
                                 function(success, message, serverIp) {
@@ -1198,7 +1198,7 @@ Pane {
                                         // Check if it's an OAuth error for longer toast duration
                                         let isOAuthError = message && (message.includes("OAuth") || message.includes("authorization"));
                                         let toastDuration = isOAuthError ? 10000 : 3000; // 10 seconds for OAuth errors, 3 seconds otherwise
-                                        Chiaki.error(qsTr("Cloud Streaming Failed"), message, toastDuration);
+                                        AstraPlay.error(qsTr("Cloud Streaming Failed"), message, toastDuration);
                                     }
                                 }
                             );

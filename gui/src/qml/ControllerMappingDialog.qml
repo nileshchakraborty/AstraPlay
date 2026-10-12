@@ -11,19 +11,19 @@ DialogView {
     id: dialog
     property bool finalClosing: false
     property bool quitButtonMapping: true
-    title: Chiaki.currentControllerType
+    title: AstraPlay.currentControllerType
     buttonText: qsTr("Update Controller Mapping")
-    buttonEnabled: Chiaki.controllerMappingAltered
+    buttonEnabled: AstraPlay.controllerMappingAltered
     onAccepted: {
-        Chiaki.controllerMappingApply();
-        Chiaki.controllerMappingQuit();
+        AstraPlay.controllerMappingApply();
+        AstraPlay.controllerMappingQuit();
     }
     Component.onDestruction: {
-        if(Chiaki.controllerMappingInProgress)
+        if(AstraPlay.controllerMappingInProgress)
         {
             finalClosing = true;
-            Chiaki.controllerMappingButtonQuit();
-            Chiaki.controllerMappingQuit();
+            AstraPlay.controllerMappingButtonQuit();
+            AstraPlay.controllerMappingQuit();
         }  
     }
 
@@ -44,8 +44,8 @@ DialogView {
             property bool firstInFocusChain: true
             property bool lastInFocusChain: false
             text: qsTr("Allow mapping analog sticks and L2/R2")
-            checked: Chiaki.enableAnalogStickMapping
-            onToggled: Chiaki.enableAnalogStickMapping = checked
+            checked: AstraPlay.enableAnalogStickMapping
+            onToggled: AstraPlay.enableAnalogStickMapping = checked
             Keys.onPressed: (event) => {
                 switch (event.key) {
                 case Qt.Key_Down:
@@ -86,8 +86,8 @@ DialogView {
 
             Repeater {
                 activeFocusOnTab: true
-                id: chiakiButtons
-                model: Chiaki.currentControllerMapping
+                id: controllerButtons
+                model: AstraPlay.currentControllerMapping
                 RowLayout {
                     spacing: 20
 
@@ -152,7 +152,7 @@ DialogView {
                                     }
                                     break;
                                 case Qt.Key_Down:
-                                    if (!lastInFocusChain && index < (chiakiButtons.count - 3)) {
+                                    if (!lastInFocusChain && index < (controllerButtons.count - 3)) {
                                         let item = nextItemInFocusChain();
                                         if (item)
                                             item.forceActiveFocus(Qt.TabFocusReason);
@@ -188,7 +188,7 @@ DialogView {
 
                     Button {
                         property bool firstInFocusChain: false
-                        property bool lastInFocusChain: index == (chiakiButtons.count - 1)
+                        property bool lastInFocusChain: index == (controllerButtons.count - 1)
                         Layout.preferredHeight: 52
                         text: {
                             if(modelData.physicalButton.length > 1)
@@ -239,7 +239,7 @@ DialogView {
                                     }
                                     break;
                                 case Qt.Key_Down:
-                                    if (!lastInFocusChain && index < (chiakiButtons.count - 3)) {
+                                    if (!lastInFocusChain && index < (controllerButtons.count - 3)) {
                                         let item = nextItemInFocusChain();
                                         if (item)
                                             item.forceActiveFocus(Qt.TabFocusReason);
@@ -291,17 +291,17 @@ DialogView {
             standardButtons: Dialog.Close
             closePolicy: Popup.CloseOnPressOutside
             onOpened: {
-                Chiaki.controllerMappingSelectButton();
+                AstraPlay.controllerMappingSelectButton();
                 buttonLabel.forceActiveFocus((Qt.TabFocusReason));
             }
             onClosed: {
                 if(quitButtonMapping)
-                    Chiaki.controllerMappingButtonQuit();
+                    AstraPlay.controllerMappingButtonQuit();
                 else
                     quitButtonMapping = true;
                 if(resetFocus)
                 {
-                    let item = chiakiButtons.itemAt(mappingIndex)
+                    let item = controllerButtons.itemAt(mappingIndex)
                     if(item)
                     {
                         let item2 = item.children[buttonIndex + 1];
@@ -326,22 +326,22 @@ DialogView {
             Label {
                 Layout.preferredWidth: 400
                 id: buttonLabel
-                text: qsTr("Press any ") + Chiaki.currentControllerType + qsTr(" button to map to DualSense controller button or click close")
+                text: qsTr("Press any ") + AstraPlay.currentControllerType + qsTr(" button to map to DualSense controller button or click close")
             }
         }
 
         Connections {
-            target: Chiaki
+            target: AstraPlay
 
             function onControllerMappingInProgressChanged()
             {
-                if(!Chiaki.controllerMappingInProgress && !finalClosing)
+                if(!AstraPlay.controllerMappingInProgress && !finalClosing)
                     dialog.close();
             }
 
             function onControllerMappingButtonSelected(pressedButton, chiaki_button_value, chiaki_button_name)
             {
-                Chiaki.updateButton(buttonDialog.buttonValue, pressedButton, buttonDialog.buttonIndex);
+                AstraPlay.updateButton(buttonDialog.buttonValue, pressedButton, buttonDialog.buttonIndex);
                 quitButtonMapping = false;
                 buttonDialog.close();
             }

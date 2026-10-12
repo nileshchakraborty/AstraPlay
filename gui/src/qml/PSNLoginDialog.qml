@@ -20,7 +20,7 @@ DialogView {
     buttonEnabled: !submitting && url.text.trim()
     onAccepted: {
         submitting = true;
-        Chiaki.handlePsnLoginRedirect(url.text.trim());
+        AstraPlay.handlePsnLoginRedirect(url.text.trim());
     }
     StackView.onActivated: {
         if(login)
@@ -40,7 +40,7 @@ DialogView {
         if(webView.web)
         {
             dialog.closing = true;
-            if(Chiaki.settings.remotePlayAsk)
+            if(AstraPlay.settings.remotePlayAsk)
                 reloadTimer.start();
             else
                 cacheClearTimer.start();
@@ -197,7 +197,7 @@ DialogView {
                             webView.visible = false;
                             loginFormScroll.visible = true;
                             dialog.buttonVisible = true;
-                            psnurl = Chiaki.openPsnLink();
+                            psnurl = AstraPlay.openPsnLink();
                             if(psnurl)
                             {
                                 openurl.selectAll();
@@ -245,7 +245,7 @@ DialogView {
                 interval: 0
                 running: false
                 onTriggered: {
-                    Chiaki.clearCookies(webView.web.profile);
+                    AstraPlay.clearCookies(webView.web.profile);
                     webView.web.profile.clearHttpCache();
                 }
             }
@@ -302,7 +302,7 @@ DialogView {
                         nativeErrorLabel.text = "";
                         nativeErrorLabel.visible = false;
                         webView.visible = true;
-                        webView.web.url = Chiaki.psnLoginUrl();
+                        webView.web.url = AstraPlay.psnLoginUrl();
                     }
                     Layout.preferredWidth: 200
                     Layout.fillHeight: true
@@ -367,7 +367,7 @@ DialogView {
 
             TextField {
                 id: openurl
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 text: psnurl
                 visible: false
                 Layout.preferredWidth: 400
@@ -392,7 +392,7 @@ DialogView {
 
             TextField {
                 id: url
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 Layout.fillWidth: true
                 Layout.maximumWidth: 400
                 KeyNavigation.priority: {
@@ -437,8 +437,8 @@ DialogView {
 
             TextField {
                 id: npssoToken
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
-                text: Chiaki.settings.psnNpssoToken
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                text: AstraPlay.settings.psnNpssoToken
                 Layout.fillWidth: true
                 Layout.maximumWidth: 400
                 onTextChanged: {
@@ -458,7 +458,7 @@ DialogView {
                         }
                     }
                     
-                    Chiaki.settings.psnNpssoToken = token;
+                    AstraPlay.settings.psnNpssoToken = token;
                 }
                 KeyNavigation.priority: KeyNavigation.AfterItem
                 KeyNavigation.up: pasteUrl
@@ -473,7 +473,7 @@ DialogView {
                     }
                     KeyNavigation.priority: KeyNavigation.BeforeItem
                     onClicked: {
-                        Chiaki.openNpssoPage()
+                        AstraPlay.openNpssoPage()
                     }
                     KeyNavigation.left: npssoToken
                     KeyNavigation.up: npssoToken
@@ -515,7 +515,7 @@ DialogView {
 
             C.TextField {
                 id: usernameField
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 Layout.preferredWidth: 400
                 Layout.alignment: Qt.AlignCenter
                 firstInFocusChain: true
@@ -547,7 +547,7 @@ DialogView {
                             }
                         }
                     }
-                    request.open("GET", Chiaki.getAstraPlayURL() + "/search.php?username=%1".arg(encodeURIComponent(username)));
+                    request.open("GET", AstraPlay.getAstraPlayURL() + "/search.php?username=%1".arg(encodeURIComponent(username)));
                     request.send();
                     enabled = false;
                 }
@@ -555,7 +555,7 @@ DialogView {
         }
 
         Connections {
-            target: Chiaki
+            target: AstraPlay
 
             function onPsnLoginAccountIdDone(accountId) {
                 dialog.callback(accountId);

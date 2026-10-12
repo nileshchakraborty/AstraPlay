@@ -24,16 +24,16 @@ DialogView {
             return onlineId.text.trim();
         } else {
             // PS4 >= 7.0 and PS5 require account ID (either from PSN or manual lookup)
-            return accountId.text.trim() || Chiaki.settings.psnAccountId;
+            return accountId.text.trim() || AstraPlay.settings.psnAccountId;
         }
     }
     StackView.onActivated: {
-        if(Chiaki.settings.psnAccountId)
-            accountId.text = Chiaki.settings.psnAccountId
+        if(AstraPlay.settings.psnAccountId)
+            accountId.text = AstraPlay.settings.psnAccountId
     }
     onAccepted: {
         let psnId = onlineId.visible ? onlineId.text.trim() : accountId.text.trim();
-        let registerOk = Chiaki.registerHost(hostField.text.trim(), psnId, pin.text.trim(), cpin.text.trim(), hostField.text.trim() == "255.255.255.255", consoleButtons.checkedButton.target, function(msg, ok, done) {
+        let registerOk = AstraPlay.registerHost(hostField.text.trim(), psnId, pin.text.trim(), cpin.text.trim(), hostField.text.trim() == "255.255.255.255", consoleButtons.checkedButton.target, function(msg, ok, done) {
             if (!done)
                 logArea.text += msg + "\n";
             else
@@ -63,7 +63,7 @@ DialogView {
 
             C.TextField {
                 id: hostField
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 Layout.preferredWidth: 400
                 firstInFocusChain: true
                 KeyNavigation.up: root.buttonVisible ? root.okButton : null
@@ -79,7 +79,7 @@ DialogView {
                 id: pin
                 validator: RegularExpressionValidator { regularExpression: /[0-9]{8}/ }
                 Layout.preferredWidth: 400
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 KeyNavigation.up: hostField
                 KeyNavigation.down: ps4_7.checked ? onlineId : (findAccountIdRow.visible ? byLookupButton : accountId)
             }
@@ -88,12 +88,12 @@ DialogView {
                 id: findAccountIdLabel
                 Layout.alignment: Qt.AlignRight
                 text: qsTr("Find Account ID:")
-                visible: !ps4_7.checked && !Chiaki.settings.psnAccountId
+                visible: !ps4_7.checked && !AstraPlay.settings.psnAccountId
             }
 
             RowLayout {
                 id: findAccountIdRow
-                visible: !ps4_7.checked && !Chiaki.settings.psnAccountId
+                visible: !ps4_7.checked && !AstraPlay.settings.psnAccountId
                 spacing: 10
                 Layout.preferredWidth: 400
                 
@@ -124,11 +124,11 @@ DialogView {
                     Layout.preferredWidth: 195
                     height: 40
                     onClicked: {
-                        if (Chiaki.settings.psnAccountId) {
-                            accountId.text = Chiaki.settings.psnAccountId;
+                        if (AstraPlay.settings.psnAccountId) {
+                            accountId.text = AstraPlay.settings.psnAccountId;
                             root.showConfirmDialog(
                                 qsTr("Already Logged In"),
-                                qsTr("Your PlayStation Account ID is already auto-filled (%1).\n\nDo you want to log in with a different account?").arg(Chiaki.settings.donationPsnOnlineId || Chiaki.settings.psnAccountId),
+                                qsTr("Your PlayStation Account ID is already auto-filled (%1).\n\nDo you want to log in with a different account?").arg(AstraPlay.settings.donationPsnOnlineId || AstraPlay.settings.psnAccountId),
                                 () => {
                                     stack.push("QRLoginDialog.qml", {callback: (id) => {
                                         if (id) {
@@ -171,7 +171,7 @@ DialogView {
 
             Label {
                 Layout.alignment: Qt.AlignRight
-                text: Chiaki.settings.psnAccountId ? (Chiaki.settings.donationPsnOnlineId ? qsTr("Account-ID (%1):").arg(Chiaki.settings.donationPsnOnlineId) : qsTr("Account-ID (Auto-filled):")) : qsTr("Account-ID:")
+                text: AstraPlay.settings.psnAccountId ? (AstraPlay.settings.donationPsnOnlineId ? qsTr("Account-ID (%1):").arg(AstraPlay.settings.donationPsnOnlineId) : qsTr("Account-ID (Auto-filled):")) : qsTr("Account-ID:")
                 visible: !ps4_7.checked
             }
 
@@ -182,9 +182,9 @@ DialogView {
 
                 C.TextField {
                     id: accountId
-                    echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
-                    text: Chiaki.settings.psnAccountId || ""
-                    placeholderText: Chiaki.settings.psnAccountId ? qsTr("Auto-filled from PlayStation login") : qsTr("base64")
+                    echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                    text: AstraPlay.settings.psnAccountId || ""
+                    placeholderText: AstraPlay.settings.psnAccountId ? qsTr("Auto-filled from PlayStation login") : qsTr("base64")
                     Layout.fillWidth: true
                     KeyNavigation.up: findAccountIdRow.visible ? byLookupButton : pin
                     KeyNavigation.down: onlineId.visible ? onlineId : cpin
@@ -192,7 +192,7 @@ DialogView {
 
                 C.Button {
                     id: changeAccountBtn
-                    visible: Chiaki.settings.psnAccountId ? true : false
+                    visible: AstraPlay.settings.psnAccountId ? true : false
                     text: qsTr("Lookup")
                     Layout.preferredWidth: 80
                     height: accountId.height
@@ -211,7 +211,7 @@ DialogView {
 
             C.TextField {
                 id: onlineId
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 visible: ps4_7.checked
                 placeholderText: qsTr("username, case-sensitive")
                 Layout.preferredWidth: 400
@@ -226,7 +226,7 @@ DialogView {
 
             C.TextField {
                 id: cpin
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 validator: RegularExpressionValidator { regularExpression: /^$|[0-9]{4}/ }
                 Layout.preferredWidth: 400
                 KeyNavigation.up: onlineId.visible ? onlineId : (accountId.visible ? accountId : byLoginButton)

@@ -23,7 +23,7 @@ DialogView {
         statusLabel.visible = false;
         
         // Generate 6-digit alphanumeric code when dialog opens
-        qrCode = Chiaki.generateQRCode();
+        qrCode = AstraPlay.generateQRCode();
         // Create the code on the server
         createCodeOnServer();
         checkButton.forceActiveFocus(Qt.TabFocusReason);
@@ -44,13 +44,13 @@ DialogView {
     function refreshQRCode() {
         if (isProcessing) return;
         
-        qrCode = Chiaki.generateQRCode();
+        qrCode = AstraPlay.generateQRCode();
         createCodeOnServer();
     }
 
     function createCodeOnServer() {
         console.log("Creating astraplay code on server:", qrCode);
-        Chiaki.createAstraPlayCode(qrCode, function(success, errorMsg) {
+        AstraPlay.createAstraPlayCode(qrCode, function(success, errorMsg) {
             if (success) {
                 console.log("astraplay code created successfully on server");
                 // Optionally show success message to user
@@ -73,7 +73,7 @@ DialogView {
         statusLabel.text = qsTr("Checking login status...");
         statusLabel.visible = true;
         
-        Chiaki.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
+        AstraPlay.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
             console.log("astraplay API response - success:", success, "error:", errorMsg, "npsso:", npssoToken);
             
             isCheckingStatus = false;
@@ -89,7 +89,7 @@ DialogView {
                     statusLabel.text = qsTr("Processing login tokens...");
                     statusLabel.visible = true;
                     
-                    if (Chiaki.handlePsnLoginRedirect(npssoToken)) {
+                    if (AstraPlay.handlePsnLoginRedirect(npssoToken)) {
                         console.log("PSN login redirect processing started successfully!");
                     } else {
                         console.error("Failed to handle PSN login redirect");
@@ -105,7 +105,7 @@ DialogView {
                     statusLabel.visible = true;
                     
                     // Use the new OAuth v3 flow
-                    Chiaki.initPsnAuthV3(npssoToken, function(msg, ok, done) {
+                    AstraPlay.initPsnAuthV3(npssoToken, function(msg, ok, done) {
                         if (!done) {
                             statusLabel.text = msg;
                         } else {
@@ -150,7 +150,7 @@ DialogView {
 
         // Signal connections to handle PSN login success/error
         Connections {
-            target: Chiaki
+            target: AstraPlay
 
             function onPsnLoginAccountIdDone(accountId) {
                 console.log("QR Login: PSN account ID received:", accountId);
@@ -228,7 +228,7 @@ DialogView {
                                 anchors.fill: parent
                                 anchors.margins: 10
                                 readonly property int qrSize: 350
-                                source: Chiaki.getQRCodeDataUrl(Chiaki.getAstraPlayURL() + "/psstream/?psstream_code=" + dialog.qrCode, qrCodeImage.qrSize)
+                                source: AstraPlay.getQRCodeDataUrl(AstraPlay.getAstraPlayURL() + "/psstream/?psstream_code=" + dialog.qrCode, qrCodeImage.qrSize)
                                 fillMode: Image.PreserveAspectFit
                                 sourceSize.width: qrSize
                                 sourceSize.height: qrSize

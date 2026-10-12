@@ -17,7 +17,7 @@
 #include <TargetConditionals.h>
 #endif
 
-#if defined(__FreeBSD__) || (defined(__APPLE__) && !TARGET_OS_OSX)
+#if defined(__FreeBSD__) || defined(__APPLE__)
 #include <ifaddrs.h>
 #include <string.h>
 #include <errno.h>
@@ -59,8 +59,8 @@ static inline const char *sockaddr_str(struct sockaddr *addr, char *addr_buf, si
 
 static inline int sendto_broadcast(ChiakiLog *log, chiaki_socket_t s, const void *msg, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
 {
-#if defined(__FreeBSD__) || (defined(__APPLE__) && !TARGET_OS_OSX)
-	// FreeBSD and iOS require sending to specific interface broadcast addresses
+#if defined(__FreeBSD__) || defined(__APPLE__)
+	// FreeBSD, macOS, and iOS require sending to specific interface broadcast addresses
 	// See: https://wiki.freebsd.org/NetworkRFCCompliance
 	if(to->sa_family == AF_INET && ((const struct sockaddr_in *)to)->sin_addr.s_addr == htonl(INADDR_BROADCAST))
 	{

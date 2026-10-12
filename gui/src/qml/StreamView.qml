@@ -19,22 +19,22 @@ Item {
     // For remote play: check titleId
     // For cloud play: check cloudStreaming.gameImageUrl and sessionLoading
     property bool launchingGame: {
-        if (!Chiaki.settings.showGameImageDuringLaunch) {
+        if (!AstraPlay.settings.showGameImageDuringLaunch) {
             return false;
         }
         // Remote play: check for titleId
-        if (Chiaki.session !== null 
-            && Chiaki.session.titleId !== undefined 
-            && Chiaki.session.titleId !== null
-            && Chiaki.session.titleId !== "") {
+        if (AstraPlay.session !== null 
+            && AstraPlay.session.titleId !== undefined 
+            && AstraPlay.session.titleId !== null
+            && AstraPlay.session.titleId !== "") {
             return true;
         }
         // Cloud play: check for gameImageUrl and sessionLoading
         if (sessionLoading
-            && Chiaki.cloudStreaming !== null
-            && Chiaki.cloudStreaming.gameImageUrl !== undefined
-            && Chiaki.cloudStreaming.gameImageUrl !== null
-            && Chiaki.cloudStreaming.gameImageUrl !== "") {
+            && AstraPlay.cloudStreaming !== null
+            && AstraPlay.cloudStreaming.gameImageUrl !== undefined
+            && AstraPlay.cloudStreaming.gameImageUrl !== null
+            && AstraPlay.cloudStreaming.gameImageUrl !== "") {
             return true;
         }
         return false;
@@ -42,53 +42,53 @@ Item {
     
     // Watch for game launch to mute audio temporarily (REMOTE PLAY ONLY, not cloud play)
     onLaunchingGameChanged: {
-        if (launchingGame && Chiaki.session) {
+        if (launchingGame && AstraPlay.session) {
             // Only mute for remote play (when titleId is set), NOT for cloud play
             // Check if this is remote play by checking for titleId
-            var isRemotePlay = Chiaki.session.titleId !== undefined 
-                               && Chiaki.session.titleId !== null 
-                               && Chiaki.session.titleId !== "";
+            var isRemotePlay = AstraPlay.session.titleId !== undefined 
+                               && AstraPlay.session.titleId !== null 
+                               && AstraPlay.session.titleId !== "";
             if (isRemotePlay) {
                 // Mute session audio for remote play game launch (doesn't persist to settings)
                 console.log("Remote play game launch detected: Muting audio (volume set to 0)");
-                Chiaki.session.SetAudioVolume(0);
+                AstraPlay.session.SetAudioVolume(0);
             } else {
                 // Cloud play: do NOT mute audio
-                console.log("Cloud play game launch detected: NOT muting audio (volume stays at", Chiaki.settings.audioVolume + ")");
+                console.log("Cloud play game launch detected: NOT muting audio (volume stays at", AstraPlay.settings.audioVolume + ")");
             }
         }
     }
 
     function grabInput(item) {
-        Chiaki.window.grabInput();
+        AstraPlay.window.grabInput();
         restoreFocusItems.push(Window.window.activeFocusItem);
         if (item)
             item.forceActiveFocus(Qt.TabFocusReason);
     }
 
     function releaseInput() {
-        Chiaki.window.releaseInput();
+        AstraPlay.window.releaseInput();
         let item = restoreFocusItems.pop();
         if (item && item.visible)
             item.forceActiveFocus(Qt.TabFocusReason);
     }
 
-    StackView.onActivating: Chiaki.window.keepVideo = true
-    StackView.onDeactivated: Chiaki.window.keepVideo = false
+    StackView.onActivating: AstraPlay.window.keepVideo = true
+    StackView.onDeactivated: AstraPlay.window.keepVideo = false
 
     Component.onCompleted: {
-        if (Chiaki.session) {
-            Chiaki.session.GameLaunchCompleted.connect(function() {
+        if (AstraPlay.session) {
+            AstraPlay.session.GameLaunchCompleted.connect(function() {
                 // Hide game background and stop loading indicator
                 gameBackgroundLoader.active = false;
                 sessionLoading = false;
                 
                 // Restore audio volume from settings (doesn't modify persisted settings)
-                console.log("Remote play: Restoring audio volume to", Chiaki.settings.audioVolume);
-                Chiaki.session.SetAudioVolume(Chiaki.settings.audioVolume);
+                console.log("Remote play: Restoring audio volume to", AstraPlay.settings.audioVolume);
+                AstraPlay.session.SetAudioVolume(AstraPlay.settings.audioVolume);
                 
                 // Show controller overlay after a brief delay (only first time)
-                if (!controllerOverlayShown && !Chiaki.settings.controllerOverlayShown) {
+                if (!controllerOverlayShown && !AstraPlay.settings.controllerOverlayShown) {
                     controllerOverlayTimer.start();
                 }
             });
@@ -112,7 +112,7 @@ Item {
         anchors.fill: parent
         color: "black"
         opacity: {
-            if (sessionError || (Chiaki.settings.audioVideoDisabled & 0x02))
+            if (sessionError || (AstraPlay.settings.audioVideoDisabled & 0x02))
                 return 1.0;
             // Show black background only when launching game
             if (sessionLoading && launchingGame)
@@ -143,15 +143,15 @@ Item {
                     height: parent.height
                     source: {
                         // For cloud play: use cloudStreaming.gameImageUrl
-                        if (Chiaki.cloudStreaming !== null
-                            && Chiaki.cloudStreaming.gameImageUrl !== undefined
-                            && Chiaki.cloudStreaming.gameImageUrl !== null
-                            && Chiaki.cloudStreaming.gameImageUrl !== "") {
-                            return Chiaki.cloudStreaming.gameImageUrl;
+                        if (AstraPlay.cloudStreaming !== null
+                            && AstraPlay.cloudStreaming.gameImageUrl !== undefined
+                            && AstraPlay.cloudStreaming.gameImageUrl !== null
+                            && AstraPlay.cloudStreaming.gameImageUrl !== "") {
+                            return AstraPlay.cloudStreaming.gameImageUrl;
                         }
                         // For remote play: use titleId
-                        if (Chiaki.session && Chiaki.session.titleId) {
-                            return ChiakiGames.getGameImage(Chiaki.session.titleId, "landscape");
+                        if (AstraPlay.session && AstraPlay.session.titleId) {
+                            return AstraPlayGames.getGameImage(AstraPlay.session.titleId, "landscape");
                         }
                         return "";
                     }
@@ -173,7 +173,7 @@ Item {
         id: loadingView
         anchors.fill: parent
         color: "transparent"
-        opacity: sessionError || sessionLoading || (Chiaki.settings.audioVideoDisabled & 0x02) ? 1.0 : 0.0
+        opacity: sessionError || sessionLoading || (AstraPlay.settings.audioVideoDisabled & 0x02) ? 1.0 : 0.0
         visible: opacity
         z: 2
 
@@ -206,23 +206,23 @@ Item {
                 font.pixelSize: 20
                 text: {
                     // Show allocation progress if available
-                    if (Chiaki.cloudStreaming && Chiaki.cloudStreaming.allocationProgress) {
-                        return Chiaki.cloudStreaming.allocationProgress
+                    if (AstraPlay.cloudStreaming && AstraPlay.cloudStreaming.allocationProgress) {
+                        return AstraPlay.cloudStreaming.allocationProgress
                     }
                     // Otherwise show instructions when launching game
-                    if(Chiaki.settings.dpadTouchEnabled)
+                    if(AstraPlay.settings.dpadTouchEnabled)
                     {
-                        if(Chiaki.settings.audioVideoDisabled == 0x01)
-                            qsTr("Audio Disabled in settings\n") + qsTr("Press %1 to open stream menu").arg(Chiaki.controllers.length ? Chiaki.settings.stringForStreamMenuShortcut() : "Ctrl+O") + "\n" + qsTr("Press %1 to toggle between regular dpad and dpad touch").arg(Chiaki.settings.stringForDpadShortcut())
+                        if(AstraPlay.settings.audioVideoDisabled == 0x01)
+                            qsTr("Audio Disabled in settings\n") + qsTr("Press %1 to open stream menu").arg(AstraPlay.controllers.length ? AstraPlay.settings.stringForStreamMenuShortcut() : "Ctrl+O") + "\n" + qsTr("Press %1 to toggle between regular dpad and dpad touch").arg(AstraPlay.settings.stringForDpadShortcut())
                         else
-                            qsTr("Press %1 to open stream menu").arg(Chiaki.controllers.length ? Chiaki.settings.stringForStreamMenuShortcut() : "Ctrl+O") + "\n" + qsTr("Press %1 to toggle between regular dpad and dpad touch").arg(Chiaki.settings.stringForDpadShortcut())
+                            qsTr("Press %1 to open stream menu").arg(AstraPlay.controllers.length ? AstraPlay.settings.stringForStreamMenuShortcut() : "Ctrl+O") + "\n" + qsTr("Press %1 to toggle between regular dpad and dpad touch").arg(AstraPlay.settings.stringForDpadShortcut())
                     }
                     else
                     {
-                        if(Chiaki.settings.audioVideoDisabled == 0x01)
-                            qsTr("Audio Disabled in settings\n") + qsTr("Press %1 to open stream menu").arg(Chiaki.controllers.length ? Chiaki.settings.stringForStreamMenuShortcut() : "Ctrl+O")
+                        if(AstraPlay.settings.audioVideoDisabled == 0x01)
+                            qsTr("Audio Disabled in settings\n") + qsTr("Press %1 to open stream menu").arg(AstraPlay.controllers.length ? AstraPlay.settings.stringForStreamMenuShortcut() : "Ctrl+O")
                         else
-                            qsTr("Press %1 to open stream menu").arg(Chiaki.controllers.length ? Chiaki.settings.stringForStreamMenuShortcut() : "Ctrl+O")
+                            qsTr("Press %1 to open stream menu").arg(AstraPlay.controllers.length ? AstraPlay.settings.stringForStreamMenuShortcut() : "Ctrl+O")
                     }
                 }
                 visible: sessionLoading && (text !== "" || launchingGame)
@@ -234,9 +234,9 @@ Item {
                     bottom: spinner.top
                     horizontalCenter: spinner.horizontalCenter
                 }
-                text: (Chiaki.settings.audioVideoDisabled & 0x01) ? qsTr("Audio and Video Disabled") : qsTr("Video Disabled")
+                text: (AstraPlay.settings.audioVideoDisabled & 0x01) ? qsTr("Audio and Video Disabled") : qsTr("Video Disabled")
                 font.pixelSize: 24
-                visible: !sessionLoading && !sessionError && (Chiaki.settings.audioVideoDisabled & 0x02)
+                visible: !sessionLoading && !sessionError && (AstraPlay.settings.audioVideoDisabled & 0x02)
             }
 
             Label {
@@ -248,8 +248,8 @@ Item {
                 }
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: 20
-                text: (Chiaki.settings.audioVideoDisabled & 0x01) ? qsTr("You have disabled audio and video in your settings.\nTo re-enable change Audio/Video to Audio and Video Enabled in the General tab of the settings.") : qsTr("You have disabled video in your settings.\nTo re-enable change Audio/Video to Audio and Video Enabled in the General tab of the settings.")
-                visible: !sessionLoading && !sessionError && (Chiaki.settings.audioVideoDisabled & 0x02)
+                text: (AstraPlay.settings.audioVideoDisabled & 0x01) ? qsTr("You have disabled audio and video in your settings.\nTo re-enable change Audio/Video to Audio and Video Enabled in the General tab of the settings.") : qsTr("You have disabled video in your settings.\nTo re-enable change Audio/Video to Audio and Video Enabled in the General tab of the settings.")
+                visible: !sessionLoading && !sessionError && (AstraPlay.settings.audioVideoDisabled & 0x02)
             }
 
             Label {
@@ -284,7 +284,7 @@ Item {
     ColumnLayout {
         id: cantDisplayMessage
         anchors.centerIn: parent
-        opacity: Chiaki.window.hasVideo && Chiaki.session && Chiaki.session.cantDisplay ? 1.0 : 0.0
+        opacity: AstraPlay.window.hasVideo && AstraPlay.session && AstraPlay.session.cantDisplay ? 1.0 : 0.0
         visible: opacity
         spacing: 30
 
@@ -311,7 +311,7 @@ Item {
             text: qsTr("Go to Home Screen")
             Material.background: activeFocus ? parent.Material.accent : undefined
             Material.roundedScale: Material.SmallScale
-            onClicked: Chiaki.sessionGoHome()
+            onClicked: AstraPlay.sessionGoHome()
             Keys.onReturnPressed: clicked()
             Keys.onEscapePressed: clicked()
         }
@@ -336,7 +336,7 @@ Item {
 
         Timer {
             id: networkIndicatorTimer
-            running: Chiaki.session?.averagePacketLoss > (Chiaki.settings.wifiDroppedNotif * 0.01)
+            running: AstraPlay.session?.averagePacketLoss > (AstraPlay.settings.wifiDroppedNotif * 0.01)
             interval: 400
         }
     }
@@ -344,7 +344,7 @@ Item {
     Item {
         id: streamStats
         anchors.fill: parent
-        visible: Chiaki.settings.showStreamStats && !menuView.visible && !sessionLoading && !sessionError && !(Chiaki.settings.audioVideoDisabled & 0x02)
+        visible: AstraPlay.settings.showStreamStats && !menuView.visible && !sessionLoading && !sessionError && !(AstraPlay.settings.audioVideoDisabled & 0x02)
 
         // Single bottom-right anchored column that grows UPWARD, so adding rows can
         // never push the stats off the bottom of the screen.
@@ -361,12 +361,12 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 text: "Mbps"
                 font.pixelSize: 18
-                visible: Chiaki.session
+                visible: AstraPlay.session
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
                     // Guard the session itself, not just visibility: this binding can
                     // re-evaluate during teardown before the parent's visible updates.
-                    text: Chiaki.session ? Chiaki.session.measuredBitrate.toFixed(1) : ""
+                    text: AstraPlay.session ? AstraPlay.session.measuredBitrate.toFixed(1) : ""
                     color: Material.accent
                     font.bold: true
                     font.pixelSize: 28
@@ -378,11 +378,11 @@ Item {
                 id: statsPacketLossLabel
                 text: qsTr("packet loss")
                 font.pixelSize: 15
-                visible: Chiaki.session
+                visible: AstraPlay.session
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
                     // Same teardown guard as the Mbps label above.
-                    text: Chiaki.session ? "%1<font size=\"1\">%</font>".arg((Chiaki.session.averagePacketLoss * 100).toFixed(1)) : ""
+                    text: AstraPlay.session ? "%1<font size=\"1\">%</font>".arg((AstraPlay.session.averagePacketLoss * 100).toFixed(1)) : ""
                     font.bold: true
                     color: "#ef9a9a" // Material.Red
                     font.pixelSize: 18
@@ -396,7 +396,7 @@ Item {
                 Label {
                     id: statsDroppedFramesLabel
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? Chiaki.window.droppedFrames : ""
+                    text: parent.visible ? AstraPlay.window.droppedFrames : ""
                     color: "#ef9a9a" // Material.Red
                     font.bold: true
                     font.pixelSize: 18
@@ -409,7 +409,7 @@ Item {
                 font.pixelSize: 15
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (Chiaki.session?.measuredFps ?? 0).toFixed(0) : ""
+                    text: parent.visible ? (AstraPlay.session?.measuredFps ?? 0).toFixed(0) : ""
                     color: Material.accent
                     font.bold: true
                     font.pixelSize: 18
@@ -420,10 +420,10 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 text: qsTr("ms rtt")
                 font.pixelSize: 15
-                visible: (Chiaki.session?.measuredRtt ?? 0) > 0
+                visible: (AstraPlay.session?.measuredRtt ?? 0) > 0
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (Chiaki.session?.measuredRtt ?? 0).toFixed(0) : ""
+                    text: parent.visible ? (AstraPlay.session?.measuredRtt ?? 0).toFixed(0) : ""
                     color: Material.accent
                     font.bold: true
                     font.pixelSize: 18
@@ -434,10 +434,10 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 text: qsTr("res")
                 font.pixelSize: 15
-                visible: (Chiaki.session?.resolution ?? "") !== ""
+                visible: (AstraPlay.session?.resolution ?? "") !== ""
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (Chiaki.session?.resolution ?? "") : ""
+                    text: parent.visible ? (AstraPlay.session?.resolution ?? "") : ""
                     color: "white"
                     font.bold: true
                     font.pixelSize: 18
@@ -448,10 +448,10 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 text: qsTr("ctrl bat")
                 font.pixelSize: 15
-                visible: (Chiaki.session?.controllerBattery ?? "") !== ""
+                visible: (AstraPlay.session?.controllerBattery ?? "") !== ""
                 Label {
                     anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (Chiaki.session?.controllerBattery ?? "") : ""
+                    text: parent.visible ? (AstraPlay.session?.controllerBattery ?? "") : ""
                     color: Material.accent
                     font.bold: true
                     font.pixelSize: 18
@@ -522,8 +522,8 @@ Item {
                 font.pixelSize: 50
                 down: activeFocus
                 onClicked: {
-                    if (Chiaki.session)
-                        Chiaki.window.close();
+                    if (AstraPlay.session)
+                        AstraPlay.window.close();
                     else
                         root.showMainView();
                 }
@@ -546,8 +546,8 @@ Item {
                 Layout.preferredHeight: 100
                 padding: 10
                 stepSize: 1
-                value: Chiaki.settings.audioVolume
-                onMoved: Chiaki.settings.audioVolume = value
+                value: AstraPlay.settings.audioVolume
+                onMoved: AstraPlay.settings.audioVolume = value
                 KeyNavigation.left: closeButton
                 KeyNavigation.right: muteButton
                 Keys.onEscapePressed: menuView.close()
@@ -574,9 +574,9 @@ Item {
                 text: qsTr("Mic")
                 padding: 10
                 checkable: true
-                enabled: Chiaki.session && Chiaki.session.connected
-                checked: Chiaki.session && !Chiaki.session.muted
-                onToggled: Chiaki.session.muted = !Chiaki.session.muted
+                enabled: AstraPlay.session && AstraPlay.session.connected
+                checked: AstraPlay.session && !AstraPlay.session.muted
+                onToggled: AstraPlay.session.muted = !AstraPlay.session.muted
                 KeyNavigation.left: volumeSlider
                 KeyNavigation.right: steamDeck1610Button
                 Keys.onReturnPressed: toggled()
@@ -588,14 +588,14 @@ Item {
                 text: qsTr("16:10 Fill")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor === -1
+                checked: AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom && AstraPlay.window.ZoomFactor === -1
                 onToggled: {
                     if (checked) {
-                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                        AstraPlay.window.videoMode = AstraPlayWindow.VideoMode.Normal
                     } else {
-                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
-                        Chiaki.window.ZoomFactor = -1
-                        Chiaki.settings.sZoomFactor = -1
+                        AstraPlay.window.videoMode = AstraPlayWindow.VideoMode.Zoom
+                        AstraPlay.window.ZoomFactor = -1
+                        AstraPlay.settings.sZoomFactor = -1
                     }
                 }
                 KeyNavigation.left: muteButton
@@ -609,21 +609,21 @@ Item {
                 text: qsTr("Custom Zoom")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
+                checked: AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom && AstraPlay.window.ZoomFactor !== -1
                 onToggled: {
-                    if (Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1) {
-                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                    if (AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom && AstraPlay.window.ZoomFactor !== -1) {
+                        AstraPlay.window.videoMode = AstraPlayWindow.VideoMode.Normal
                     } else {
-                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
-                        if (Chiaki.window.ZoomFactor === -1) {
-                            Chiaki.window.ZoomFactor = 0
-                            Chiaki.settings.sZoomFactor = 0
+                        AstraPlay.window.videoMode = AstraPlayWindow.VideoMode.Zoom
+                        if (AstraPlay.window.ZoomFactor === -1) {
+                            AstraPlay.window.ZoomFactor = 0
+                            AstraPlay.settings.sZoomFactor = 0
                         }
                     }
                 }
                 KeyNavigation.left: steamDeck1610Button
                 KeyNavigation.right: {
-                    if(Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom)
+                    if(AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom)
                         zoomFactor
                     else
                         stretchButton
@@ -639,11 +639,11 @@ Item {
                 to: 4
                 Layout.preferredHeight: 100
                 stepSize: 0.01
-                visible: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
-                value: Chiaki.window.ZoomFactor
+                visible: AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom && AstraPlay.window.ZoomFactor !== -1
+                value: AstraPlay.window.ZoomFactor
                 onMoved: {
-                    Chiaki.window.ZoomFactor = value
-                    Chiaki.settings.sZoomFactor = value
+                    AstraPlay.window.ZoomFactor = value
+                    AstraPlay.settings.sZoomFactor = value
                 }
                 Label {
                     anchors {
@@ -673,10 +673,10 @@ Item {
                 text: qsTr("Stretch")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Stretch
-                onToggled: Chiaki.window.videoMode = Chiaki.window.videoMode == ChiakiWindow.VideoMode.Stretch ? ChiakiWindow.VideoMode.Normal : ChiakiWindow.VideoMode.Stretch
+                checked: AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Stretch
+                onToggled: AstraPlay.window.videoMode = AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Stretch ? AstraPlayWindow.VideoMode.Normal : AstraPlayWindow.VideoMode.Stretch
                 KeyNavigation.left: {
-                    if(Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom)
+                    if(AstraPlay.window.videoMode == AstraPlayWindow.VideoMode.Zoom)
                         zoomFactor
                     else
                         zoomButton
@@ -690,9 +690,9 @@ Item {
                 id: sharpenButton
                 Layout.rightMargin: 50
                 text: {
-                    if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom) {
-                        return Chiaki.settings.placeboUpscaler === 9 ? qsTr("Sharp (CAS)") : qsTr("Soft / Custom")
-                    } else if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality) {
+                    if (AstraPlay.window.videoPreset === AstraPlayWindow.VideoPreset.Custom) {
+                        return AstraPlay.settings.placeboUpscaler === 9 ? qsTr("Sharp (CAS)") : qsTr("Soft / Custom")
+                    } else if (AstraPlay.window.videoPreset === AstraPlayWindow.VideoPreset.HighQuality) {
                         return qsTr("Sharp (HQ)")
                     } else {
                         return qsTr("Sharpen: Off")
@@ -700,16 +700,16 @@ Item {
                 }
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality || (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom && Chiaki.settings.placeboUpscaler === 9)
+                checked: AstraPlay.window.videoPreset === AstraPlayWindow.VideoPreset.HighQuality || (AstraPlay.window.videoPreset === AstraPlayWindow.VideoPreset.Custom && AstraPlay.settings.placeboUpscaler === 9)
                 onToggled: {
                     // Toggle between Sharp (EwaLanczosSharp) and Fast/Default (Off)
                     if (checked) {
-                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
-                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
+                        AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Default
+                        AstraPlay.settings.videoPreset = AstraPlayWindow.VideoPreset.Default
                     } else {
-                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Custom
-                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Custom
-                        Chiaki.settings.placeboUpscaler = 9 // EwaLanczosSharp
+                        AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Custom
+                        AstraPlay.settings.videoPreset = AstraPlayWindow.VideoPreset.Custom
+                        AstraPlay.settings.placeboUpscaler = 9 // EwaLanczosSharp
                     }
                 }
                 KeyNavigation.left: stretchButton
@@ -723,10 +723,10 @@ Item {
                 text: qsTr("Default")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Default
+                checked: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Default
                 onToggled: {
-                    Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
-                    Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
+                    AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Default
+                    AstraPlay.settings.videoPreset = AstraPlayWindow.VideoPreset.Default
                 }
                 KeyNavigation.left: sharpenButton
                 KeyNavigation.right: highQualityButton
@@ -744,10 +744,10 @@ Item {
                 text: qsTr("High Quality")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.HighQuality
+                checked: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.HighQuality
                 onToggled: {
-                    Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.HighQuality
-                    Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.HighQuality
+                    AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.HighQuality
+                    AstraPlay.settings.videoPreset = AstraPlayWindow.VideoPreset.HighQuality
                 }
                 KeyNavigation.left: defaultButton
                 KeyNavigation.right: customButton
@@ -766,10 +766,10 @@ Item {
                 Layout.rightMargin: 40
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
+                checked: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom
                 onToggled: {
-                    Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Custom
-                    Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Custom
+                    AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Custom
+                    AstraPlay.settings.videoPreset = AstraPlayWindow.VideoPreset.Custom
                 }
                 KeyNavigation.left: highQualityButton
                 KeyNavigation.right: displaySettingsButton
@@ -786,7 +786,7 @@ Item {
                 onClicked: root.openDisplaySettings()
                 KeyNavigation.left: highQualityButton
                 KeyNavigation.right: {
-                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                    if (AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom)
                         placeboSettingsButton;
                     else
                         statsOverlayButton;
@@ -807,7 +807,7 @@ Item {
                 onClicked: root.openPlaceboSettings()
                 KeyNavigation.left: displaySettingsButton
                 KeyNavigation.right: statsOverlayButton
-                visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
+                visible: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom
                 Keys.onReturnPressed: {
                     menuView.close();
                     clicked();
@@ -825,10 +825,10 @@ Item {
                 text: qsTr("Stats")
                 padding: 10
                 checkable: true
-                checked: Chiaki.settings.showStreamStats
-                onToggled: Chiaki.settings.showStreamStats = !Chiaki.settings.showStreamStats
+                checked: AstraPlay.settings.showStreamStats
+                onToggled: AstraPlay.settings.showStreamStats = !AstraPlay.settings.showStreamStats
                 KeyNavigation.left: {
-                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                    if (AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom)
                         placeboSettingsButton;
                     else
                         displaySettingsButton;
@@ -847,7 +847,7 @@ Item {
             }
             text: "Mbps"
             font.pixelSize: 18
-            visible: Chiaki.session
+            visible: AstraPlay.session
 
             Label {
                 anchors {
@@ -855,7 +855,7 @@ Item {
                     baseline: parent.baseline
                     rightMargin: 5
                 }
-                text: visible ? Chiaki.session.measuredBitrate.toFixed(1) : ""
+                text: visible ? AstraPlay.session.measuredBitrate.toFixed(1) : ""
                 color: Material.accent
                 font.bold: true
                 font.pixelSize: 28
@@ -870,11 +870,11 @@ Item {
                 margins: 30
             }
             text: {
-                if (!Chiaki.session)
+                if (!AstraPlay.session)
                     return "";
-                if (Chiaki.session.connected)
-                    return qsTr("Connected to <b>%1</b>").arg(Chiaki.settings.streamerMode ? "hidden" : Chiaki.session.host);
-                return qsTr("Connecting to <b>%1</b>").arg(Chiaki.settings.streamerMode ? "hidden" : Chiaki.session.host);
+                if (AstraPlay.session.connected)
+                    return qsTr("Connected to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : AstraPlay.session.host);
+                return qsTr("Connecting to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : AstraPlay.session.host);
             }
 
             RowLayout {
@@ -887,7 +887,7 @@ Item {
                 Label {
                     text: qsTr("packet loss")
                     font.pixelSize: 15
-                    opacity: parent.visible && Chiaki.session?.averagePacketLoss ? 1.0 : 0.0
+                    opacity: parent.visible && AstraPlay.session?.averagePacketLoss ? 1.0 : 0.0
                     visible: opacity
 
                     Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -898,7 +898,7 @@ Item {
                             baseline: parent.baseline
                             rightMargin: 5
                         }
-                        text: visible ? "%1<font size=\"1\">%</font>".arg((Chiaki.session?.averagePacketLoss * 100).toFixed(1)) : ""
+                        text: visible ? "%1<font size=\"1\">%</font>".arg((AstraPlay.session?.averagePacketLoss * 100).toFixed(1)) : ""
                         color: "#ef9a9a" // Material.Red
                         font.bold: true
                         font.pixelSize: 18
@@ -909,7 +909,7 @@ Item {
                     Layout.leftMargin: droppedFramesLabel.width + 6
                     text: qsTr("dropped frames")
                     font.pixelSize: 15
-                    opacity: parent.visible && Chiaki.window.droppedFrames ? 1.0 : 0.0
+                    opacity: parent.visible && AstraPlay.window.droppedFrames ? 1.0 : 0.0
                     visible: opacity
 
                     Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -921,7 +921,7 @@ Item {
                             baseline: parent.baseline
                             rightMargin: 5
                         }
-                        text: visible ? Chiaki.window.droppedFrames : ""
+                        text: visible ? AstraPlay.window.droppedFrames : ""
                         color: "#ef9a9a" // Material.Red
                         font.bold: true
                         font.pixelSize: 18
@@ -944,7 +944,7 @@ Item {
                             baseline: parent.baseline
                             rightMargin: 5
                         }
-                        text: visible ? (Chiaki.session?.measuredFps ?? 0).toFixed(0) : ""
+                        text: visible ? (AstraPlay.session?.measuredFps ?? 0).toFixed(0) : ""
                         color: Material.accent
                         font.bold: true
                         font.pixelSize: 18
@@ -955,7 +955,7 @@ Item {
                     Layout.leftMargin: ctrlBatMenuLabel.width + 6
                     text: qsTr("ctrl bat")
                     font.pixelSize: 15
-                    opacity: parent.visible && (Chiaki.session?.controllerBattery ?? "") !== "" ? 1.0 : 0.0
+                    opacity: parent.visible && (AstraPlay.session?.controllerBattery ?? "") !== "" ? 1.0 : 0.0
                     visible: opacity
 
                     Behavior on opacity { NumberAnimation { duration: 250 } }
@@ -967,7 +967,7 @@ Item {
                             baseline: parent.baseline
                             rightMargin: 5
                         }
-                        text: visible ? (Chiaki.session?.controllerBattery ?? "") : ""
+                        text: visible ? (AstraPlay.session?.controllerBattery ?? "") : ""
                         color: Material.accent
                         font.bold: true
                         font.pixelSize: 18
@@ -980,7 +980,7 @@ Item {
     Popup {
         id: sessionStopDialog
         property int closeAction: 0
-        property bool isCloudSession: Chiaki.session && Chiaki.session.isCloudStreaming
+        property bool isCloudSession: AstraPlay.session && AstraPlay.session.isCloudStreaming
         parent: Overlay.overlay
         x: Math.round((root.width - width) / 2)
         y: Math.round((root.height - height) / 2)
@@ -995,12 +995,12 @@ Item {
                 // For cloud sessions, only close if "Yes" was clicked (closeAction == 1)
                 // "No" means don't close (closeAction == 2), so do nothing
                 if (closeAction == 1) {
-                    Chiaki.stopSession(false);
+                    AstraPlay.stopSession(false);
                 }
             } else {
                 // For remote play, both buttons close the session, but with different sleep settings
                 if (closeAction) {
-                    Chiaki.stopSession(closeAction == 1);
+                    AstraPlay.stopSession(closeAction == 1);
                 }
             }
         }
@@ -1083,13 +1083,13 @@ Item {
             view.grabInput(pinField);
         }
         onClosed: view.releaseInput()
-        onAccepted: Chiaki.enterPin(pinField.text)
-        onRejected: Chiaki.stopSession(false)
+        onAccepted: AstraPlay.enterPin(pinField.text)
+        onRejected: AstraPlay.stopSession(false)
         Material.roundedScale: Material.MediumScale
 
         TextField {
             id: pinField
-            echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+            echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
             implicitWidth: 200
             validator: RegularExpressionValidator { regularExpression: /[0-9]{4}/ }
             Keys.onReturnPressed: {
@@ -1114,7 +1114,7 @@ Item {
                 
                 onDismissed: {
                     view.controllerOverlayShown = true;
-                    Chiaki.settings.controllerOverlayShown = true; // Mark as shown permanently
+                    AstraPlay.settings.controllerOverlayShown = true; // Mark as shown permanently
                     controllerOverlayLoader.active = false; // Completely destroy the overlay
                     view.releaseInput();
                 }
@@ -1140,10 +1140,10 @@ Item {
     }
 
     Connections {
-        target: Chiaki
+        target: AstraPlay
 
         function onSessionChanged() {
-            if (!Chiaki.session) {
+            if (!AstraPlay.session) {
                 if (errorTitleLabel.text)
                     closeTimer.start();
                 else
@@ -1157,8 +1157,8 @@ Item {
             
             // Clear game background image on error (same as remote play)
             gameBackgroundLoader.active = false;
-            if (Chiaki.cloudStreaming && Chiaki.cloudStreaming.gameImageUrl) {
-                Chiaki.cloudStreaming.gameImageUrl = "";
+            if (AstraPlay.cloudStreaming && AstraPlay.cloudStreaming.gameImageUrl) {
+                AstraPlay.cloudStreaming.gameImageUrl = "";
             }
             
             errorTitleLabel.text = title;
@@ -1205,25 +1205,25 @@ Item {
     }
 
     Connections {
-        target: Chiaki.window
+        target: AstraPlay.window
 
         function onHasVideoChanged() {
-            if (Chiaki.window.hasVideo) {
+            if (AstraPlay.window.hasVideo) {
                 // For cloud play: clear image and hide game background when video appears
                 // (same as GameLaunchCompleted for remote play)
-                if (Chiaki.cloudStreaming && Chiaki.cloudStreaming.gameImageUrl) {
+                if (AstraPlay.cloudStreaming && AstraPlay.cloudStreaming.gameImageUrl) {
                     // Hide game background and stop loading indicator (same as remote play)
                     gameBackgroundLoader.active = false;
                     sessionLoading = false;
                     
                     // Clear the image URL to release resources
-                    Chiaki.cloudStreaming.gameImageUrl = "";
+                    AstraPlay.cloudStreaming.gameImageUrl = "";
                     
                     // Note: Cloud play audio is never muted, so no volume restoration needed here
                     // (Volume restoration only happens in GameLaunchCompleted for remote play)
                     
                     // Show controller overlay after a brief delay (only first time)
-                    if (!controllerOverlayShown && !Chiaki.settings.controllerOverlayShown) {
+                    if (!controllerOverlayShown && !AstraPlay.settings.controllerOverlayShown) {
                         controllerOverlayTimer.start();
                     }
                     return;
@@ -1235,7 +1235,7 @@ Item {
                     sessionLoading = false;
                     
                     // Show controller overlay after a brief delay (for non-game launch, only first time)
-                    if (!controllerOverlayShown && !Chiaki.settings.controllerOverlayShown) {
+                    if (!controllerOverlayShown && !AstraPlay.settings.controllerOverlayShown) {
                         controllerOverlayTimer.start();
                     }
                 }
@@ -1249,13 +1249,13 @@ Item {
         }
     }
     Connections {
-        target: Chiaki.session
-        enabled: Chiaki.session !== null
+        target: AstraPlay.session
+        enabled: AstraPlay.session !== null
 
         function onConnectedChanged() {
             // If video is disabled, stop loading immediately
             // Otherwise, keep loading until GameLaunchCompleted (if launching a game) or hasVideo (if not)
-            if (Chiaki.settings.audioVideoDisabled & 0x02)
+            if (AstraPlay.settings.audioVideoDisabled & 0x02)
                 sessionLoading = false;
         }
     }
