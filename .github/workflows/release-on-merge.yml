@@ -754,6 +754,11 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
+      - name: Install Windows MSI builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wixl
+
       - name: Package all release assets
         run: |
           mkdir -p dist
@@ -793,17 +798,12 @@ jobs:
             fi
           fi
 
-          # 3. MSI installer generation (wixl for both x64 and ARM64)
-          sudo apt-get update && sudo apt-get install -y msitools || true
-          if command -v wixl >/dev/null 2>&1; then
-            VER_RAW="${{ steps.versioning.outputs.version }}"
-            MSI_VER=$(echo "$VER_RAW" | awk -F. '{printf "%d.%d.%d", ($1 ? $1 : 1), ($2 ? $2 : 0), ($3 ? $3 : 0)}')
-            
-            # x64 MSI
-            if [ -f dist/astraplay.exe ]; then
-              echo "Compiling Windows x64 MSI installer..."
-              wixl --arch x64 -v -D SourceExe="dist/astraplay.exe" -D Version="${MSI_VER}" -o dist/astraplay-windows-x64.msi scripts/astraplay.wxs || echo "wixl x64 failed, skipping MSI generation"
-            fi
+          # 3. Build the MSI from the complete portable archive, including Qt runtime files.
+          if [ -f dist/astraplay-windows-x64.zip ]; then
+            python3 scripts/build-windows-msi.py \
+              dist/astraplay-windows-x64.zip \
+              "${{ steps.versioning.outputs.version }}" \
+              dist/astraplay-windows-x64.msi
           fi
 
           # 4. macOS Apple Silicon assets
