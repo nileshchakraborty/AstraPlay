@@ -16,8 +16,16 @@ extern MunitTest tests_cloudcatalog_merge[];
 extern MunitTest tests_cloudsession_kamaji[];
 extern MunitTest tests_ps_chord[];
 extern MunitTest tests_ctrl_lifecycle[];
+extern MunitTest tests_congestion_control[];
 
 static MunitSuite suites[] = {
+	{
+		"/congestion_control",
+		tests_congestion_control,
+		NULL,
+		1,
+		MUNIT_SUITE_OPTION_NONE
+	},
 	{
 		"/ctrl_lifecycle",
 		tests_ctrl_lifecycle,
