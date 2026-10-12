@@ -102,12 +102,12 @@ jobs:
 
       - name: Build AstraPlay
         run: |
-          cmake --build build --config Release --clean-first --target chiaki
+          cmake --build build --config Release --clean-first --target astraplay
           
       - name: Package AstraPlay
         run: |
           mkdir -p astraplay
-          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
+          [ -f build/gui/astraplay.exe ] && cp -f build/gui/astraplay.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           if [ "${{ env.CHIAKI_ENABLE_STEAMWORKS }}" = "ON" ]; then
             cp third-party/steamworks/steamworks_sdk/redistributable_bin/win64/steam_api64.dll astraplay/
             cp steam_appid.txt astraplay/ 2>/dev/null || echo "Warning: steam_appid.txt not found"
@@ -176,7 +176,7 @@ jobs:
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: "scripts/chiaki-ng.iss"
+          path: "scripts/astraplay.iss"
           options: /O+
 
       - name: Rename installer with version

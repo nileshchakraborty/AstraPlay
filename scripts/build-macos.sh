@@ -1,6 +1,5 @@
 #!/bin/bash
-# macOS build script for AstraPlay following chiaki-ng GitHub Actions workflow
-# Based on: https://github.com/streetpea/chiaki-ng/.github/workflows/build-macos.yml
+# macOS build script for AstraPlay
 #
 # Usage:
 #   ./build-macos.sh [arm64|x86_64|universal] [options...]
@@ -309,7 +308,7 @@ build_for_arch() {
     
     # Build (matching GitHub Actions exactly)
     export CPATH="$(brew --prefix)/opt/ffmpeg/include"
-    cmake --build "$REPO_ROOT/$build_dir" --config Release --clean-first --target chiaki
+    cmake --build "$REPO_ROOT/$build_dir" --config Release --clean-first --target astraplay
     
     echo ""
 }
@@ -509,7 +508,7 @@ if [ "$ITERATE" = "true" ]; then
     # Sync the App Store flag with the CMake cache so --iterate respects --appstore / no --appstore
     cmake -B "$REPO_ROOT/$build_dir" -DCHIAKI_IS_MAC_APPSTORE="$MAC_APPSTORE"
     export CPATH="$(brew --prefix)/opt/ffmpeg/include"
-    cmake --build "$REPO_ROOT/$build_dir" --config Release --target chiaki
+    cmake --build "$REPO_ROOT/$build_dir" --config Release --target astraplay
 
     echo "=== Iterate: updating app bundle ==="
     _src_app="$REPO_ROOT/$build_dir/gui/AstraPlay.app"

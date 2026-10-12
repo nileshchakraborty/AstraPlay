@@ -96,7 +96,7 @@ jobs:
 
       - name: Build project
         run: |
-          cmake --build build --config Release --clean-first --target chiaki
+          cmake --build build --config Release --clean-first --target astraplay
           if [ -f build/gui/chiaki.exe ] && [ ! -f build/gui/astraplay.exe ]; then
             cp build/gui/chiaki.exe build/gui/astraplay.exe
           elif [ -f build/gui/AstraPlay.exe ] && [ ! -f build/gui/chiaki.exe ]; then

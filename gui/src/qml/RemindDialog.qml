@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import "controls" as C
 
-import org.streetpea.chiaking
+import io.github.nileshchakraborty.astraplay
 
 Dialog {
     id: dialog

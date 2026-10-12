@@ -5,10 +5,9 @@ set -xe
 STEAMWORKS="${CHIAKI_ENABLE_STEAMWORKS:-OFF}"
 
 # ============================================================================
-# UPSTREAM APPIMAGE BUILD SCRIPT
+# APPIMAGE BUILD SCRIPT
 # ============================================================================
-# This section is from upstream chiaki-ng and builds the standard AppImage.
-# User additions are clearly marked below.
+# Builds the standard AstraPlay AppImage.
 # ============================================================================
 
 if [ "$(uname -m)" = "aarch64" ]
@@ -75,7 +74,7 @@ chmod +x linuxdeploy-plugin-qt-${ARCH}.AppImage
 ./linuxdeploy-${ARCH}.AppImage \
     --appdir="${appdir}" \
     -e "${appdir}/usr/bin/chiaki" \
-    -d "${appdir}/usr/share/applications/co.ksco.astraplay.desktop" \
+    -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
     --plugin qt \
     --exclude-library='libva*' \
     --exclude-library='libvulkan*' \

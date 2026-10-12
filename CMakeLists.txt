@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(chiaki)
+project(astraplay LANGUAGES C CXX)
 
 # Fix for 16 KB page size compatibility (required for Android devices with 16 KB pages)
 # This ensures ELF LOAD segments are aligned to 16 KB boundaries for shared libraries
@@ -74,7 +74,7 @@ tri_option(CHIAKI_USE_SYSTEM_CURL "Use system-provided curl instead of submodule
 # CI injects real values from the CHIAKI_VERSION_* lines below at archive time (.github/workflows/deploy-ios.yml).
 set(CHIAKI_VERSION_MAJOR 2)
 set(CHIAKI_VERSION_MINOR 12)
-set(CHIAKI_VERSION_PATCH 0)
+set(CHIAKI_VERSION_PATCH 1)
 set(CHIAKI_VERSION ${CHIAKI_VERSION_MAJOR}.${CHIAKI_VERSION_MINOR}.${CHIAKI_VERSION_PATCH})
 
 configure_file(

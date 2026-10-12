@@ -135,10 +135,15 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     chiaki_log_init(&global_log, settings->GetLogLevelMask(), chiaki_log_cb_print, nullptr);
     qt_msg_handler = qInstallMessageHandler(msg_handler);
 
-    const char *uri = "org.streetpea.chiaking";
+    const char *uri = "io.github.nileshchakraborty.astraplay";
+
+    qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlay", this);
     qmlRegisterSingletonInstance(uri, 1, 0, "Chiaki", this);
+
     games_backend = new QmlGamesBackend(settings, this);
+    qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlayGames", games_backend);
     qmlRegisterSingletonInstance(uri, 1, 0, "ChiakiGames", games_backend);
+
     m_update_manager = new UpdateManager(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "UpdateManager", m_update_manager);
 #ifdef CHIAKI_IS_MAC_APPSTORE
@@ -298,8 +303,13 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
         qInfo() << "QmlBackend: Cloud streaming session registered successfully";
     });
     
+    qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "AstraPlayWindow", {});
     qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "ChiakiWindow", {});
+
+    qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "AstraPlaySettings", {});
     qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "ChiakiSettings", {});
+
+    qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "AstraPlaySession", {});
     qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "ChiakiSession", {});
 
     QObject *frame_obj = new QObject();
@@ -2742,8 +2752,7 @@ void QmlBackend::ensureAstraPlaySteamShortcut(const QJSValue &callback)
 
     QVector<SteamShortcutEntry> shortcuts = steam.parseShortcuts();
     for (auto &entry : shortcuts) {
-        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive) ||
-            entry.getAppName().contains(QStringLiteral("Pylux"), Qt::CaseInsensitive)) {
+        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive)) {
             done(false);
             return;
         }

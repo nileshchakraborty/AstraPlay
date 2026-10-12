@@ -148,7 +148,7 @@ int real_main(int argc, char *argv[])
 	QGuiApplication::styleHints()->setTabFocusBehavior(Qt::TabFocusAllControls);
 
 #ifdef Q_OS_MACOS
-	QGuiApplication::setWindowIcon(QIcon(":/icons/chiaking_macos.svg"));
+	QGuiApplication::setWindowIcon(QIcon(":/icons/astraplay.png"));
 #else
 	QGuiApplication::setWindowIcon(QIcon(":/icons/steam_icon.png"));
 #endif

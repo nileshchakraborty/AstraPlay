@@ -5,12 +5,12 @@ set -Eeo pipefail
 
 # Allow users to override preset variables on command line via exports 
 #(i.e. export config_path=${HOME}/my_fav_path) before running script
-config_path=${config_path:-"${HOME}/.var/app/io.github.streetpea.Chiaki4deck/config/Chiaki"}
+config_path=${config_path:-"${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki"}
 config_file=${config_file:-"${config_path}/Chiaki.conf"}
 if ! [ -f "${config_file}" ]
 then
     echo "Config file: ${config_file} does not exist" >&2
-    echo "Please run your flatpak at least once with: flatpak run io.github.streetpea.Chiaki4deck and try again" >&2
+    echo "Please run your flatpak at least once with: flatpak run io.github.nileshchakraborty.AstraPlay and try again" >&2
     exit 2
 fi
 if ! grep regist_key < "${config_file}" &>/dev/null
@@ -115,7 +115,7 @@ append_discover_wakeup()
     cat <<-EOF >> "$config_path/Chiaki-launcher.sh"
 	SECONDS=0
 	# Wait for console to be in sleep/rest mode or on (otherwise console isn't available)
-	ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+	ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 	while ! echo "\${ps_status}" | grep -q 'ready\|standby'
 	do
 	    if [ \${SECONDS} -gt ${wait_timeout} ]
@@ -128,13 +128,13 @@ append_discover_wakeup()
 	        fi
 	    fi
 	    sleep 1
-	    ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+	    ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 	done
 
 	# Wake up console from sleep/rest mode if not already awake
 	if ! echo "\${ps_status}" | grep -q ready
 	then
-	    flatpak run io.github.streetpea.Chiaki4deck wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
+	    flatpak run io.github.nileshchakraborty.AstraPlay wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
 	fi
 
 	# Wait for PlayStation to report ready status, exit script on error if it never happens.
@@ -150,7 +150,7 @@ append_discover_wakeup()
 	        fi
 	    fi
 	    sleep 1
-	    ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+	    ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 	done
 	EOF
 }
@@ -332,7 +332,7 @@ then
 		    addr="${home_addr}"
 		    SECONDS=0
 		    # Wait for console to be in sleep/rest mode or on (otherwise console isn't available)
-		    ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+		    ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 		    while ! echo "\${ps_status}" | grep -q 'ready\|standby'
 		    do
 		        if [ \${SECONDS} -gt ${wait_timeout} ]
@@ -340,13 +340,13 @@ then
 		            connect_error_loc
 		        fi
 	            sleep 1
-	            ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+	            ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 		    done
 
 		    # Wake up console from sleep/rest mode if not already awake
 		    if ! echo "\${ps_status}" | grep -q ready
 		    then
-		        flatpak run io.github.streetpea.Chiaki4deck wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
+		        flatpak run io.github.nileshchakraborty.AstraPlay wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
 		    fi
 
 		    # Wait for PlayStation to report ready status, exit script on error if it never happens.
@@ -362,13 +362,13 @@ then
 		            fi
 		        fi
 		        sleep 1
-		        ps_status="\$(flatpak run io.github.streetpea.Chiaki4deck discover -h \${addr} 2>/dev/null)"
+		        ps_status="\$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h \${addr} 2>/dev/null)"
 		    done
 		else
 		    addr="${away_addr}"
 		    SECONDS=0
 		    # Wake up console from sleep/rest mode if not already awake
-		    flatpak run io.github.streetpea.Chiaki4deck wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
+		    flatpak run io.github.nileshchakraborty.AstraPlay wakeup -${ps_console} -h \${addr} -r '${regist_key}' 2>/dev/null
 		    sleep 10
 		fi
 		EOF
@@ -384,7 +384,7 @@ fi
 
 cat <<EOF >> "$config_path/Chiaki-launcher.sh"
 # Begin playing PlayStation remote play via Chiaki on your Steam Deck :)
-flatpak run io.github.streetpea.Chiaki4deck --passcode "${login_passcode}" --${mode} stream $(printf %q "${server_nickname}") \${addr}
+flatpak run io.github.nileshchakraborty.AstraPlay --passcode "${login_passcode}" --${mode} stream $(printf %q "${server_nickname}") \${addr}
 EOF
 
 # Make script executable

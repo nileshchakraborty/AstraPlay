@@ -86,13 +86,13 @@ set(SOURCE_FILES
 set(RESOURCE_FILES "")
 
 if(APPLE)
-	list(APPEND RESOURCE_FILES "chiaking.icns")
+	list(APPEND RESOURCE_FILES "astraplay.icns")
 elseif(WIN32)
 	configure_file(
-		${CMAKE_CURRENT_SOURCE_DIR}/chiaking.rc.in
-		${CMAKE_CURRENT_SOURCE_DIR}/chiaking.rc
+		${CMAKE_CURRENT_SOURCE_DIR}/astraplay.rc.in
+		${CMAKE_CURRENT_SOURCE_DIR}/astraplay.rc
 		@ONLY)
-	list(APPEND RESOURCE_FILES "chiaking.rc")
+	list(APPEND RESOURCE_FILES "astraplay.rc")
 endif()
 
 if(CHIAKI_ENABLE_STEAMDECK_NATIVE AND LINUX)
@@ -125,69 +125,69 @@ elseif(WIN32)
 	)
 endif()
 
-add_executable(chiaki
+add_executable(astraplay
 		${RESOURCE_FILES}
 		${SOURCE_FILES}
 )
-target_include_directories(chiaki PRIVATE include thirdparty)
+target_include_directories(astraplay PRIVATE include thirdparty)
 
 add_library(placebo-libav-impl src/libav_impl.c)
 target_link_libraries(placebo-libav-impl PkgConfig::LIBPLACEBO FFMPEG::avcodec FFMPEG::avutil FFMPEG::avformat)
-target_link_libraries(chiaki PkgConfig::LIBPLACEBO placebo-libav-impl)
+target_link_libraries(astraplay PkgConfig::LIBPLACEBO placebo-libav-impl)
 
-target_link_libraries(chiaki chiaki-lib)
+target_link_libraries(astraplay chiaki-lib)
 if(CHIAKI_ENABLE_CLI)
 	add_definitions(-DCHIAKI_ENABLE_CLI)
-	target_link_libraries(chiaki chiaki-cli-lib)
+	target_link_libraries(astraplay chiaki-cli-lib)
 endif()
 
-target_link_libraries(chiaki Qt::Core Qt::Gui Qt::GuiPrivate Qt::Concurrent Qt::Svg Qt::Qml Qt::Quick Qt::Widgets Qt::Network)
+target_link_libraries(astraplay Qt::Core Qt::Gui Qt::GuiPrivate Qt::Concurrent Qt::Svg Qt::Qml Qt::Quick Qt::Widgets Qt::Network)
 if (${Qt6DBus_FOUND} AND NOT WIN32 AND NOT APPLE)
-	target_link_libraries(chiaki Qt::DBus)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_HAVE_DBUS)
+	target_link_libraries(astraplay Qt::DBus)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_HAVE_DBUS)
 endif()
 if(CHIAKI_ENABLE_GUI_WEBENGINE AND Qt6WebEngineQuick_FOUND)
-	target_link_libraries(chiaki Qt::WebEngineQuick)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_HAVE_WEBENGINE)
+	target_link_libraries(astraplay Qt::WebEngineQuick)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_HAVE_WEBENGINE)
 endif()
-target_link_libraries(chiaki SDL2::SDL2)
+target_link_libraries(astraplay SDL2::SDL2)
 if(CHIAKI_ENABLE_SPEEX)
-  target_link_libraries(chiaki PkgConfig::SpeexDSP)
-  target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_SPEEX)
+  target_link_libraries(astraplay PkgConfig::SpeexDSP)
+  target_compile_definitions(astraplay PRIVATE CHIAKI_GUI_ENABLE_SPEEX)
 endif()
 if(CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER)
 endif()
 if(CHIAKI_ENABLE_SETSU)
-	target_link_libraries(chiaki setsu)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_SETSU)
+	target_link_libraries(astraplay setsu)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_GUI_ENABLE_SETSU)
 endif()
 if(CHIAKI_ENABLE_STEAMDECK_NATIVE)
-	target_link_libraries(chiaki sdeck)
-	target_compile_definitions(chiaki PRIVATE QT_STATICPLUGIN CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE)
+	target_link_libraries(astraplay sdeck)
+	target_compile_definitions(astraplay PRIVATE QT_STATICPLUGIN CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE)
 endif()
 if(CHIAKI_ENABLE_STEAM_SHORTCUT)
-	target_link_libraries(chiaki cpp-steam-tools)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_STEAM_SHORTCUT)
+	target_link_libraries(astraplay cpp-steam-tools)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_GUI_ENABLE_STEAM_SHORTCUT)
 endif()
 if(CHIAKI_ENABLE_STEAMWORKS)
-	target_link_libraries(chiaki steamworks)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_ENABLE_STEAMWORKS)
+	target_link_libraries(astraplay steamworks)
+	target_compile_definitions(astraplay PRIVATE CHIAKI_ENABLE_STEAMWORKS)
 endif()
 if(CHIAKI_IS_MAC_APPSTORE)
-	target_compile_definitions(chiaki PRIVATE CHIAKI_IS_MAC_APPSTORE)
-	target_sources(chiaki PRIVATE
+	target_compile_definitions(astraplay PRIVATE CHIAKI_IS_MAC_APPSTORE)
+	target_sources(astraplay PRIVATE
 		include/appreviewmanager.h
 		src/appreviewmanager.cpp
 		src/appreviewbridge.mm
 	)
-	target_link_libraries(chiaki "-framework StoreKit")
+	target_link_libraries(astraplay "-framework StoreKit")
 endif()
 if(NOT CHIAKI_ENABLE_FFMPEG_DECODER)
-	message(FATAL_ERROR "Chiaki GUI requires CHIAKI_ENABLE_FFMPEG_DECODER=ON")
+	message(FATAL_ERROR "AstraPlay GUI requires CHIAKI_ENABLE_FFMPEG_DECODER=ON")
 endif()
 if(APPLE)
-	target_link_libraries(chiaki "-framework AVFoundation" "-framework IOKit")
+	target_link_libraries(astraplay "-framework AVFoundation" "-framework IOKit")
 endif()
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fanalyzer")
@@ -198,7 +198,7 @@ else()
 endif()
 
 if(APPLE)
-	set_target_properties(chiaki PROPERTIES
+	set_target_properties(astraplay PROPERTIES
 			OUTPUT_NAME AstraPlay
 			MACOSX_BUNDLE TRUE
 			MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/MacOSXBundleInfo.plist.in"
@@ -207,29 +207,34 @@ if(APPLE)
 			MACOSX_BUNDLE_SHORT_VERSION_STRING "${CHIAKI_VERSION}"
 			MACOSX_BUNDLE_BUNDLE_VERSION "${MACOSX_BUNDLE_BUILD_VERSION}"
 			MACOSX_BUNDLE_COPYRIGHT "thestr4ng3r (AGPLv3)"
-			MACOSX_BUNDLE_GUI_IDENTIFIER "com.astraplay.stream"
-			MACOSX_BUNDLE_ICON_FILE chiaking.icns
+			MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.nileshchakraborty.astraplay"
+			MACOSX_BUNDLE_ICON_FILE astraplay.icns
 			RESOURCE "${RESOURCE_FILES}")
 else()
-	set_target_properties(chiaki PROPERTIES
-			OUTPUT_NAME chiaki)
+	set_target_properties(astraplay PROPERTIES
+			OUTPUT_NAME astraplay)
 endif()
 
 if(WIN32)
 	# Allow disabling WIN32_EXECUTABLE for debugging (e.g., fastbuild.bat sets CHIAKI_ENABLE_CONSOLE=ON)
 	if(NOT CHIAKI_ENABLE_CONSOLE)
-		set_target_properties(chiaki PROPERTIES WIN32_EXECUTABLE TRUE)
+		set_target_properties(astraplay PROPERTIES WIN32_EXECUTABLE TRUE)
 	endif()
-	add_custom_command(TARGET chiaki POST_BUILD
+	add_custom_command(TARGET astraplay POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:chiaki>
-			$<TARGET_FILE_DIR:chiaki>/astraplay.exe
+			$<TARGET_FILE:astraplay>
+			$<TARGET_FILE_DIR:astraplay>/chiaki.exe
 	)
 endif()
 
-install(TARGETS chiaki
+install(TARGETS astraplay
 		RUNTIME DESTINATION bin
 		BUNDLE DESTINATION bin)
-install(FILES co.ksco.astraplay.desktop DESTINATION share/applications)
-install(FILES chiaking.png DESTINATION share/icons/hicolor/512x512/apps)
-install(FILES co.ksco.astraplay.metainfo.xml DESTINATION share/metainfo)
+# [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
+install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
+install(FILES astraplay.png DESTINATION share/icons/hicolor/512x512/apps)
+install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
+# [ASTRAPLAY END]
+
+# Backward compatibility alias
+add_custom_target(chiaki ALL DEPENDS astraplay)

@@ -1,6 +1,6 @@
 {
-  "name": "chiaki-ng",
-  "version": "1.9.8",
+  "name": "astraplay",
+  "version": "2.12.0",
   "dependencies": [
     "pkgconf",
     "sdl2",

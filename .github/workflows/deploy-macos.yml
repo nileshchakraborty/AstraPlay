@@ -114,16 +114,19 @@ jobs:
             "-DASTRAPLAY_MACOS_BUILD_NUMBER=${ASTRAPLAY_MACOS_BUILD_NUMBER}"
 
           export CPATH="${{ matrix.brew_prefix }}/opt/ffmpeg/include"
-          cmake --build build --config Release --clean-first --target chiaki
+          cmake --build build --config Release --clean-first --target astraplay
 
       - name: Deploy app bundle
         run: |
           QT_BIN="${{ matrix.brew_prefix }}/opt/qt@6/bin"
+          APP_BUNDLE="build/gui/AstraPlay.app"
+          [ ! -d "$APP_BUNDLE" ] && [ -d "build/gui/chiaki.app" ] && APP_BUNDLE="build/gui/chiaki.app"
 
           # Match scripts/build-macos.sh: macdeployqt follows QML imports, not CMake. Only add
-          # qtwebengine_import.qml if chiaki links QtWebEngineQuick (CHIAKI_ENABLE_GUI_WEBENGINE=ON).
-          _CHIAKI_BIN="build/gui/chiaki.app/Contents/MacOS/chiaki"
-          if otool -L "$_CHIAKI_BIN" 2>/dev/null | grep -q 'QtWebEngineQuick'; then
+          # qtwebengine_import.qml if binary links QtWebEngineQuick (CHIAKI_ENABLE_GUI_WEBENGINE=ON).
+          _MAIN_BIN="$APP_BUNDLE/Contents/MacOS/AstraPlay"
+          [ ! -f "$_MAIN_BIN" ] && _MAIN_BIN="$APP_BUNDLE/Contents/MacOS/chiaki"
+          if otool -L "$_MAIN_BIN" 2>/dev/null | grep -q 'QtWebEngineQuick'; then
             if [ "${{ matrix.arch }}" = 'ARM64' ]; then
               echo "import QtWebEngine; WebEngineView {}" > gui/src/qml/qtwebengine_import.qml
             else
@@ -134,40 +137,33 @@ jobs:
             rm -f gui/src/qml/qtwebengine_import.qml
           fi
 
-          "$QT_BIN/macdeployqt" build/gui/chiaki.app \
+          "$QT_BIN/macdeployqt" "$APP_BUNDLE" \
             -qmldir="$PWD/gui/src/qml" \
             -libpath="${{ matrix.brew_prefix }}/lib"
 
-          mkdir -p build/gui/chiaki.app/Contents/Resources/vulkan/icd.d
+          mkdir -p "$APP_BUNDLE/Contents/Resources/vulkan/icd.d"
           wget -q "https://github.com/KhronosGroup/MoltenVK/releases/download/v1.2.9/MoltenVK-macos.tar" -O /tmp/MoltenVK-macos.tar
           tar xf /tmp/MoltenVK-macos.tar -C /tmp
-          cp /tmp/MoltenVK/MoltenVK/dylib/macOS/* build/gui/chiaki.app/Contents/Resources/vulkan/icd.d/
+          cp /tmp/MoltenVK/MoltenVK/dylib/macOS/* "$APP_BUNDLE/Contents/Resources/vulkan/icd.d/"
 
-          "$QT_BIN/macdeployqt" build/gui/chiaki.app \
+          "$QT_BIN/macdeployqt" "$APP_BUNDLE" \
             -qmldir="$PWD/gui/src/qml" \
             -libpath="${{ matrix.brew_prefix }}/lib"
 
-          if [[ -d build/gui/chiaki.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app ]]; then
+          if [[ -d "$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app" ]]; then
             ln -s ../../../../../../../Frameworks \
-              build/gui/chiaki.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents
+              "$APP_BUNDLE/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents"
           fi
 
-          ln -sf libvulkan.1.dylib build/gui/chiaki.app/Contents/Frameworks/vulkan 2>/dev/null || true
+          ln -sf libvulkan.1.dylib "$APP_BUNDLE/Contents/Frameworks/vulkan" 2>/dev/null || true
 
-          # Bundle SDL3 for sdl2-compat. Homebrew's `sdl2` (installed above) is now sdl2-compat -- an
-          # SDL2 API shim that dlopens SDL3 at runtime via @loader_path/libSDL3.dylib (next to libSDL2
-          # in Frameworks). macdeployqt does NOT copy SDL3 (it is loaded via dlopen, not linked), so
-          # without this the App Store .app aborts on launch with "Failed loading SDL3 library" before
-          # any of our code runs. It MUST be named libSDL3.dylib (the @loader_path name) -- not
-          # libSDL3.0.dylib, which only sdl2-compat's bare-name fallback (system search path) finds,
-          # masking the bug on dev machines. The per-arch copy is lipo-merged into the universal
-          # bundle in the create-appstore-pkg job and signed there with the rest of the dylibs.
+          # Bundle SDL3 for sdl2-compat.
           SDL3_SRC="${{ matrix.brew_prefix }}/opt/sdl3/lib/libSDL3.0.dylib"
           if [ -f "$SDL3_SRC" ]; then
             echo "Bundling SDL3 (required by sdl2-compat)..."
-            cp -f "$SDL3_SRC" build/gui/chiaki.app/Contents/Frameworks/libSDL3.dylib
-            chmod u+w build/gui/chiaki.app/Contents/Frameworks/libSDL3.dylib
-            install_name_tool -id "@rpath/libSDL3.dylib" build/gui/chiaki.app/Contents/Frameworks/libSDL3.dylib
+            cp -f "$SDL3_SRC" "$APP_BUNDLE/Contents/Frameworks/libSDL3.dylib"
+            chmod u+w "$APP_BUNDLE/Contents/Frameworks/libSDL3.dylib"
+            install_name_tool -id "@rpath/libSDL3.dylib" "$APP_BUNDLE/Contents/Frameworks/libSDL3.dylib"
           else
             echo "::warning::SDL3 not found at $SDL3_SRC -- if libSDL2 is sdl2-compat the app will crash on launch"
           fi
