@@ -322,5 +322,18 @@
     <string name="shortcut_remote_play_long">Stream PlayStation Console</string>
     <string name="shortcut_cloud_play_short">Cloud Games</string>
     <string name="shortcut_cloud_play_long">Play Cloud Games</string>
+    <string name="preferences_category_title_controller_tuning">Gamepad Tuning &amp; Remapping</string>
+    <string name="preferences_controller_deadzone_key">controller_deadzone</string>
+    <string name="preferences_controller_deadzone_title">Stick Deadzone Calibration</string>
+    <string name="preferences_controller_deadzone_summary">Radial deadzone percentage to eliminate stick drift (default 5%%)</string>
+    <string name="preferences_controller_sensitivity_key">controller_sensitivity</string>
+    <string name="preferences_controller_sensitivity_title">Stick Sensitivity</string>
+    <string name="preferences_controller_sensitivity_summary">Analog stick sensitivity multiplier (100 = 1.0x)</string>
+    <string name="preferences_swap_bumpers_triggers_key">swap_bumpers_triggers</string>
+    <string name="preferences_swap_bumpers_triggers_title">Swap Bumpers &amp; Triggers (L1/R1 ↔ L2/R2)</string>
+    <string name="preferences_swap_bumpers_triggers_summary">Swap shoulder bumpers and triggers for mobile grips</string>
+    <string name="preferences_swap_box_pyramid_key">swap_box_pyramid</string>
+    <string name="preferences_swap_box_pyramid_title">Swap Square &amp; Triangle</string>
+    <string name="preferences_swap_box_pyramid_summary">Swap Square and Triangle buttons (Nintendo X/Y layout)</string>
 
 </resources>

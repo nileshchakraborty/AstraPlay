@@ -366,6 +366,8 @@ Controller::Controller(int device_id, ControllerManager *manager)
 	chiaki_accel_new_zero_set_inactive(&this->accel_zero, false);
 	chiaki_accel_new_zero_set_inactive(&this->real_accel, true);
 	chiaki_controller_state_set_idle(&this->state);
+	chiaki_stick_calibration_init_default(&this->stick_calib);
+	this->stick_calib.deadzone = 0.05f;
 
 #ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
 	controller = nullptr;
@@ -589,15 +591,19 @@ inline bool Controller::HandleAxisEvent(SDL_ControllerAxisEvent event) {
 			break;
 		case SDL_CONTROLLER_AXIS_LEFTX:
 			state.left_x = event.value;
+			chiaki_stick_apply_calibration(&state.left_x, &state.left_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_LEFTY:
 			state.left_y = event.value;
+			chiaki_stick_apply_calibration(&state.left_x, &state.left_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTX:
 			state.right_x = event.value;
+			chiaki_stick_apply_calibration(&state.right_x, &state.right_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTY:
 			state.right_y = event.value;
+			chiaki_stick_apply_calibration(&state.right_x, &state.right_y, &stick_calib);
 			break;
 		default:
 			return false;

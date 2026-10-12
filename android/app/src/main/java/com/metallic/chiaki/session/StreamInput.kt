@@ -77,6 +77,27 @@ class StreamInput(val context: Context, val preferences: Preferences)
 	private val capturedTouchIds = mutableMapOf<Int, UByte>() // MotionEvent pointerId -> chiaki touch id
 
 	private val swapCrossMoon = preferences.swapCrossMoon
+	private val swapBoxPyramid = preferences.swapBoxPyramid
+	private val swapBumpersTriggers = preferences.swapBumpersTriggers
+	private val controllerDeadzone = preferences.controllerDeadzone / 100.0f
+	private val controllerSensitivity = preferences.controllerSensitivity / 100.0f
+
+	private fun applyStickCalibration(x: Short, y: Short): Pair<Short, Short>
+	{
+		if (controllerDeadzone <= 0.001f && Math.abs(controllerSensitivity - 1.0f) <= 0.001f)
+			return Pair(x, y)
+		val nx = x.toFloat() / Short.MAX_VALUE.toFloat()
+		val ny = y.toFloat() / Short.MAX_VALUE.toFloat()
+		val r = Math.hypot(nx.toDouble(), ny.toDouble()).toFloat()
+		if (r <= controllerDeadzone || r < 1e-5f)
+			return Pair(0.toShort(), 0.toShort())
+		var scaledR = ((r - controllerDeadzone) / (1.0f - controllerDeadzone)).coerceAtMost(1.0f) * controllerSensitivity
+		scaledR = scaledR.coerceAtMost(1.0f)
+		val outX = ((nx / r) * scaledR * Short.MAX_VALUE.toFloat()).toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+		val outY = ((ny / r) * scaledR * Short.MAX_VALUE.toFloat()).toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+		return Pair(outX, outY)
+	}
+
 	private val mapSelectToTouchpad = preferences.mapSelectToTouchpad
 	private val dpadTouchEnabled = preferences.dpadTouchEnabled
 	private val dpadTouchIncrement = if(dpadTouchEnabled) preferences.dpadTouchIncrement else 0
@@ -618,16 +639,36 @@ class StreamInput(val context: Context, val preferences: Preferences)
 		when(event.keyCode)
 		{
 			KeyEvent.KEYCODE_BUTTON_L2 -> {
-				keyControllerState.l2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
-				processDpadTouch()
-				controllerStateUpdated()
-				return true
+				if (!swapBumpersTriggers) {
+					keyControllerState.l2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
+					processDpadTouch()
+					controllerStateUpdated()
+					return true
+				}
 			}
 			KeyEvent.KEYCODE_BUTTON_R2 -> {
-				keyControllerState.r2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
-				processDpadTouch()
-				controllerStateUpdated()
-				return true
+				if (!swapBumpersTriggers) {
+					keyControllerState.r2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
+					processDpadTouch()
+					controllerStateUpdated()
+					return true
+				}
+			}
+			KeyEvent.KEYCODE_BUTTON_L1 -> {
+				if (swapBumpersTriggers) {
+					keyControllerState.l2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
+					processDpadTouch()
+					controllerStateUpdated()
+					return true
+				}
+			}
+			KeyEvent.KEYCODE_BUTTON_R1 -> {
+				if (swapBumpersTriggers) {
+					keyControllerState.r2State = if(event.action == KeyEvent.ACTION_DOWN) UByte.MAX_VALUE else 0U
+					processDpadTouch()
+					controllerStateUpdated()
+					return true
+				}
 			}
 			KeyEvent.KEYCODE_BUTTON_SELECT -> {
 				if(mapSelectToTouchpad)
@@ -646,16 +687,22 @@ class StreamInput(val context: Context, val preferences: Preferences)
 		val buttonMask: UInt = when(event.keyCode)
 		{
 			// dpad handled by MotionEvents
-			//KeyEvent.KEYCODE_DPAD_LEFT -> ControllerState.BUTTON_DPAD_LEFT
-			//KeyEvent.KEYCODE_DPAD_RIGHT -> ControllerState.BUTTON_DPAD_RIGHT
-			//KeyEvent.KEYCODE_DPAD_UP -> ControllerState.BUTTON_DPAD_UP
-			//KeyEvent.KEYCODE_DPAD_DOWN -> ControllerState.BUTTON_DPAD_DOWN
 			KeyEvent.KEYCODE_BUTTON_A -> if(swapCrossMoon) ControllerState.BUTTON_MOON else ControllerState.BUTTON_CROSS
 			KeyEvent.KEYCODE_BUTTON_B -> if(swapCrossMoon) ControllerState.BUTTON_CROSS else ControllerState.BUTTON_MOON
-			KeyEvent.KEYCODE_BUTTON_X -> if(swapCrossMoon) ControllerState.BUTTON_PYRAMID else ControllerState.BUTTON_BOX
-			KeyEvent.KEYCODE_BUTTON_Y -> if(swapCrossMoon) ControllerState.BUTTON_BOX else ControllerState.BUTTON_PYRAMID
-			KeyEvent.KEYCODE_BUTTON_L1 -> ControllerState.BUTTON_L1
-			KeyEvent.KEYCODE_BUTTON_R1 -> ControllerState.BUTTON_R1
+			KeyEvent.KEYCODE_BUTTON_X -> {
+				val isBox = !swapBoxPyramid
+				if(swapCrossMoon) (if(isBox) ControllerState.BUTTON_PYRAMID else ControllerState.BUTTON_BOX)
+				else (if(isBox) ControllerState.BUTTON_BOX else ControllerState.BUTTON_PYRAMID)
+			}
+			KeyEvent.KEYCODE_BUTTON_Y -> {
+				val isBox = !swapBoxPyramid
+				if(swapCrossMoon) (if(!isBox) ControllerState.BUTTON_PYRAMID else ControllerState.BUTTON_BOX)
+				else (if(!isBox) ControllerState.BUTTON_BOX else ControllerState.BUTTON_PYRAMID)
+			}
+			KeyEvent.KEYCODE_BUTTON_L1 -> if(swapBumpersTriggers) 0U else ControllerState.BUTTON_L1
+			KeyEvent.KEYCODE_BUTTON_R1 -> if(swapBumpersTriggers) 0U else ControllerState.BUTTON_R1
+			KeyEvent.KEYCODE_BUTTON_L2 -> if(swapBumpersTriggers) ControllerState.BUTTON_L1 else 0U
+			KeyEvent.KEYCODE_BUTTON_R2 -> if(swapBumpersTriggers) ControllerState.BUTTON_R1 else 0U
 			KeyEvent.KEYCODE_BUTTON_THUMBL -> ControllerState.BUTTON_L3
 			KeyEvent.KEYCODE_BUTTON_THUMBR -> ControllerState.BUTTON_R3
 			KeyEvent.KEYCODE_BUTTON_SELECT -> ControllerState.BUTTON_SHARE
@@ -685,12 +732,32 @@ class StreamInput(val context: Context, val preferences: Preferences)
 			return false
 		fun Float.signedAxis() = (this * Short.MAX_VALUE).toInt().toShort()
 		fun Float.unsignedAxis() = (this * UByte.MAX_VALUE.toFloat()).toUInt().toUByte()
-		motionControllerState.leftX = event.getAxisValue(MotionEvent.AXIS_X).signedAxis()
-		motionControllerState.leftY = event.getAxisValue(MotionEvent.AXIS_Y).signedAxis()
-		motionControllerState.rightX = event.getAxisValue(MotionEvent.AXIS_Z).signedAxis()
-		motionControllerState.rightY = event.getAxisValue(MotionEvent.AXIS_RZ).signedAxis()
-		motionControllerState.l2State = event.getAxisValue(MotionEvent.AXIS_LTRIGGER).unsignedAxis()
-		motionControllerState.r2State = event.getAxisValue(MotionEvent.AXIS_RTRIGGER).unsignedAxis()
+
+		val rawLeftX = event.getAxisValue(MotionEvent.AXIS_X).signedAxis()
+		val rawLeftY = event.getAxisValue(MotionEvent.AXIS_Y).signedAxis()
+		val (calLeftX, calLeftY) = applyStickCalibration(rawLeftX, rawLeftY)
+		motionControllerState.leftX = calLeftX
+		motionControllerState.leftY = calLeftY
+
+		val rawRightX = event.getAxisValue(MotionEvent.AXIS_Z).signedAxis()
+		val rawRightY = event.getAxisValue(MotionEvent.AXIS_RZ).signedAxis()
+		val (calRightX, calRightY) = applyStickCalibration(rawRightX, rawRightY)
+		motionControllerState.rightX = calRightX
+		motionControllerState.rightY = calRightY
+
+		val rawL2 = event.getAxisValue(MotionEvent.AXIS_LTRIGGER).unsignedAxis()
+		val rawR2 = event.getAxisValue(MotionEvent.AXIS_RTRIGGER).unsignedAxis()
+		if (swapBumpersTriggers) {
+			val l1Pressed = rawL2 > 127U
+			val r1Pressed = rawR2 > 127U
+			motionControllerState.buttons = motionControllerState.buttons
+				.let { b -> if (l1Pressed) b or ControllerState.BUTTON_L1 else b and ControllerState.BUTTON_L1.inv() }
+				.let { b -> if (r1Pressed) b or ControllerState.BUTTON_R1 else b and ControllerState.BUTTON_R1.inv() }
+		} else {
+			motionControllerState.l2State = rawL2
+			motionControllerState.r2State = rawR2
+		}
+
 		motionControllerState.buttons = motionControllerState.buttons.let {
 			val dpadX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
 			val dpadY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)

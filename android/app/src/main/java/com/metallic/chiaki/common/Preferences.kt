@@ -123,6 +123,26 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getBoolean(phoneHapticsFallbackKey, true)
 		set(value) { sharedPreferences.edit().putBoolean(phoneHapticsFallbackKey, value).apply() }
 
+	val controllerDeadzoneKey get() = resources.getString(R.string.preferences_controller_deadzone_key)
+	var controllerDeadzone // percent, 0..30 (default 5)
+		get() = sharedPreferences.getInt(controllerDeadzoneKey, 5).coerceIn(0, 30)
+		set(value) { sharedPreferences.edit().putInt(controllerDeadzoneKey, value.coerceIn(0, 30)).apply() }
+
+	val controllerSensitivityKey get() = resources.getString(R.string.preferences_controller_sensitivity_key)
+	var controllerSensitivity // percent, 50..200 (default 100)
+		get() = sharedPreferences.getInt(controllerSensitivityKey, 100).coerceIn(50, 200)
+		set(value) { sharedPreferences.edit().putInt(controllerSensitivityKey, value.coerceIn(50, 200)).apply() }
+
+	val swapBumpersTriggersKey get() = resources.getString(R.string.preferences_swap_bumpers_triggers_key)
+	var swapBumpersTriggers
+		get() = sharedPreferences.getBoolean(swapBumpersTriggersKey, false)
+		set(value) { sharedPreferences.edit().putBoolean(swapBumpersTriggersKey, value).apply() }
+
+	val swapBoxPyramidKey get() = resources.getString(R.string.preferences_swap_box_pyramid_key)
+	var swapBoxPyramid
+		get() = sharedPreferences.getBoolean(swapBoxPyramidKey, false)
+		set(value) { sharedPreferences.edit().putBoolean(swapBoxPyramidKey, value).apply() }
+
 	/** Where the motion data (gyro/accel/orientation) streamed to the console comes
 	 * from. Matches iOS' MotionSource setting. */
 	enum class MotionSource(val value: String)

@@ -282,6 +282,47 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="category_controller_tuning"
+        app:title="@string/preferences_category_title_controller_tuning">
+
+        <SeekBarPreference
+            app:key="@string/preferences_controller_deadzone_key"
+            app:title="@string/preferences_controller_deadzone_title"
+            app:summary="@string/preferences_controller_deadzone_summary"
+            app:min="0"
+            android:max="30"
+            app:seekBarIncrement="1"
+            app:defaultValue="5"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SeekBarPreference
+            app:key="@string/preferences_controller_sensitivity_key"
+            app:title="@string/preferences_controller_sensitivity_title"
+            app:summary="@string/preferences_controller_sensitivity_summary"
+            app:min="50"
+            android:max="200"
+            app:seekBarIncrement="5"
+            app:defaultValue="100"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SwitchPreference
+            app:key="@string/preferences_swap_bumpers_triggers_key"
+            app:title="@string/preferences_swap_bumpers_triggers_title"
+            app:summary="@string/preferences_swap_bumpers_triggers_summary"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SwitchPreference
+            app:key="@string/preferences_swap_box_pyramid_key"
+            app:title="@string/preferences_swap_box_pyramid_title"
+            app:summary="@string/preferences_swap_box_pyramid_summary"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_gamepad" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:key="category_export"
         app:title="@string/preferences_category_title_export">
         <Preference

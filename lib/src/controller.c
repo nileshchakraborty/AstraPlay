@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <chiaki/controller.h>
+#include <math.h>
 
 #define TOUCH_ID_MASK 0x7f
 
@@ -163,3 +164,189 @@ CHIAKI_EXPORT void chiaki_controller_state_or(ChiakiControllerState *out, Chiaki
 	CHOOSEF(orient_w, chooser);
 #undef CHOOSEF
 }
+
+CHIAKI_EXPORT void chiaki_stick_calibration_init_default(ChiakiStickCalibration *calib)
+{
+	if (!calib)
+		return;
+	calib->deadzone = 0.0f;
+	calib->sensitivity = 1.0f;
+	calib->linearity = 1.0f;
+	calib->mode = CHIAKI_DEADZONE_RADIAL;
+}
+
+CHIAKI_EXPORT void chiaki_stick_apply_calibration(int16_t *x, int16_t *y, const ChiakiStickCalibration *calib)
+{
+	if (!x || !y || !calib)
+		return;
+
+	float deadzone = calib->deadzone;
+	if (deadzone < 0.0f)
+		deadzone = 0.0f;
+	else if (deadzone > 0.9f)
+		deadzone = 0.9f;
+
+	float sensitivity = calib->sensitivity;
+	if (sensitivity <= 0.0f)
+		sensitivity = 1.0f;
+
+	float linearity = calib->linearity;
+	if (linearity <= 0.0f)
+		linearity = 1.0f;
+
+	float nx = (float)*x / 32767.0f;
+	float ny = (float)*y / 32767.0f;
+
+	if (calib->mode == CHIAKI_DEADZONE_RADIAL)
+	{
+		float r = sqrtf(nx * nx + ny * ny);
+		if (r <= deadzone || r < 1e-5f)
+		{
+			*x = 0;
+			*y = 0;
+			return;
+		}
+
+		/* Remap smoothly between [deadzone, 1.0] to [0.0, 1.0] */
+		float scaled_r = (r - deadzone) / (1.0f - deadzone);
+		if (scaled_r > 1.0f)
+			scaled_r = 1.0f;
+
+		if (linearity != 1.0f)
+			scaled_r = powf(scaled_r, linearity);
+
+		scaled_r *= sensitivity;
+		if (scaled_r > 1.0f)
+			scaled_r = 1.0f;
+
+		float ux = nx / r;
+		float uy = ny / r;
+
+		float out_x = ux * scaled_r * 32767.0f;
+		float out_y = uy * scaled_r * 32767.0f;
+
+		if (out_x > 32767.0f) out_x = 32767.0f;
+		else if (out_x < -32768.0f) out_x = -32768.0f;
+
+		if (out_y > 32767.0f) out_y = 32767.0f;
+		else if (out_y < -32768.0f) out_y = -32768.0f;
+
+		*x = (int16_t)out_x;
+		*y = (int16_t)out_y;
+	}
+	else
+	{
+		float abs_x = fabsf(nx);
+		float abs_y = fabsf(ny);
+
+		float out_x = 0.0f;
+		if (abs_x > deadzone)
+		{
+			float scaled_x = (abs_x - deadzone) / (1.0f - deadzone);
+			if (scaled_x > 1.0f) scaled_x = 1.0f;
+			if (linearity != 1.0f) scaled_x = powf(scaled_x, linearity);
+			scaled_x *= sensitivity;
+			if (scaled_x > 1.0f) scaled_x = 1.0f;
+			out_x = (nx > 0.0f ? scaled_x : -scaled_x) * 32767.0f;
+		}
+
+		float out_y = 0.0f;
+		if (abs_y > deadzone)
+		{
+			float scaled_y = (abs_y - deadzone) / (1.0f - deadzone);
+			if (scaled_y > 1.0f) scaled_y = 1.0f;
+			if (linearity != 1.0f) scaled_y = powf(scaled_y, linearity);
+			scaled_y *= sensitivity;
+			if (scaled_y > 1.0f) scaled_y = 1.0f;
+			out_y = (ny > 0.0f ? scaled_y : -scaled_y) * 32767.0f;
+		}
+
+		if (out_x > 32767.0f) out_x = 32767.0f;
+		else if (out_x < -32768.0f) out_x = -32768.0f;
+
+		if (out_y > 32767.0f) out_y = 32767.0f;
+		else if (out_y < -32768.0f) out_y = -32768.0f;
+
+		*x = (int16_t)out_x;
+		*y = (int16_t)out_y;
+	}
+}
+
+CHIAKI_EXPORT void chiaki_controller_state_apply_calibration(ChiakiControllerState *state,
+                                                             const ChiakiStickCalibration *left,
+                                                             const ChiakiStickCalibration *right)
+{
+	if (!state)
+		return;
+	if (left)
+		chiaki_stick_apply_calibration(&state->left_x, &state->left_y, left);
+	if (right)
+		chiaki_stick_apply_calibration(&state->right_x, &state->right_y, right);
+}
+
+CHIAKI_EXPORT void chiaki_button_remap_init_default(ChiakiButtonRemap *remap)
+{
+	if (!remap)
+		return;
+	remap->swap_cross_moon = false;
+	remap->swap_box_pyramid = false;
+	remap->swap_l1_l2 = false;
+	remap->swap_r1_r2 = false;
+	remap->swap_l3_r3 = false;
+}
+
+CHIAKI_EXPORT void chiaki_controller_state_apply_remap(ChiakiControllerState *state, const ChiakiButtonRemap *remap)
+{
+	if (!state || !remap)
+		return;
+
+	if (remap->swap_cross_moon)
+	{
+		uint32_t cross = state->buttons & CHIAKI_CONTROLLER_BUTTON_CROSS;
+		uint32_t moon = state->buttons & CHIAKI_CONTROLLER_BUTTON_MOON;
+		state->buttons &= ~(CHIAKI_CONTROLLER_BUTTON_CROSS | CHIAKI_CONTROLLER_BUTTON_MOON);
+		if (cross) state->buttons |= CHIAKI_CONTROLLER_BUTTON_MOON;
+		if (moon) state->buttons |= CHIAKI_CONTROLLER_BUTTON_CROSS;
+	}
+
+	if (remap->swap_box_pyramid)
+	{
+		uint32_t box = state->buttons & CHIAKI_CONTROLLER_BUTTON_BOX;
+		uint32_t pyr = state->buttons & CHIAKI_CONTROLLER_BUTTON_PYRAMID;
+		state->buttons &= ~(CHIAKI_CONTROLLER_BUTTON_BOX | CHIAKI_CONTROLLER_BUTTON_PYRAMID);
+		if (box) state->buttons |= CHIAKI_CONTROLLER_BUTTON_PYRAMID;
+		if (pyr) state->buttons |= CHIAKI_CONTROLLER_BUTTON_BOX;
+	}
+
+	if (remap->swap_l3_r3)
+	{
+		uint32_t l3 = state->buttons & CHIAKI_CONTROLLER_BUTTON_L3;
+		uint32_t r3 = state->buttons & CHIAKI_CONTROLLER_BUTTON_R3;
+		state->buttons &= ~(CHIAKI_CONTROLLER_BUTTON_L3 | CHIAKI_CONTROLLER_BUTTON_R3);
+		if (l3) state->buttons |= CHIAKI_CONTROLLER_BUTTON_R3;
+		if (r3) state->buttons |= CHIAKI_CONTROLLER_BUTTON_L3;
+	}
+
+	if (remap->swap_l1_l2)
+	{
+		bool l1_pressed = (state->buttons & CHIAKI_CONTROLLER_BUTTON_L1) != 0;
+		uint8_t l2_val = state->l2_state;
+
+		state->buttons &= ~CHIAKI_CONTROLLER_BUTTON_L1;
+		state->l2_state = l1_pressed ? 255 : 0;
+		if (l2_val > 0)
+			state->buttons |= CHIAKI_CONTROLLER_BUTTON_L1;
+	}
+
+	if (remap->swap_r1_r2)
+	{
+		bool r1_pressed = (state->buttons & CHIAKI_CONTROLLER_BUTTON_R1) != 0;
+		uint8_t r2_val = state->r2_state;
+
+		state->buttons &= ~CHIAKI_CONTROLLER_BUTTON_R1;
+		state->r2_state = r1_pressed ? 255 : 0;
+		if (r2_val > 0)
+			state->buttons |= CHIAKI_CONTROLLER_BUTTON_R1;
+	}
+}
+

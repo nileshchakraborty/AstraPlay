@@ -95,6 +95,12 @@ struct StreamPreferences: Codable {
     /// In-stream performance stats overlay toggle (matches Android `streamStatsOverlayEnabled`, default false)
     var streamStatsOverlayEnabled: Bool = false
 
+    // Gamepad Tuning & Remapping
+    var controllerDeadzone: Int = 5      // 0..30 percent
+    var controllerSensitivity: Int = 100 // 50..200 percent (100 = 1.0x)
+    var swapBumpersTriggers: Bool = false
+    var swapBoxPyramid: Bool = false
+
     // Cloud Game Library (PSCloud)
     var cloudResolutionPscloud: String = "720"      // matches Android default
     var cloudDatacenterPscloud: String = "Auto"     // matches Android default
@@ -366,6 +372,9 @@ struct SettingsView: View {
             // 1. General
             generalSection
 
+            // 2. Gamepad Tuning & Remapping
+            controllerTuningSection
+
             // 3. Remote Play Settings
             remotePlaySection
 
@@ -538,8 +547,79 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - 2. Gamepad Tuning & Remapping
 
-    // MARK: - 2. Remote Play Settings
+    private var controllerTuningSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Stick Deadzone")
+                    Spacer()
+                    Text("\(prefs.controllerDeadzone)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.controllerDeadzone) },
+                        set: { prefs.controllerDeadzone = min(30, max(0, Int($0.rounded()))) }
+                    ),
+                    in: 0...30,
+                    step: 1,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Radial deadzone to eliminate stick drift on mobile grips and Joy-Cons")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Stick Sensitivity")
+                    Spacer()
+                    Text("\(prefs.controllerSensitivity)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.controllerSensitivity) },
+                        set: { prefs.controllerSensitivity = min(200, max(50, Int($0.rounded()))) }
+                    ),
+                    in: 50...200,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Stick response multiplier (100% = 1.0x)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Toggle(isOn: $prefs.swapBumpersTriggers) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Swap Bumpers & Triggers")
+                    Text("Swap L1/R1 with L2/R2 (recommended for shooters on mobile telescopic grips)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.swapBumpersTriggers) { _ in prefs.save() }
+
+            Toggle(isOn: $prefs.swapBoxPyramid) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Swap Square & Triangle")
+                    Text("Swap Square and Triangle face buttons (Nintendo X/Y layout)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.swapBoxPyramid) { _ in prefs.save() }
+        } header: {
+            Text("Gamepad Tuning & Remapping")
+        }
+    }
+
+    // MARK: - 3. Remote Play Settings
 
     private var remotePlaySection: some View {
         Section {
