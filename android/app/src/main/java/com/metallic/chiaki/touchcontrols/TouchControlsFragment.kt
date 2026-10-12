@@ -89,6 +89,49 @@ class DefaultTouchControlsFragment : TouchControlsFragment()
 		onScreenControlsEnabled?.observe(viewLifecycleOwner, Observer {
 			view.visibility = if(it) View.VISIBLE else View.GONE
 		})
+
+		val preferences = com.metallic.chiaki.common.Preferences(requireContext())
+		view.alpha = preferences.touchControlsOpacity / 100.0f
+
+		val scale = preferences.touchControlsScale / 100.0f
+		if (Math.abs(scale - 1.0f) > 0.01f) {
+			binding.dpadView.scaleX = scale
+			binding.dpadView.scaleY = scale
+			binding.faceButtonsLayout.scaleX = scale
+			binding.faceButtonsLayout.scaleY = scale
+			binding.leftAnalogStickView.scaleX = scale
+			binding.leftAnalogStickView.scaleY = scale
+			binding.rightAnalogStickView.scaleX = scale
+			binding.rightAnalogStickView.scaleY = scale
+		}
+
+		when (preferences.touchControlsLayoutPreset) {
+			"compact" -> {
+				(binding.dpadView.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
+					it.leftMargin = (8 * resources.displayMetrics.density).toInt()
+					it.bottomMargin = (8 * resources.displayMetrics.density).toInt()
+					binding.dpadView.layoutParams = it
+				}
+				(binding.faceButtonsLayout.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
+					it.rightMargin = (16 * resources.displayMetrics.density).toInt()
+					it.bottomMargin = (16 * resources.displayMetrics.density).toInt()
+					binding.faceButtonsLayout.layoutParams = it
+				}
+			}
+			"expanded" -> {
+				(binding.dpadView.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
+					it.leftMargin = (24 * resources.displayMetrics.density).toInt()
+					it.bottomMargin = (28 * resources.displayMetrics.density).toInt()
+					binding.dpadView.layoutParams = it
+				}
+				(binding.faceButtonsLayout.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
+					it.rightMargin = (44 * resources.displayMetrics.density).toInt()
+					it.bottomMargin = (44 * resources.displayMetrics.density).toInt()
+					binding.faceButtonsLayout.layoutParams = it
+				}
+			}
+			else -> {}
+		}
 	}
 
 	private fun dpadStateChanged(direction: DPadView.Direction?)

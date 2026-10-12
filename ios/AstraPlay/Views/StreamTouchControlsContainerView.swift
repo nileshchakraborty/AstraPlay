@@ -430,9 +430,20 @@ final class StreamTouchControlsContainerView: UIView {
         // L1/R1 bottom (fragment_controls: marginTop 32dp + 80dp height from parent top).
         let shoulderRowBottom = 32 * s + st + 80 * s
 
+        let preset = StreamPreferences.load().touchControlsLayoutPreset
+        var dpadMarginLeft: CGFloat = 16 * s
+        var faceMarginRight: CGFloat = 32 * s
+        if preset == "compact" {
+            dpadMarginLeft = 8 * s
+            faceMarginRight = 16 * s
+        } else if preset == "expanded" {
+            dpadMarginLeft = 24 * s
+            faceMarginRight = 44 * s
+        }
+
         // D-pad: 160dp, marginLeft 16dp; vertically centered in XML, but must sit below L1 or it overlaps.
         let dSize = 160 * s
-        let dpadX = 16 * s + sl
+        let dpadX = dpadMarginLeft + sl
         let dpadIdealY = (h - dSize - 16 * s) / 2
         let dpadYRaw = max(st, shoulderRowBottom + 10 * s, dpadIdealY)
         let dpadY = min(dpadYRaw, h - dSize - 16 * s)
@@ -440,7 +451,7 @@ final class StreamTouchControlsContainerView: UIView {
 
         // Face: 176dp, marginRight 32dp; same vertical rule vs R1.
         let faceSize = 176 * s
-        let faceX = w - faceSize - 32 * s - sr
+        let faceX = w - faceSize - faceMarginRight - sr
         let faceIdealY = (h - faceSize - 32 * s) / 2
         let faceYRaw = max(st, shoulderRowBottom + 10 * s, faceIdealY)
         let faceY = min(faceYRaw, h - faceSize - 32 * s)

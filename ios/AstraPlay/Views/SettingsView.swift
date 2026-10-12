@@ -101,6 +101,11 @@ struct StreamPreferences: Codable {
     var swapBumpersTriggers: Bool = false
     var swapBoxPyramid: Bool = false
 
+    // Touch Controls Customization
+    var touchControlsOpacity: Int = 65  // 20..100 percent (default 65)
+    var touchControlsScale: Int = 100   // 70..130 percent (default 100)
+    var touchControlsLayoutPreset: String = "standard" // standard, compact, expanded
+
     // Cloud Game Library (PSCloud)
     var cloudResolutionPscloud: String = "720"      // matches Android default
     var cloudDatacenterPscloud: String = "Auto"     // matches Android default
@@ -375,7 +380,10 @@ struct SettingsView: View {
             // 2. Gamepad Tuning & Remapping
             controllerTuningSection
 
-            // 3. Remote Play Settings
+            // 3. On-Screen Touch Controls
+            touchControlsSection
+
+            // 4. Remote Play Settings
             remotePlaySection
 
             // 4. Cloud Settings (shared across cloud library + catalog)
@@ -619,7 +627,66 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 3. Remote Play Settings
+    // MARK: - 3. On-Screen Touch Controls
+
+    private var touchControlsSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Button Opacity")
+                    Spacer()
+                    Text("\(prefs.touchControlsOpacity)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.touchControlsOpacity) },
+                        set: { prefs.touchControlsOpacity = min(100, max(20, Int($0.rounded()))) }
+                    ),
+                    in: 20...100,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Controls transparency over gameplay (default 65%)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Button Size / Scale")
+                    Spacer()
+                    Text("\(prefs.touchControlsScale)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.touchControlsScale) },
+                        set: { prefs.touchControlsScale = min(130, max(70, Int($0.rounded()))) }
+                    ),
+                    in: 70...130,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Scale factor for virtual buttons and sticks")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Picker("Genre Layout Preset", selection: $prefs.touchControlsLayoutPreset) {
+                Text("Standard (Default)").tag("standard")
+                Text("Compact (RPG & Menus)").tag("compact")
+                Text("Expanded (Shooters & Action)").tag("expanded")
+            }
+            .onChange(of: prefs.touchControlsLayoutPreset) { _ in prefs.save() }
+        } header: {
+            Text("On-Screen Touch Controls")
+        }
+    }
+
+    // MARK: - 4. Remote Play Settings
 
     private var remotePlaySection: some View {
         Section {

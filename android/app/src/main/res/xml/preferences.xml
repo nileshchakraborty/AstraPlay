@@ -323,6 +323,42 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="category_touch_customization"
+        app:title="@string/preferences_category_title_touch_customization">
+
+        <SeekBarPreference
+            app:key="@string/preferences_touch_controls_opacity_key"
+            app:title="@string/preferences_touch_controls_opacity_title"
+            app:summary="@string/preferences_touch_controls_opacity_summary"
+            app:min="20"
+            android:max="100"
+            app:seekBarIncrement="5"
+            app:defaultValue="65"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SeekBarPreference
+            app:key="@string/preferences_touch_controls_scale_key"
+            app:title="@string/preferences_touch_controls_scale_title"
+            app:summary="@string/preferences_touch_controls_scale_summary"
+            app:min="70"
+            android:max="130"
+            app:seekBarIncrement="5"
+            app:defaultValue="100"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <ListPreference
+            app:key="@string/preferences_touch_controls_layout_preset_key"
+            app:title="@string/preferences_touch_controls_layout_preset_title"
+            app:summary="%s"
+            app:entries="@array/touch_controls_layout_preset_entries"
+            app:entryValues="@array/touch_controls_layout_preset_values"
+            app:defaultValue="standard"
+            app:icon="@drawable/ic_gamepad" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
         app:key="category_export"
         app:title="@string/preferences_category_title_export">
         <Preference

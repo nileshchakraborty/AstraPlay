@@ -143,6 +143,21 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getBoolean(swapBoxPyramidKey, false)
 		set(value) { sharedPreferences.edit().putBoolean(swapBoxPyramidKey, value).apply() }
 
+	val touchControlsOpacityKey get() = resources.getString(R.string.preferences_touch_controls_opacity_key)
+	var touchControlsOpacity // percent, 20..100 (default 65)
+		get() = sharedPreferences.getInt(touchControlsOpacityKey, 65).coerceIn(20, 100)
+		set(value) { sharedPreferences.edit().putInt(touchControlsOpacityKey, value.coerceIn(20, 100)).apply() }
+
+	val touchControlsScaleKey get() = resources.getString(R.string.preferences_touch_controls_scale_key)
+	var touchControlsScale // percent, 70..130 (default 100)
+		get() = sharedPreferences.getInt(touchControlsScaleKey, 100).coerceIn(70, 130)
+		set(value) { sharedPreferences.edit().putInt(touchControlsScaleKey, value.coerceIn(70, 130)).apply() }
+
+	val touchControlsLayoutPresetKey get() = resources.getString(R.string.preferences_touch_controls_layout_preset_key)
+	var touchControlsLayoutPreset // standard, compact, expanded
+		get() = sharedPreferences.getString(touchControlsLayoutPresetKey, "standard") ?: "standard"
+		set(value) { sharedPreferences.edit().putString(touchControlsLayoutPresetKey, value).apply() }
+
 	/** Where the motion data (gyro/accel/orientation) streamed to the console comes
 	 * from. Matches iOS' MotionSource setting. */
 	enum class MotionSource(val value: String)

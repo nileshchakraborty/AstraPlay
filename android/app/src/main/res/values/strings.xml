@@ -336,4 +336,25 @@
     <string name="preferences_swap_box_pyramid_title">Swap Square &amp; Triangle</string>
     <string name="preferences_swap_box_pyramid_summary">Swap Square and Triangle buttons (Nintendo X/Y layout)</string>
 
+    <string-array name="touch_controls_layout_preset_entries">
+        <item>Standard (Default)</item>
+        <item>Compact (RPG &amp; Menus)</item>
+        <item>Expanded (Shooters &amp; Action)</item>
+    </string-array>
+    <string-array name="touch_controls_layout_preset_values">
+        <item>standard</item>
+        <item>compact</item>
+        <item>expanded</item>
+    </string-array>
+
+    <string name="preferences_category_title_touch_customization">On-Screen Touch Controls</string>
+    <string name="preferences_touch_controls_opacity_key">touch_controls_opacity</string>
+    <string name="preferences_touch_controls_opacity_title">Button Opacity</string>
+    <string name="preferences_touch_controls_opacity_summary">Controls transparency on screen (default 65%%)</string>
+    <string name="preferences_touch_controls_scale_key">touch_controls_scale</string>
+    <string name="preferences_touch_controls_scale_title">Button Size &amp; Scale</string>
+    <string name="preferences_touch_controls_scale_summary">Scale factor for virtual buttons (default 100%%)</string>
+    <string name="preferences_touch_controls_layout_preset_key">touch_controls_layout_preset</string>
+    <string name="preferences_touch_controls_layout_preset_title">Genre Layout Preset</string>
+
 </resources>

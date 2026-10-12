@@ -55,6 +55,8 @@ struct StreamView: View {
     @State private var pipClosedByUser = false
     @State private var pipIsPossible = false
     @State private var connectedAt: Date? = nil
+    @State private var touchOpacity: Double = 0.65
+    @State private var touchScale: CGFloat = 1.0
 
     init(connectInfo: StreamConnectInfo) {
         self.connectInfo = connectInfo
@@ -65,6 +67,8 @@ struct StreamView: View {
         _touchpadOnly = State(initialValue: tpOnly)
         _touchpadEmulation = State(initialValue: prefs.touchpadEmulationEnabled)
         _showStats = State(initialValue: prefs.streamStatsOverlayEnabled)
+        _touchOpacity = State(initialValue: Double(prefs.touchControlsOpacity) / 100.0)
+        _touchScale = State(initialValue: CGFloat(prefs.touchControlsScale) / 100.0)
         _session = StateObject(wrappedValue: StreamSession(connectInfo: connectInfo, input: StreamInput()))
     }
 
@@ -133,6 +137,8 @@ struct StreamView: View {
                     scheduleHideOverlay()
                 }
             )
+            .opacity(touchOpacity)
+            .scaleEffect(touchScale)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
             .allowsHitTesting(true)
