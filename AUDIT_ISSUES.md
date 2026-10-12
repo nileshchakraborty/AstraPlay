@@ -71,12 +71,13 @@ This audit documents pending items, enhancement opportunities, and technical tas
 ## Issue 6: [Flatpak] Publish and Register AstraPlay Flatpak Manifest on Flathub
 - **Type**: Packaging / Distribution
 - **Priority**: Medium
-- **Components**: `gui/co.ksco.astraplay.metainfo.xml`, `gui/co.ksco.astraplay.desktop`, `scripts/flatpak/`
+- **Components**: `gui/io.github.nileshchakraborty.AstraPlay.metainfo.xml`, `gui/io.github.nileshchakraborty.AstraPlay.desktop`, `scripts/flatpak/`
 - **Description**:
-  The AppStream metainfo and `.desktop` files are now rebranded to `co.ksco.astraplay`.
+  Use `io.github.nileshchakraborty.AstraPlay` consistently for the Flatpak app ID, AppStream component ID, and desktop file ID.
 - **Task**:
-  1. Create the new Flathub submission for `co.ksco.astraplay`.
-  2. Update `.github/workflows/deploy-flatpak.yml` with the new Flathub upstream git repository.
+  1. Complete local build and validation for the manifest.
+  2. Submit the app to Flathub from a human-maintained packaging repository; Flathub requires disclosure of AI-assisted packaging work and prohibits AI agents from opening submission PRs.
+  3. Configure the CI workflow to reference the Flathub repository after it exists.
 
 ---
 

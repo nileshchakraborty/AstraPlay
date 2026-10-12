@@ -230,6 +230,8 @@ endif()
 install(TARGETS chiaki
 		RUNTIME DESTINATION bin
 		BUNDLE DESTINATION bin)
-install(FILES co.ksco.astraplay.desktop DESTINATION share/applications)
+# [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
+install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
 install(FILES chiaking.png DESTINATION share/icons/hicolor/512x512/apps)
-install(FILES co.ksco.astraplay.metainfo.xml DESTINATION share/metainfo)
+install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
+# [ASTRAPLAY END]
