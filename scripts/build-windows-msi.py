@@ -109,6 +109,17 @@ def main() -> None:
         )
         if not args.output.is_file() or args.output.stat().st_size == 0:
             raise RuntimeError("wixl did not produce an MSI")
+        # Apply shortcut conditions directly to Component table for compatibility across all wixl versions
+        subprocess.run(
+            ["msibuild", str(args.output.resolve()), "-q",
+             "UPDATE Component SET Condition='CREATE_START_MENU_SHORTCUT=\"1\"' WHERE Component='StartMenuShortcutComponent'"],
+            check=True,
+        )
+        subprocess.run(
+            ["msibuild", str(args.output.resolve()), "-q",
+             "UPDATE Component SET Condition='CREATE_DESKTOP_SHORTCUT=\"1\"' WHERE Component='DesktopShortcutComponent'"],
+            check=True,
+        )
         # wixl does not honor Property Secure="yes". Preserve the upgrade
         # properties it emits and pass shortcut choices to the elevated engine.
         subprocess.run(
