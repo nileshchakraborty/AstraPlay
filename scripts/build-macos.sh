@@ -1,6 +1,5 @@
 #!/bin/bash
-# macOS build script for AstraPlay following chiaki-ng GitHub Actions workflow
-# Based on: https://github.com/streetpea/chiaki-ng/.github/workflows/build-macos.yml
+# macOS build script for AstraPlay
 #
 # Usage:
 #   ./build-macos.sh [arm64|x86_64|universal] [options...]

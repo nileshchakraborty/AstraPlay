@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test the PSN Trophy API endpoint directly using the access token from Chiaki-NG.
+Test the PSN Trophy API endpoint directly using the access token from AstraPlay.
 This script fetches:
 1. All trophy titles (games)
 2. Trophy groups for each game

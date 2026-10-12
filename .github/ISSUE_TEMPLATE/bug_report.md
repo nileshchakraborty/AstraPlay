@@ -30,7 +30,7 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. SteamOS]
  - Version [e.g. 22]
  - Device [e.g. Steam Deck]
- - chiaki-ng Version [e.g. 1.6.2]
+ - AstraPlay Version [e.g. 2.12.0]
 
 **Additional context**
 Add any other context about the problem here.

@@ -5,10 +5,9 @@ set -xe
 STEAMWORKS="${CHIAKI_ENABLE_STEAMWORKS:-OFF}"
 
 # ============================================================================
-# UPSTREAM APPIMAGE BUILD SCRIPT
+# APPIMAGE BUILD SCRIPT
 # ============================================================================
-# This section is from upstream chiaki-ng and builds the standard AppImage.
-# User additions are clearly marked below.
+# Builds the standard AstraPlay AppImage.
 # ============================================================================
 
 if [ "$(uname -m)" = "aarch64" ]
