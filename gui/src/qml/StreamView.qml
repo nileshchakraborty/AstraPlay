@@ -656,7 +656,6 @@ Item {
 
             ToolButton {
                 id: stretchButton
-                Layout.rightMargin: 50
                 text: qsTr("Stretch")
                 padding: 10
                 checkable: true
@@ -668,6 +667,38 @@ Item {
                     else
                         zoomButton
                 }
+                KeyNavigation.right: sharpenButton
+                Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolButton {
+                id: sharpenButton
+                Layout.rightMargin: 50
+                text: {
+                    if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom) {
+                        return Chiaki.settings.placeboUpscaler === 9 ? qsTr("Sharp (CAS)") : qsTr("Soft / Custom")
+                    } else if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality) {
+                        return qsTr("Sharp (HQ)")
+                    } else {
+                        return qsTr("Sharpen: Off")
+                    }
+                }
+                padding: 10
+                checkable: true
+                checked: Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality || (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom && Chiaki.settings.placeboUpscaler === 9)
+                onToggled: {
+                    // Toggle between Sharp (EwaLanczosSharp) and Fast/Default (Off)
+                    if (checked) {
+                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
+                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
+                    } else {
+                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Custom
+                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Custom
+                        Chiaki.settings.placeboUpscaler = 9 // EwaLanczosSharp
+                    }
+                }
+                KeyNavigation.left: stretchButton
                 KeyNavigation.right: defaultButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
@@ -683,7 +714,7 @@ Item {
                     Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
                     Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
                 }
-                KeyNavigation.left: stretchButton
+                KeyNavigation.left: sharpenButton
                 KeyNavigation.right: highQualityButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
