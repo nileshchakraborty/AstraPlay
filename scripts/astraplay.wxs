@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="AstraPlay" Language="1033" Version="$(var.Version)" Manufacturer="nileshchakraborty" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
+  <Product Id="*" Name="AstraPlay" Language="1033" Version="1.0.0" Manufacturer="nileshchakraborty" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of AstraPlay is already installed." />
     <Media Id="1" Cabinet="astraplay.cab" EmbedCab="yes" />
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="AstraPlay">
-          <Component Id="MainExecutable" Guid="*" Win64="yes">
-            <File Id="AstraPlayEXE" Source="$(var.SourceExe)" KeyPath="yes" />
-          </Component>
         </Directory>
       </Directory>
     </Directory>
     <Feature Id="MainFeature" Title="AstraPlay" Level="1">
-      <ComponentRef Id="MainExecutable" />
     </Feature>
   </Product>
 </Wix>
