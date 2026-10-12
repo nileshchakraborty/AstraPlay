@@ -318,5 +318,9 @@
     <string name="preferences_phone_haptics_fallback_key">phone_haptics_fallback</string>
     <string name="preferences_phone_haptics_fallback_title">Phone Haptics for Mobile Grips</string>
     <string name="preferences_phone_haptics_fallback_summary">Vibrate phone motors when connected gamepad or telescopic grip lacks rumble</string>
+    <string name="shortcut_remote_play_short">Remote Play</string>
+    <string name="shortcut_remote_play_long">Stream PlayStation Console</string>
+    <string name="shortcut_cloud_play_short">Cloud Games</string>
+    <string name="shortcut_cloud_play_long">Play Cloud Games</string>
 
 </resources>
