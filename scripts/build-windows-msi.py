@@ -45,7 +45,8 @@ def build_descriptor(template: Path, runtime_root: Path, version: str, output: P
     for component in list(install_folder.findall("w:Component", ns)):
         install_folder.remove(component)
     for component_ref in list(feature.findall("w:ComponentRef", ns)):
-        feature.remove(component_ref)
+        if component_ref.get("Id", "").startswith("Component_"):
+            feature.remove(component_ref)
 
     folders = {Path("."): install_folder}
     files = sorted(path for path in runtime_root.rglob("*") if path.is_file())
@@ -108,6 +109,13 @@ def main() -> None:
         )
         if not args.output.is_file() or args.output.stat().st_size == 0:
             raise RuntimeError("wixl did not produce an MSI")
+        # wixl does not honor Property Secure="yes". Preserve the upgrade
+        # properties it emits and pass shortcut choices to the elevated engine.
+        subprocess.run(
+            ["msibuild", str(args.output.resolve()), "-q",
+             "UPDATE Property SET Value='CREATE_START_MENU_SHORTCUT;CREATE_DESKTOP_SHORTCUT;WIX_DOWNGRADE_DETECTED;WIX_UPGRADE_DETECTED' WHERE Property='SecureCustomProperties'"],
+            check=True,
+        )
         print(f"Built {args.output} with {file_count} files (MSI version {wix_version(args.release_version)})")
 
 
