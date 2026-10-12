@@ -61,9 +61,9 @@ DialogView {
         
         logDialog.open()
         logArea.text = qsTr("[I] Starting authentication with npsso token...\n");
-        Chiaki.initPsnAuthV3(npssoTokenValue, function(msg, ok, done) {
+        AstraPlay.initPsnAuthV3(npssoTokenValue, function(msg, ok, done) {
             if(ok)
-                Chiaki.settings.remotePlayAsk = false;
+                AstraPlay.settings.remotePlayAsk = false;
             if (!done)
                 logArea.text += msg + "\n";
             else
@@ -74,7 +74,7 @@ DialogView {
         });
     }
     StackView.onActivated: {
-        Chiaki.settings.remotePlayAsk = true;
+        AstraPlay.settings.remotePlayAsk = true;
         if (linkgridScroll.visible) {
             Qt.callLater(() => {
                 if (step1Button) {
@@ -96,7 +96,7 @@ DialogView {
         if(webView.web)
         {
             dialog.closing = true;
-            if(Chiaki.settings.remotePlayAsk)
+            if(AstraPlay.settings.remotePlayAsk)
                 reloadTimer.start();
             else
                 cacheClearTimer.start();
@@ -254,7 +254,7 @@ DialogView {
                             linkgridScroll.visible = true;
                             dialog.buttonVisible = true;
                             // Open login page in external browser
-                            let loginUrl = Chiaki.psnLoginUrl();
+                            let loginUrl = AstraPlay.psnLoginUrl();
                             if (loginUrl) {
                                 Qt.openUrlExternally(loginUrl);
                                 psnurl = loginUrl.toString();
@@ -311,7 +311,7 @@ DialogView {
                 interval: 0
                 running: false
                 onTriggered: {
-                    Chiaki.clearCookies(webView.web.profile);
+                    AstraPlay.clearCookies(webView.web.profile);
                     webView.web.profile.clearHttpCache();
                 }
             }
@@ -368,7 +368,7 @@ DialogView {
                         nativeErrorLabel.text = "";
                         nativeErrorLabel.visible = false;
                         webView.visible = true;
-                        webView.web.url = Chiaki.psnLoginUrl();
+                        webView.web.url = AstraPlay.psnLoginUrl();
                     }
                     Layout.preferredWidth: 200
                     Layout.fillHeight: true
@@ -506,7 +506,7 @@ DialogView {
                                 id: step1Button
                                 text: qsTr("Open Login Page")
                                 onClicked: {
-                                    let loginUrl = Chiaki.psnLoginUrl();
+                                    let loginUrl = AstraPlay.psnLoginUrl();
                                     if (loginUrl) {
                                         Qt.openUrlExternally(loginUrl);
                                         if(openurl) {
@@ -531,7 +531,7 @@ DialogView {
                             TextField {
                                 id: openurl
                                 text: psnurl
-                                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                                 visible: false
                                 Layout.fillWidth: true
                             }
@@ -582,7 +582,7 @@ DialogView {
                                 id: openNpssoPageButton
                                 text: qsTr("Open NPSSO Page")
                                 onClicked: {
-                                    Chiaki.openNpssoPage()
+                                    AstraPlay.openNpssoPage()
                                 }
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 44
@@ -639,7 +639,7 @@ DialogView {
 
                             C.TextField {
                                 id: npssoToken
-                                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                                 focusPolicy: Qt.NoFocus
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 44
@@ -648,7 +648,7 @@ DialogView {
                                 placeholderText: qsTr("Paste npsso token here")
                                 font.pixelSize: 17
                                 Component.onCompleted: {
-                                    text = Chiaki.settings.psnNpssoToken;
+                                    text = AstraPlay.settings.psnNpssoToken;
                                     dialog.hasNpssoData = text.trim().length > 0;
                                 }
                                 onTextChanged: {
@@ -657,7 +657,7 @@ DialogView {
                                     let extractedToken = dialog.extractNpssoFromText(inputText);
                                     let token = extractedToken || inputText;
                                     
-                                    Chiaki.settings.psnNpssoToken = token;
+                                    AstraPlay.settings.psnNpssoToken = token;
                                     dialog.hasNpssoData = inputText.length > 0;
                                 }
                             }
@@ -666,7 +666,7 @@ DialogView {
                                 id: pasteButton
                                 text: qsTr("Paste from Clipboard")
                                 onClicked: {
-                                    let clipboardText = Chiaki.getClipboardText();
+                                    let clipboardText = AstraPlay.getClipboardText();
                                     if (clipboardText) {
                                         // Extract token from clipboard (handles both JSON and plain formats)
                                         let extractedToken = dialog.extractNpssoFromText(clipboardText);

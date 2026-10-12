@@ -12,7 +12,7 @@ DialogView {
     buttonText: qsTr("Add")
     buttonEnabled: hostField.text.trim() && (consoleCombo.model[consoleCombo.currentIndex].index != -1)
     onAccepted: {
-        Chiaki.addManualHost(consoleCombo.model[consoleCombo.currentIndex].index, hostField.text.trim());
+        AstraPlay.addManualHost(consoleCombo.model[consoleCombo.currentIndex].index, hostField.text.trim());
         close();
     }
     
@@ -45,7 +45,7 @@ DialogView {
 
             C.TextField {
                 id: hostField
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 Layout.preferredWidth: 400
                 firstInFocusChain: true
                 KeyNavigation.up: headerButton
@@ -63,7 +63,7 @@ DialogView {
                 textRole: "name"
                 model: {
                     let m = [];
-                    if(Chiaki.settings.registeredHosts.length > 0)
+                    if(AstraPlay.settings.registeredHosts.length > 0)
                     {
                         m.push({
                             name: qsTr("Select an Option"),
@@ -71,10 +71,10 @@ DialogView {
                         });
                     }
                     let i = 0;
-                    for (; i < Chiaki.settings.registeredHosts.length; ++i) {
-                        let host = Chiaki.settings.registeredHosts[i];
+                    for (; i < AstraPlay.settings.registeredHosts.length; ++i) {
+                        let host = AstraPlay.settings.registeredHosts[i];
                         m.push({
-                            name: "%1 (%2)".arg(Chiaki.settings.streamerMode ? "hidden" : host.mac).arg(host.name),
+                            name: "%1 (%2)".arg(AstraPlay.settings.streamerMode ? "hidden" : host.mac).arg(host.name),
                             index: i,
                         });
                     }

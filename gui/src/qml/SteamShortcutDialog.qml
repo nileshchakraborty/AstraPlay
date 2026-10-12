@@ -18,22 +18,22 @@ DialogView {
     function close() {
         root.closeDialog();
         // Commented out: Cascading Remote Play via PSN prompt after Steam shortcut dialog
-        // if(dialog.fromReminder && Chiaki.settings.remotePlayAsk)
+        // if(dialog.fromReminder && AstraPlay.settings.remotePlayAsk)
         // {
-        //     if(!Chiaki.settings.psnRefreshToken || !Chiaki.settings.psnAuthToken || !Chiaki.settings.psnAuthTokenExpiry || !Chiaki.settings.psnAccountId)
+        //     if(!AstraPlay.settings.psnRefreshToken || !AstraPlay.settings.psnAuthToken || !AstraPlay.settings.psnAuthTokenExpiry || !AstraPlay.settings.psnAccountId)
         //         root.showRemindDialog(qsTr("Remote Play via PSN"), qsTr("Would you like to connect to PSN?\nThis enables:\n- Automatic registration\n- Playing outside of your home network without port forwarding?") + "\n\n" + qsTr("(Note: If you select no now and want to do this later, go to the Config section of the settings.)"), true, () => root.showPSNTokenDialog(false));
         //     else
-        //         Chiaki.settings.remotePlayAsk = false;
+        //         AstraPlay.settings.remotePlayAsk = false;
         // }
     }
     onAccepted: {
         opening = true;
         logDialog.open();
-        Chiaki.createSteamShortcut(name.text.trim(), options.text.trim(), function(msg, ok, done) {
+        AstraPlay.createSteamShortcut(name.text.trim(), options.text.trim(), function(msg, ok, done) {
             if(ok)
             {
                 succeeded = true;
-                Chiaki.settings.addSteamShortcutAsk = false;
+                AstraPlay.settings.addSteamShortcutAsk = false;
             }
             if (!done)
                 logArea.text += msg + "\n";
@@ -67,7 +67,7 @@ DialogView {
             C.TextField {
                 id: name
                 Layout.preferredWidth: 400
-                text: Chiaki.settings.currentProfile ? qsTr("AstraPlay ") + Chiaki.settings.currentProfile: qsTr("AstraPlay")
+                text: AstraPlay.settings.currentProfile ? qsTr("AstraPlay ") + AstraPlay.settings.currentProfile: qsTr("AstraPlay")
                 firstInFocusChain: true
             }
 
@@ -78,7 +78,7 @@ DialogView {
 
             C.TextField {
                 id: options
-                text: Chiaki.settings.currentProfile ? qsTr("--profile=") + Chiaki.settings.currentProfile : ""
+                text: AstraPlay.settings.currentProfile ? qsTr("--profile=") + AstraPlay.settings.currentProfile : ""
                 Layout.preferredWidth: 400
             }
 
@@ -100,7 +100,7 @@ DialogView {
                 id: choosePathButton
                 text: qsTr("Choose new steam base path")
                 onClicked: {
-                    shortcutGrid.steamBasePath = Chiaki.settings.chooseSteamBasePath();
+                    shortcutGrid.steamBasePath = AstraPlay.settings.chooseSteamBasePath();
                 }
                 Material.roundedScale: Material.SmallScale
             }

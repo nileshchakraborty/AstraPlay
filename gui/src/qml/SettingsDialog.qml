@@ -297,8 +297,8 @@ DialogView {
                             Layout.preferredWidth: 400
                             firstInFocusChain: true
                             model: [qsTr("Do Nothing"), qsTr("Enter Sleep Mode"), qsTr("Ask")]
-                            currentIndex: Chiaki.settings.disconnectAction
-                            onActivated: index => Chiaki.settings.disconnectAction = index
+                            currentIndex: AstraPlay.settings.disconnectAction
+                            onActivated: index => AstraPlay.settings.disconnectAction = index
                         }
 
                         Label {
@@ -314,8 +314,8 @@ DialogView {
                         C.ComboBox {
                             Layout.preferredWidth: 400
                             model: [qsTr("Do Nothing"), qsTr("Enter Sleep Mode")]
-                            currentIndex: Chiaki.settings.suspendAction
-                            onActivated: index => Chiaki.settings.suspendAction = index
+                            currentIndex: AstraPlay.settings.suspendAction
+                            onActivated: index => AstraPlay.settings.suspendAction = index
                         }
 
                         Label {
@@ -326,49 +326,49 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Steam Deck Haptics:")
-                            visible: (typeof Chiaki.settings.steamDeckHaptics !== "undefined")
+                            visible: (typeof AstraPlay.settings.steamDeckHaptics !== "undefined")
                         }
 
                         C.CheckBox {
                             text: qsTr("True haptics for SteamDeck, better quality but noisier")
                             checked: {
-                                if(typeof Chiaki.settings.steamDeckHaptics !== "undefined")
-                                    Chiaki.settings.steamDeckHaptics
+                                if(typeof AstraPlay.settings.steamDeckHaptics !== "undefined")
+                                    AstraPlay.settings.steamDeckHaptics
                                 else
                                     false
                             }
-                            onToggled: Chiaki.settings.steamDeckHaptics = checked
-                            visible: (typeof Chiaki.settings.steamDeckHaptics !== "undefined")
+                            onToggled: AstraPlay.settings.steamDeckHaptics = checked
+                            visible: (typeof AstraPlay.settings.steamDeckHaptics !== "undefined")
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(Unchecked)")
-                            visible: (typeof Chiaki.settings.steamDeckHaptics !== "undefined")
+                            visible: (typeof AstraPlay.settings.steamDeckHaptics !== "undefined")
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Steam Deck Vertical:")
-                            visible: typeof Chiaki.settings.verticalDeck !== "undefined"
+                            visible: typeof AstraPlay.settings.verticalDeck !== "undefined"
                         }
 
                         C.CheckBox {
                             text: qsTr("Use Steam Deck in vertical orientation (motion controls)")
                             checked: {
-                                if(typeof Chiaki.settings.verticalDeck !== "undefined")
-                                    Chiaki.settings.verticalDeck
+                                if(typeof AstraPlay.settings.verticalDeck !== "undefined")
+                                    AstraPlay.settings.verticalDeck
                                 else
                                     false
                             }
-                            onToggled: Chiaki.settings.verticalDeck = checked
-                            visible: typeof Chiaki.settings.verticalDeck !== "undefined"
+                            onToggled: AstraPlay.settings.verticalDeck = checked
+                            visible: typeof AstraPlay.settings.verticalDeck !== "undefined"
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(Unchecked)")
-                            visible: typeof Chiaki.settings.verticalDeck !== "undefined"
+                            visible: typeof AstraPlay.settings.verticalDeck !== "undefined"
                         }
 
                         Label {
@@ -379,8 +379,8 @@ DialogView {
                         C.ComboBox {
                             Layout.preferredWidth: 400
                             model: [qsTr("Audio and Video Enabled"), qsTr("Audio Disabled"), qsTr("Video Disabled"), qsTr("Audio and Video Disabled")]
-                            currentIndex: Chiaki.settings.audioVideoDisabled
-                            onActivated: index => Chiaki.settings.audioVideoDisabled = index
+                            currentIndex: AstraPlay.settings.audioVideoDisabled
+                            onActivated: index => AstraPlay.settings.audioVideoDisabled = index
                         }
 
                         Label {
@@ -395,7 +395,7 @@ DialogView {
 
                         Label {
                             Layout.maximumWidth: 600
-                            text: Chiaki.settings.logDirectory
+                            text: AstraPlay.settings.logDirectory
                             verticalAlignment: Text.AlignVCenter
                             fontSizeMode: Text.HorizontalFit
                             minimumPixelSize: 10
@@ -421,8 +421,8 @@ DialogView {
                         }
                         C.CheckBox {
                             id: streamerMode
-                            checked: Chiaki.settings.streamerMode
-                            onToggled: Chiaki.settings.streamerMode = !Chiaki.settings.streamerMode
+                            checked: AstraPlay.settings.streamerMode
+                            onToggled: AstraPlay.settings.streamerMode = !AstraPlay.settings.streamerMode
                         }
 
                         Label {
@@ -436,8 +436,8 @@ DialogView {
                         }
                         C.CheckBox {
                             id: streamMenu
-                            checked: Chiaki.settings.streamMenuEnabled
-                            onToggled: Chiaki.settings.streamMenuEnabled = !Chiaki.settings.streamMenuEnabled
+                            checked: AstraPlay.settings.streamMenuEnabled
+                            onToggled: AstraPlay.settings.streamMenuEnabled = !AstraPlay.settings.streamMenuEnabled
                             KeyNavigation.priority: KeyNavigation.BeforeItem
                             KeyNavigation.up: streamerMode
                             KeyNavigation.left: streamMenu
@@ -457,8 +457,8 @@ DialogView {
                         C.CheckBox {
                             id: psnGamesSyncCheckbox
                             text: qsTr("Save game list for main screen")
-                            checked: Chiaki.settings.psnGamesSyncEnabled
-                            onToggled: Chiaki.settings.psnGamesSyncEnabled = checked
+                            checked: AstraPlay.settings.psnGamesSyncEnabled
+                            onToggled: AstraPlay.settings.psnGamesSyncEnabled = checked
                             KeyNavigation.priority: KeyNavigation.BeforeItem
                             KeyNavigation.up: streamMenu
                             KeyNavigation.left: psnGamesSyncCheckbox
@@ -477,8 +477,8 @@ DialogView {
                         }
                         C.CheckBox {
                             id: showGameImageDuringLaunch
-                            checked: Chiaki.settings.showGameImageDuringLaunch
-                            onToggled: Chiaki.settings.showGameImageDuringLaunch = !Chiaki.settings.showGameImageDuringLaunch
+                            checked: AstraPlay.settings.showGameImageDuringLaunch
+                            onToggled: AstraPlay.settings.showGameImageDuringLaunch = !AstraPlay.settings.showGameImageDuringLaunch
                             KeyNavigation.priority: KeyNavigation.BeforeItem
                             KeyNavigation.up: psnGamesSyncCheckbox
                             KeyNavigation.left: showGameImageDuringLaunch
@@ -510,10 +510,10 @@ DialogView {
                             C.RadioButton {
                                 id: autoUpdateEnabledRadio
                                 text: qsTr("Automatically check for updates on startup (Recommended)")
-                                checked: Chiaki.settings.autoUpdateEnabled
+                                checked: AstraPlay.settings.autoUpdateEnabled
                                 onToggled: {
                                     if (checked)
-                                        Chiaki.settings.autoUpdateEnabled = true
+                                        AstraPlay.settings.autoUpdateEnabled = true
                                 }
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
                                 KeyNavigation.up: showGameImageDuringLaunch
@@ -524,10 +524,10 @@ DialogView {
                             C.RadioButton {
                                 id: autoUpdateOptOutRadio
                                 text: qsTr("Opt out of automatic updates (Manual updates only)")
-                                checked: !Chiaki.settings.autoUpdateEnabled
+                                checked: !AstraPlay.settings.autoUpdateEnabled
                                 onToggled: {
                                     if (checked)
-                                        Chiaki.settings.autoUpdateEnabled = false
+                                        AstraPlay.settings.autoUpdateEnabled = false
                                 }
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
                                 KeyNavigation.up: autoUpdateEnabledRadio
@@ -539,7 +539,7 @@ DialogView {
 
                         Label {
                             Layout.alignment: Qt.AlignRight
-                            text: Chiaki.settings.autoUpdateEnabled ? qsTr("(Enabled)") : qsTr("(Opted out)")
+                            text: AstraPlay.settings.autoUpdateEnabled ? qsTr("(Enabled)") : qsTr("(Opted out)")
                             // [ASTRAPLAY BEGIN]
                             visible: !UpdateManager.packageUpdatesManaged
                             // [ASTRAPLAY END]
@@ -641,7 +641,7 @@ DialogView {
                     }
                     RowLayout {
                         spacing: 10
-                        visible: Chiaki.settings.streamMenuEnabled
+                        visible: AstraPlay.settings.streamMenuEnabled
                         Layout.alignment: Qt.AlignHCenter
                         Label {
                             Layout.alignment: Qt.AlignRight
@@ -653,8 +653,8 @@ DialogView {
                             implicitContentWidthPolicy: ComboBox.WidestText
                             firstInFocusChain: false
                             model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                            currentIndex: Chiaki.settings.streamMenuShortcut1
-                            onActivated: index => Chiaki.settings.streamMenuShortcut1 = index
+                            currentIndex: AstraPlay.settings.streamMenuShortcut1
+                            onActivated: index => AstraPlay.settings.streamMenuShortcut1 = index
                             KeyNavigation.priority: {
                                 if(!popup.visible)
                                     KeyNavigation.BeforeItem
@@ -672,8 +672,8 @@ DialogView {
                             implicitContentWidthPolicy: ComboBox.WidestText
                             firstInFocusChain: false
                             model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                            currentIndex: Chiaki.settings.streamMenuShortcut2
-                            onActivated: index => Chiaki.settings.streamMenuShortcut2 = index
+                            currentIndex: AstraPlay.settings.streamMenuShortcut2
+                            onActivated: index => AstraPlay.settings.streamMenuShortcut2 = index
                             KeyNavigation.priority: {
                                 if(!popup.visible)
                                     KeyNavigation.BeforeItem
@@ -691,8 +691,8 @@ DialogView {
                             implicitContentWidthPolicy: ComboBox.WidestText
                             firstInFocusChain: false
                             model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                            currentIndex: Chiaki.settings.streamMenuShortcut3
-                            onActivated: index => Chiaki.settings.streamMenuShortcut3 = index
+                            currentIndex: AstraPlay.settings.streamMenuShortcut3
+                            onActivated: index => AstraPlay.settings.streamMenuShortcut3 = index
                             KeyNavigation.priority: {
                                 if(!popup.visible)
                                     KeyNavigation.BeforeItem
@@ -710,8 +710,8 @@ DialogView {
                             implicitContentWidthPolicy: ComboBox.WidestText
                             firstInFocusChain: false
                             model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                            currentIndex: Chiaki.settings.streamMenuShortcut4
-                            onActivated: index => Chiaki.settings.streamMenuShortcut4 = index
+                            currentIndex: AstraPlay.settings.streamMenuShortcut4
+                            onActivated: index => AstraPlay.settings.streamMenuShortcut4 = index
                             KeyNavigation.priority: {
                                 if(!popup.visible)
                                     KeyNavigation.BeforeItem
@@ -769,9 +769,9 @@ DialogView {
                     C.ComboBox {
                         Layout.preferredWidth: 400
                         firstInFocusChain: true
-                        model: Chiaki.settings.availableDecoders
-                        currentIndex: Math.max(0, model.indexOf(Chiaki.settings.decoder))
-                        onActivated: (index) => Chiaki.settings.decoder = index ? model[index] : ""
+                        model: AstraPlay.settings.availableDecoders
+                        currentIndex: Math.max(0, model.indexOf(AstraPlay.settings.decoder))
+                        onActivated: (index) => AstraPlay.settings.decoder = index ? model[index] : ""
                     }
 
                     Label {
@@ -788,8 +788,8 @@ DialogView {
                         Layout.preferredWidth: 400
                         popup.width: 500
                         model: [qsTr("Stream Resolution"), qsTr("Custom Resolution"), qsTr("Adjust Resolution Manually"), qsTr("Fullscreen"), qsTr("Zoom [adjust zoom using slider in stream menu]"), qsTr("Stretch")]
-                        currentIndex: Chiaki.settings.windowType
-                        onActivated: (index) => Chiaki.settings.windowType = index;
+                        currentIndex: AstraPlay.settings.windowType
+                        onActivated: (index) => AstraPlay.settings.windowType = index;
                     }
 
                     Label {
@@ -800,20 +800,20 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Custom Resolution Width")
-                        visible: Chiaki.settings.windowType == 1
+                        visible: AstraPlay.settings.windowType == 1
                     }
 
                     C.TextField {
                         id: customResolutionWidth
                         Layout.preferredWidth: 400
-                        visible: Chiaki.settings.windowType == 1
-                        text: Chiaki.settings.customResolutionWidth
+                        visible: AstraPlay.settings.windowType == 1
+                        text: AstraPlay.settings.customResolutionWidth
                         Material.accent: text && !validate() ? Material.Red : undefined
                         onEditingFinished: {
                             if (validate()) {
-                                Chiaki.settings.customResolutionWidth = parseInt(text);
+                                AstraPlay.settings.customResolutionWidth = parseInt(text);
                             } else {
-                                Chiaki.settings.customResolutionWidth = 0;
+                                AstraPlay.settings.customResolutionWidth = 0;
                                 text = "";
                             }
                         }
@@ -826,26 +826,26 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1920)")
-                        visible: Chiaki.settings.windowType == 1
+                        visible: AstraPlay.settings.windowType == 1
                     }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Custom Resolution Height")
-                        visible: Chiaki.settings.windowType == 1
+                        visible: AstraPlay.settings.windowType == 1
                     }
 
                     C.TextField {
                         id: customResolutionHeight
                         Layout.preferredWidth: 400
-                        visible: Chiaki.settings.windowType == 1
-                        text: Chiaki.settings.customResolutionHeight
+                        visible: AstraPlay.settings.windowType == 1
+                        text: AstraPlay.settings.customResolutionHeight
                         Material.accent: text && !validate() ? Material.Red : undefined
                         onEditingFinished: {
                             if (validate()) {
-                                Chiaki.settings.customResolutionHeight = parseInt(text);
+                                AstraPlay.settings.customResolutionHeight = parseInt(text);
                             } else {
-                                Chiaki.settings.customResolutionHeight = 0;
+                                AstraPlay.settings.customResolutionHeight = 0;
                                 text = "";
                             }
                         }
@@ -858,7 +858,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("(1080)")
-                        visible: Chiaki.settings.windowType == 1
+                        visible: AstraPlay.settings.windowType == 1
                     }
 
                     Label {
@@ -867,8 +867,8 @@ DialogView {
                     }
 
                     C.CheckBox {
-                        checked: Chiaki.settings.fullscreenDoubleClick
-                        onToggled: Chiaki.settings.fullscreenDoubleClick = checked
+                        checked: AstraPlay.settings.fullscreenDoubleClick
+                        onToggled: AstraPlay.settings.fullscreenDoubleClick = checked
                     }
 
                     Label {
@@ -881,8 +881,8 @@ DialogView {
                         text: qsTr("Hide Cursor during Stream")
                     }
                     C.CheckBox {
-                        checked: Chiaki.settings.hideCursor
-                        onToggled: Chiaki.settings.hideCursor = !Chiaki.settings.hideCursor
+                        checked: AstraPlay.settings.hideCursor
+                        onToggled: AstraPlay.settings.hideCursor = !AstraPlay.settings.hideCursor
                     }
 
                     Label {
@@ -898,14 +898,14 @@ DialogView {
                     C.ComboBox {
                         Layout.preferredWidth: 400
                         model: [qsTr("Fast"), qsTr("Default"), qsTr("High Quality"), qsTr("Custom")]
-                        currentIndex: Chiaki.settings.videoPreset
+                        currentIndex: AstraPlay.settings.videoPreset
                         onActivated: (index) => {
-                            Chiaki.settings.videoPreset = index;
+                            AstraPlay.settings.videoPreset = index;
                             switch (index) {
-                            case 0: Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Fast; break;
-                            case 1: Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default; break;
-                            case 2: Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.HighQuality; break;
-                            case 3: Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Custom; break;
+                            case 0: AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Fast; break;
+                            case 1: AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Default; break;
+                            case 2: AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.HighQuality; break;
+                            case 3: AstraPlay.window.videoPreset = AstraPlayWindow.VideoPreset.Custom; break;
                             }
                         }
                     }
@@ -918,7 +918,7 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr("Custom Renderer Settings")
-                        visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
+                        visible: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom
                     }
 
                     C.Button {
@@ -926,10 +926,10 @@ DialogView {
                         text: qsTr("Open")
                         onClicked: root.showPlaceboSettingsDialog()
                         Material.roundedScale: Material.SmallScale
-                        visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
+                        visible: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom
                     }
 
-                    Label { visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom }
+                    Label { visible: AstraPlay.window.videoPreset == AstraPlayWindow.VideoPreset.Custom }
 
                     Label {
                         Layout.alignment: Qt.AlignRight
@@ -1051,10 +1051,10 @@ DialogView {
                         id: resolutionLocalPS4
                         Layout.preferredWidth: 400
                         model: [qsTr("360p"), qsTr("540p"), qsTr("720p (Default)"), qsTr("1080p (PS5 and PS4 Pro)")]
-                        currentIndex: Chiaki.settings.resolutionLocalPS4 - 1
+                        currentIndex: AstraPlay.settings.resolutionLocalPS4 - 1
                         onActivated: (index) => {
-                            Chiaki.settings.resolutionLocalPS4 = index + 1
-                            Chiaki.settings.bitrateLocalPS4 = 0
+                            AstraPlay.settings.resolutionLocalPS4 = index + 1
+                            AstraPlay.settings.bitrateLocalPS4 = 0
                         }
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         KeyNavigation.right: resolutionRemotePS4
@@ -1072,10 +1072,10 @@ DialogView {
                         id: resolutionRemotePS4
                         Layout.preferredWidth: 400
                         model: [qsTr("360p"), qsTr("540p"), qsTr("720p (Default)"), qsTr("1080p (PS5 and PS4 Pro)")]
-                        currentIndex: Chiaki.settings.resolutionRemotePS4 - 1
+                        currentIndex: AstraPlay.settings.resolutionRemotePS4 - 1
                         onActivated: (index) => {
-                            Chiaki.settings.resolutionRemotePS4 = index + 1
-                            Chiaki.settings.bitrateRemotePS4 = 0
+                            AstraPlay.settings.resolutionRemotePS4 = index + 1
+                            AstraPlay.settings.bitrateRemotePS4 = 0
                         }
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         KeyNavigation.left: resolutionLocalPS4
@@ -1093,10 +1093,10 @@ DialogView {
                         id: resolutionLocalPS5
                         Layout.preferredWidth: 400
                         model: [qsTr("360p"), qsTr("540p"), qsTr("720p"), qsTr("1080p (Default)")]
-                        currentIndex: Chiaki.settings.resolutionLocalPS5 - 1
+                        currentIndex: AstraPlay.settings.resolutionLocalPS5 - 1
                         onActivated: (index) => {
-                            Chiaki.settings.resolutionLocalPS5 = index + 1
-                            Chiaki.settings.bitrateLocalPS5 = 0
+                            AstraPlay.settings.resolutionLocalPS5 = index + 1
+                            AstraPlay.settings.bitrateLocalPS5 = 0
                         }
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         KeyNavigation.right: resolutionRemotePS5
@@ -1114,10 +1114,10 @@ DialogView {
                         id: resolutionRemotePS5
                         Layout.preferredWidth: 400
                         model: [qsTr("360p"), qsTr("540p"), qsTr("720p (Default)"), qsTr("1080p")]
-                        currentIndex: Chiaki.settings.resolutionRemotePS5 - 1
+                        currentIndex: AstraPlay.settings.resolutionRemotePS5 - 1
                         onActivated: (index) => {
-                            Chiaki.settings.resolutionRemotePS5 = index + 1
-                            Chiaki.settings.bitrateRemotePS5 = 0
+                            AstraPlay.settings.resolutionRemotePS5 = index + 1
+                            AstraPlay.settings.bitrateRemotePS5 = 0
                         }
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         KeyNavigation.left: resolutionLocalPS5
@@ -1140,8 +1140,8 @@ DialogView {
                         id: fpsLocalPS4
                         Layout.preferredWidth: 400
                         model: [qsTr("30 fps"), qsTr("60 fps (Default)")]
-                        currentIndex: (Chiaki.settings.fpsLocalPS4 / 30) - 1
-                        onActivated: (index) => Chiaki.settings.fpsLocalPS4 = (index + 1) * 30
+                        currentIndex: (AstraPlay.settings.fpsLocalPS4 / 30) - 1
+                        onActivated: (index) => AstraPlay.settings.fpsLocalPS4 = (index + 1) * 30
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         KeyNavigation.up: resolutionLocalPS4
                         KeyNavigation.right: fpsRemotePS4
@@ -1158,8 +1158,8 @@ DialogView {
                         id: fpsRemotePS4
                         Layout.preferredWidth: 400
                         model: [qsTr("30 fps"), qsTr("60 fps (Default)")]
-                        currentIndex: (Chiaki.settings.fpsRemotePS4 / 30) - 1
-                        onActivated: (index) => Chiaki.settings.fpsRemotePS4 = (index + 1) * 30
+                        currentIndex: (AstraPlay.settings.fpsRemotePS4 / 30) - 1
+                        onActivated: (index) => AstraPlay.settings.fpsRemotePS4 = (index + 1) * 30
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         KeyNavigation.up: resolutionRemotePS4
                         KeyNavigation.left: fpsLocalPS4
@@ -1176,8 +1176,8 @@ DialogView {
                         id: fpsLocalPS5
                         Layout.preferredWidth: 400
                         model: [qsTr("30 fps"), qsTr("60 fps (Default)")]
-                        currentIndex: (Chiaki.settings.fpsLocalPS5 / 30) - 1
-                        onActivated: (index) => Chiaki.settings.fpsLocalPS5 = (index + 1) * 30
+                        currentIndex: (AstraPlay.settings.fpsLocalPS5 / 30) - 1
+                        onActivated: (index) => AstraPlay.settings.fpsLocalPS5 = (index + 1) * 30
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         KeyNavigation.up: resolutionLocalPS5
                         KeyNavigation.right: fpsRemotePS5
@@ -1194,8 +1194,8 @@ DialogView {
                         id: fpsRemotePS5
                         Layout.preferredWidth: 400
                         model: [qsTr("30 fps"), qsTr("60 fps (Default)")]
-                        currentIndex: (Chiaki.settings.fpsRemotePS5 / 30) - 1
-                        onActivated: (index) => Chiaki.settings.fpsRemotePS5 = (index + 1) * 30
+                        currentIndex: (AstraPlay.settings.fpsRemotePS5 / 30) - 1
+                        onActivated: (index) => AstraPlay.settings.fpsRemotePS5 = (index + 1) * 30
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         KeyNavigation.up: resolutionRemotePS5
                         KeyNavigation.left: fpsLocalPS5
@@ -1218,7 +1218,7 @@ DialogView {
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         property var bitrate: {
                             var rate = 0;
-                            switch (Chiaki.settings.resolutionLocalPS4) {
+                            switch (AstraPlay.settings.resolutionLocalPS4) {
                             case 1: rate = 2; break; // 360p
                             case 2: rate = 6; break; // 540p
                             case 3: rate = 10; break; // 720p
@@ -1230,8 +1230,8 @@ DialogView {
                         from: 2
                         to: 100
                         stepSize: 1
-                        value: Chiaki.settings.bitrateLocalPS4 / 1000 ? (Chiaki.settings.bitrateLocalPS4 / 1000) : bitrate
-                        onMoved: Chiaki.settings.bitrateLocalPS4 = value * 1000;
+                        value: AstraPlay.settings.bitrateLocalPS4 / 1000 ? (AstraPlay.settings.bitrateLocalPS4 / 1000) : bitrate
+                        onMoved: AstraPlay.settings.bitrateLocalPS4 = value * 1000;
                         KeyNavigation.up: fpsLocalPS4
                         KeyNavigation.down: bitrateLocalPS4
                         KeyNavigation.priority: KeyNavigation.BeforeItem
@@ -1250,7 +1250,7 @@ DialogView {
                         visible: selectedConsole == SettingsDialog.Console.PS4
                         property var bitrate: {
                             var rate = 0;
-                            switch (Chiaki.settings.resolutionRemotePS4) {
+                            switch (AstraPlay.settings.resolutionRemotePS4) {
                             case 1: rate = 2; break; // 360p
                             case 2: rate = 6; break; // 540p
                             case 3: rate = 10; break; // 720p
@@ -1262,8 +1262,8 @@ DialogView {
                         from: 2
                         to: 100
                         stepSize: 1
-                        value: Chiaki.settings.bitrateRemotePS4 / 1000 ? (Chiaki.settings.bitrateRemotePS4 / 1000) : bitrate
-                        onMoved: Chiaki.settings.bitrateRemotePS4 = value * 1000;
+                        value: AstraPlay.settings.bitrateRemotePS4 / 1000 ? (AstraPlay.settings.bitrateRemotePS4 / 1000) : bitrate
+                        onMoved: AstraPlay.settings.bitrateRemotePS4 = value * 1000;
                         KeyNavigation.up: fpsRemotePS4
                         KeyNavigation.down: bitrateRemotePS4
                         KeyNavigation.priority: KeyNavigation.BeforeItem
@@ -1284,7 +1284,7 @@ DialogView {
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         property var bitrate: {
                             var rate = 0;
-                            switch (Chiaki.settings.resolutionLocalPS5) {
+                            switch (AstraPlay.settings.resolutionLocalPS5) {
                             case 1: rate = 2; break; // 360p
                             case 2: rate = 6; break; // 540p
                             case 3: rate = 10; break; // 720p
@@ -1296,8 +1296,8 @@ DialogView {
                         from: 2
                         to: 100
                         stepSize: 1
-                        value: Chiaki.settings.bitrateLocalPS5 / 1000 ? (Chiaki.settings.bitrateLocalPS5 / 1000) : bitrate
-                        onMoved: Chiaki.settings.bitrateLocalPS5 = value * 1000;
+                        value: AstraPlay.settings.bitrateLocalPS5 / 1000 ? (AstraPlay.settings.bitrateLocalPS5 / 1000) : bitrate
+                        onMoved: AstraPlay.settings.bitrateLocalPS5 = value * 1000;
                         KeyNavigation.up: fpsLocalPS5
                         KeyNavigation.down: codecLocalPS5
                         KeyNavigation.priority: KeyNavigation.BeforeItem
@@ -1317,7 +1317,7 @@ DialogView {
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         property var bitrate: {
                             var rate = 0;
-                            switch (Chiaki.settings.resolutionRemotePS5) {
+                            switch (AstraPlay.settings.resolutionRemotePS5) {
                             case 1: rate = 2; break; // 360p
                             case 2: rate = 6; break; // 540p
                             case 3: rate = 10; break; // 720p
@@ -1329,8 +1329,8 @@ DialogView {
                         from: 2
                         to: 100
                         stepSize: 1
-                        value: Chiaki.settings.bitrateRemotePS5 / 1000 ? (Chiaki.settings.bitrateRemotePS5 / 1000) : bitrate
-                        onMoved: Chiaki.settings.bitrateRemotePS5 = value * 1000;
+                        value: AstraPlay.settings.bitrateRemotePS5 / 1000 ? (AstraPlay.settings.bitrateRemotePS5 / 1000) : bitrate
+                        onMoved: AstraPlay.settings.bitrateRemotePS5 = value * 1000;
                         KeyNavigation.up: fpsRemotePS5
                         KeyNavigation.down: codecRemotePS5
                         KeyNavigation.priority: KeyNavigation.BeforeItem
@@ -1356,8 +1356,8 @@ DialogView {
                         id: codecLocalPS5
                         Layout.preferredWidth: 400
                         model: [qsTr("H264"), qsTr("H265 (Default)"), qsTr("H265 HDR")]
-                        currentIndex: Chiaki.settings.codecLocalPS5
-                        onActivated: (index) => Chiaki.settings.codecLocalPS5 = index
+                        currentIndex: AstraPlay.settings.codecLocalPS5
+                        onActivated: (index) => AstraPlay.settings.codecLocalPS5 = index
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         Keys.onReturnPressed: {
                             if (popup.visible) {
@@ -1381,8 +1381,8 @@ DialogView {
                         id: codecRemotePS5
                         Layout.preferredWidth: 400
                         model: [qsTr("H264"), qsTr("H265 (Default)"), qsTr("H265 HDR")]
-                        currentIndex: Chiaki.settings.codecRemotePS5
-                        onActivated: (index) => Chiaki.settings.codecRemotePS5 = index
+                        currentIndex: AstraPlay.settings.codecRemotePS5
+                        onActivated: (index) => AstraPlay.settings.codecRemotePS5 = index
                         visible: selectedConsole == SettingsDialog.Console.PS5
                         lastInFocusChain: true
                         Keys.onReturnPressed: {
@@ -1428,7 +1428,7 @@ DialogView {
                         columns: 3
                         rowSpacing: 10
                         columnSpacing: 20
-                        onVisibleChanged: if (visible) Chiaki.settings.refreshAudioDevices()
+                        onVisibleChanged: if (visible) AstraPlay.settings.refreshAudioDevices()
 
                         anchors {
                             top: parent.top
@@ -1445,9 +1445,9 @@ DialogView {
                             popup.width: 700
                             popup.font.pixelSize: 16
                             firstInFocusChain: true
-                            model: [qsTr("Auto")].concat(Chiaki.settings.availableAudioOutDevices)
-                            currentIndex: Math.max(0, model.indexOf(Chiaki.settings.audioOutDevice))
-                            onActivated: (index) => Chiaki.settings.audioOutDevice = index ? model[index] : ""
+                            model: [qsTr("Auto")].concat(AstraPlay.settings.availableAudioOutDevices)
+                            currentIndex: Math.max(0, model.indexOf(AstraPlay.settings.audioOutDevice))
+                            onActivated: (index) => AstraPlay.settings.audioOutDevice = index ? model[index] : ""
                         }
 
                         Label {
@@ -1465,9 +1465,9 @@ DialogView {
                             popup.x: (width - popup.width) / 2
                             popup.width: 700
                             popup.font.pixelSize: 16
-                            model: [qsTr("Auto")].concat(Chiaki.settings.availableAudioInDevices)
-                            currentIndex: Math.max(0, model.indexOf(Chiaki.settings.audioInDevice))
-                            onActivated: (index) => Chiaki.settings.audioInDevice = index ? model[index] : ""
+                            model: [qsTr("Auto")].concat(AstraPlay.settings.availableAudioInDevices)
+                            currentIndex: Math.max(0, model.indexOf(AstraPlay.settings.audioInDevice))
+                            onActivated: (index) => AstraPlay.settings.audioInDevice = index ? model[index] : ""
                         }
 
                         Label {
@@ -1485,8 +1485,8 @@ DialogView {
                             from: 1
                             to: 10
                             stepSize: 1
-                            value: Chiaki.settings.audioBufferSize / 1920 ? (Chiaki.settings.audioBufferSize / 1920) : 5
-                            onMoved: Chiaki.settings.audioBufferSize = value * 1920;
+                            value: AstraPlay.settings.audioBufferSize / 1920 ? (AstraPlay.settings.audioBufferSize / 1920) : 5
+                            onMoved: AstraPlay.settings.audioBufferSize = value * 1920;
                             sendOutput: true
 
                             Label {
@@ -1516,8 +1516,8 @@ DialogView {
                             from: 0
                             to: 128
                             stepSize: 1
-                            value: Chiaki.settings.audioVolume
-                            onMoved: Chiaki.settings.audioVolume = value
+                            value: AstraPlay.settings.audioVolume
+                            onMoved: AstraPlay.settings.audioVolume = value
                             sendOutput: true
 
                             Label {
@@ -1544,8 +1544,8 @@ DialogView {
 
                         C.CheckBox {
                             sendOutput: true
-                            checked: Chiaki.settings.startMicUnmuted
-                            onToggled: Chiaki.settings.startMicUnmuted = checked
+                            checked: AstraPlay.settings.startMicUnmuted
+                            onToggled: AstraPlay.settings.startMicUnmuted = checked
                         }
 
                         Label {
@@ -1556,27 +1556,27 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Speech Processing:")
-                            visible: typeof Chiaki.settings.speechProcessing !== "undefined"
+                            visible: typeof AstraPlay.settings.speechProcessing !== "undefined"
                         }
 
                         C.CheckBox {
                             sendOutput: true
                             text: qsTr("Noise suppression + echo cancellation")
-                            checked: Chiaki.settings.speechProcessing
-                            onToggled: Chiaki.settings.speechProcessing = !Chiaki.settings.speechProcessing
-                            visible: typeof Chiaki.settings.speechProcessing !== "undefined"
+                            checked: AstraPlay.settings.speechProcessing
+                            onToggled: AstraPlay.settings.speechProcessing = !AstraPlay.settings.speechProcessing
+                            visible: typeof AstraPlay.settings.speechProcessing !== "undefined"
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(Unchecked)")
-                            visible: typeof Chiaki.settings.speechProcessing !== "undefined"
+                            visible: typeof AstraPlay.settings.speechProcessing !== "undefined"
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Noise To Suppress:")
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
                         }
 
                         C.Slider {
@@ -1585,9 +1585,9 @@ DialogView {
                             to: 60
                             stepSize: 1
                             sendOutput: true
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
-                            value: Chiaki.settings.noiseSuppressLevel
-                            onMoved: Chiaki.settings.noiseSuppressLevel = value
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
+                            value: AstraPlay.settings.noiseSuppressLevel
+                            onMoved: AstraPlay.settings.noiseSuppressLevel = value
 
                             Label {
                                 anchors {
@@ -1602,13 +1602,13 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(6 dB)")
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Echo To Suppress:")
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
                         }
 
                         C.Slider {
@@ -1617,9 +1617,9 @@ DialogView {
                             to: 60
                             stepSize: 1
                             sendOutput: true
-                            value: Chiaki.settings.echoSuppressLevel
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
-                            onMoved: Chiaki.settings.echoSuppressLevel = value
+                            value: AstraPlay.settings.echoSuppressLevel
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
+                            onMoved: AstraPlay.settings.echoSuppressLevel = value
 
                             Label {
                                 anchors {
@@ -1634,7 +1634,7 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("(30 dB)")
-                            visible: if (typeof Chiaki.settings.speechProcessing !== "undefined") {Chiaki.settings.speechProcessing} else {false}
+                            visible: if (typeof AstraPlay.settings.speechProcessing !== "undefined") {AstraPlay.settings.speechProcessing} else {false}
                         }
 
                         Label {
@@ -1648,8 +1648,8 @@ DialogView {
                             to: 100
                             stepSize: 1
                             sendOutput: true
-                            value: Chiaki.settings.wifiDroppedNotif
-                            onMoved: Chiaki.settings.wifiDroppedNotif = value
+                            value: AstraPlay.settings.wifiDroppedNotif
+                            onMoved: AstraPlay.settings.wifiDroppedNotif = value
 
                             Label {
                                 anchors {
@@ -1677,8 +1677,8 @@ DialogView {
                             to: 100
                             stepSize: 1
                             sendOutput: true
-                            value: Chiaki.settings.packetLossMax
-                            onMoved: Chiaki.settings.packetLossMax = value
+                            value: AstraPlay.settings.packetLossMax
+                            onMoved: AstraPlay.settings.packetLossMax = value
 
                             Label {
                                 anchors {
@@ -1701,8 +1701,8 @@ DialogView {
                         }
                         C.CheckBox {
                             lastInFocusChain: true
-                            checked: Chiaki.settings.showStreamStats
-                            onToggled: Chiaki.settings.showStreamStats = !Chiaki.settings.showStreamStats
+                            checked: AstraPlay.settings.showStreamStats
+                            onToggled: AstraPlay.settings.showStreamStats = !AstraPlay.settings.showStreamStats
                         }
 
                         Label {
@@ -1777,9 +1777,9 @@ DialogView {
                         visible: consolesView.contentHeight > consolesView.height
                     }
                     clip: true
-                    model: Chiaki.settings.registeredHosts
+                    model: AstraPlay.settings.registeredHosts
                     delegate: ItemDelegate {
-                        text: "%1 (%2, %3)".arg(Chiaki.settings.streamerMode ? "hidden" : modelData.mac).arg(modelData.ps5 ? "PS5" : "PS4").arg(modelData.name)
+                        text: "%1 (%2, %3)".arg(AstraPlay.settings.streamerMode ? "hidden" : modelData.mac).arg(modelData.ps5 ? "PS5" : "PS4").arg(modelData.name)
                         height: 80
                         width: parent ? parent.width : 0
                         leftPadding: autoConnectButton.width + 40
@@ -1796,8 +1796,8 @@ DialogView {
                                 leftMargin: 20
                             }
                             text: qsTr("Auto-Connect")
-                            checked: Chiaki.settings.autoConnectMac == modelData.mac
-                            onToggled: Chiaki.settings.autoConnectMac = checked ? modelData.mac : "";
+                            checked: AstraPlay.settings.autoConnectMac == modelData.mac
+                            onToggled: AstraPlay.settings.autoConnectMac = checked ? modelData.mac : "";
 
                             Keys.onPressed: (event) => {
                                 switch (event.key) {
@@ -1929,7 +1929,7 @@ DialogView {
                                 rightMargin: 20
                             }
                             text: qsTr("Delete")
-                            onClicked: root.showConfirmDialog(qsTr("Delete Console"), qsTr("Are you sure you want to delete this console?"), () => Chiaki.settings.deleteRegisteredHost(index));
+                            onClicked: root.showConfirmDialog(qsTr("Delete Console"), qsTr("Are you sure you want to delete this console?"), () => AstraPlay.settings.deleteRegisteredHost(index));
                             Material.roundedScale: Material.SmallScale
                             Material.accent: Material.Red
                         }
@@ -1959,9 +1959,9 @@ DialogView {
                         policy: ScrollBar.AlwaysOn
                         visible: hiddenConsolesView.contentHeight > hiddenConsolesView.height
                     }
-                    model: Chiaki.hiddenHosts
+                    model: AstraPlay.hiddenHosts
                     delegate: ItemDelegate {
-                        text: "%1 (%2)".arg(Chiaki.settings.streamerMode ? "hidden" : modelData.mac).arg(modelData.name)
+                        text: "%1 (%2)".arg(AstraPlay.settings.streamerMode ? "hidden" : modelData.mac).arg(modelData.name)
                         height: 80
                         width: parent ? parent.width : 0
 
@@ -2010,7 +2010,7 @@ DialogView {
                                 rightMargin: 20
                             }
                             text: qsTr("Unhide")
-                            onClicked: root.showConfirmDialog(qsTr("Unhide Console"), qsTr("Are you sure you want to unhide this console?"), () => Chiaki.unhideHost(modelData.mac));
+                            onClicked: root.showConfirmDialog(qsTr("Unhide Console"), qsTr("Are you sure you want to unhide this console?"), () => AstraPlay.unhideHost(modelData.mac));
                             Material.roundedScale: Material.SmallScale
                             Material.accent: Material.Red
                         }
@@ -2054,7 +2054,7 @@ DialogView {
                         Layout.alignment: Qt.AlignRight
                         property bool firstInFocusChain: true
                         property bool lastInFocusChain: false
-                        onClicked: Chiaki.settings.clearKeyMapping()
+                        onClicked: AstraPlay.settings.clearKeyMapping()
                         Material.roundedScale: Material.SmallScale
                         Material.background: visualFocus ? Material.accent : undefined
 
@@ -2105,9 +2105,9 @@ DialogView {
                     CheckBox {
                         text: qsTr("Enable Keyboard mapping")
                         checked: {
-                            Chiaki.settings.keyboardEnabled
+                            AstraPlay.settings.keyboardEnabled
                         }
-                        onToggled: Chiaki.settings.keyboardEnabled = checked
+                        onToggled: AstraPlay.settings.keyboardEnabled = checked
                         Layout.alignment: Qt.AlignRight
                         property bool firstInFocusChain: false
                         property bool lastInFocusChain: false
@@ -2169,9 +2169,9 @@ DialogView {
                     CheckBox {
                         text: qsTr("Enable Mouse Touchpad")
                         checked: {
-                            Chiaki.settings.mouseTouchEnabled
+                            AstraPlay.settings.mouseTouchEnabled
                         }
-                        onToggled: Chiaki.settings.mouseTouchEnabled = checked
+                        onToggled: AstraPlay.settings.mouseTouchEnabled = checked
                         Layout.alignment: Qt.AlignRight
                         property bool firstInFocusChain: false
                         property bool lastInFocusChain: false
@@ -2223,8 +2223,8 @@ DialogView {
                         }
                     }
                     Repeater {
-                        id: chiakiKeys
-                        model: Chiaki.settings.controllerMapping
+                        id: controllerKeys
+                        model: AstraPlay.settings.controllerMapping
 
                         RowLayout {
                             spacing: 20
@@ -2237,7 +2237,7 @@ DialogView {
 
                             Button {
                                 property bool firstInFocusChain: false
-                                property bool lastInFocusChain: index == (chiakiKeys.count - 1)
+                                property bool lastInFocusChain: index == (controllerKeys.count - 1)
                                 Layout.preferredWidth: 170
                                 Layout.preferredHeight: 52
                                 text: modelData.keyName
@@ -2294,7 +2294,7 @@ DialogView {
                                             }
                                             break;
                                         case Qt.Key_Down:
-                                            if (!lastInFocusChain && index < (chiakiKeys.count - 3)) {
+                                            if (!lastInFocusChain && index < (controllerKeys.count - 3)) {
                                                 let item = nextItemInFocusChain();
                                                 if (item)
                                                     item.forceActiveFocus(Qt.TabFocusReason);
@@ -2373,9 +2373,9 @@ DialogView {
                         Layout.alignment: Qt.AlignHCenter
                         id: applyControllerLayout
                         text: qsTr("Apply Base Layout")
-                        visible: typeof Chiaki.configureSteamControllerLayout === "function"
+                        visible: typeof AstraPlay.configureSteamControllerLayout === "function"
                         onClicked: {
-                            Chiaki.configureSteamControllerLayout();
+                            AstraPlay.configureSteamControllerLayout();
                             root.showToast(qsTr("Layout Applied"), "", "#4CAF50");
                         }
                     }
@@ -2392,9 +2392,9 @@ DialogView {
                                 sendOutput: true
                                 text: qsTr("Process controller input when application is in background")
                                 checked: {
-                                    Chiaki.settings.allowJoystickBackgroundEvents
+                                    AstraPlay.settings.allowJoystickBackgroundEvents
                                 }
-                                onToggled: Chiaki.settings.allowJoystickBackgroundEvents = checked
+                                onToggled: AstraPlay.settings.allowJoystickBackgroundEvents = checked
                             }
 
                             Label {
@@ -2412,8 +2412,8 @@ DialogView {
                             C.CheckBox {
                                 sendOutput: true
                                 id: dpadTouch
-                                checked: Chiaki.settings.dpadTouchEnabled
-                                onToggled: Chiaki.settings.dpadTouchEnabled = !Chiaki.settings.dpadTouchEnabled
+                                checked: AstraPlay.settings.dpadTouchEnabled
+                                onToggled: AstraPlay.settings.dpadTouchEnabled = !AstraPlay.settings.dpadTouchEnabled
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
                                 KeyNavigation.up: backgroundController
                                 KeyNavigation.left: dpadTouch
@@ -2436,7 +2436,7 @@ DialogView {
                             id: touchIncrementLayout
                             spacing: 10
                             Layout.alignment: Qt.AlignHCenter
-                            visible: Chiaki.settings.dpadTouchEnabled
+                            visible: AstraPlay.settings.dpadTouchEnabled
                             Label {
                                 Layout.alignment: Qt.AlignRight
                                 text: qsTr("Dpad Touch Increment:")
@@ -2449,8 +2449,8 @@ DialogView {
                                 from: 1
                                 to: 1079
                                 stepSize: 1
-                                value: Chiaki.settings.dpadTouchIncrement
-                                onMoved: Chiaki.settings.dpadTouchIncrement = value
+                                value: AstraPlay.settings.dpadTouchIncrement
+                                onMoved: AstraPlay.settings.dpadTouchIncrement = value
 
                                 Label {
                                     anchors {
@@ -2478,7 +2478,7 @@ DialogView {
                         }
                         RowLayout {
                             spacing: 10
-                            visible: Chiaki.settings.dpadTouchEnabled
+                            visible: AstraPlay.settings.dpadTouchEnabled
                             Layout.alignment: Qt.AlignHCenter
                             Label {
                                 Layout.alignment: Qt.AlignRight
@@ -2490,8 +2490,8 @@ DialogView {
                                 implicitContentWidthPolicy: ComboBox.WidestText
                                 firstInFocusChain: false
                                 model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                                currentIndex: Chiaki.settings.dpadTouchShortcut1
-                                onActivated: index => Chiaki.settings.dpadTouchShortcut1 = index
+                                currentIndex: AstraPlay.settings.dpadTouchShortcut1
+                                onActivated: index => AstraPlay.settings.dpadTouchShortcut1 = index
                                 KeyNavigation.priority: {
                                     if(!popup.visible)
                                         KeyNavigation.BeforeItem
@@ -2509,8 +2509,8 @@ DialogView {
                                 implicitContentWidthPolicy: ComboBox.WidestText
                                 firstInFocusChain: false
                                 model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                                currentIndex: Chiaki.settings.dpadTouchShortcut2
-                                onActivated: index => Chiaki.settings.dpadTouchShortcut2 = index
+                                currentIndex: AstraPlay.settings.dpadTouchShortcut2
+                                onActivated: index => AstraPlay.settings.dpadTouchShortcut2 = index
                                 KeyNavigation.priority: {
                                     if(!popup.visible)
                                         KeyNavigation.BeforeItem
@@ -2528,8 +2528,8 @@ DialogView {
                                 implicitContentWidthPolicy: ComboBox.WidestText
                                 firstInFocusChain: false
                                 model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                                currentIndex: Chiaki.settings.dpadTouchShortcut3
-                                onActivated: index => Chiaki.settings.dpadTouchShortcut3 = index
+                                currentIndex: AstraPlay.settings.dpadTouchShortcut3
+                                onActivated: index => AstraPlay.settings.dpadTouchShortcut3 = index
                                 KeyNavigation.priority: {
                                     if(!popup.visible)
                                         KeyNavigation.BeforeItem
@@ -2547,8 +2547,8 @@ DialogView {
                                 implicitContentWidthPolicy: ComboBox.WidestText
                                 firstInFocusChain: false
                                 model: [qsTr("Not Used"), qsTr("Cross"), qsTr("Moon"), qsTr("Box"), qsTr("Pyramid"), qsTr("Dpad Left"), qsTr("Dpad Right"), qsTr("Dpad Up"), qsTr("Dpad Down"), qsTr("L1"), qsTr("R1"), qsTr("L3"), qsTr("R3"), qsTr("Options"), qsTr("Share"), qsTr("Touchpad"), qsTr("PS")]
-                                currentIndex: Chiaki.settings.dpadTouchShortcut4
-                                onActivated: index => Chiaki.settings.dpadTouchShortcut4 = index
+                                currentIndex: AstraPlay.settings.dpadTouchShortcut4
+                                onActivated: index => AstraPlay.settings.dpadTouchShortcut4 = index
                                 KeyNavigation.priority: {
                                     if(!popup.visible)
                                         KeyNavigation.BeforeItem
@@ -2578,8 +2578,8 @@ DialogView {
                                 id: posButtons
                                 sendOutput: true
                                 text: qsTr("Use buttons by position instead of by label")
-                                checked: Chiaki.settings.buttonsByPosition
-                                onToggled: Chiaki.settings.buttonsByPosition = checked
+                                checked: AstraPlay.settings.buttonsByPosition
+                                onToggled: AstraPlay.settings.buttonsByPosition = checked
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
                                 KeyNavigation.up: {
                                     if(dpadShortcut1.visible)
@@ -2609,8 +2609,8 @@ DialogView {
                                 id: rumbleHaptics
                                 Layout.preferredWidth: 400
                                 model: [qsTr("Off"), qsTr("Very Weak"), qsTr("Weak"), qsTr("Normal"), qsTr("Strong"), qsTr("Very Strong")]
-                                currentIndex: Chiaki.settings.rumbleHapticsIntensity
-                                onActivated: (index) => Chiaki.settings.rumbleHapticsIntensity = index;
+                                currentIndex: AstraPlay.settings.rumbleHapticsIntensity
+                                onActivated: (index) => AstraPlay.settings.rumbleHapticsIntensity = index;
                             }
 
                             Label {
@@ -2633,8 +2633,8 @@ DialogView {
                                 from: 0
                                 to: 2
                                 stepSize: 0.1
-                                value: Chiaki.settings.hapticOverride
-                                onMoved: Chiaki.settings.hapticOverride = value;
+                                value: AstraPlay.settings.hapticOverride
+                                onMoved: AstraPlay.settings.hapticOverride = value;
                                 lastInFocusChain: true
                                 Label {
                                     anchors {
@@ -2691,8 +2691,8 @@ DialogView {
                     Label {
                         Layout.alignment: Qt.AlignHCenter
                         text: {
-                            if(Chiaki.settings.currentProfile)
-                                qsTr("Current Profile: ") + Chiaki.settings.currentProfile
+                            if(AstraPlay.settings.currentProfile)
+                                qsTr("Current Profile: ") + AstraPlay.settings.currentProfile
                             else
                                 qsTr("Current Profile: default")
                         }
@@ -2735,7 +2735,7 @@ DialogView {
                             root.showPSNTokenDialog(false);
                         }
                         Material.roundedScale: Material.SmallScale
-                        visible: !Chiaki.settings.psnRefreshToken || !Chiaki.settings.psnAuthToken || !Chiaki.settings.psnAuthTokenExpiry || !Chiaki.settings.psnAccountId
+                        visible: !AstraPlay.settings.psnRefreshToken || !AstraPlay.settings.psnAuthToken || !AstraPlay.settings.psnAuthTokenExpiry || !AstraPlay.settings.psnAccountId
                     }
 
                     C.Button {
@@ -2746,15 +2746,15 @@ DialogView {
                         Layout.preferredHeight: 50
                         text: qsTr("Clear Token")
                         onClicked: {
-                            Chiaki.settings.psnRefreshToken = ""
-                            Chiaki.settings.psnAuthToken = ""
-                            Chiaki.settings.psnAuthTokenExpiry = ""
-                            Chiaki.settings.psnAccountId = ""
-                            Chiaki.settings.psnNpssoToken = ""
+                            AstraPlay.settings.psnRefreshToken = ""
+                            AstraPlay.settings.psnAuthToken = ""
+                            AstraPlay.settings.psnAuthTokenExpiry = ""
+                            AstraPlay.settings.psnAccountId = ""
+                            AstraPlay.settings.psnNpssoToken = ""
                             openPsnLogin.forceActiveFocus(Qt.TabFocusReason);
                         }
                         Material.roundedScale: Material.SmallScale
-                        visible: Chiaki.settings.psnRefreshToken && Chiaki.settings.psnAuthToken && Chiaki.settings.psnAuthTokenExpiry && Chiaki.settings.psnAccountId
+                        visible: AstraPlay.settings.psnRefreshToken && AstraPlay.settings.psnAuthToken && AstraPlay.settings.psnAuthTokenExpiry && AstraPlay.settings.psnAccountId
                     }
 
                     C.Button {
@@ -2765,7 +2765,7 @@ DialogView {
                         Layout.preferredHeight: 50
                         text: qsTr("Clear Saved Game Data")
                         onClicked: {
-                            Chiaki.clearPsnGames();
+                            AstraPlay.clearPsnGames();
                         }
                         Material.roundedScale: Material.SmallScale
                     }
@@ -2778,7 +2778,7 @@ DialogView {
                         Layout.preferredHeight: 50
                         text: qsTr("Export settings to file")
                         onClicked: {
-                            Chiaki.settings.exportSettings();
+                            AstraPlay.settings.exportSettings();
                         }
                         Material.roundedScale: Material.SmallScale
                     }
@@ -2791,7 +2791,7 @@ DialogView {
                         Layout.preferredHeight: 50
                         text: qsTr("Import settings from file")
                         onClicked: {
-                            Chiaki.settings.importSettings();
+                            AstraPlay.settings.importSettings();
                         }
                         Material.roundedScale: Material.SmallScale
                     }
@@ -2835,9 +2835,9 @@ DialogView {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 15
                         text: qsTr("Verbose Logging (unchecked)")
-                        checked: Chiaki.settings.logVerbose
+                        checked: AstraPlay.settings.logVerbose
                         lastInFocusChain: true
-                        onToggled: Chiaki.settings.logVerbose = checked
+                        onToggled: AstraPlay.settings.logVerbose = checked
                     }
                 }
                 }
@@ -2913,7 +2913,7 @@ DialogView {
                         Layout.preferredWidth: 400
                         model: ["720p", "1080p", "1440p", "2160p"]
                         currentIndex: {
-                            let res = Chiaki.settings.cloudResolutionPSCloud;
+                            let res = AstraPlay.settings.cloudResolutionPSCloud;
                             if (res === 720) return 0;
                             if (res === 1440) return 2;
                             if (res === 2160) return 3;
@@ -2921,13 +2921,13 @@ DialogView {
                         }
                         onActivated: index => {
                             if (index === 0) {
-                                Chiaki.settings.cloudResolutionPSCloud = 720;
+                                AstraPlay.settings.cloudResolutionPSCloud = 720;
                             } else if (index === 2) {
-                                Chiaki.settings.cloudResolutionPSCloud = 1440;
+                                AstraPlay.settings.cloudResolutionPSCloud = 1440;
                             } else if (index === 3) {
-                                Chiaki.settings.cloudResolutionPSCloud = 2160;
+                                AstraPlay.settings.cloudResolutionPSCloud = 2160;
                             } else {
-                                Chiaki.settings.cloudResolutionPSCloud = 1080;
+                                AstraPlay.settings.cloudResolutionPSCloud = 1080;
                             }
                         }
                         visible: selectedCloudService == SettingsDialog.CloudService.PSCloud
@@ -2953,7 +2953,7 @@ DialogView {
                         Layout.preferredWidth: 400
                         model: ["720p", "1080p", "1440p", "2160p"]
                         currentIndex: {
-                            let res = Chiaki.settings.cloudResolutionPSNOW;
+                            let res = AstraPlay.settings.cloudResolutionPSNOW;
                             if (res === 720) return 0;
                             if (res === 1440) return 2;
                             if (res === 2160) return 3;
@@ -2961,13 +2961,13 @@ DialogView {
                         }
                         onActivated: index => {
                             if (index === 0) {
-                                Chiaki.settings.cloudResolutionPSNOW = 720;
+                                AstraPlay.settings.cloudResolutionPSNOW = 720;
                             } else if (index === 2) {
-                                Chiaki.settings.cloudResolutionPSNOW = 1440;
+                                AstraPlay.settings.cloudResolutionPSNOW = 1440;
                             } else if (index === 3) {
-                                Chiaki.settings.cloudResolutionPSNOW = 2160;
+                                AstraPlay.settings.cloudResolutionPSNOW = 2160;
                             } else {
-                                Chiaki.settings.cloudResolutionPSNOW = 1080;
+                                AstraPlay.settings.cloudResolutionPSNOW = 1080;
                             }
                         }
                         visible: selectedCloudService == SettingsDialog.CloudService.PSNOW
@@ -3014,8 +3014,8 @@ DialogView {
                             // support can't be reliably enumerated). "Auto" (empty
                             // value) clears the override so the auto-detected
                             // catalog/region locale is used instead.
-                            let supported = Chiaki.settings.cloudSupportedLanguages();
-                            let catalogLocale = Chiaki.settings.cloudStoreLocale || "en-US";
+                            let supported = AstraPlay.settings.cloudSupportedLanguages();
+                            let catalogLocale = AstraPlay.settings.cloudStoreLocale || "en-US";
                             let values = [""];
                             let labels = [qsTr("Auto") + " (" + catalogLocale + ")"];
                             for (let i = 0; i < supported.length; i++) {
@@ -3028,13 +3028,13 @@ DialogView {
                         }
                         currentIndex: {
                             // Empty override selects "Auto" (index 0).
-                            let sel = Chiaki.settings.cloudGameLanguage || "";
+                            let sel = AstraPlay.settings.cloudGameLanguage || "";
                             let idx = languageValues.indexOf(sel);
                             return idx >= 0 ? idx : 0;
                         }
                         onActivated: index => {
                             // "" (Auto) clears the override; otherwise store the pick.
-                            Chiaki.settings.cloudGameLanguage = languageValues[index] || "";
+                            AstraPlay.settings.cloudGameLanguage = languageValues[index] || "";
                         }
                         // Thread this control into the cloud-tab focus chain, between
                         // Resolution and Datacenter for whichever service is visible (it
@@ -3076,7 +3076,7 @@ DialogView {
                         model: {
                             let m = ["Auto"];
                             try {
-                                let datacentersJson = Chiaki.settings.cloudDatacentersJsonPSCloud || "[]";
+                                let datacentersJson = AstraPlay.settings.cloudDatacentersJsonPSCloud || "[]";
                                 let datacenters = JSON.parse(datacentersJson);
                                 if (Array.isArray(datacenters)) {
                                     for (let i = 0; i < datacenters.length; i++) {
@@ -3098,7 +3098,7 @@ DialogView {
                             return m;
                         }
                         currentIndex: {
-                            let selected = Chiaki.settings.cloudDatacenterPSCloud || "Auto";
+                            let selected = AstraPlay.settings.cloudDatacenterPSCloud || "Auto";
                             if (selected === "Auto") return 0;
                             for (let i = 1; i < model.length; i++) {
                                 if (model[i].startsWith(selected)) return i;
@@ -3107,14 +3107,14 @@ DialogView {
                         }
                         onActivated: index => {
                             if (index === 0) {
-                                Chiaki.settings.cloudDatacenterPSCloud = "Auto";
+                                AstraPlay.settings.cloudDatacenterPSCloud = "Auto";
                             } else {
                                 let name = model[index];
                                 let match = name.match(/^([^(]+)/);
                                 if (match) {
-                                    Chiaki.settings.cloudDatacenterPSCloud = match[1].trim();
+                                    AstraPlay.settings.cloudDatacenterPSCloud = match[1].trim();
                                 } else {
-                                    Chiaki.settings.cloudDatacenterPSCloud = name;
+                                    AstraPlay.settings.cloudDatacenterPSCloud = name;
                                 }
                             }
                         }
@@ -3142,7 +3142,7 @@ DialogView {
                         model: {
                             let m = ["Auto"];
                             try {
-                                let datacentersJson = Chiaki.settings.cloudDatacentersJsonPSNOW || "[]";
+                                let datacentersJson = AstraPlay.settings.cloudDatacentersJsonPSNOW || "[]";
                                 let datacenters = JSON.parse(datacentersJson);
                                 if (Array.isArray(datacenters)) {
                                     for (let i = 0; i < datacenters.length; i++) {
@@ -3164,7 +3164,7 @@ DialogView {
                             return m;
                         }
                         currentIndex: {
-                            let selected = Chiaki.settings.cloudDatacenterPSNOW || "Auto";
+                            let selected = AstraPlay.settings.cloudDatacenterPSNOW || "Auto";
                             if (selected === "Auto") return 0;
                             for (let i = 1; i < model.length; i++) {
                                 if (model[i].startsWith(selected)) return i;
@@ -3173,14 +3173,14 @@ DialogView {
                         }
                         onActivated: index => {
                             if (index === 0) {
-                                Chiaki.settings.cloudDatacenterPSNOW = "Auto";
+                                AstraPlay.settings.cloudDatacenterPSNOW = "Auto";
                             } else {
                                 let name = model[index];
                                 let match = name.match(/^([^(]+)/);
                                 if (match) {
-                                    Chiaki.settings.cloudDatacenterPSNOW = match[1].trim();
+                                    AstraPlay.settings.cloudDatacenterPSNOW = match[1].trim();
                                 } else {
-                                    Chiaki.settings.cloudDatacenterPSNOW = name;
+                                    AstraPlay.settings.cloudDatacenterPSNOW = name;
                                 }
                             }
                         }
@@ -3235,8 +3235,8 @@ DialogView {
                             from: 2
                             to: 200
                             stepSize: 1
-                            value: Chiaki.settings.cloudBitratePSCloud / 1000
-                            onMoved: Chiaki.settings.cloudBitratePSCloud = value * 1000
+                            value: AstraPlay.settings.cloudBitratePSCloud / 1000
+                            onMoved: AstraPlay.settings.cloudBitratePSCloud = value * 1000
                             KeyNavigation.up: datacenterPSCloud
                             KeyNavigation.priority: KeyNavigation.BeforeItem
                             lastInFocusChain: selectedCloudService == SettingsDialog.CloudService.PSCloud
@@ -3277,8 +3277,8 @@ DialogView {
                             from: 2
                             to: 200
                             stepSize: 1
-                            value: Chiaki.settings.cloudBitratePSNOW / 1000
-                            onMoved: Chiaki.settings.cloudBitratePSNOW = value * 1000
+                            value: AstraPlay.settings.cloudBitratePSNOW / 1000
+                            onMoved: AstraPlay.settings.cloudBitratePSNOW = value * 1000
                             KeyNavigation.up: datacenterPSNOW
                             KeyNavigation.priority: KeyNavigation.BeforeItem
                             lastInFocusChain: selectedCloudService == SettingsDialog.CloudService.PSNOW
@@ -3303,10 +3303,10 @@ DialogView {
                 onTriggered: {
                     if(controllerMappingDialog.resetMapping)
                     {
-                        if(!Chiaki.controllerMappingDefaultMapping)
+                        if(!AstraPlay.controllerMappingDefaultMapping)
                         {
                             quitControllerMapping = false;
-                            Chiaki.controllerMappingReset();
+                            AstraPlay.controllerMappingReset();
                         }
                         controllerMappingDialog.close();
                     }
@@ -3432,7 +3432,7 @@ DialogView {
                         wrapMode: Text.Wrap
                         textFormat: Text.PlainText
                         font.pixelSize: 11
-                        text: Chiaki.settings.getLicenseText()
+                        text: AstraPlay.settings.getLicenseText()
                     }
                 }
             }
@@ -3453,7 +3453,7 @@ DialogView {
             closePolicy: Popup.CloseOnPressOutside
             onOpened: keyLabel.forceActiveFocus(Qt.TabFocusReason)
             onClosed: {
-                let item = chiakiKeys.itemAt(keysIndex)
+                let item = controllerKeys.itemAt(keysIndex)
                 if(item)
                 {
                     let item2 = item.children[1];
@@ -3477,7 +3477,7 @@ DialogView {
                 focus: true
                 text: qsTr("Press any key to configure button or click close")
                 Keys.onReleased: (event) => {
-                    var name = Chiaki.settings.changeControllerKey(keyDialog.buttonValue, event.key);
+                    var name = AstraPlay.settings.changeControllerKey(keyDialog.buttonValue, event.key);
                     keyDialog.buttonCallback(name);
                     keyDialog.close();
                 }
@@ -3497,7 +3497,7 @@ DialogView {
             closePolicy: Popup.CloseOnPressOutside
             onOpened: {
                 controllerLabel.forceActiveFocus(Qt.TabFocusReason);
-                Chiaki.creatingControllerMapping(true);
+                AstraPlay.creatingControllerMapping(true);
             }
             onClosed: {
                 if(resetFocus)
@@ -3514,7 +3514,7 @@ DialogView {
                     focus = false;
                 }
                 if(quitControllerMapping)
-                    Chiaki.controllerMappingQuit();
+                    AstraPlay.controllerMappingQuit();
                 else
                     quitControllerMapping = true;
             }
@@ -3562,11 +3562,11 @@ DialogView {
         }
 
         Connections {
-            target: Chiaki
+            target: AstraPlay
 
             function onControllerMappingInProgressChanged()
             {
-                if(Chiaki.controllerMappingInProgress)
+                if(AstraPlay.controllerMappingInProgress)
                     openTimer.start();
             }
 

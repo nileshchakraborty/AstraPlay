@@ -15,8 +15,8 @@ Item {
 
     function controllerButton(name) {
         let type = "deck";
-        for (let i = 0; i < Chiaki.controllers.length; ++i) {
-            if (Chiaki.controllers[i].playStation) {
+        for (let i = 0; i < AstraPlay.controllers.length; ++i) {
+            if (AstraPlay.controllers[i].playStation) {
                 type = "ps";
                 break;
             }
@@ -24,14 +24,14 @@ Item {
         return "image://svg/button-%1#%2".arg(type).arg(name);
     }
     function grabInput(item) {
-        Chiaki.window.grabInput();
+        AstraPlay.window.grabInput();
         restoreFocusItems.push(Window.window.activeFocusItem);
         if (item)
             item.forceActiveFocus(Qt.TabFocusReason);
     }
 
     function releaseInput() {
-        Chiaki.window.releaseInput();
+        AstraPlay.window.releaseInput();
         let item = restoreFocusItems.pop();
         if (item && item.visible)
             item.forceActiveFocus(Qt.TabFocusReason);
@@ -39,7 +39,7 @@ Item {
 
     function autoRegister(auto, host, ps5) {
         if(auto)
-            Chiaki.autoRegister()
+            AstraPlay.autoRegister()
         else
             showRegistDialog(host, ps5);
     }
@@ -122,64 +122,64 @@ Item {
             stack.replace(stack.get(0), mainViewComponent);
         
         // Check if ping timeout dialog should be shown
-        if (Chiaki.showPingTimeoutDialog) {
+        if (AstraPlay.showPingTimeoutDialog) {
             Qt.callLater(() => {
                 root.showMessageDialog(
                     qsTr("Ping Too High"),
                     qsTr("Ping must be less than 80ms to start a cloud session.\n\nTo continue anyway, go to Settings → Cloud and manually select a datacenter for your service (Owned Games or Streamable Games)."),
                     () => {
-                        Chiaki.showPingTimeoutDialog = false;
+                        AstraPlay.showPingTimeoutDialog = false;
                     }
                 );
             });
         }
         
         // Check if authorization failed dialog should be shown
-        if (Chiaki.showAuthorizationFailedDialog) {
+        if (AstraPlay.showAuthorizationFailedDialog) {
             Qt.callLater(() => {
                 root.showConfirmDialog(
                     qsTr("Authentication Required"),
                     qsTr("Your NPSSO token is likely expired. Please re-login to continue using cloud streaming."),
                     () => {
                         // A button: Open QR login screen
-                        Chiaki.showAuthorizationFailedDialog = false;
+                        AstraPlay.showAuthorizationFailedDialog = false;
                         root.showPSNTokenDialog("", true);
                     },
                     () => {
                         // B button: Just close the dialog
-                        Chiaki.showAuthorizationFailedDialog = false;
+                        AstraPlay.showAuthorizationFailedDialog = false;
                     }
                 );
             });
         }
         
         // Check if PS Plus subscription dialog should be shown
-        if (Chiaki.showPSPlusSubscriptionDialog) {
+        if (AstraPlay.showPSPlusSubscriptionDialog) {
             Qt.callLater(() => {
                 root.showMessageDialog(
                     qsTr("PS Plus Subscription Required"),
                     qsTr("You may not have an active PS Plus subscription. Please check your subscription status and try again."),
                     () => {
-                        Chiaki.showPSPlusSubscriptionDialog = false;
+                        AstraPlay.showPSPlusSubscriptionDialog = false;
                     }
                 );
             });
         }
         
         // Check if account privacy settings dialog should be shown
-        if (Chiaki.showAccountPrivacySettingsDialog) {
+        if (AstraPlay.showAccountPrivacySettingsDialog) {
             Qt.callLater(() => {
-                accountPrivacyDialog.upgradeUrl = Chiaki.accountPrivacyUpgradeUrl || "";
+                accountPrivacyDialog.upgradeUrl = AstraPlay.accountPrivacyUpgradeUrl || "";
                 accountPrivacyDialog.callback = () => {
                     // Ignore Forever - set setting to skip future checks
-                    Chiaki.settings.accountAttributesCheckPassed = true;
-                    Chiaki.showAccountPrivacySettingsDialog = false;
-                    Chiaki.accountPrivacyUpgradeUrl = "";
+                    AstraPlay.settings.accountAttributesCheckPassed = true;
+                    AstraPlay.showAccountPrivacySettingsDialog = false;
+                    AstraPlay.accountPrivacyUpgradeUrl = "";
                 };
                 accountPrivacyDialog.rejectCallback = () => {
                     // Cancel - just close dialog
-                    Chiaki.showAccountPrivacySettingsDialog = false;
-                    Chiaki.accountPrivacyUpgradeUrl = "";
+                    AstraPlay.showAccountPrivacySettingsDialog = false;
+                    AstraPlay.accountPrivacyUpgradeUrl = "";
                 };
                 accountPrivacyDialog.restoreFocusItem = Window.window.activeFocusItem;
                 accountPrivacyDialog.open();
@@ -317,11 +317,11 @@ Item {
 
 
     Component.onCompleted: {
-        if (Chiaki.session)
+        if (AstraPlay.session)
             stack.replace(stack.get(0), streamViewComponent, {}, StackView.Immediate);
-        else if (Chiaki.window.directStream)
+        else if (AstraPlay.window.directStream)
             stack.replace(stack.get(0), streamViewComponent, {}, StackView.Immediate);
-        else if (Chiaki.autoConnect)
+        else if (AstraPlay.autoConnect)
             stack.replace(stack.get(0), autoConnectViewComponent, {}, StackView.Immediate);
 
         // [ASTRAPLAY BEGIN] The Windows package updater owns MSIX updates.
@@ -484,10 +484,10 @@ Item {
     }
 
     Connections {
-        target: Chiaki
+        target: AstraPlay
 
         function onSessionChanged() {
-            if (Chiaki.session)
+            if (AstraPlay.session)
                 root.showStreamView();
         }
 
@@ -496,10 +496,10 @@ Item {
         }
 
         function onPsnCredsExpired() {
-            Chiaki.settings.psnRefreshToken = ""
-            Chiaki.settings.psnAuthToken = ""
-            Chiaki.settings.psnAuthTokenExpiry = ""
-            Chiaki.settings.psnAccountId = ""
+            AstraPlay.settings.psnRefreshToken = ""
+            AstraPlay.settings.psnAuthToken = ""
+            AstraPlay.settings.psnAuthTokenExpiry = ""
+            AstraPlay.settings.psnAccountId = ""
             root.showPSNTokenDialog(true);
         }
 
@@ -537,7 +537,7 @@ Item {
 
         function onRegistDialogRequested(host, ps5, duid) {
             // Check if user is logged into PSN
-            const isPsnLoggedIn = Chiaki.settings.psnAuthToken && Chiaki.settings.psnAuthToken !== "";
+            const isPsnLoggedIn = AstraPlay.settings.psnAuthToken && AstraPlay.settings.psnAuthToken !== "";
             
             if(!isPsnLoggedIn) {
                 // Not logged in to PSN - ask if they want to login for automatic setup or manually register

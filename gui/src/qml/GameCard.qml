@@ -21,8 +21,8 @@ Rectangle {
     // Generate controller button icon path
     function getControllerIcon(buttonName) {
         let type = "deck";
-        for (let i = 0; i < Chiaki.controllers.length; ++i) {
-            if (Chiaki.controllers[i].playStation) {
+        for (let i = 0; i < AstraPlay.controllers.length; ++i) {
+            if (AstraPlay.controllers[i].playStation) {
                 type = "ps";
                 break;
             }
@@ -32,11 +32,11 @@ Rectangle {
     
     // Listen for image updates from backend
     Connections {
-        target: ChiakiGames
+        target: AstraPlayGames
         
         function onGameImageUpdated(titleId) {
             if (gameData && gameData.titleId === titleId) {
-                cachedImageUrl = ChiakiGames.getGameImage(titleId)
+                cachedImageUrl = AstraPlayGames.getGameImage(titleId)
             }
         }
     }
@@ -44,7 +44,7 @@ Rectangle {
     // Initial image load
     Component.onCompleted: {
         if (gameData && gameData.titleId) {
-            cachedImageUrl = ChiakiGames.getGameImage(gameData.titleId)
+            cachedImageUrl = AstraPlayGames.getGameImage(gameData.titleId)
         }
     }
     

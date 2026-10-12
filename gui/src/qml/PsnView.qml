@@ -21,18 +21,18 @@ Rectangle {
         allowClose = false;
         cancelling = true;
         infoLabel.text = qsTr("Cancelling connection with console...");
-        Chiaki.psnCancel(false);
+        AstraPlay.psnCancel(false);
     }
 
     function grabInput(item) {
-        Chiaki.window.grabInput();
+        AstraPlay.window.grabInput();
         restoreFocusItems.push(Window.window.activeFocusItem);
         if (item)
             item.forceActiveFocus(Qt.TabFocusReason);
     }
 
     function releaseInput() {
-        Chiaki.window.releaseInput();
+        AstraPlay.window.releaseInput();
         let item = restoreFocusItems.pop();
         if (item && item.visible)
             item.forceActiveFocus(Qt.TabFocusReason);
@@ -87,7 +87,7 @@ Rectangle {
             visible: opacity
             text: {
                 var typeString = registOnly ? qsTr("automatic registration") : qsTr("remote connection")
-                qsTr("Press %1 to cancel %2").arg(Chiaki.controllers.length ? (root.controllerButton("circle").includes("deck") ? "B" : "Circle") : "escape or right-click").arg(typeString)
+                qsTr("Press %1 to cancel %2").arg(AstraPlay.controllers.length ? (root.controllerButton("circle").includes("deck") ? "B" : "Circle") : "escape or right-click").arg(typeString)
             }
         }
 
@@ -157,13 +157,13 @@ Rectangle {
             textVisible = true
             view.releaseInput()
         }
-        onAccepted: Chiaki.enterPin(pinField.text)
-        onRejected: Chiaki.stopSession(false)
+        onAccepted: AstraPlay.enterPin(pinField.text)
+        onRejected: AstraPlay.stopSession(false)
         Material.roundedScale: Material.MediumScale
 
         TextField {
             id: pinField
-            echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+            echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
             implicitWidth: 200
             validator: RegularExpressionValidator { regularExpression: /[0-9]{4}/ }
             Keys.onReturnPressed: {
@@ -174,46 +174,46 @@ Rectangle {
     }
 
     Connections {
-        target: Chiaki
+        target: AstraPlay
 
         function onConnectStateChanged() 
         {
-            switch(Chiaki.connectState)
+            switch(AstraPlay.connectState)
             {
-                case Chiaki.PsnConnectState.LinkingConsole:
+                case AstraPlay.PsnConnectState.LinkingConsole:
                     infoLabel.text = registOnly ? qsTr("Registering PlayStation console with AstraPlay ...") : qsTr("Linking AstraPlay with PlayStation console ...")
                     view.allowClose = false
                     break
-                case Chiaki.PsnConnectState.RegisteringConsole:
+                case AstraPlay.PsnConnectState.RegisteringConsole:
                     view.registOnly = true;
                     break
-                case Chiaki.PsnConnectState.RegistrationFinished:
+                case AstraPlay.PsnConnectState.RegistrationFinished:
                     infoLabel.text = qsTr("Successfully registered console")
                     failTimer.restart()
                     break
-                case Chiaki.PsnConnectState.DataConnectionStart:
+                case AstraPlay.PsnConnectState.DataConnectionStart:
                     infoLabel.text = qsTr("Console Linked ... Establishing data connection with console...")
                     view.allowClose = true
                     break
-                case Chiaki.PsnConnectState.DataConnectionFinished:
+                case AstraPlay.PsnConnectState.DataConnectionFinished:
                     view.allowClose = false
                     break
-                case Chiaki.PsnConnectState.ConnectFailed:
+                case AstraPlay.PsnConnectState.ConnectFailed:
                     if(!cancelling)
                         infoLabel.text = qsTr("Connection failed closing...")
                     failTimer.running = true
                     break
-                case Chiaki.PsnConnectState.ConnectFailedStart:
+                case AstraPlay.PsnConnectState.ConnectFailedStart:
                     if(!cancelling)
                         infoLabel.text = qsTr("Couldn't establish connection with PlayStation. Please try again...")
                     failTimer.running = true
                     break
-                case Chiaki.PsnConnectState.ConnectFailedConsoleUnreachable:
+                case AstraPlay.PsnConnectState.ConnectFailedConsoleUnreachable:
                     if(!cancelling)
                         infoLabel.text = qsTr("Couldn't contact PlayStation over established connection, likely unsupported network type")
                     failTimer.running = true
                     break
-                case Chiaki.PsnConnectState.WaitingForInternet:
+                case AstraPlay.PsnConnectState.WaitingForInternet:
                     infoLabel.text = qsTr("Establishing Internet Connection...")
                     break
             }
@@ -221,7 +221,7 @@ Rectangle {
 
         function onSessionChanged() 
         {
-            if (!Chiaki.session) {
+            if (!AstraPlay.session) {
                 if (errorTitleLabel.text)
                     failTimer.start();
                 else if(!failTimer.running)

@@ -70,22 +70,22 @@ Pane {
             }
         })
         
-        if (Chiaki.autoConnect || Chiaki.window.directStream)
+        if (AstraPlay.autoConnect || AstraPlay.window.directStream)
             return;
 
         // First launch: show walkthrough; Steam check runs next time MainView activates (walkthrough close).
-        if (!Chiaki.settings.setupGuideShown) {
+        if (!AstraPlay.settings.setupGuideShown) {
             Qt.callLater(() => {
                 root.showConsoleSetupWalkthrough();
-                Chiaki.settings.setupGuideShown = true;
+                AstraPlay.settings.setupGuideShown = true;
             });
             return;
         }
 
         // Add AstraPlay to Steam if missing (once per session).
-        if (!root.steamShortcutChecked && typeof Chiaki.ensureAstraPlaySteamShortcut === "function") {
+        if (!root.steamShortcutChecked && typeof AstraPlay.ensureAstraPlaySteamShortcut === "function") {
             root.steamShortcutChecked = true;
-            Chiaki.ensureAstraPlaySteamShortcut((created) => {
+            AstraPlay.ensureAstraPlaySteamShortcut((created) => {
                 if (created)
                     gamingModeAddedDialog.open();
             });
@@ -127,8 +127,8 @@ Pane {
             if (mainTabBar.currentIndex < mainTabBar.count - 1) {
                 mainTabBar.currentIndex = mainTabBar.count - 1;
                 event.accepted = true;
-            } else if (Chiaki.settings.psnAuthToken) {
-                Chiaki.refreshPsnToken();
+            } else if (AstraPlay.settings.psnAuthToken) {
+                AstraPlay.refreshPsnToken();
                 event.accepted = true;
             } else {
                 root.showPSNTokenDialog("", false);
@@ -136,7 +136,7 @@ Pane {
             }
             break;
         case Qt.Key_F1:
-            if (typeof Chiaki.createSteamShortcut === "function") root.showSteamShortcutDialog(false);
+            if (typeof AstraPlay.createSteamShortcut === "function") root.showSteamShortcutDialog(false);
             event.accepted = true;
             break;
         case Qt.Key_F2:
@@ -248,7 +248,7 @@ Pane {
             
             // Load saved tab on startup
             Component.onCompleted: {
-                let savedTab = Chiaki.settings.lastSelectedMainTab;
+                let savedTab = AstraPlay.settings.lastSelectedMainTab;
                 if (savedTab >= 0 && savedTab < count) {
                     currentIndex = savedTab;
                 }
@@ -256,7 +256,7 @@ Pane {
             
             // Save tab when it changes
             onCurrentIndexChanged: {
-                Chiaki.settings.lastSelectedMainTab = currentIndex;
+                AstraPlay.settings.lastSelectedMainTab = currentIndex;
             }
 
             TabButton {
@@ -449,7 +449,7 @@ Pane {
                             return "qrc:/icons/login-24px.svg";
                         }
                         // On remote play tab, show refresh if logged in, login if not
-                        return Chiaki.settings.psnAuthToken ? "qrc:/icons/refresh-24px.svg" : "qrc:/icons/login-24px.svg";
+                        return AstraPlay.settings.psnAuthToken ? "qrc:/icons/refresh-24px.svg" : "qrc:/icons/login-24px.svg";
                     }
                     icon.width: 24
                     icon.height: 24
@@ -463,7 +463,7 @@ Pane {
                         return qsTr("Update login tokens");
                     }
                     // On remote play tab, show current behavior
-                    return Chiaki.settings.psnAuthToken ? qsTr("Refresh Games") : qsTr("Login");
+                    return AstraPlay.settings.psnAuthToken ? qsTr("Refresh Games") : qsTr("Login");
                 }
                 
                 // Keyboard navigation
@@ -489,14 +489,14 @@ Pane {
                             root.showPSNTokenDialog("", false);
                         } else {
                             // On remote play tab, use current behavior
-                            if (Chiaki.settings.psnAuthToken) {
+                            if (AstraPlay.settings.psnAuthToken) {
                                 // Show immediate feedback toast
                                 errorTitleLabel.text = qsTr("Refreshing");
                                 errorTextLabel.text = qsTr("Updating games...");
                                 errorToast.color = "#2196F3";
                                 errorHideTimer.start();
                                 
-                                Chiaki.refreshPsnToken()
+                                AstraPlay.refreshPsnToken()
                             } else {
                                 root.showPSNTokenDialog("", false)
                             }
@@ -739,7 +739,7 @@ Pane {
             keyNavigationWraps: true
             cellWidth: width / 2
             cellHeight: 240
-        model: Chiaki.hosts
+        model: AstraPlay.hosts
             
             // Custom property to track selected card for highlighting
             property int selectedIndex: -1
@@ -898,7 +898,7 @@ Pane {
                 property bool canPin: modelData.registered
                 property bool hasGames: {
                     if (!modelData.duid) return false
-                    let gamesJson = Chiaki.getPsnInstalledGames()
+                    let gamesJson = AstraPlay.getPsnInstalledGames()
                     if (!gamesJson || gamesJson === "{}") return false
                     try {
                         let devices = JSON.parse(gamesJson)
@@ -1206,7 +1206,7 @@ Pane {
                                     fill: parent
                                     margins: 8
                                 }
-                                    text: modelData.address ? qsTr("IP: %1").arg(Chiaki.settings.streamerMode ? "hidden" : modelData.address) : ""
+                                    text: modelData.address ? qsTr("IP: %1").arg(AstraPlay.settings.streamerMode ? "hidden" : modelData.address) : ""
                                     font.pixelSize: 14
                                     color: Qt.rgba(255, 255, 255, 0.7)
                                     elide: Text.ElideRight
@@ -1219,22 +1219,22 @@ Pane {
 
             function connectToHost() {
                 if(modelData.discovered)
-                    Chiaki.connectToHost(index, modelData.name);
+                    AstraPlay.connectToHost(index, modelData.name);
                 else
-                    Chiaki.connectToHost(index);
+                    AstraPlay.connectToHost(index);
             }
 
             function wakeUpHost() {
                 if(!modelData.discovered && !modelData.duid)
-                    Chiaki.wakeUpHost(index);
+                    AstraPlay.wakeUpHost(index);
             }
 
             function deleteHost() {
                 if (modelData.manual)
-                    root.showConfirmDialog(qsTr("Delete Console"), qsTr("Are you sure you want to delete this console?"), () => {Chiaki.deleteHost(index)});
+                    root.showConfirmDialog(qsTr("Delete Console"), qsTr("Are you sure you want to delete this console?"), () => {AstraPlay.deleteHost(index)});
                         
                 else if (modelData.discovered && !modelData.registered)
-                    root.showConfirmDialog(qsTr("Hide Console"), qsTr("Are you sure you want to hide this console?") + "\n\n" + qsTr("Note: You can unhide from the Consoles section of the Settings under Hidden Consoles"), () => Chiaki.hideHost(modelData.mac, modelData.name));
+                    root.showConfirmDialog(qsTr("Hide Console"), qsTr("Are you sure you want to hide this console?") + "\n\n" + qsTr("Note: You can unhide from the Consoles section of the Settings under Hidden Consoles"), () => AstraPlay.hideHost(modelData.mac, modelData.name));
             }
 
             function setConsolePin() {
@@ -1310,7 +1310,7 @@ Pane {
         
         // Update dialog when hosts are added/removed
         Connections {
-            target: Chiaki
+            target: AstraPlay
             function onHostsChanged() {
                 console.log("MainView: Hosts changed, count is now:", hostsView.count);
                 
@@ -1471,8 +1471,8 @@ Pane {
                     text: qsTr("Enable Local Discovery")
                     font.pixelSize: 14
                     font.weight: Font.Medium
-                    visible: !Chiaki.discoveryEnabled
-                    onClicked: Chiaki.discoveryEnabled = true
+                    visible: !AstraPlay.discoveryEnabled
+                    onClicked: AstraPlay.discoveryEnabled = true
                     
                     // Keyboard navigation
                     KeyNavigation.up: addManuallyButton
@@ -1525,7 +1525,7 @@ Pane {
                     color: Qt.rgba(255, 255, 255, 0.6)
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
-                    visible: !Chiaki.discoveryEnabled
+                    visible: !AstraPlay.discoveryEnabled
                 }
                 
                 // Setup Guide Button (Tertiary option)
@@ -1712,7 +1712,7 @@ Pane {
                 // Shortcut hint (X/Square button; only relevant when Steam is installed)
                 RowLayout {
                     spacing: 6
-                    visible: mainTabBar.currentIndex === 1 && Chiaki.cloudSteamShortcutEnabled
+                    visible: mainTabBar.currentIndex === 1 && AstraPlay.cloudSteamShortcutEnabled
                     Image {
                         Layout.preferredWidth: 18
                         Layout.preferredHeight: 18
@@ -1779,8 +1779,8 @@ Pane {
         visible: mainTabBar.currentIndex === 0  // Only visible on Remote Play tab
         focusPolicy: Qt.StrongFocus
         checkable: true
-        checked: Chiaki.discoveryEnabled
-        onToggled: Chiaki.discoveryEnabled = !Chiaki.discoveryEnabled
+        checked: AstraPlay.discoveryEnabled
+        onToggled: AstraPlay.discoveryEnabled = !AstraPlay.discoveryEnabled
         hoverEnabled: true
         
         ToolTip.visible: hovered || activeFocus

@@ -66,7 +66,7 @@ Dialog {
                 anchors.centerIn: parent
                 width: 200
                 height: 200
-                source: url ? Chiaki.getQRCodeDataUrl(dialog.url, 200) : ""
+                source: url ? AstraPlay.getQRCodeDataUrl(dialog.url, 200) : ""
                 fillMode: Image.PreserveAspectFit
                 
                 BusyIndicator {

@@ -60,7 +60,7 @@ Dialog {
         let escaped_console = consoleDeviceName.replace(/"/g, '\\"')
         let escaped_titleId = gameTitleId.replace(/"/g, '\\"')
         launchOptionsField.text = `--nickname "${escaped_console}" --title-id "${escaped_titleId}" launchTitle`
-        coverImage.source = ChiakiGames.getGameImage(gameTitleId)
+        coverImage.source = AstraPlayGames.getGameImage(gameTitleId)
         
         open()
     }
@@ -102,7 +102,7 @@ Dialog {
         // Fetch game details after dialog opens
         if (productId) {
             console.log("[GameShortcutDialog] Fetching game details for productId:", productId);
-            Chiaki.cloudCatalog.fetchGameDetails(productId, function(success, message, jsonData) {
+            AstraPlay.cloudCatalog.fetchGameDetails(productId, function(success, message, jsonData) {
                 if (success && jsonData) {
                     try {
                         let details = JSON.parse(jsonData);
@@ -219,13 +219,13 @@ Dialog {
                     // Get Steam base directory
                     let steamDir = ""
                     try {
-                        steamDir = Chiaki.getSteamBaseDir()
+                        steamDir = AstraPlay.getSteamBaseDir()
                     } catch (e) {
                         console.warn("Could not get Steam base dir:", e)
                     }
                     
                     // Start creation
-                    Chiaki.cloudCatalog.createCloudSteamShortcut(
+                    AstraPlay.cloudCatalog.createCloudSteamShortcut(
                         gameIdentifier,
                         gameNameField.text.trim(),
                         command,
@@ -244,7 +244,7 @@ Dialog {
                 } else {
                     // Remote play shortcut creation
                     // Validate cached data
-                    let cachedData = ChiakiGames.getCachedStoreResponse(titleId)
+                    let cachedData = AstraPlayGames.getCachedStoreResponse(titleId)
                     if (!cachedData || cachedData.length === 0) {
                         dialog.close()
                         dialog.showToast(qsTr("⚠ Game artwork is still loading. Please wait and try again."), "#FF9800")
@@ -256,7 +256,7 @@ Dialog {
                     logArea.text = qsTr("Starting shortcut creation...\n")
                     
                     // Start creation
-                    ChiakiGames.createGameSteamShortcut(
+                    AstraPlayGames.createGameSteamShortcut(
                         titleId,
                         gameNameField.text.trim(),
                         function(msg, ok, done) {

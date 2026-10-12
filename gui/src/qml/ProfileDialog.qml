@@ -9,7 +9,7 @@ import "controls" as C
 
 DialogView {
     id: profileDialog
-    readonly property bool steamCloudAvailable: (typeof Chiaki.clearSteamCloudData === "function")
+    readonly property bool steamCloudAvailable: (typeof AstraPlay.clearSteamCloudData === "function")
 
     buttonText: {
         if(deleteBox.visible && deleteBox.checked)
@@ -25,29 +25,29 @@ DialogView {
         else if(profileName.visible)
             profileName.text.trim();
         else
-            !(profileComboBox.model[profileComboBox.currentIndex] == "default" && Chiaki.settings.currentProfile == "") && profileComboBox.model[profileComboBox.currentIndex] != Chiaki.settings.currentProfile
+            !(profileComboBox.model[profileComboBox.currentIndex] == "default" && AstraPlay.settings.currentProfile == "") && profileComboBox.model[profileComboBox.currentIndex] != AstraPlay.settings.currentProfile
     }
     onAccepted: {
         if(deleteBox.visible && deleteBox.checked) {
             let profileToDelete = profileComboBox.model[profileComboBox.currentIndex]
             // Delete locally first
-            Chiaki.settings.deleteProfile(profileToDelete)
+            AstraPlay.settings.deleteProfile(profileToDelete)
             // Then delete from Steam Cloud if available
-            if (typeof Chiaki.deleteProfileFromCloud === "function") {
-                Chiaki.deleteProfileFromCloud(profileToDelete)
+            if (typeof AstraPlay.deleteProfileFromCloud === "function") {
+                AstraPlay.deleteProfileFromCloud(profileToDelete)
             }
         }
         else if(profileName.visible) {
-            Chiaki.settings.currentProfile = profileName.text.trim()
+            AstraPlay.settings.currentProfile = profileName.text.trim()
             stack.pop()
             root.showToast(qsTr("Profile Created"), qsTr("Restart app for changes to take effect"), "#FF9800")
             return
         }
         else {
-            let oldProfile = Chiaki.settings.currentProfile
+            let oldProfile = AstraPlay.settings.currentProfile
             let newProfile = profileComboBox.model[profileComboBox.currentIndex] == "default" ? "" : profileComboBox.model[profileComboBox.currentIndex]
             if (oldProfile !== newProfile) {
-                Chiaki.settings.currentProfile = newProfile
+                AstraPlay.settings.currentProfile = newProfile
                 stack.pop()
                 root.showToast(qsTr("Profile Switched"), qsTr("Restart app for changes to take effect"), "#FF9800")
                 return
@@ -76,8 +76,8 @@ DialogView {
                 id: profileComboBox
                 Layout.preferredWidth: 400
                 firstInFocusChain: false
-                model: Chiaki.settings.profiles
-                currentIndex: Math.max(0, model.indexOf(Chiaki.settings.currentProfile))
+                model: AstraPlay.settings.profiles
+                currentIndex: Math.max(0, model.indexOf(AstraPlay.settings.currentProfile))
                 lastInFocusChain: false
                 
                 // This handler is triggered when user selects an item (press A on item in popup)
@@ -118,12 +118,12 @@ DialogView {
 
             Label {
                 text: qsTr("Delete selected profile")
-                visible: profileComboBox.model[profileComboBox.currentIndex] != "default" && profileComboBox.model[profileComboBox.currentIndex] != "create new profile" && profileComboBox.model[profileComboBox.currentIndex] != Chiaki.settings.currentProfile
+                visible: profileComboBox.model[profileComboBox.currentIndex] != "default" && profileComboBox.model[profileComboBox.currentIndex] != "create new profile" && profileComboBox.model[profileComboBox.currentIndex] != AstraPlay.settings.currentProfile
             }
 
             C.CheckBox {
                 id: deleteBox
-                visible: profileComboBox.model[profileComboBox.currentIndex] != "default" && profileComboBox.model[profileComboBox.currentIndex] != "create new profile" && profileComboBox.model[profileComboBox.currentIndex] != Chiaki.settings.currentProfile
+                visible: profileComboBox.model[profileComboBox.currentIndex] != "default" && profileComboBox.model[profileComboBox.currentIndex] != "create new profile" && profileComboBox.model[profileComboBox.currentIndex] != AstraPlay.settings.currentProfile
             }
 
             Label {
@@ -136,8 +136,8 @@ DialogView {
             C.CheckBox {
                 id: steamCloudSyncCheckbox
                 Layout.topMargin: 20
-                checked: Chiaki.settings.steamCloudSync
-                onToggled: Chiaki.settings.steamCloudSync = checked
+                checked: AstraPlay.settings.steamCloudSync
+                onToggled: AstraPlay.settings.steamCloudSync = checked
                 visible: profileDialog.steamCloudAvailable
             }
 
@@ -162,7 +162,7 @@ DialogView {
                     root.showConfirmDialog(
                         qsTr("Clear Steam Cloud Data"),
                         qsTr("Are you sure you want to delete all AstraPlay configuration files from Steam Cloud?\n\nThis will permanently delete all synced profiles from the cloud.\n\nLocal files will not be affected."),
-                        () => Chiaki.clearSteamCloudData()
+                        () => AstraPlay.clearSteamCloudData()
                     );
                 }
             }
