@@ -73,7 +73,7 @@ curl -L -O https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/downloa
 chmod +x linuxdeploy-plugin-qt-${ARCH}.AppImage
 ./linuxdeploy-${ARCH}.AppImage \
     --appdir="${appdir}" \
-    -e "${appdir}/usr/bin/chiaki" \
+    -e "${appdir}/usr/bin/astraplay" \
     -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
     --plugin qt \
     --exclude-library='libva*' \
@@ -194,7 +194,11 @@ fi
 
 export LD_LIBRARY_PATH="${LIBS}:${LD_LIBRARY_PATH}"
 export QT_PLUGIN_PATH="${DIR}/usr/plugins"
-exec "${DIR}/usr/bin/chiaki" "$@"
+if [ -x "${DIR}/usr/bin/astraplay" ]; then
+    exec "${DIR}/usr/bin/astraplay" "$@"
+else
+    exec "${DIR}/usr/bin/chiaki" "$@"
+fi
 EOF
 
 chmod +x "${PORTABLE_DIR}/launch.sh"

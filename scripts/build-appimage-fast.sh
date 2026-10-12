@@ -68,7 +68,7 @@ fi
 # Launch either the unpackaged binary (from AppDir) or the AppImage
 if [ "${SKIP_APPIMAGE:-0}" = "1" ] || [ "$LAUNCH_ONLY" = "1" ]; then
   # Launch from AppDir (unpackaged binary) - used for SKIP_APPIMAGE or LAUNCH_ONLY
-  if [ -x appimage/appdir/usr/bin/chiaki ]; then
+  if [ -x appimage/appdir/usr/bin/astraplay ]; then
     echo "Starting application in foreground with verbose logging enabled..."
     echo "Note: All PSN HTTP requests and responses will be logged to the terminal."
     env LD_LIBRARY_PATH=appimage/appdir/usr/lib:${LD_LIBRARY_PATH-} \
@@ -77,10 +77,10 @@ if [ "${SKIP_APPIMAGE:-0}" = "1" ] || [ "$LAUNCH_ONLY" = "1" ]; then
       QT_QPA_PLATFORM_PLUGIN_PATH=appimage/appdir/usr/plugins/platforms \
       QTWEBENGINEPROCESS_PATH=appimage/appdir/usr/libexec/QtWebEngineProcess \
       QT_LOGGING_RULES="chiaki.gui.debug=true" \
-      appimage/appdir/usr/bin/chiaki
+      appimage/appdir/usr/bin/astraplay
     exit 0
   else
-    echo "ERROR: AppDir launcher not found: appimage/appdir/usr/bin/chiaki" >&2
+    echo "ERROR: AppDir launcher not found: appimage/appdir/usr/bin/astraplay" >&2
     exit 1
   fi
 else

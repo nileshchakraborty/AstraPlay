@@ -230,6 +230,10 @@ endif()
 install(TARGETS astraplay
 		RUNTIME DESTINATION bin
 		BUNDLE DESTINATION bin)
+if(UNIX AND NOT APPLE)
+	# Install backwards compatibility symlink bin/chiaki -> astraplay
+	install(CODE "execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink astraplay \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/chiaki\")")
+endif()
 # [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
 install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
 install(FILES astraplay.png DESTINATION share/icons/hicolor/512x512/apps)
