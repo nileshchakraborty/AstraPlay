@@ -28,6 +28,13 @@
             app:icon="@drawable/ic_gamepad" />
 
         <SwitchPreference
+            app:key="@string/preferences_touchpad_emulation_key"
+            app:title="@string/preferences_touchpad_emulation_title"
+            app:summary="@string/preferences_touchpad_emulation_summary"
+            app:defaultValue="true"
+            app:icon="@drawable/control_touchpad" />
+
+        <SwitchPreference
             app:key="@string/preferences_rumble_enabled_key"
             app:title="@string/preferences_rumble_enabled_title"
             app:summary="@string/preferences_rumble_enabled_summary"

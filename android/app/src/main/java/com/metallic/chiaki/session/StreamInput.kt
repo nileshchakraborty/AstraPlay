@@ -142,6 +142,55 @@ class StreamInput(val context: Context, val preferences: Preferences)
 			controllerStateUpdated()
 	}
 
+	private var emulatedTouchId: UByte? = null
+
+	/**
+	 * Emulate DualSense touchpad button click for mobile telescopic controllers
+	 * that lack a hardware touchpad (Backbone One, Razer Kishi, GameSir, etc.).
+	 */
+	fun sendEmulatedTouchpadClick(down: Boolean)
+	{
+		val hadClick = capturedTouchpadControllerState.buttons and ControllerState.BUTTON_TOUCHPAD != 0U
+		if (down != hadClick)
+		{
+			capturedTouchpadControllerState.buttons =
+				if (down) capturedTouchpadControllerState.buttons or ControllerState.BUTTON_TOUCHPAD
+				else capturedTouchpadControllerState.buttons and ControllerState.BUTTON_TOUCHPAD.inv()
+			controllerStateUpdated()
+		}
+	}
+
+	/**
+	 * Emulate DualSense multi-touch surface tracking normalized coordinates (0..1)
+	 */
+	fun sendEmulatedTouchpadTouch(action: Int, xNorm: Float, yNorm: Float)
+	{
+		val scaledX = (xNorm.coerceIn(0f, 1f) * (ControllerState.TOUCHPAD_WIDTH.toInt() - 1)).toInt().toUShort()
+		val scaledY = (yNorm.coerceIn(0f, 1f) * (ControllerState.TOUCHPAD_HEIGHT.toInt() - 1)).toInt().toUShort()
+
+		when (action)
+		{
+			MotionEvent.ACTION_DOWN -> {
+				emulatedTouchId?.let { capturedTouchpadControllerState.stopTouch(it) }
+				emulatedTouchId = capturedTouchpadControllerState.startTouch(scaledX, scaledY)
+				controllerStateUpdated()
+			}
+			MotionEvent.ACTION_MOVE -> {
+				emulatedTouchId?.let {
+					if (capturedTouchpadControllerState.setTouchPos(it, scaledX, scaledY))
+						controllerStateUpdated()
+				}
+			}
+			MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+				emulatedTouchId?.let {
+					capturedTouchpadControllerState.stopTouch(it)
+					emulatedTouchId = null
+					controllerStateUpdated()
+				}
+			}
+		}
+	}
+
 	/**
 	 * Events delivered while the stream view holds pointer capture. Under capture
 	 * a physical controller touchpad (DualSense/DS4) reports ABSOLUTE per-finger

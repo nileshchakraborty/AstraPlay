@@ -153,6 +153,9 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			showOverlay()
 		}
 
+		// Setup DualSense Touchpad Emulation (Floating Pill & Top-Zone Gesture)
+		setupTouchpadEmulation()
+
 		// Handle back button — on TV show a disconnect confirmation dialog; on touch show the overlay
 		onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
 			override fun handleOnBackPressed() {
@@ -765,7 +768,76 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		binding.aspectRatioLayout.mode = TransformMode.fromButton(binding.displayModeToggle.checkedButtonId)
 	}
 
-	private fun adjustStreamViewAspect() = adjustSurfaceViewAspect()
+	private var topGestureDetector: GestureDetector? = null
+
+	private fun setupTouchpadEmulation()
+	{
+		val emulationEnabled = viewModel.preferences.touchpadEmulationEnabled
+		binding.touchpadPillContainer.visibility = if (emulationEnabled) View.VISIBLE else View.GONE
+
+		binding.touchpadPillContainer.setOnTouchListener { v, event ->
+			when (event.actionMasked) {
+				MotionEvent.ACTION_DOWN -> {
+					v.animate().alpha(0.95f).scaleX(1.06f).scaleY(1.06f).setDuration(80).start()
+					try {
+						val vib = getSystemService(Vibrator::class.java)
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+							vib?.vibrate(VibrationEffect.createOneShot(35, VibrationEffect.DEFAULT_AMPLITUDE))
+						} else {
+							@Suppress("DEPRECATION") vib?.vibrate(35)
+						}
+					} catch (_: Exception) {}
+					viewModel.input.sendEmulatedTouchpadClick(true)
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(MotionEvent.ACTION_DOWN, normX, normY)
+					true
+				}
+				MotionEvent.ACTION_MOVE -> {
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(MotionEvent.ACTION_MOVE, normX, normY)
+					true
+				}
+				MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+					v.animate().alpha(0.5f).scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+					viewModel.input.sendEmulatedTouchpadClick(false)
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(event.actionMasked, normX, normY)
+					true
+				}
+				else -> false
+			}
+		}
+
+		topGestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+			override fun onDoubleTap(e: MotionEvent): Boolean {
+				// If double-tap occurs in the top 20% area of the screen
+				if (e.y < binding.root.height * 0.20f) {
+					try {
+						val vib = getSystemService(Vibrator::class.java)
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+							vib?.vibrate(VibrationEffect.createOneShot(45, VibrationEffect.DEFAULT_AMPLITUDE))
+						} else {
+							@Suppress("DEPRECATION") vib?.vibrate(45)
+						}
+					} catch (_: Exception) {}
+					viewModel.input.sendEmulatedTouchpadClick(true)
+					binding.root.postDelayed({
+						viewModel.input.sendEmulatedTouchpadClick(false)
+					}, 150)
+					return true
+				}
+				return false
+			}
+		})
+	}
+
+	override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+		topGestureDetector?.onTouchEvent(event)
+		return super.dispatchTouchEvent(event)
+	}
 
 	override fun dispatchKeyEvent(event: KeyEvent) = viewModel.input.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
 	override fun onGenericMotionEvent(event: MotionEvent) = viewModel.input.onGenericMotionEvent(event) || super.onGenericMotionEvent(event)

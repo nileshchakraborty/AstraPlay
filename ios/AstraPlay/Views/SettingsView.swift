@@ -90,6 +90,8 @@ struct StreamPreferences: Codable {
     var onScreenControlsEnabled: Bool = true
     /// Stream overlay: touchpad-only strip (matches Android `touchpadOnlyEnabled`, default false)
     var touchpadOnlyEnabled: Bool = false
+    /// DualSense touchpad emulation pill & top-screen gesture for telescopic mobile grips (default true)
+    var touchpadEmulationEnabled: Bool = true
     /// In-stream performance stats overlay toggle (matches Android `streamStatsOverlayEnabled`, default false)
     var streamStatsOverlayEnabled: Bool = false
 
@@ -116,7 +118,7 @@ struct StreamPreferences: Codable {
         case swapCrossMoon, rumbleEnabled, rumbleIntensity, motionSource, touchHapticsEnabled, logVerbose
         case motionEnabled // legacy bool, migrated into motionSource
         case adaptiveTriggersEnabled
-        case onScreenControlsEnabled, touchpadOnlyEnabled
+        case onScreenControlsEnabled, touchpadOnlyEnabled, touchpadEmulationEnabled
         case cloudResolutionPscloud, cloudDatacenterPscloud, cloudBitratePscloud
         case cloudResolutionPsnow, cloudDatacenterPsnow, cloudBitratePsnow
         case cloudGameLanguage
@@ -136,6 +138,7 @@ struct StreamPreferences: Codable {
         logVerbose: Bool = false,
         onScreenControlsEnabled: Bool = true,
         touchpadOnlyEnabled: Bool = false,
+        touchpadEmulationEnabled: Bool = true,
         cloudResolutionPscloud: String = "720",
         cloudDatacenterPscloud: String = "Auto",
         cloudBitratePscloud: Int = StreamPreferences.cloudBitrateDefaultKbps,
@@ -156,6 +159,7 @@ struct StreamPreferences: Codable {
         self.logVerbose = logVerbose
         self.onScreenControlsEnabled = onScreenControlsEnabled
         self.touchpadOnlyEnabled = touchpadOnlyEnabled
+        self.touchpadEmulationEnabled = touchpadEmulationEnabled
         self.cloudResolutionPscloud = cloudResolutionPscloud
         self.cloudDatacenterPscloud = cloudDatacenterPscloud
         self.cloudBitratePscloud = Self.clampCloudBitrateKbps(cloudBitratePscloud)
@@ -188,6 +192,7 @@ struct StreamPreferences: Codable {
         logVerbose = try c.decodeIfPresent(Bool.self, forKey: .logVerbose) ?? false
         onScreenControlsEnabled = try c.decodeIfPresent(Bool.self, forKey: .onScreenControlsEnabled) ?? true
         touchpadOnlyEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadOnlyEnabled) ?? false
+        touchpadEmulationEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadEmulationEnabled) ?? true
         cloudResolutionPscloud = try c.decodeIfPresent(String.self, forKey: .cloudResolutionPscloud) ?? "720"
         cloudDatacenterPscloud = try c.decodeIfPresent(String.self, forKey: .cloudDatacenterPscloud) ?? "Auto"
         cloudBitratePscloud = Self.clampCloudBitrateKbps(
@@ -217,6 +222,7 @@ struct StreamPreferences: Codable {
         try c.encode(logVerbose, forKey: .logVerbose)
         try c.encode(onScreenControlsEnabled, forKey: .onScreenControlsEnabled)
         try c.encode(touchpadOnlyEnabled, forKey: .touchpadOnlyEnabled)
+        try c.encode(touchpadEmulationEnabled, forKey: .touchpadEmulationEnabled)
         try c.encode(cloudResolutionPscloud, forKey: .cloudResolutionPscloud)
         try c.encode(cloudDatacenterPscloud, forKey: .cloudDatacenterPscloud)
         try c.encode(cloudBitratePscloud, forKey: .cloudBitratePscloud)
@@ -498,6 +504,16 @@ struct SettingsView: View {
                 }
             }
             .onChange(of: prefs.touchHapticsEnabled) { _ in prefs.save() }
+
+            Toggle(isOn: $prefs.touchpadEmulationEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("DualSense Touchpad Emulation")
+                    Text("Show floating touchpad pill and enable top-screen double-tap click for mobile grips")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.touchpadEmulationEnabled) { _ in prefs.save() }
 
             if showWorkInProgressGeneralSettings {
                 Toggle(isOn: $prefs.logVerbose) {

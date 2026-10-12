@@ -311,5 +311,9 @@
     <string name="preferences_cloud_language_dialog_message">Not all regions support every language. A language only works on datacenters that offer it — if your chosen language isn\'t applied, pick a datacenter in a matching region.</string>
     <string name="preferences_cloud_language_note">Language availability depends on your datacenter\'s region.</string>
     <string name="preferences_pip_enabled_key">pip_enabled</string>
+    <string name="preferences_touchpad_emulation_key">touchpad_emulation_enabled</string>
+    <string name="preferences_touchpad_emulation_title">Touchpad Emulation for Mobile Grips</string>
+    <string name="preferences_touchpad_emulation_summary">Enables floating touchpad button and top-screen gestures when using mobile controllers (Backbone, Kishi, GameSir)</string>
+    <string name="touchpad_pill_desc">DualSense Touchpad</string>
 
 </resources>

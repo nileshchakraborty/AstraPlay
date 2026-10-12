@@ -108,6 +108,50 @@ class StreamInput {
         mergeGamepadWithTouchAndNotify()
     }
 
+    /// Emulated touchpad (click + finger) for mobile grips without a physical touchpad.
+    private var emulatedTouchpadState = ChiakiControllerState()
+    private var emulatedTouchId: Int8 = -1
+
+    /// Emulate DualSense touchpad button click for mobile telescopic controllers / overlay pills.
+    func sendEmulatedTouchpadClick(down: Bool) {
+        let touchpadBit = UInt32(1 << 14)
+        if down {
+            emulatedTouchpadState.buttons |= touchpadBit
+        } else {
+            emulatedTouchpadState.buttons &= ~touchpadBit
+        }
+        mergeGamepadWithTouchAndNotify()
+    }
+
+    /// Emulate DualSense multi-touch surface tracking normalized coordinates (0..1).
+    func sendEmulatedTouchpadTouch(phase: Int, xNorm: Float, yNorm: Float) {
+        let clampedX = min(max(xNorm, 0.0), 1.0)
+        let clampedY = min(max(yNorm, 0.0), 1.0)
+        let scaledX = UInt16(clampedX * 1919.0)
+        let scaledY = UInt16(clampedY * 941.0)
+
+        // phase: 0 = began, 1 = moved, 2 = ended/cancelled
+        switch phase {
+        case 0:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_stop_touch(&emulatedTouchpadState, UInt8(emulatedTouchId))
+            }
+            emulatedTouchId = chiaki_controller_state_start_touch(&emulatedTouchpadState, scaledX, scaledY)
+            mergeGamepadWithTouchAndNotify()
+        case 1:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_set_touch_pos(&emulatedTouchpadState, UInt8(emulatedTouchId), scaledX, scaledY)
+                mergeGamepadWithTouchAndNotify()
+            }
+        default:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_stop_touch(&emulatedTouchpadState, UInt8(emulatedTouchId))
+                emulatedTouchId = -1
+                mergeGamepadWithTouchAndNotify()
+            }
+        }
+    }
+
     /// Call when the Chiaki session is ready to send feedback so the first post-connect `set_controller_state` is not skipped.
     func resendMergedControllerStateIfNeeded() {
         lastStateHash = -1
@@ -230,7 +274,10 @@ class StreamInput {
         var merged = ChiakiControllerState()
         chiaki_controller_state_set_idle(&merged)
         chiaki_controller_state_or(&merged, &gamepad, &touchOverlayState)
-        chiaki_controller_state_or(&controllerState, &merged, &physicalTouchpadState)
+        var withPhysical = ChiakiControllerState()
+        chiaki_controller_state_set_idle(&withPhysical)
+        chiaki_controller_state_or(&withPhysical, &merged, &physicalTouchpadState)
+        chiaki_controller_state_or(&controllerState, &withPhysical, &emulatedTouchpadState)
         notifyIfChanged()
     }
 

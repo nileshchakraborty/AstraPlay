@@ -37,8 +37,10 @@ struct StreamView: View {
     @State private var displayMode: DisplayMode = .fit
     @State private var onScreenControls: Bool
     @State private var touchpadOnly: Bool
+    @State private var touchpadEmulation: Bool
     @State private var showStats: Bool
     @State private var statsText: String = ""
+    @State private var isTouchpadPillPressed = false
     /// Previous cumulative dropped-frame total so the overlay can show drops *this tick*
     /// (per second) instead of a lifetime total. -1 = uninitialized.
     @State private var lastDroppedFrames: Int64 = -1
@@ -61,6 +63,7 @@ struct StreamView: View {
         let fullOn = prefs.onScreenControlsEnabled
         _onScreenControls = State(initialValue: tpOnly ? false : fullOn)
         _touchpadOnly = State(initialValue: tpOnly)
+        _touchpadEmulation = State(initialValue: prefs.touchpadEmulationEnabled)
         _showStats = State(initialValue: prefs.streamStatsOverlayEnabled)
         _session = StateObject(wrappedValue: StreamSession(connectInfo: connectInfo, input: StreamInput()))
     }
@@ -152,6 +155,76 @@ struct StreamView: View {
                     Spacer()
                 }
                 .transition(.opacity)
+            }
+
+            // Floating DualSense Touchpad Pill (for mobile telescopic grips when on-screen controls are off)
+            if touchpadEmulation && !onScreenControls && !touchpadOnly {
+                VStack {
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 6) {
+                            Image(systemName: "hand.tap.fill")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("TOUCHPAD")
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .tracking(0.5)
+                        }
+                        .foregroundColor(.white.opacity(isTouchpadPillPressed ? 0.95 : 0.65))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.black.opacity(isTouchpadPillPressed ? 0.65 : 0.35))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.white.opacity(isTouchpadPillPressed ? 0.45 : 0.15), lineWidth: 1)
+                                )
+                        )
+                        .scaleEffect(isTouchpadPillPressed ? 1.05 : 1.0)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    if !isTouchpadPillPressed {
+                                        isTouchpadPillPressed = true
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        session.input.sendEmulatedTouchpadClick(down: true)
+                                        session.input.sendEmulatedTouchpadTouch(phase: 0, xNorm: 0.5, yNorm: 0.5)
+                                    } else {
+                                        let normX = Float(min(max(value.location.x / 110.0, 0.0), 1.0))
+                                        let normY = Float(min(max(value.location.y / 28.0, 0.0), 1.0))
+                                        session.input.sendEmulatedTouchpadTouch(phase: 1, xNorm: normX, yNorm: normY)
+                                    }
+                                }
+                                .onEnded { _ in
+                                    isTouchpadPillPressed = false
+                                    session.input.sendEmulatedTouchpadClick(down: false)
+                                    session.input.sendEmulatedTouchpadTouch(phase: 2, xNorm: 0.5, yNorm: 0.5)
+                                }
+                        )
+                        .padding(.top, 14)
+                        .padding(.trailing, 24)
+                    }
+                    Spacer()
+                }
+                .transition(.opacity)
+
+                // Invisible double-tap gesture recognizer on top 20% of screen for quick touchpad click
+                GeometryReader { geo in
+                    VStack {
+                        Color.clear
+                            .frame(width: geo.size.width, height: geo.size.height * 0.20)
+                            .contentShape(Rectangle())
+                            .onTapGesture(count: 2) {
+                                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                                session.input.sendEmulatedTouchpadClick(down: true)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                    session.input.sendEmulatedTouchpadClick(down: false)
+                                }
+                            }
+                        Spacer()
+                    }
+                }
             }
 
             // Bottom overlay bar (matches Android's stream overlay)

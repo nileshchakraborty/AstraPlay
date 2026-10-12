@@ -38,6 +38,44 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <!-- Floating DualSense Touchpad Pill for Mobile Grips / External Gamepads -->
+    <LinearLayout
+        android:id="@+id/touchpadPillContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_touchpad_pill"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:clickable="true"
+        android:focusable="false"
+        android:elevation="6dp"
+        android:alpha="0.5"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="12dp"
+            android:src="@drawable/control_touchpad"
+            app:tint="#FFFFFF"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/touchpad_pill_desc"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TOUCHPAD"
+            android:textColor="#FFFFFF"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp"
+            android:letterSpacing="0.1"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"

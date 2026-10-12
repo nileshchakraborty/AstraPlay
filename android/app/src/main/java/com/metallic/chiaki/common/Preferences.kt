@@ -102,6 +102,11 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getBoolean(touchpadOnlyEnabledKey, false)
 		set(value) { sharedPreferences.edit().putBoolean(touchpadOnlyEnabledKey, value).apply() }
 
+	val touchpadEmulationEnabledKey get() = resources.getString(R.string.preferences_touchpad_emulation_key)
+	var touchpadEmulationEnabled
+		get() = sharedPreferences.getBoolean(touchpadEmulationEnabledKey, true)
+		set(value) { sharedPreferences.edit().putBoolean(touchpadEmulationEnabledKey, value).apply() }
+
 	val rumbleEnabledKey get() = resources.getString(R.string.preferences_rumble_enabled_key)
 	var rumbleEnabled
 		get() = sharedPreferences.getBoolean(rumbleEnabledKey, true)
