@@ -220,25 +220,13 @@ if(WIN32)
 	if(NOT CHIAKI_ENABLE_CONSOLE)
 		set_target_properties(astraplay PROPERTIES WIN32_EXECUTABLE TRUE)
 	endif()
-	add_custom_command(TARGET astraplay POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			$<TARGET_FILE:astraplay>
-			$<TARGET_FILE_DIR:astraplay>/chiaki.exe
-	)
 endif()
 
 install(TARGETS astraplay
 		RUNTIME DESTINATION bin
 		BUNDLE DESTINATION bin)
-if(UNIX AND NOT APPLE)
-	# Install backwards compatibility symlink bin/chiaki -> astraplay
-	install(CODE "execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink astraplay \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/bin/chiaki\")")
-endif()
 # [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
 install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
 install(FILES astraplay.png DESTINATION share/icons/hicolor/512x512/apps)
 install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
 # [ASTRAPLAY END]
-
-# Backward compatibility alias
-add_custom_target(chiaki ALL DEPENDS astraplay)

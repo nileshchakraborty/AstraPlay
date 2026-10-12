@@ -138,11 +138,9 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     const char *uri = "io.github.nileshchakraborty.astraplay";
 
     qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlay", this);
-    qmlRegisterSingletonInstance(uri, 1, 0, "Chiaki", this);
 
     games_backend = new QmlGamesBackend(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlayGames", games_backend);
-    qmlRegisterSingletonInstance(uri, 1, 0, "ChiakiGames", games_backend);
 
     m_update_manager = new UpdateManager(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "UpdateManager", m_update_manager);
@@ -304,13 +302,8 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     });
     
     qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "AstraPlayWindow", {});
-    qmlRegisterUncreatableType<QmlMainWindow>(uri, 1, 0, "ChiakiWindow", {});
-
     qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "AstraPlaySettings", {});
-    qmlRegisterUncreatableType<QmlSettings>(uri, 1, 0, "ChiakiSettings", {});
-
     qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "AstraPlaySession", {});
-    qmlRegisterUncreatableType<StreamSession>(uri, 1, 0, "ChiakiSession", {});
 
     QObject *frame_obj = new QObject();
     frame_thread = new QThread(frame_obj);
