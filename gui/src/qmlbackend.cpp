@@ -154,7 +154,7 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 
     // Initialize standalone embedded PSN Login Relay server
     embedded_relay_server = new EmbeddedRelayServer(this);
-    embedded_relay_server->start(8080);
+    embedded_relay_server->start(25525);
     connect(settings_qml, &QmlSettings::cloudStoreLocaleChanged, this, [this]() {
         // Full wipe (not just the v6 PS5 intermediates): the unified catalog is locale-specific,
         // so a language change must also drop unified_catalog_v3 or a stale-locale list is served.
@@ -3508,7 +3508,7 @@ QString QmlBackend::getAstraPlayURL()
     if (embedded_relay_server && embedded_relay_server->isRunning()) {
         return embedded_relay_server->serverUrl();
     }
-    return QStringLiteral("http://127.0.0.1:8080");
+    return QStringLiteral("http://127.0.0.1:25525");
 }
 
 void QmlBackend::createAstraPlayCode(const QString &code, const QJSValue &callback)
