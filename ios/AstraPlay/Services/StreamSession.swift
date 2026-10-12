@@ -234,6 +234,11 @@ final class StreamSession: ObservableObject {
         _ = chiaki_session_bridge_set_login_pin(ref, pinBytes, pinBytes.count)
     }
 
+    func toggleMicrophone(muted: Bool) {
+        guard let ref = sessionRef else { return }
+        _ = chiaki_session_bridge_toggle_microphone(ref, muted)
+    }
+
     /// Latest live stream metrics for the stats overlay, or nil if no session is active.
     func metrics() -> StreamMetrics? {
         guard let ref = sessionRef else { return nil }

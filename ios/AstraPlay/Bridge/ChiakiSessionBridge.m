@@ -403,6 +403,12 @@ int chiaki_session_bridge_set_login_pin(ChiakiSessionRef ref, const uint8_t *pin
     return (int)chiaki_session_set_login_pin(((iOSChiakiSession *)ref)->session, pin, pin_size);
 }
 
+int chiaki_session_bridge_toggle_microphone(ChiakiSessionRef ref, bool muted)
+{
+    if (!ref) return CHIAKI_ERR_UNINITIALIZED;
+    return (int)chiaki_session_toggle_microphone(((iOSChiakiSession *)ref)->session, muted);
+}
+
 void chiaki_session_bridge_set_video_sample_cb(ChiakiSessionRef ref,
                                                bool (*cb)(uint8_t *buf, size_t buf_size, int32_t frames_lost, bool frame_recovered, void *user),
                                                void *user)

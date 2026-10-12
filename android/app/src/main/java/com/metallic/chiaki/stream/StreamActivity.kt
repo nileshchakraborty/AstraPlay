@@ -153,6 +153,14 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			showOverlay()
 		}
 
+		// In-stream microphone mute toggle (mirrors Qt's micButton in HUD row)
+		binding.micSwitch.isChecked = true // Default unmuted
+		binding.micSwitch.setOnCheckedChangeListener { _, isChecked ->
+			// When checked, mic is active/unmuted (muted = false). When unchecked, muted = true.
+			viewModel.session.toggleMicrophone(!isChecked)
+			showOverlay()
+		}
+
 		// On-Screen Touch Controls Drag & Reposition Editor
 		setupTouchLayoutEditor()
 
@@ -559,7 +567,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	}
 
 	/** Single compact top row with short labels, e.g.
-	 *  "4.7 Mbps • PL 1.1% • DF/s 0 • 60 FPS • 90 ms • 1280×720". */
+	 *  "4.7 Mbps • PL 1.1% • DF/s 0 • 60 FPS • 90 ms • 1280×720 • Bat 85%". */
 	private fun formatStats(m: StreamMetrics, dropsPerTick: Long): String
 	{
 		val sep = "   •   "
@@ -571,7 +579,31 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		if (m.rttMs > 0)
 			parts.add(String.format(Locale.US, "%.0f ms", m.rttMs))
 		parts.add("${m.width}×${m.height}")
+		controllerBattery()?.let { parts.add("Bat $it") }
 		return parts.joinToString(sep)
+	}
+
+	private fun controllerBattery(): String?
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+		{
+			val dev = InputDevice.getDeviceIds().asSequence()
+				.mapNotNull { InputDevice.getDevice(it) }
+				.filter {
+					it.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+						|| it.sources and InputDevice.SOURCE_CLASS_JOYSTICK == InputDevice.SOURCE_CLASS_JOYSTICK
+				}
+				.firstOrNull() ?: return null
+
+			val battery = dev.batteryState
+			if (battery.isPresent)
+			{
+				val capacity = (battery.capacity * 100).toInt()
+				val charging = battery.status == android.hardware.BatteryState.STATUS_CHARGING
+				return if (charging) "$capacity%⚡" else "$capacity%"
+			}
+		}
+		return null
 	}
 
 	override fun onWindowFocusChanged(hasFocus: Boolean)

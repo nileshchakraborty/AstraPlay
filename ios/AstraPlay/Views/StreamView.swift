@@ -39,6 +39,7 @@ struct StreamView: View {
     @State private var touchpadOnly: Bool
     @State private var touchpadEmulation: Bool
     @State private var showStats: Bool
+    @State private var micEnabled: Bool = true
     @State private var statsText: String = ""
     @State private var isTouchpadPillPressed = false
     /// Previous cumulative dropped-frame total so the overlay can show drops *this tick*
@@ -109,6 +110,9 @@ struct StreamView: View {
         parts.append(String(format: "%.0f FPS", m.fps))
         if m.rttMs > 0 { parts.append(String(format: "%.0f ms", m.rttMs)) }
         parts.append("\(m.width)×\(m.height)")
+        if let bat = session.input.controllerBattery {
+            parts.append("Bat \(bat)")
+        }
         statsText = parts.joined(separator: "   •   ")
     }
 
@@ -419,6 +423,31 @@ struct StreamView: View {
                 .font(.system(size: 13))
                 .foregroundColor(.white)
                 .fixedSize()
+
+            // Microphone mute toggle (matches Desktop and Android's micSwitch)
+            Toggle("Mic", isOn: $micEnabled)
+                .toggleStyle(.switch)
+                .font(.system(size: 13))
+                .foregroundColor(.white)
+                .fixedSize()
+                .onChange(of: micEnabled) { enabled in
+                    session.toggleMicrophone(muted: !enabled)
+                    scheduleHideOverlay()
+                }
+
+            if let battery = session.input.controllerBattery {
+                HStack(spacing: 4) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 12))
+                    Text(battery)
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(0.15))
+                .cornerRadius(6)
+            }
 
             // Edit Layout button (matches Android's editLayoutButton)
             Button {

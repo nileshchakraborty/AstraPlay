@@ -199,6 +199,11 @@ typedef struct ChiakiSessionBridgeMetrics {
 void chiaki_session_bridge_get_metrics(ChiakiSessionRef ref, ChiakiSessionBridgeMetrics *out);
 
 /**
+ * Toggle console microphone mute state during stream.
+ */
+int chiaki_session_bridge_toggle_microphone(ChiakiSessionRef ref, bool muted);
+
+/**
  * Helpers for error/quit strings.
  */
 const char *chiaki_session_bridge_error_string(int code);

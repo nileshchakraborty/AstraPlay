@@ -365,6 +365,11 @@ class StreamSession(val connectInfo: ConnectInfo, val logManager: LogManager, va
 		session?.setLoginPin(pin)
 	}
 
+	fun toggleMicrophone(muted: Boolean)
+	{
+		session?.toggleMicrophone(muted)
+	}
+
 	/** Latest live stream metrics (bitrate/loss/fps/rtt/resolution) for the stats overlay. */
 	fun metrics(): StreamMetrics? = session?.getMetrics()
 }

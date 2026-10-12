@@ -124,6 +124,17 @@
                 app:layout_constraintStart_toEndOf="@id/touchpadOnlySwitch"
                 app:switchPadding="8dp" />
 
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/micSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/stream_mic_toggle"
+                android:textColor="@color/stream_text"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/statsSwitch"
+                app:switchPadding="8dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/editLayoutButton"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -134,7 +145,7 @@
                 android:textColor="@color/stream_text"
                 app:strokeColor="@color/stream_text"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/statsSwitch" />
+                app:layout_constraintStart_toEndOf="@id/micSwitch" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/resetLayoutButton"

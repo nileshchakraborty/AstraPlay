@@ -602,6 +602,25 @@ StreamSession::StreamSession(const StreamSessionConnectInfo &connect_info, QObje
 			resolution_str = res;
 			emit ResolutionChanged();
 		}
+
+		QString current_battery;
+		for(auto *ctrl : std::as_const(controllers))
+		{
+			if(ctrl)
+			{
+				QString b = ctrl->GetBatteryLevel();
+				if(!b.isEmpty())
+				{
+					current_battery = b;
+					break;
+				}
+			}
+		}
+		if(current_battery != controller_battery)
+		{
+			controller_battery = current_battery;
+			emit ControllerBatteryChanged();
+		}
 	});
 
 	// Initialize GameLauncher if game_name is set

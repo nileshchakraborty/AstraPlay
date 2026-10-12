@@ -443,6 +443,20 @@ Item {
                     font.pixelSize: 18
                 }
             }
+
+            Label {
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("ctrl bat")
+                font.pixelSize: 15
+                visible: (Chiaki.session?.controllerBattery ?? "") !== ""
+                Label {
+                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
+                    text: parent.visible ? (Chiaki.session?.controllerBattery ?? "") : ""
+                    color: Material.accent
+                    font.bold: true
+                    font.pixelSize: 18
+                }
+            }
         }
     }
 
@@ -931,6 +945,29 @@ Item {
                             rightMargin: 5
                         }
                         text: visible ? (Chiaki.session?.measuredFps ?? 0).toFixed(0) : ""
+                        color: Material.accent
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+
+                Label {
+                    Layout.leftMargin: ctrlBatMenuLabel.width + 6
+                    text: qsTr("ctrl bat")
+                    font.pixelSize: 15
+                    opacity: parent.visible && (Chiaki.session?.controllerBattery ?? "") !== "" ? 1.0 : 0.0
+                    visible: opacity
+
+                    Behavior on opacity { NumberAnimation { duration: 250 } }
+
+                    Label {
+                        id: ctrlBatMenuLabel
+                        anchors {
+                            right: parent.left
+                            baseline: parent.baseline
+                            rightMargin: 5
+                        }
+                        text: visible ? (Chiaki.session?.controllerBattery ?? "") : ""
                         color: Material.accent
                         font.bold: true
                         font.pixelSize: 18
