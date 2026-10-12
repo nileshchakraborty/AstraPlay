@@ -483,7 +483,11 @@ DialogView {
                             KeyNavigation.up: psnGamesSyncCheckbox
                             KeyNavigation.left: showGameImageDuringLaunch
                             KeyNavigation.right: showGameImageDuringLaunch
-                            KeyNavigation.down: autoUpdateEnabledRadio
+                            // [ASTRAPLAY BEGIN] Skip EXE/MSI update controls for MSIX.
+                            KeyNavigation.down: UpdateManager.packageUpdatesManaged
+                                ? (streamMenuShortcut1.visible ? streamMenuShortcut1 : showGameImageDuringLaunch)
+                                : autoUpdateEnabledRadio
+                            // [ASTRAPLAY END]
                         }
 
                         Label {
@@ -494,9 +498,15 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Automatic Updates:")
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
                         }
                         ColumnLayout {
                             spacing: 4
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
                             C.RadioButton {
                                 id: autoUpdateEnabledRadio
                                 text: qsTr("Automatically check for updates on startup (Recommended)")
@@ -530,14 +540,39 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: Chiaki.settings.autoUpdateEnabled ? qsTr("(Enabled)") : qsTr("(Opted out)")
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
+                        }
+
+                        // [ASTRAPLAY BEGIN] Explain the package update channel.
+                        Label {
+                            Layout.alignment: Qt.AlignRight
+                            text: qsTr("Package Updates:")
+                            visible: UpdateManager.packageUpdatesManaged
+                        }
+                        // [ASTRAPLAY END]
+                        Label {
+                            text: qsTr("Managed by Microsoft Store or Windows App Installer")
+                            visible: UpdateManager.packageUpdatesManaged
+                        }
+                        Label {
+                            text: ""
+                            visible: UpdateManager.packageUpdatesManaged
                         }
 
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: qsTr("Manual Update:")
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
                         }
                         RowLayout {
                             spacing: 12
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
                             C.Button {
                                 id: checkUpdatesButton
                                 text: UpdateManager.checking ? qsTr("Checking...") : qsTr("Check for Updates")
@@ -599,6 +634,9 @@ DialogView {
                         Label {
                             Layout.alignment: Qt.AlignRight
                             text: ""
+                            // [ASTRAPLAY BEGIN]
+                            visible: !UpdateManager.packageUpdatesManaged
+                            // [ASTRAPLAY END]
                         }
                     }
                     RowLayout {

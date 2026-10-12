@@ -21,6 +21,9 @@ class UpdateManager : public QObject
     Q_PROPERTY(QString releaseUrl READ releaseUrl NOTIFY releaseUrlChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool autoCheckEnabled READ autoCheckEnabled WRITE setAutoCheckEnabled NOTIFY autoCheckEnabledChanged)
+    // [ASTRAPLAY BEGIN] Keep MSIX installations on their package update channel.
+    Q_PROPERTY(bool packageUpdatesManaged READ packageUpdatesManaged CONSTANT)
+    // [ASTRAPLAY END]
 
 public:
     explicit UpdateManager(Settings *settings, QObject *parent = nullptr);
@@ -37,6 +40,9 @@ public:
     QString statusMessage() const { return m_statusMessage; }
 
     bool autoCheckEnabled() const;
+    // [ASTRAPLAY BEGIN]
+    bool packageUpdatesManaged() const { return m_packageUpdatesManaged; }
+    // [ASTRAPLAY END]
     void setAutoCheckEnabled(bool enabled);
 
     Q_INVOKABLE void checkForUpdates(bool userInitiated = false);
@@ -78,6 +84,9 @@ private:
     bool m_updateAvailable = false;
     bool m_downloading = false;
     bool m_userInitiated = false;
+    // [ASTRAPLAY BEGIN]
+    bool m_packageUpdatesManaged = false;
+    // [ASTRAPLAY END]
     qreal m_downloadProgress = 0.0;
 
     QString m_latestVersion;

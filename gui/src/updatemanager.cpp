@@ -21,6 +21,9 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <shellapi.h>
+// [ASTRAPLAY BEGIN]
+#include <appmodel.h>
+// [ASTRAPLAY END]
 #endif
 
 static const QString REPO_RELEASES_API = QStringLiteral("https://api.github.com/repos/nileshchakraborty/AstraPlay/releases/latest");
@@ -30,6 +33,14 @@ UpdateManager::UpdateManager(Settings *settings, QObject *parent)
     , m_settings(settings)
     , m_nam(new QNetworkAccessManager(this))
 {
+#ifdef Q_OS_WIN
+    // [ASTRAPLAY BEGIN] MSIX files cannot be replaced by the GitHub updater.
+    UINT32 packageNameLength = 0;
+    m_packageUpdatesManaged = GetCurrentPackageFullName(&packageNameLength, nullptr) == ERROR_INSUFFICIENT_BUFFER;
+    if (m_packageUpdatesManaged)
+        m_statusMessage = tr("Windows manages updates for this package through Microsoft Store or App Installer.");
+    // [ASTRAPLAY END]
+#endif
 }
 
 UpdateManager::~UpdateManager()
@@ -44,6 +55,10 @@ UpdateManager::~UpdateManager()
 
 bool UpdateManager::autoCheckEnabled() const
 {
+    // [ASTRAPLAY BEGIN]
+    if (m_packageUpdatesManaged)
+        return false;
+    // [ASTRAPLAY END]
     if (m_settings)
         return m_settings->GetAutoUpdateEnabled();
     return true;
@@ -51,6 +66,10 @@ bool UpdateManager::autoCheckEnabled() const
 
 void UpdateManager::setAutoCheckEnabled(bool enabled)
 {
+    // [ASTRAPLAY BEGIN]
+    if (m_packageUpdatesManaged)
+        return;
+    // [ASTRAPLAY END]
     if (m_settings) {
         m_settings->SetAutoUpdateEnabled(enabled);
         emit autoCheckEnabledChanged();
@@ -86,6 +105,14 @@ bool UpdateManager::isVersionNewer(const QString &remoteVersion, const QString &
 
 void UpdateManager::checkForUpdates(bool userInitiated)
 {
+    // [ASTRAPLAY BEGIN] Keep packaged installations off the EXE/MSI update path.
+    if (m_packageUpdatesManaged) {
+        m_statusMessage = tr("Windows manages updates for this package through Microsoft Store or App Installer.");
+        emit statusMessageChanged();
+        emit updateCheckCompleted(false, userInitiated, QString());
+        return;
+    }
+    // [ASTRAPLAY END]
     if (m_checking)
         return;
 
@@ -217,6 +244,10 @@ void UpdateManager::onCheckFinished()
 
 void UpdateManager::startDownload()
 {
+    // [ASTRAPLAY BEGIN]
+    if (m_packageUpdatesManaged)
+        return;
+    // [ASTRAPLAY END]
     if (m_downloading)
         return;
 
@@ -336,6 +367,10 @@ void UpdateManager::cancelDownload()
 
 void UpdateManager::installAndRestart()
 {
+    // [ASTRAPLAY BEGIN]
+    if (m_packageUpdatesManaged)
+        return;
+    // [ASTRAPLAY END]
     if (m_downloadedFilePath.isEmpty() || !QFile::exists(m_downloadedFilePath)) {
         if (!m_releaseUrl.isEmpty()) {
             QDesktopServices::openUrl(QUrl(m_releaseUrl));
