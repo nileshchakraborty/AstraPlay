@@ -81,26 +81,67 @@ DialogView {
                 Layout.preferredWidth: 400
                 echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 KeyNavigation.up: hostField
-                KeyNavigation.down: ps4_7.checked ? onlineId : byLoginButton
+                KeyNavigation.down: ps4_7.checked ? onlineId : (findAccountIdRow.visible ? byLookupButton : accountId)
             }
 
             Label {
+                id: findAccountIdLabel
                 Layout.alignment: Qt.AlignRight
                 text: qsTr("Find Account ID:")
-                visible: !ps4_7.checked
+                visible: !ps4_7.checked && !Chiaki.settings.psnAccountId
             }
 
             RowLayout {
-                visible: !ps4_7.checked
+                id: findAccountIdRow
+                visible: !ps4_7.checked && !Chiaki.settings.psnAccountId
                 spacing: 10
                 Layout.preferredWidth: 400
                 
+                C.Button {
+                    id: byLookupButton
+                    text: qsTr("By Lookup (Quick)")
+                    Layout.preferredWidth: 195
+                    height: 40
+                    onClicked: stack.push(psnLoginDialogComponent, {login: false, callback: (id) => accountId.text = id})
+                    Material.roundedScale: Material.MediumScale
+                    font.pixelSize: 14
+                    
+                    KeyNavigation.up: pin
+                    KeyNavigation.down: accountId
+                    KeyNavigation.right: byLoginButton
+                    
+                    background: Rectangle {
+                        radius: 6
+                        color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : Qt.rgba(245/255, 158/255, 11/255, 0.2)
+                        border.color: "#F59E0B"
+                        border.width: 2
+                    }
+                }
+
                 C.Button {
                     id: byLoginButton
                     text: qsTr("By Login")
                     Layout.preferredWidth: 195
                     height: 40
                     onClicked: {
+                        if (Chiaki.settings.psnAccountId) {
+                            accountId.text = Chiaki.settings.psnAccountId;
+                            root.showConfirmDialog(
+                                qsTr("Already Logged In"),
+                                qsTr("Your PlayStation Account ID is already auto-filled (%1).\n\nDo you want to log in with a different account?").arg(Chiaki.settings.donationPsnOnlineId || Chiaki.settings.psnAccountId),
+                                () => {
+                                    stack.push("QRLoginDialog.qml", {callback: (id) => {
+                                        if (id) {
+                                            accountId.text = id;
+                                            return;
+                                        }
+                                        stack.push(psnTokenDialogComponent, {psnurl: "", expired: false});
+                                    }});
+                                },
+                                () => {}
+                            );
+                            return;
+                        }
                         // Use the same pattern as showPSNTokenDialog for consistent behavior
                         stack.push("QRLoginDialog.qml", {callback: (id) => {
                             // If QR login succeeds with an account ID, use it
@@ -117,28 +158,7 @@ DialogView {
                     
                     KeyNavigation.up: pin
                     KeyNavigation.down: accountId
-                    KeyNavigation.right: byLookupButton
-                    
-                    background: Rectangle {
-                        radius: 6
-                        color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.3) : Qt.rgba(245/255, 158/255, 11/255, 0.2)
-                        border.color: "#F59E0B"
-                        border.width: 2
-                    }
-                }
-                
-                C.Button {
-                    id: byLookupButton
-                    text: qsTr("By Lookup")
-                    Layout.preferredWidth: 195
-                    height: 40
-                    onClicked: stack.push(psnLoginDialogComponent, {login: false, callback: (id) => accountId.text = id})
-                    Material.roundedScale: Material.MediumScale
-                    font.pixelSize: 14
-                    
-                    KeyNavigation.up: pin
-                    KeyNavigation.down: accountId
-                    KeyNavigation.left: byLoginButton
+                    KeyNavigation.left: byLookupButton
                     
                     background: Rectangle {
                         radius: 6
@@ -151,18 +171,36 @@ DialogView {
 
             Label {
                 Layout.alignment: Qt.AlignRight
-                text: Chiaki.settings.psnAccountId ? qsTr("Account-ID (Auto-filled):") : qsTr("Account-ID:")
+                text: Chiaki.settings.psnAccountId ? (Chiaki.settings.donationPsnOnlineId ? qsTr("Account-ID (%1):").arg(Chiaki.settings.donationPsnOnlineId) : qsTr("Account-ID (Auto-filled):")) : qsTr("Account-ID:")
                 visible: !ps4_7.checked
             }
 
-            C.TextField {
-                id: accountId
-                echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
-                placeholderText: Chiaki.settings.psnAccountId ? qsTr("Auto-filled from PlayStation login") : qsTr("base64")
-                Layout.preferredWidth: 400
+            RowLayout {
                 visible: !ps4_7.checked
-                KeyNavigation.up: byLoginButton
-                KeyNavigation.down: onlineId.visible ? onlineId : cpin
+                Layout.preferredWidth: 400
+                spacing: 8
+
+                C.TextField {
+                    id: accountId
+                    echoMode: Chiaki.settings.streamerMode ? TextInput.Password : TextInput.Normal
+                    text: Chiaki.settings.psnAccountId || ""
+                    placeholderText: Chiaki.settings.psnAccountId ? qsTr("Auto-filled from PlayStation login") : qsTr("base64")
+                    Layout.fillWidth: true
+                    KeyNavigation.up: findAccountIdRow.visible ? byLookupButton : pin
+                    KeyNavigation.down: onlineId.visible ? onlineId : cpin
+                }
+
+                C.Button {
+                    id: changeAccountBtn
+                    visible: Chiaki.settings.psnAccountId ? true : false
+                    text: qsTr("Lookup")
+                    Layout.preferredWidth: 80
+                    height: accountId.height
+                    font.pixelSize: 12
+                    onClicked: stack.push(psnLoginDialogComponent, {login: false, callback: (id) => accountId.text = id})
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Look up a different Account ID by username")
+                }
             }
 
             Label {
