@@ -564,6 +564,27 @@ Item {
                 checked: Chiaki.session && !Chiaki.session.muted
                 onToggled: Chiaki.session.muted = !Chiaki.session.muted
                 KeyNavigation.left: volumeSlider
+                KeyNavigation.right: steamDeck1610Button
+                Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolButton {
+                id: steamDeck1610Button
+                text: qsTr("16:10 Fill")
+                padding: 10
+                checkable: true
+                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor === -1
+                onToggled: {
+                    if (checked) {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                    } else {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
+                        Chiaki.window.ZoomFactor = -1
+                        Chiaki.settings.sZoomFactor = -1
+                    }
+                }
+                KeyNavigation.left: muteButton
                 KeyNavigation.right: zoomButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
@@ -571,12 +592,22 @@ Item {
 
             ToolButton {
                 id: zoomButton
-                text: qsTr("Zoom")
+                text: qsTr("Custom Zoom")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom
-                onToggled: Chiaki.window.videoMode = Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom ? ChiakiWindow.VideoMode.Normal : ChiakiWindow.VideoMode.Zoom
-                KeyNavigation.left: muteButton
+                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
+                onToggled: {
+                    if (Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1) {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                    } else {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
+                        if (Chiaki.window.ZoomFactor === -1) {
+                            Chiaki.window.ZoomFactor = 0
+                            Chiaki.settings.sZoomFactor = 0
+                        }
+                    }
+                }
+                KeyNavigation.left: steamDeck1610Button
                 KeyNavigation.right: {
                     if(Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom)
                         zoomFactor
@@ -594,7 +625,7 @@ Item {
                 to: 4
                 Layout.preferredHeight: 100
                 stepSize: 0.01
-                visible: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom
+                visible: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
                 value: Chiaki.window.ZoomFactor
                 onMoved: {
                     Chiaki.window.ZoomFactor = value
