@@ -118,8 +118,8 @@ jobs:
 
       - name: Package AstraPlay
         run: |
-          mkdir astraplay
-          cp build/gui/chiaki.exe astraplay/astraplay.exe
+          mkdir -p astraplay
+          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/mingw64/share/qt6/bin/:/mingw64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/mingw64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/mingw64/share/qt6/qml"
@@ -311,8 +311,8 @@ jobs:
 
       - name: Package AstraPlay ARM64
         run: |
-          mkdir astraplay
-          cp build/gui/chiaki.exe astraplay/astraplay.exe
+          mkdir -p astraplay
+          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
