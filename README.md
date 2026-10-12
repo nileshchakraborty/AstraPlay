@@ -61,12 +61,20 @@ Windows MSIX packages are being prepared for Microsoft Store distribution; they 
   - macOS & iOS: Apple VideoToolbox (Metal-backed)
   - Linux: VAAPI, VDPAU, Vulkan Video
   - Android: Android MediaCodec (AMediaCodec NDK)
-- **Audio Engines**: Low-latency audio with SDL, Oboe (Android), CoreAudio (Apple), and PulseAudio / PipeWire (Linux).
+- **Contrast Adaptive Sharpening (CAS) & Upscaling**: In-stream sharpness quick toggle on Desktop QML HUD supporting FidelityFX CAS and EWA Lanczos Sharp shaders.
+- **Aspect Ratio Presets**: Flexible aspect ratio controls across Desktop, Android, and iOS supporting **Fit (16:9)**, **Fill / 16:10** (ideal for Steam Deck and handhelds), **20:9** (modern smartphones), **Zoom**, and **Stretch**.
+- **Dynamic Bitrate & Congestion Control**: Adaptive bitrate scaling heuristics in `libchiaki` that react in real-time to network congestion, packet drops, and RTT spikes to eliminate stuttering.
+- **Audio Engines & Latency Tuning**: Low-latency audio with SDL, Oboe (Android), CoreAudio (Apple), and PulseAudio / PipeWire (Linux). Configurable audio latency buffer size tuning (Ultra-Low, Low, Balanced, High) across mobile and desktop.
+- **In-Stream Microphone Mute**: Quick toggle to mute or unmute microphone pass-through on the fly during active streaming sessions.
 
 ### Controller & Input Support
 - **DualSense & DualShock 4**: Full support for haptic feedback, adaptive triggers, motion sensors (gyro/accelerometer), and touchpad navigation.
-- **Xbox & Handheld Controllers**: Native mapping for Xbox wireless controllers, ROG Ally controls, Steam Deck controls, and third-party XInput / DirectInput controllers.
-- **Touchscreen Controls**: Highly responsive on-screen overlay controls with multi-touch support for iOS and Android.
+- **Controller Battery Indicator**: Real-time battery status HUD overlay displaying charge level and state (Charging, Low, Normal) on Desktop, Android, and iOS.
+- **Xbox & Handheld Controllers**: Native mapping for Xbox wireless controllers, ROG Ally controls, Steam Deck controls, and third-party XInput / DirectInput controllers with deadzone calibration, stick sensitivity curves, and button remapping.
+- **Tactile Touch Haptics**: Virtual thumbstick haptic feedback using device vibration motors on Android and iOS when crossing stick thresholds or clicking virtual L3/R3.
+- **Customizable Virtual Touch Overlay**: Drag-and-drop repositioning with layout persistence, adjustable touch opacity and scale sliders, genre layout presets (Standard, Action/Shooter, RPG), and phone vibrator fallback for mobile grips.
+- **Touchpad Emulation**: Dedicated DualSense touchpad gesture and tap emulation for mobile controller grips and touch overlays.
+- **Android App Shortcuts**: Quick 1-tap launcher shortcuts on Android home screens directly into Remote Play and Cloud streaming sessions.
 
 ---
 

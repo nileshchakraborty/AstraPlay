@@ -61,7 +61,9 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 | F4 | H.264 / H.265 / AV1 hardware-accelerated video decoding (FFmpeg) | P0 |
 | F5 | Opus audio decode/encode | P0 |
 | F6 | Forward Error Correction (FEC) for packet loss recovery | P1 |
-| F7 | Congestion control & adaptive quality | P1 |
+| F7 | Congestion control & adaptive dynamic bitrate scaling | P1 |
+| F7a | Audio latency buffer size tuning (Ultra-Low to High) | P1 |
+| F7b | In-stream microphone pass-through mute/unmute | P1 |
 
 ### 5.2 Input & Haptics
 | ID | Feature | Priority |
@@ -69,28 +71,32 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 | F8 | DualSense / DualShock 4 controller pass-through | P0 |
 | F9 | Gyroscope / IMU orientation forwarding | P1 |
 | F10 | DualSense haptic audio (PS5 Remote Play rumble) | P1 |
-| F11 | On-screen touch overlay controls (mobile) | P0 |
-| F12 | SDL gamepad support (desktop) | P1 |
+| F11 | On-screen touch overlay controls with drag-and-drop customization | P0 |
+| F11a | Virtual thumbstick tactile touch haptic feedback | P1 |
+| F11b | DualSense touchpad touch/gesture emulation for mobile grips | P1 |
+| F12 | SDL gamepad support (desktop) with deadzone & sensitivity calibration | P1 |
 | F13 | libsetsu touchpad input from controller (Linux) | P2 |
 | F14 | Steam Deck native gyro + haptics | P2 |
+| F14a | Controller battery indicator HUD across all platforms | P1 |
 
 ### 5.3 Account & Discovery
 | ID | Feature | Priority |
 |----|---------|----------|
 | F15 | PSN OAuth login (NPSSO token acquisition) | P0 |
 | F16 | Automatic console discovery (LAN broadcast) | P0 |
-| F17 | Manual console registration | P1 |
+| F17 | Manual console registration with auto-filled Account ID | P1 |
 | F18 | PSStream server relay for web-based PSN login (mobile-friendly) | P1 |
 | F19 | Steamworks overlay for PSN login (desktop Steam) | P2 |
+| F19a | Android App Shortcuts for 1-tap console & catalog launch | P2 |
 
 ### 5.4 Platform Distribution
 | ID | Feature | Priority |
 |----|---------|----------|
 | F20 | Google Play (Android + Android TV) — production + beta tracks | P0 |
 | F21 | Apple App Store + TestFlight (iOS / iPadOS) | P0 |
-| F22 | Mac App Store (macOS universal) | P0 |
+| F22 | Mac App Store & DMG/Zip (macOS universal) | P0 |
 | F23 | Flathub (Linux x86_64 + aarch64) | P0 |
-| F24 | Windows installer + portable zip (x86_64) | P1 |
+| F24 | Windows Inno Setup installer, MSI, MSIX, and portable zip (x86_64 & ARM64) | P1 |
 | F25 | Linux AppImage | P1 |
 
 ### 5.5 Desktop UI (Qt)
@@ -98,6 +104,9 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 |----|---------|----------|
 | F26 | QML-based main window, settings, game launcher | P0 |
 | F27 | Stream quality configuration (resolution, FPS, bitrate, codec) | P0 |
+| F27a | In-stream aspect ratio presets (Fit, Fill / 16:10, 20:9, Zoom, Stretch) | P1 |
+| F27b | In-stream Contrast Adaptive Sharpening (CAS / Lanczos) toggle | P1 |
+| F27c | In-stream Performance Stats & Battery Indicator HUD overlay | P1 |
 | F28 | Controller keyboard navigation (Qt::TabFocusAllControls) | P1 |
 | F29 | Steam shortcut creation | P2 |
 

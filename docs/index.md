@@ -46,7 +46,12 @@ Head to the [Setup section](setup/index.md) to get AstraPlay running on your dev
 - **Internet Play** — stream games from the game catalog or your owned game library
 - **Automatic console discovery** — finds PS4/PS5 consoles on your local network automatically
 - **Cross-platform** — Android, Android TV, iOS, macOS, Windows, Linux, Steam Deck
-- **Touch-friendly UI** — mobile-optimized controls for phones and tablets
+- **In-Stream Aspect Ratio Presets** — Fit (16:9), Fill / 16:10 (Steam Deck & ROG Ally), 20:9 (smartphones), Zoom, and Stretch
+- **Contrast Adaptive Sharpening (CAS)** — integrated FidelityFX CAS and Lanczos shaders for high-fidelity upscaling
+- **Dynamic Bitrate & Congestion Control** — real-time adaptive bitrate heuristics preventing dropped frames and audio stutter
+- **Controller Battery Indicator HUD** — real-time battery status and charging state on the in-stream HUD
+- **Low-Latency Audio Tuning** — configurable audio buffer sizing (Ultra-Low to High) and in-stream mic muting
+- **Touch & Haptic Innovation** — virtual thumbstick tactile haptics, customizable drag-and-drop overlays, and DualSense touchpad emulation
 - **App-store installs** — available on Google Play, App Store, and Mac App Store
 - **Open source** — AGPL-3.0 licensed, community-maintained
 

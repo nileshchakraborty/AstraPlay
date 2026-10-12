@@ -42,19 +42,20 @@ The heart of AstraPlay. Must be the single source of truth for all protocol beha
 | Ctrl | `ctrl.c`, `ctrl.h` | Control channel (commands, keep-alive) |
 | Takion | `takion.c` | A/V packet transport layer (custom UDP) |
 | Stream Connection | `streamconnection.c` | Full duplex stream setup |
-| Audio | `audio.c`, `audiosender.c`, `audiorecv.c` | Opus encode/decode pipeline |
+| Congestion Control | `congestioncontrol.c`, `congestioncontrol.h` | Real-time adaptive dynamic bitrate scaling & RTT monitoring |
+| Audio | `audio.c`, `audiosender.c`, `audiorecv.c` | Opus encode/decode pipeline, configurable latency buffer sizes |
 | Video | `videoreceiver.c`, `frameprocessor.c`, `ffmpegdecoder.c` | Video receive, FEC reassembly, decode |
 | FEC | `fec.c` | Forward Error Correction (Jerasure/Reed-Solomon) |
-| Controller | `controller.c` | DualSense / DS4 state encoding |
+| Controller | `controller.c` | DualSense / DS4 state encoding, battery level & charging state |
 | Feedback | `feedback.c`, `feedbacksender.c` | Haptic and rumble feedback |
 | Discovery | `discovery.c`, `discoveryservice.c` | LAN console discovery (UDP broadcast) |
 | Registration | `regist.c` | Console PIN registration |
-| Remote (RUDP) | `remote/` | Internet Play over RUDP |
+| Remote (RUDP) | `remote/` | Internet Play over RUDP & push notification WebSockets |
 | Cloud Catalog | `cloudcatalog_*.c` | PSN game catalog fetch, cache, merge |
 | Cloud Session | `cloudsession.c`, `cloudsession_kamaji.c`, `cloudsession_gaikai.c` | Internet Play session types |
 | Cloud Ping | `cloudsession_ping.c` | Latency probing for server selection |
 | Crypto | `rpcrypt.c`, `gkcrypt.c`, `ecdh.c` | Session encryption |
-| HTTP | `http.c`, `curl_http.c` | libcurl-based HTTP client |
+| HTTP | `http.c`, `curl_http.c` | libcurl-based HTTP client & secure WebSocket client |
 | Log | `log.c`, `log.h` | Structured log with level filtering |
 | iOS Bridge | `ios_bridge_helpers.c` | `CHIAKI_EXPORT` wrappers — **only access point for iOS into struct internals** |
 
