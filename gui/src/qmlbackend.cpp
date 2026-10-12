@@ -2759,8 +2759,7 @@ void QmlBackend::ensureAstraPlaySteamShortcut(const QJSValue &callback)
 
     QVector<SteamShortcutEntry> shortcuts = steam.parseShortcuts();
     for (auto &entry : shortcuts) {
-        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive) ||
-            entry.getAppName().contains(QStringLiteral("Pylux"), Qt::CaseInsensitive)) {
+        if (entry.getAppName().contains(QStringLiteral("AstraPlay"), Qt::CaseInsensitive)) {
             done(false);
             return;
         }

@@ -21,7 +21,7 @@ Engineered for ultra-low latency, crisp visuals, and cross-platform flexibility,
 - **Ultra-Low Latency & High Fidelity**: Hardware-accelerated decoding via **Vulkan**, **Metal**, **D3D11VA**, **VAAPI**, **VideoToolbox**, and **AMediaCodec** with full support for HDR, AV1, HEVC, and H.264 codecs.
 - **Inbuilt QR Code Authentication**: Pair and sign in to PlayStation Network seamlessly using the built-in, offline QR code generator directly inside the Settings and Login dialogs.
 - **Private Self-Hosted Token Relay**: Full support for self-hosting the authentication relay via `psstream-server` for zero third-party telemetry and complete network sovereignty.
-- **Seamless Settings Migration**: Automatically discovers and inherits configurations from `pylux.conf` and `Chiaki.conf` so previously registered consoles, keys, and bitrate settings carry over instantly.
+- **Seamless Settings Migration**: Automatically discovers and inherits configurations from legacy configurations so previously registered consoles, keys, and bitrate settings carry over instantly.
 - **Integrated In-App Updates**: Built-in background update checker (`UpdateManager`) in Settings with one-click download, automated package extraction, and stale file cleanup.
 
 ---
@@ -156,4 +156,4 @@ AstraPlay is an independent community project and is not affiliated with, endors
 
 ## Credits & Acknowledgments
 
-AstraPlay is built upon the foundational work of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng), and succeeds the **Pylux** project. Heartfelt thanks go to the original Chiaki authors, the chiaki-ng maintainers, and open-source contributors across the handheld gaming ecosystem.
+AstraPlay is built upon the foundational work of [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) and [chiaki-ng](https://github.com/streetpea/chiaki-ng). Heartfelt thanks go to the original Chiaki authors, the chiaki-ng maintainers, and open-source contributors across the handheld gaming ecosystem.
