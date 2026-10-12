@@ -153,6 +153,14 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			showOverlay()
 		}
 
+		// In-stream microphone mute toggle (mirrors Qt's micButton in HUD row)
+		binding.micSwitch.isChecked = true // Default unmuted
+		binding.micSwitch.setOnCheckedChangeListener { _, isChecked ->
+			// When checked, mic is active/unmuted (muted = false). When unchecked, muted = true.
+			viewModel.session.toggleMicrophone(!isChecked)
+			showOverlay()
+		}
+
 		// On-Screen Touch Controls Drag & Reposition Editor
 		setupTouchLayoutEditor()
 

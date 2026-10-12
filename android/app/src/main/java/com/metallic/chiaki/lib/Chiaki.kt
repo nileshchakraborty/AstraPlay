@@ -153,6 +153,7 @@ private class ChiakiNative
 		@JvmStatic external fun sessionSetControllerState(ptr: Long, controllerState: ControllerState)
 		@JvmStatic external fun sessionSetPsChord(ptr: Long, enabled: Boolean, holdMs: Int)
 		@JvmStatic external fun sessionSetLoginPin(ptr: Long, pin: String)
+		@JvmStatic external fun sessionToggleMicrophone(ptr: Long, muted: Boolean)
 		// Shared Madgwick orientation tracker (lib/src/orientation.c) for the
 		// controller-motion path: controller sensors provide only gyro/accel.
 		// update() fills out[10]: gyro xyz, accel xyz, orientation quat xyzw.
@@ -753,6 +754,12 @@ class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
 	fun setLoginPin(pin: String)
 	{
 		ChiakiNative.sessionSetLoginPin(nativePtr, pin)
+	}
+
+	fun toggleMicrophone(muted: Boolean)
+	{
+		if(nativePtr != 0L)
+			ChiakiNative.sessionToggleMicrophone(nativePtr, muted)
 	}
 }
 

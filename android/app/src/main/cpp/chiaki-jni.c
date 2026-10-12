@@ -960,6 +960,14 @@ JNIEXPORT void JNICALL JNI_FCN(sessionSetLoginPin)(JNIEnv *env, jobject obj, jlo
 	E->ReleaseStringUTFChars(env, pin_java, pin);
 }
 
+JNIEXPORT void JNICALL JNI_FCN(sessionToggleMicrophone)(JNIEnv *env, jobject obj, jlong ptr, jboolean muted)
+{
+	AndroidChiakiSession *session = (AndroidChiakiSession *)ptr;
+	if(!session)
+		return;
+	chiaki_session_toggle_microphone(&session->session, (bool)muted);
+}
+
 typedef struct android_discovery_service_t
 {
 	ChiakiDiscoveryService service;

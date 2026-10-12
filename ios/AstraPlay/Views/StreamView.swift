@@ -39,6 +39,7 @@ struct StreamView: View {
     @State private var touchpadOnly: Bool
     @State private var touchpadEmulation: Bool
     @State private var showStats: Bool
+    @State private var micEnabled: Bool = true
     @State private var statsText: String = ""
     @State private var isTouchpadPillPressed = false
     /// Previous cumulative dropped-frame total so the overlay can show drops *this tick*
@@ -419,6 +420,17 @@ struct StreamView: View {
                 .font(.system(size: 13))
                 .foregroundColor(.white)
                 .fixedSize()
+
+            // Microphone mute toggle (matches Desktop and Android's micSwitch)
+            Toggle("Mic", isOn: $micEnabled)
+                .toggleStyle(.switch)
+                .font(.system(size: 13))
+                .foregroundColor(.white)
+                .fixedSize()
+                .onChange(of: micEnabled) { enabled in
+                    session.toggleMicrophone(muted: !enabled)
+                    scheduleHideOverlay()
+                }
 
             // Edit Layout button (matches Android's editLayoutButton)
             Button {
