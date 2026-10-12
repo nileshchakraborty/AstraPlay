@@ -194,11 +194,7 @@ fi
 
 export LD_LIBRARY_PATH="${LIBS}:${LD_LIBRARY_PATH}"
 export QT_PLUGIN_PATH="${DIR}/usr/plugins"
-if [ -x "${DIR}/usr/bin/astraplay" ]; then
-    exec "${DIR}/usr/bin/astraplay" "$@"
-else
-    exec "${DIR}/usr/bin/chiaki" "$@"
-fi
+exec "${DIR}/usr/bin/astraplay" "$@"
 EOF
 
 chmod +x "${PORTABLE_DIR}/launch.sh"

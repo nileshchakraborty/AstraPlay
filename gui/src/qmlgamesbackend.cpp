@@ -983,13 +983,13 @@ void QmlGamesBackend::createGameSteamShortcut(const QString &titleId, const QStr
         QFileInfo exeInfo(executable);
         QString exePath = exeInfo.absoluteFilePath();
         
-        // Check if we're running from astraplay/linux/astraplay/usr/bin/chiaki structure
+        // Check if we're running from astraplay/linux/astraplay/usr/bin/astraplay structure
         // If so, use astraplay/linux/astraplay/launch.sh instead
         if (exePath.contains("/usr/bin/"))
         {
             QDir exeDir(exeInfo.absolutePath());
             // Go up from usr/bin to usr, then to astraplay (inner directory)
-            // Structure: .../astraplay/linux/astraplay/usr/bin/chiaki -> .../astraplay/linux/astraplay/launch.sh
+            // Structure: .../astraplay/linux/astraplay/usr/bin/astraplay -> .../astraplay/linux/astraplay/launch.sh
             if (exeDir.cdUp() && exeDir.cdUp())
             {
                 QString launchScript = exeDir.absoluteFilePath("launch.sh");
