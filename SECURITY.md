@@ -150,7 +150,7 @@ The iOS ↔ C library boundary is a security-relevant correctness concern:
 
 | Control | Detail |
 |---------|--------|
-| No force-push to `release/beta` or `master` | Branch protection rules |
+| No direct or force-push to `dev` or `master` | Repository contribution policy; merge feature PRs into `dev` and release PRs from `dev` into `master` |
 | Required PR review before merge | 1 approver minimum |
 | Signed commits encouraged | GPG signing for maintainers |
 | Workflow permissions | `contents: read`, elevated only for deploy steps |

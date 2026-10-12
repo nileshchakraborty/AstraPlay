@@ -6,43 +6,25 @@ Thanks for your interest in contributing! AstraPlay is a free, community-built p
 
 | Branch | Purpose |
 |---|---|
-| `master` | Default branch. Stable code and the starting point for all forks. When deployed, pushes to **production** stores. |
-| `release/beta` | Merge target for PRs. Pushes here automatically build and deploy **beta** builds to all platforms. |
-| `release/alpha` | Experimental testing branch. No CI is triggered. |
+| `dev` | Integration branch and target for all feature, fix, and documentation PRs. |
+| `master` | Default, stable release branch. Only release PRs from `dev` target it. Merges trigger the release build and GitHub Release workflow. |
+| Feature branches | Start from `dev` and open PRs back to `dev`. |
 
 ### How to contribute
 
 1. **Fork** the repo on GitHub.
-2. Create a feature or fix branch off `master`.
+2. Create a feature or fix branch off `dev`.
 3. Make your changes, commit, and push to your fork.
-4. Open a **pull request** targeting `release/beta`.
-5. A maintainer reviews and merges. Once merged, CI takes over automatically.
+4. Open a **pull request** targeting `dev`.
+5. A maintainer reviews and merges it into `dev`. This does not publish a release.
 6. For larger changes, opening an issue first is appreciated so we can discuss the approach.
 7. Keep PRs focused — one feature or fix per PR when possible.
 
 ### What happens after merge
 
-When a PR is merged into `release/beta`, GitHub Actions builds and deploys every platform:
+Feature PRs merge into `dev` for integration. When the maintainer is ready to release, they open a separate **release PR from `dev` to `master`**. Merging that PR triggers `.github/workflows/release-on-merge.yml`, which builds platform binaries and publishes a GitHub Release. Store deployment uses the dedicated deploy workflows or the manually dispatched `release-all.yml` workflow; merging a feature PR into `dev` does not deploy to stores.
 
-| Platform | What gets built | Where it goes |
-|---|---|---|
-| Android + Android TV | Signed AAB (all ABIs) | Google Play (beta track) |
-| iOS | Signed IPA (arm64) | TestFlight (upload only) |
-| macOS | Universal .pkg (arm64 + x86_64) | App Store Connect (upload only) |
-| Windows | Portable zip + installer (x86_64) | GitHub release |
-| Linux | AppImage (x86_64) | GitHub release |
-| Linux (Flatpak) | Flatpak (x86_64 + aarch64) | Flathub (manifest synced to `flathub/io.github.nileshchakraborty.AstraPlay`) |
-
-When `master` is deployed (currently manual dispatch only):
-
-| Platform | Difference from beta |
-|---|---|
-| Android + Android TV | Pushed to **production** track instead of beta |
-| iOS | Auto-submits for **review** after upload |
-| macOS | Auto-submits for **review** after upload |
-| Windows / Linux / Flatpak | Same as beta |
-
-All workflows can also be triggered manually from the Actions tab.
+Do not push directly to `dev` or `master`.
 
 ## Local development
 

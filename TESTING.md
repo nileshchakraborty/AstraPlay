@@ -5,7 +5,7 @@
 - **Verify on device, not just at compile time.** A build that compiles is not a verified change. Run on the real platform and read its logs.
 - **`lib/` is the highest-value test target.** Every protocol fix must have a unit test in `test/` that exercises the code path.
 - **Platform integration tests** catch issues that unit tests can't: ABI boundary bugs, audio/video sync, controller latency.
-- **CI is the gatekeeper.** All tests must pass on CI before merge to `release/beta`.
+- **CI and device checks are gates.** Review applicable CI results and run affected platforms on real devices before merging into `dev`. Review that evidence again in the `dev` → `master` release PR.
 
 ---
 
@@ -249,7 +249,7 @@ When a streaming bug involving packet loss or reordering is found:
 
 ## 8. CI Test Gates
 
-All PRs targeting `release/beta` must pass:
+For PRs targeting `dev`, run the applicable checks below. The current Windows MSBuild workflow runs for PRs to `dev` and `master`; other platform build workflows are dispatched separately and are not automatic required checks for every PR.
 
 | Gate | Platform | Tool |
 |------|----------|------|
@@ -261,13 +261,13 @@ All PRs targeting `release/beta` must pass:
 | Linux AppImage | Ubuntu (GitHub Actions) | Docker container |
 | Flatpak build | Ubuntu (GitHub Actions) | `flatpak-builder` |
 
-**No platform gate may be skipped.** If a platform is broken by a change, either fix it in the same PR or revert.
+If a platform is affected by a change, verify it before merge. Fix a broken platform in the same PR or revert the change.
 
 ---
 
 ## 9. Manual Verification Checklist
 
-Run before tagging a production release (merge to `master`):
+Run before merging a release PR from `dev` to `master`:
 
 ### Remote Play
 - [ ] PS5 discovered automatically on LAN
