@@ -57,6 +57,7 @@ struct StreamView: View {
     @State private var connectedAt: Date? = nil
     @State private var touchOpacity: Double = 0.65
     @State private var touchScale: CGFloat = 1.0
+    @State private var isEditingLayout = false
 
     init(connectInfo: StreamConnectInfo) {
         self.connectInfo = connectInfo
@@ -132,6 +133,7 @@ struct StreamView: View {
             StreamTouchControlsOverlayRepresentable(
                 mode: touchpadOnly ? .touchpadOnly : (onScreenControls ? .full : .psOnly),
                 streamInput: session.input,
+                isEditingLayout: isEditingLayout,
                 onPSButtonPressed: {
                     showOverlay = true
                     scheduleHideOverlay()
@@ -418,6 +420,47 @@ struct StreamView: View {
                 .foregroundColor(.white)
                 .fixedSize()
 
+            // Edit Layout button (matches Android's editLayoutButton)
+            Button {
+                isEditingLayout.toggle()
+                if !isEditingLayout {
+                    scheduleHideOverlay()
+                }
+            } label: {
+                Text(isEditingLayout ? "Done" : "Edit Layout")
+                    .lineLimit(1)
+            }
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(isEditingLayout ? .yellow : .white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isEditingLayout ? Color.yellow : Color.white.opacity(0.5), lineWidth: 1)
+            )
+
+            if isEditingLayout {
+                Button {
+                    var prefs = StreamPreferences.load()
+                    prefs.touchControlsLayoutPreset = "standard"
+                    prefs.touchControlsCustomOffsets = ""
+                    prefs.save()
+                    isEditingLayout = false
+                    scheduleHideOverlay()
+                } label: {
+                    Text("Reset")
+                        .lineLimit(1)
+                }
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.red)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.red, lineWidth: 1)
+                )
+            }
+
             Spacer()
 
             // Display mode toggle group (matches Android's displayModeToggle)
@@ -484,6 +527,7 @@ struct StreamView: View {
     }
 
     private func scheduleHideOverlay() {
+        guard !isEditingLayout else { return }
         hideOverlayTask?.cancel()
         hideOverlayTask = Task {
             try? await Task.sleep(nanoseconds: 4_000_000_000) // 4 seconds, matches Android

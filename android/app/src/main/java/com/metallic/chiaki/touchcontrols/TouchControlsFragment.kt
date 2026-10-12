@@ -4,6 +4,7 @@ package com.metallic.chiaki.touchcontrols
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -105,6 +106,10 @@ class DefaultTouchControlsFragment : TouchControlsFragment()
 			binding.rightAnalogStickView.scaleY = scale
 		}
 
+		applyLayoutPreset(preferences)
+	}
+
+	fun applyLayoutPreset(preferences: com.metallic.chiaki.common.Preferences) {
 		when (preferences.touchControlsLayoutPreset) {
 			"compact" -> {
 				(binding.dpadView.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
@@ -117,6 +122,7 @@ class DefaultTouchControlsFragment : TouchControlsFragment()
 					it.bottomMargin = (16 * resources.displayMetrics.density).toInt()
 					binding.faceButtonsLayout.layoutParams = it
 				}
+				clearCustomTranslations()
 			}
 			"expanded" -> {
 				(binding.dpadView.layoutParams as? ViewGroup.MarginLayoutParams)?.let {
@@ -129,8 +135,146 @@ class DefaultTouchControlsFragment : TouchControlsFragment()
 					it.bottomMargin = (44 * resources.displayMetrics.density).toInt()
 					binding.faceButtonsLayout.layoutParams = it
 				}
+				clearCustomTranslations()
 			}
-			else -> {}
+			"custom" -> {
+				applyCustomOffsets(preferences.touchControlsCustomOffsets)
+			}
+			else -> {
+				clearCustomTranslations()
+			}
+		}
+	}
+
+	private fun clearCustomTranslations() {
+		val views = listOf(
+			binding.dpadView, binding.faceButtonsLayout,
+			binding.l1ButtonView, binding.r1ButtonView,
+			binding.l2ButtonView, binding.r2ButtonView,
+			binding.l3ButtonView, binding.r3ButtonView,
+			binding.shareButtonView, binding.optionsButtonView,
+			binding.psButtonView, binding.touchpadView
+		)
+		views.forEach {
+			it.translationX = 0f
+			it.translationY = 0f
+		}
+	}
+
+	fun applyCustomOffsets(offsetsStr: String) {
+		if (offsetsStr.isBlank()) {
+			clearCustomTranslations()
+			return
+		}
+		val map = mutableMapOf<String, Pair<Float, Float>>()
+		offsetsStr.split(";").forEach { entry ->
+			val parts = entry.split(":")
+			if (parts.size == 2) {
+				val coords = parts[1].split(",")
+				if (coords.size == 2) {
+					val dx = coords[0].toFloatOrNull() ?: 0f
+					val dy = coords[1].toFloatOrNull() ?: 0f
+					map[parts[0]] = Pair(dx, dy)
+				}
+			}
+		}
+
+		val namedViews = mapOf(
+			"dpad" to binding.dpadView,
+			"face" to binding.faceButtonsLayout,
+			"l1" to binding.l1ButtonView,
+			"r1" to binding.r1ButtonView,
+			"l2" to binding.l2ButtonView,
+			"r2" to binding.r2ButtonView,
+			"l3" to binding.l3ButtonView,
+			"r3" to binding.r3ButtonView,
+			"share" to binding.shareButtonView,
+			"options" to binding.optionsButtonView,
+			"ps" to binding.psButtonView,
+			"touchpad" to binding.touchpadView
+		)
+
+		namedViews.forEach { (key, view) ->
+			val offset = map[key]
+			if (offset != null) {
+				view.translationX = offset.first
+				view.translationY = offset.second
+			} else {
+				view.translationX = 0f
+				view.translationY = 0f
+			}
+		}
+	}
+
+	fun serializeCustomOffsets(): String {
+		val namedViews = mapOf(
+			"dpad" to binding.dpadView,
+			"face" to binding.faceButtonsLayout,
+			"l1" to binding.l1ButtonView,
+			"r1" to binding.r1ButtonView,
+			"l2" to binding.l2ButtonView,
+			"r2" to binding.r2ButtonView,
+			"l3" to binding.l3ButtonView,
+			"r3" to binding.r3ButtonView,
+			"share" to binding.shareButtonView,
+			"options" to binding.optionsButtonView,
+			"ps" to binding.psButtonView,
+			"touchpad" to binding.touchpadView
+		)
+		return namedViews.map { "${it.key}:${it.value.translationX.toInt()},${it.value.translationY.toInt()}" }.joinToString(";")
+	}
+
+	private var isEditMode = false
+
+	fun setEditMode(enabled: Boolean) {
+		isEditMode = enabled
+		val draggableViews = listOf(
+			binding.dpadView, binding.faceButtonsLayout,
+			binding.l1ButtonView, binding.r1ButtonView,
+			binding.l2ButtonView, binding.r2ButtonView,
+			binding.l3ButtonView, binding.r3ButtonView,
+			binding.shareButtonView, binding.optionsButtonView,
+			binding.psButtonView, binding.touchpadView
+		)
+		draggableViews.forEach { v ->
+			if (enabled) {
+				setupDragOnView(v)
+			} else {
+				v.setOnTouchListener(null)
+			}
+		}
+	}
+
+	private fun setupDragOnView(target: View) {
+		var startX = 0f
+		var startY = 0f
+		var initTransX = 0f
+		var initTransY = 0f
+
+		target.setOnTouchListener { v, event ->
+			when (event.actionMasked) {
+				MotionEvent.ACTION_DOWN -> {
+					startX = event.rawX
+					startY = event.rawY
+					initTransX = v.translationX
+					initTransY = v.translationY
+					true
+				}
+				MotionEvent.ACTION_MOVE -> {
+					val dx = event.rawX - startX
+					val dy = event.rawY - startY
+					v.translationX = initTransX + dx
+					v.translationY = initTransY + dy
+					true
+				}
+				MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+					val prefs = com.metallic.chiaki.common.Preferences(requireContext())
+					prefs.touchControlsLayoutPreset = "custom"
+					prefs.touchControlsCustomOffsets = serializeCustomOffsets()
+					true
+				}
+				else -> false
+			}
 		}
 	}
 

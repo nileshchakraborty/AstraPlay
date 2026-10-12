@@ -154,9 +154,14 @@ class Preferences(context: Context)
 		set(value) { sharedPreferences.edit().putInt(touchControlsScaleKey, value.coerceIn(70, 130)).apply() }
 
 	val touchControlsLayoutPresetKey get() = resources.getString(R.string.preferences_touch_controls_layout_preset_key)
-	var touchControlsLayoutPreset // standard, compact, expanded
+	var touchControlsLayoutPreset // standard, compact, expanded, custom
 		get() = sharedPreferences.getString(touchControlsLayoutPresetKey, "standard") ?: "standard"
 		set(value) { sharedPreferences.edit().putString(touchControlsLayoutPresetKey, value).apply() }
+
+	val touchControlsCustomOffsetsKey get() = "touch_controls_custom_offsets"
+	var touchControlsCustomOffsets: String // Format: "key:dx,dy;key2:dx,dy"
+		get() = sharedPreferences.getString(touchControlsCustomOffsetsKey, "") ?: ""
+		set(value) { sharedPreferences.edit().putString(touchControlsCustomOffsetsKey, value).apply() }
 
 	/** Where the motion data (gyro/accel/orientation) streamed to the console comes
 	 * from. Matches iOS' MotionSource setting. */

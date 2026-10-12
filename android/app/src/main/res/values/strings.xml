@@ -340,11 +340,13 @@
         <item>Standard (Default)</item>
         <item>Compact (RPG &amp; Menus)</item>
         <item>Expanded (Shooters &amp; Action)</item>
+        <item>Custom (Drag &amp; Reposition)</item>
     </string-array>
     <string-array name="touch_controls_layout_preset_values">
         <item>standard</item>
         <item>compact</item>
         <item>expanded</item>
+        <item>custom</item>
     </string-array>
 
     <string name="preferences_category_title_touch_customization">On-Screen Touch Controls</string>
@@ -356,5 +358,8 @@
     <string name="preferences_touch_controls_scale_summary">Scale factor for virtual buttons (default 100%%)</string>
     <string name="preferences_touch_controls_layout_preset_key">touch_controls_layout_preset</string>
     <string name="preferences_touch_controls_layout_preset_title">Genre Layout Preset</string>
+    <string name="touch_controls_edit_layout">Edit Layout</string>
+    <string name="touch_controls_done_editing">Done</string>
+    <string name="touch_controls_reset_layout">Reset Layout</string>
 
 </resources>

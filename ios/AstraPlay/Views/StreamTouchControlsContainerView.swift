@@ -510,5 +510,95 @@ final class StreamTouchControlsContainerView: UIView {
         r3.frame = CGRect(x: w - l3s - edgeR, y: h - l3s, width: l3s, height: l3s)
         let pss: CGFloat = 48 * s
         psB.frame = CGRect(x: (w - pss) / 2, y: h - pss, width: pss, height: pss)
+
+        // Apply custom offsets if preset is "custom"
+        let prefs = StreamPreferences.load()
+        if prefs.touchControlsLayoutPreset == "custom" {
+            applyCustomOffsets(prefs.touchControlsCustomOffsets)
+        } else {
+            clearCustomTranslations()
+        }
+    }
+
+    private var namedViews: [String: UIView] {
+        [
+            "dpad": dpad,
+            "face": face,
+            "l1": l1,
+            "r1": r1,
+            "l2": l2v,
+            "r2": r2v,
+            "l3": l3,
+            "r3": r3,
+            "share": shareB,
+            "options": optionsB,
+            "ps": psB,
+            "touchpad": touchpad
+        ]
+    }
+
+    private func clearCustomTranslations() {
+        namedViews.values.forEach {
+            $0.transform = .identity
+        }
+    }
+
+    func applyCustomOffsets(_ offsetsStr: String) {
+        guard !offsetsStr.isEmpty else {
+            clearCustomTranslations()
+            return
+        }
+        var map: [String: CGPoint] = [:]
+        for entry in offsetsStr.split(separator: ";") {
+            let parts = entry.split(separator: ":")
+            if parts.count == 2 {
+                let coords = parts[1].split(separator: ",")
+                if coords.count == 2,
+                   let dx = Double(coords[0]),
+                   let dy = Double(coords[1]) {
+                    map[String(parts[0])] = CGPoint(x: dx, y: dy)
+                }
+            }
+        }
+        for (key, view) in namedViews {
+            if let pt = map[key] {
+                view.transform = CGAffineTransform(translationX: pt.x, y: pt.y)
+            } else {
+                view.transform = .identity
+            }
+        }
+    }
+
+    func serializeCustomOffsets() -> String {
+        namedViews.map { "\($0.key):\($0.value.transform.tx),\($0.value.transform.ty)" }.joined(separator: ";")
+    }
+
+    private var panRecognizers: [UIPanGestureRecognizer] = []
+
+    func setEditMode(_ enabled: Bool) {
+        panRecognizers.forEach { $0.view?.removeGestureRecognizer($0) }
+        panRecognizers.removeAll()
+
+        guard enabled else { return }
+
+        for (_, view) in namedViews {
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(handleViewPan(_:)))
+            view.addGestureRecognizer(pan)
+            panRecognizers.append(pan)
+        }
+    }
+
+    @objc private func handleViewPan(_ gesture: UIPanGestureRecognizer) {
+        guard let target = gesture.view else { return }
+        let translation = gesture.translation(in: self)
+        target.transform = target.transform.translatedBy(x: translation.x, y: translation.y)
+        gesture.setTranslation(.zero, in: self)
+
+        if gesture.state == .ended || gesture.state == .cancelled {
+            var prefs = StreamPreferences.load()
+            prefs.touchControlsLayoutPreset = "custom"
+            prefs.touchControlsCustomOffsets = serializeCustomOffsets()
+            prefs.save()
+        }
     }
 }

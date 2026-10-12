@@ -3,7 +3,7 @@
     <shortcut
         android:shortcutId="remote_play"
         android:enabled="true"
-        android:icon="@drawable/ic_playstation"
+        android:icon="@drawable/ic_gamepad"
         android:shortcutShortLabel="@string/shortcut_remote_play_short"
         android:shortcutLongLabel="@string/shortcut_remote_play_long">
         <intent

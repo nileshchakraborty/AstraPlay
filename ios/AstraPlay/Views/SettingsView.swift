@@ -104,7 +104,8 @@ struct StreamPreferences: Codable {
     // Touch Controls Customization
     var touchControlsOpacity: Int = 65  // 20..100 percent (default 65)
     var touchControlsScale: Int = 100   // 70..130 percent (default 100)
-    var touchControlsLayoutPreset: String = "standard" // standard, compact, expanded
+    var touchControlsLayoutPreset: String = "standard" // standard, compact, expanded, custom
+    var touchControlsCustomOffsets: String = "" // "key:dx,dy;key2:dx,dy"
 
     // Cloud Game Library (PSCloud)
     var cloudResolutionPscloud: String = "720"      // matches Android default
@@ -130,6 +131,7 @@ struct StreamPreferences: Codable {
         case motionEnabled // legacy bool, migrated into motionSource
         case adaptiveTriggersEnabled
         case onScreenControlsEnabled, touchpadOnlyEnabled, touchpadEmulationEnabled
+        case touchControlsOpacity, touchControlsScale, touchControlsLayoutPreset, touchControlsCustomOffsets
         case cloudResolutionPscloud, cloudDatacenterPscloud, cloudBitratePscloud
         case cloudResolutionPsnow, cloudDatacenterPsnow, cloudBitratePsnow
         case cloudGameLanguage
@@ -204,6 +206,10 @@ struct StreamPreferences: Codable {
         onScreenControlsEnabled = try c.decodeIfPresent(Bool.self, forKey: .onScreenControlsEnabled) ?? true
         touchpadOnlyEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadOnlyEnabled) ?? false
         touchpadEmulationEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadEmulationEnabled) ?? true
+        touchControlsOpacity = try c.decodeIfPresent(Int.self, forKey: .touchControlsOpacity) ?? 65
+        touchControlsScale = try c.decodeIfPresent(Int.self, forKey: .touchControlsScale) ?? 100
+        touchControlsLayoutPreset = try c.decodeIfPresent(String.self, forKey: .touchControlsLayoutPreset) ?? "standard"
+        touchControlsCustomOffsets = try c.decodeIfPresent(String.self, forKey: .touchControlsCustomOffsets) ?? ""
         cloudResolutionPscloud = try c.decodeIfPresent(String.self, forKey: .cloudResolutionPscloud) ?? "720"
         cloudDatacenterPscloud = try c.decodeIfPresent(String.self, forKey: .cloudDatacenterPscloud) ?? "Auto"
         cloudBitratePscloud = Self.clampCloudBitrateKbps(
@@ -234,6 +240,10 @@ struct StreamPreferences: Codable {
         try c.encode(onScreenControlsEnabled, forKey: .onScreenControlsEnabled)
         try c.encode(touchpadOnlyEnabled, forKey: .touchpadOnlyEnabled)
         try c.encode(touchpadEmulationEnabled, forKey: .touchpadEmulationEnabled)
+        try c.encode(touchControlsOpacity, forKey: .touchControlsOpacity)
+        try c.encode(touchControlsScale, forKey: .touchControlsScale)
+        try c.encode(touchControlsLayoutPreset, forKey: .touchControlsLayoutPreset)
+        try c.encode(touchControlsCustomOffsets, forKey: .touchControlsCustomOffsets)
         try c.encode(cloudResolutionPscloud, forKey: .cloudResolutionPscloud)
         try c.encode(cloudDatacenterPscloud, forKey: .cloudDatacenterPscloud)
         try c.encode(cloudBitratePscloud, forKey: .cloudBitratePscloud)
@@ -679,6 +689,7 @@ struct SettingsView: View {
                 Text("Standard (Default)").tag("standard")
                 Text("Compact (RPG & Menus)").tag("compact")
                 Text("Expanded (Shooters & Action)").tag("expanded")
+                Text("Custom (Drag & Reposition)").tag("custom")
             }
             .onChange(of: prefs.touchControlsLayoutPreset) { _ in prefs.save() }
         } header: {

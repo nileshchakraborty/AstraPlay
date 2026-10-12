@@ -136,7 +136,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		}
 
 		binding.displayModeToggle.addOnButtonCheckedListener { _, _, _ ->
-			adjustStreamViewAspect()
+			adjustSurfaceViewAspect()
 			showOverlay()
 		}
 
@@ -152,6 +152,9 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			updateStatsVisibility()
 			showOverlay()
 		}
+
+		// On-Screen Touch Controls Drag & Reposition Editor
+		setupTouchLayoutEditor()
 
 		// Setup DualSense Touchpad Emulation (Floating Pill & Top-Zone Gesture)
 		setupTouchpadEmulation()
@@ -184,7 +187,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			if (it > lastMenuRequest) showOverlay()
 			lastMenuRequest = it
 		})
-		adjustStreamViewAspect()
+		adjustSurfaceViewAspect()
 
 		if (isTv()) {
 			// On TV: hide the touch-oriented overlay and controls permanently
@@ -233,12 +236,16 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	}
 
 	private val controlsDisposable = CompositeDisposable()
+	private var touchControlsFragment: DefaultTouchControlsFragment? = null
+	private var isLayoutEditing = false
 
 	override fun onAttachFragment(fragment: Fragment)
 	{
 		super.onAttachFragment(fragment)
 		if(fragment is TouchControlsFragment)
 		{
+			if(fragment is DefaultTouchControlsFragment)
+				touchControlsFragment = fragment
 			if (isTv()) {
 				// Force controls hidden on TV by giving the fragment a LiveData that always emits false
 				fragment.onScreenControlsEnabled = androidx.lifecycle.MutableLiveData(false)
@@ -250,6 +257,34 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			fragment.onScreenControlsEnabled = viewModel.onScreenControlsEnabled
 			if(fragment is TouchpadOnlyFragment)
 				fragment.touchpadOnlyEnabled = viewModel.touchpadOnlyEnabled
+		}
+	}
+
+	private fun setupTouchLayoutEditor() {
+		binding.editLayoutButton.setOnClickListener {
+			val frag = touchControlsFragment ?: return@setOnClickListener
+			isLayoutEditing = !isLayoutEditing
+			frag.setEditMode(isLayoutEditing)
+			if (isLayoutEditing) {
+				binding.editLayoutButton.text = getString(R.string.touch_controls_done_editing)
+				binding.resetLayoutButton.visibility = View.VISIBLE
+			} else {
+				binding.editLayoutButton.text = getString(R.string.touch_controls_edit_layout)
+				binding.resetLayoutButton.visibility = View.GONE
+				showOverlay()
+			}
+		}
+
+		binding.resetLayoutButton.setOnClickListener {
+			val frag = touchControlsFragment ?: return@setOnClickListener
+			viewModel.preferences.touchControlsLayoutPreset = "standard"
+			viewModel.preferences.touchControlsCustomOffsets = ""
+			frag.applyLayoutPreset(viewModel.preferences)
+			isLayoutEditing = false
+			frag.setEditMode(false)
+			binding.editLayoutButton.text = getString(R.string.touch_controls_edit_layout)
+			binding.resetLayoutButton.visibility = View.GONE
+			showOverlay()
 		}
 	}
 
@@ -464,8 +499,10 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			})
 		uiVisibilityHandler.removeCallbacks(hideSystemUIRunnable)
 		uiVisibilityHandler.removeCallbacks(hideOverlayRunnable)
-		uiVisibilityHandler.postDelayed(hideSystemUIRunnable, HIDE_UI_TIMEOUT_MS)
-		uiVisibilityHandler.postDelayed(hideOverlayRunnable, HIDE_UI_TIMEOUT_MS)
+		if (!isLayoutEditing) {
+			uiVisibilityHandler.postDelayed(hideSystemUIRunnable, HIDE_UI_TIMEOUT_MS)
+			uiVisibilityHandler.postDelayed(hideOverlayRunnable, HIDE_UI_TIMEOUT_MS)
+		}
 	}
 
 	private fun hideOverlay()
