@@ -772,10 +772,10 @@ Item {
                 onClicked: root.openDisplaySettings()
                 KeyNavigation.left: highQualityButton
                 KeyNavigation.right: {
-                    if(Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
                         placeboSettingsButton;
                     else
-                        displaySettingsButton;
+                        statsOverlayButton;
                 }
                 Keys.onReturnPressed: {
                     menuView.close();
@@ -792,11 +792,34 @@ Item {
                 checkable: false
                 onClicked: root.openPlaceboSettings()
                 KeyNavigation.left: displaySettingsButton
+                KeyNavigation.right: statsOverlayButton
                 visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
                 Keys.onReturnPressed: {
                     menuView.close();
                     clicked();
                 }
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolSeparator {
+                Layout.leftMargin: -10
+                Layout.rightMargin: -10
+            }
+
+            ToolButton {
+                id: statsOverlayButton
+                text: qsTr("Stats")
+                padding: 10
+                checkable: true
+                checked: Chiaki.settings.showStreamStats
+                onToggled: Chiaki.settings.showStreamStats = !Chiaki.settings.showStreamStats
+                KeyNavigation.left: {
+                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                        placeboSettingsButton;
+                    else
+                        displaySettingsButton;
+                }
+                Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
             }
         }
