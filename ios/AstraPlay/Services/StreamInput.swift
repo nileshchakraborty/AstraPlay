@@ -26,7 +26,11 @@ class StreamInput {
     private var padFinger2Id: Int8 = -1
     private weak var attachedController: GCController?
     private var lastStateHash: Int = -1
-    private let swapButtons: Bool
+    private var swapButtons: Bool
+    private var swapBoxPyramid: Bool
+    private var swapBumpersTriggers: Bool
+    private var controllerDeadzone: Float
+    private var controllerSensitivity: Float
     // Motion (gyro/accel/orientation) streamed to the console, per the user's
     // MotionSource setting: the controller's sensors (GCMotion), this device's
     // sensors (CoreMotion), or off. Raw gyro/accel are fed through the shared C
@@ -40,11 +44,23 @@ class StreamInput {
     /// The currently attached physical controller (if any). Used by `StreamRumbleFeedback` to route haptics.
     var currentController: GCController? { attachedController ?? GCController.controllers().first }
 
+    /// Formatted controller battery percentage and charging state, if available.
+    var controllerBattery: String? {
+        guard let battery = currentController?.battery else { return nil }
+        let capacity = Int((battery.batteryLevel * 100).rounded())
+        let charging = battery.batteryState == .charging || battery.batteryState == .full
+        return charging ? "\(capacity)%⚡" : "\(capacity)%"
+    }
+
     // MARK: - Lifecycle
 
     init() {
         let prefs = StreamPreferences.load()
         swapButtons = prefs.swapCrossMoon
+        swapBoxPyramid = prefs.swapBoxPyramid
+        swapBumpersTriggers = prefs.swapBumpersTriggers
+        controllerDeadzone = Float(prefs.controllerDeadzone) / 100.0
+        controllerSensitivity = Float(prefs.controllerSensitivity) / 100.0
         motionSource = prefs.motionSource
         chiaki_controller_state_set_idle(&controllerState)
         chiaki_controller_state_set_idle(&touchOverlayState)
@@ -69,7 +85,13 @@ class StreamInput {
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
-            self.motionSource = StreamPreferences.load().motionSource
+            let p = StreamPreferences.load()
+            self.swapButtons = p.swapCrossMoon
+            self.swapBoxPyramid = p.swapBoxPyramid
+            self.swapBumpersTriggers = p.swapBumpersTriggers
+            self.controllerDeadzone = Float(p.controllerDeadzone) / 100.0
+            self.controllerSensitivity = Float(p.controllerSensitivity) / 100.0
+            self.motionSource = p.motionSource
             self.reconfigureMotionSources()
         }
         if let controller = GCController.controllers().first {
@@ -106,6 +128,50 @@ class StreamInput {
     func clearTouchOverlayState() {
         chiaki_controller_state_set_idle(&touchOverlayState)
         mergeGamepadWithTouchAndNotify()
+    }
+
+    /// Emulated touchpad (click + finger) for mobile grips without a physical touchpad.
+    private var emulatedTouchpadState = ChiakiControllerState()
+    private var emulatedTouchId: Int8 = -1
+
+    /// Emulate DualSense touchpad button click for mobile telescopic controllers / overlay pills.
+    func sendEmulatedTouchpadClick(down: Bool) {
+        let touchpadBit = UInt32(1 << 14)
+        if down {
+            emulatedTouchpadState.buttons |= touchpadBit
+        } else {
+            emulatedTouchpadState.buttons &= ~touchpadBit
+        }
+        mergeGamepadWithTouchAndNotify()
+    }
+
+    /// Emulate DualSense multi-touch surface tracking normalized coordinates (0..1).
+    func sendEmulatedTouchpadTouch(phase: Int, xNorm: Float, yNorm: Float) {
+        let clampedX = min(max(xNorm, 0.0), 1.0)
+        let clampedY = min(max(yNorm, 0.0), 1.0)
+        let scaledX = UInt16(clampedX * 1919.0)
+        let scaledY = UInt16(clampedY * 941.0)
+
+        // phase: 0 = began, 1 = moved, 2 = ended/cancelled
+        switch phase {
+        case 0:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_stop_touch(&emulatedTouchpadState, UInt8(emulatedTouchId))
+            }
+            emulatedTouchId = chiaki_controller_state_start_touch(&emulatedTouchpadState, scaledX, scaledY)
+            mergeGamepadWithTouchAndNotify()
+        case 1:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_set_touch_pos(&emulatedTouchpadState, UInt8(emulatedTouchId), scaledX, scaledY)
+                mergeGamepadWithTouchAndNotify()
+            }
+        default:
+            if emulatedTouchId >= 0 {
+                chiaki_controller_state_stop_touch(&emulatedTouchpadState, UInt8(emulatedTouchId))
+                emulatedTouchId = -1
+                mergeGamepadWithTouchAndNotify()
+            }
+        }
     }
 
     /// Call when the Chiaki session is ready to send feedback so the first post-connect `set_controller_state` is not skipped.
@@ -230,7 +296,10 @@ class StreamInput {
         var merged = ChiakiControllerState()
         chiaki_controller_state_set_idle(&merged)
         chiaki_controller_state_or(&merged, &gamepad, &touchOverlayState)
-        chiaki_controller_state_or(&controllerState, &merged, &physicalTouchpadState)
+        var withPhysical = ChiakiControllerState()
+        chiaki_controller_state_set_idle(&withPhysical)
+        chiaki_controller_state_or(&withPhysical, &merged, &physicalTouchpadState)
+        chiaki_controller_state_or(&controllerState, &withPhysical, &emulatedTouchpadState)
         notifyIfChanged()
     }
 
@@ -317,6 +386,21 @@ class StreamInput {
             state.left_y = Int16(-pad.leftThumbstick.yAxis.value * 32767)
             state.right_x = Int16(pad.rightThumbstick.xAxis.value * 32767)
             state.right_y = Int16(-pad.rightThumbstick.yAxis.value * 32767)
+
+            // Apply analog stick deadzone calibration & sensitivity
+            var calib = ChiakiStickCalibration()
+            chiaki_stick_calibration_init_default(&calib)
+            calib.deadzone = controllerDeadzone
+            calib.sensitivity = controllerSensitivity
+            chiaki_controller_state_apply_calibration(&state, &calib, &calib)
+
+            // Apply button remapping (bumpers/triggers swap and box/pyramid swap)
+            var remap = ChiakiButtonRemap()
+            chiaki_button_remap_init_default(&remap)
+            remap.swap_box_pyramid = swapBoxPyramid
+            remap.swap_l1_l2 = swapBumpersTriggers
+            remap.swap_r1_r2 = swapBumpersTriggers
+            chiaki_controller_state_apply_remap(&state, &remap)
         } else if let micro = controller.microGamepad {
             if micro.buttonA.isPressed { state.buttons |= UInt32(1 << 0) }
             if micro.buttonX.isPressed { state.buttons |= UInt32(1 << 2) }

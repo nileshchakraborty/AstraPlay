@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h> // strncasecmp
+#include <unistd.h>
 
 #define CHIAKI_HTTP_DEFAULT_TIMEOUT_MS 30000L
 #define CHIAKI_HTTP_USER_AGENT "astraplay-cloudcatalog/1.0" // [ASTRAPLAY BEGIN] rebranded user agent // [ASTRAPLAY END]
@@ -130,9 +131,11 @@ static CURL *easy_init_logged(ChiakiLog *log)
 	// SIGALRM/longjmp in a multithreaded process.
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
-	// mbedTLS (Android and other non-system-trust backends) needs the CA bundle
-	// path explicitly. Harmless when the env var is unset or on Secure Transport.
 	const char *ca_bundle = getenv("CHIAKI_CA_BUNDLE");
+#if defined(__APPLE__)
+	if((!ca_bundle || !*ca_bundle) && access("/etc/ssl/cert.pem", R_OK) == 0)
+		ca_bundle = "/etc/ssl/cert.pem";
+#endif
 	if(ca_bundle && *ca_bundle)
 		curl_easy_setopt(curl, CURLOPT_CAINFO, ca_bundle);
 

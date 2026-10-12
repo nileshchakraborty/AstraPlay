@@ -637,6 +637,15 @@ JNIEXPORT void JNICALL JNI_FCN(sessionCreate)(JNIEnv *env, jobject obj, jobject 
 	connect_info.cloud_mtu_out = (uint32_t)E->GetIntField(env, connect_info_obj, E->GetFieldID(env, connect_info_class, "cloudMtuOut", "I"));
 	connect_info.cloud_rtt_us = (uint64_t)E->GetLongField(env, connect_info_obj, E->GetFieldID(env, connect_info_class, "cloudRttUs", "J"));
 
+	jfieldID audio_buf_fid = E->GetFieldID(env, connect_info_class, "audioBufferSize", "I");
+	int audio_buf_multiplier = 5;
+	if(audio_buf_fid)
+	{
+		audio_buf_multiplier = (int)E->GetIntField(env, connect_info_obj, audio_buf_fid);
+	}
+	if(audio_buf_multiplier <= 0)
+		audio_buf_multiplier = 5;
+
 	// From here on, sessionCreate consumes connect_info.holepunch_session on EVERY failure:
 	// chiaki_session_init's own error path finis it (lib/src/session.c error label), and the
 	// pre-init failures below fini it explicitly. Kotlin therefore must not fini the
@@ -696,7 +705,7 @@ JNIEXPORT void JNICALL JNI_FCN(sessionCreate)(JNIEnv *env, jobject obj, jobject 
 		}
 	}
 
-	session->audio_output = android_chiaki_audio_output_new(log);
+	session->audio_output = android_chiaki_audio_output_new(log, audio_buf_multiplier);
 
 	if(session->use_opus_decoder)
 	{
@@ -958,6 +967,14 @@ JNIEXPORT void JNICALL JNI_FCN(sessionSetLoginPin)(JNIEnv *env, jobject obj, jlo
 	const char *pin = E->GetStringUTFChars(env, pin_java, NULL);
 	chiaki_session_set_login_pin(&session->session, (const uint8_t *)pin, strlen(pin));
 	E->ReleaseStringUTFChars(env, pin_java, pin);
+}
+
+JNIEXPORT void JNICALL JNI_FCN(sessionToggleMicrophone)(JNIEnv *env, jobject obj, jlong ptr, jboolean muted)
+{
+	AndroidChiakiSession *session = (AndroidChiakiSession *)ptr;
+	if(!session)
+		return;
+	chiaki_session_toggle_microphone(&session->session, (bool)muted);
 }
 
 typedef struct android_discovery_service_t

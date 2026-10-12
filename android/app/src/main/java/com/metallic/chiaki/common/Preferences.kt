@@ -102,6 +102,11 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getBoolean(touchpadOnlyEnabledKey, false)
 		set(value) { sharedPreferences.edit().putBoolean(touchpadOnlyEnabledKey, value).apply() }
 
+	val touchpadEmulationEnabledKey get() = resources.getString(R.string.preferences_touchpad_emulation_key)
+	var touchpadEmulationEnabled
+		get() = sharedPreferences.getBoolean(touchpadEmulationEnabledKey, true)
+		set(value) { sharedPreferences.edit().putBoolean(touchpadEmulationEnabledKey, value).apply() }
+
 	val rumbleEnabledKey get() = resources.getString(R.string.preferences_rumble_enabled_key)
 	var rumbleEnabled
 		get() = sharedPreferences.getBoolean(rumbleEnabledKey, true)
@@ -112,6 +117,51 @@ class Preferences(context: Context)
 		get() = sharedPreferences.getInt(rumbleIntensityKey, RUMBLE_INTENSITY_DEFAULT)
 			.coerceIn(RUMBLE_INTENSITY_MIN, RUMBLE_INTENSITY_MAX)
 		set(value) { sharedPreferences.edit().putInt(rumbleIntensityKey, value.coerceIn(RUMBLE_INTENSITY_MIN, RUMBLE_INTENSITY_MAX)).apply() }
+
+	val phoneHapticsFallbackKey get() = resources.getString(R.string.preferences_phone_haptics_fallback_key)
+	var phoneHapticsFallback
+		get() = sharedPreferences.getBoolean(phoneHapticsFallbackKey, true)
+		set(value) { sharedPreferences.edit().putBoolean(phoneHapticsFallbackKey, value).apply() }
+
+	val controllerDeadzoneKey get() = resources.getString(R.string.preferences_controller_deadzone_key)
+	var controllerDeadzone // percent, 0..30 (default 5)
+		get() = sharedPreferences.getInt(controllerDeadzoneKey, 5).coerceIn(0, 30)
+		set(value) { sharedPreferences.edit().putInt(controllerDeadzoneKey, value.coerceIn(0, 30)).apply() }
+
+	val controllerSensitivityKey get() = resources.getString(R.string.preferences_controller_sensitivity_key)
+	var controllerSensitivity // percent, 50..200 (default 100)
+		get() = sharedPreferences.getInt(controllerSensitivityKey, 100).coerceIn(50, 200)
+		set(value) { sharedPreferences.edit().putInt(controllerSensitivityKey, value.coerceIn(50, 200)).apply() }
+
+	val swapBumpersTriggersKey get() = resources.getString(R.string.preferences_swap_bumpers_triggers_key)
+	var swapBumpersTriggers
+		get() = sharedPreferences.getBoolean(swapBumpersTriggersKey, false)
+		set(value) { sharedPreferences.edit().putBoolean(swapBumpersTriggersKey, value).apply() }
+
+	val swapBoxPyramidKey get() = resources.getString(R.string.preferences_swap_box_pyramid_key)
+	var swapBoxPyramid
+		get() = sharedPreferences.getBoolean(swapBoxPyramidKey, false)
+		set(value) { sharedPreferences.edit().putBoolean(swapBoxPyramidKey, value).apply() }
+
+	val touchControlsOpacityKey get() = resources.getString(R.string.preferences_touch_controls_opacity_key)
+	var touchControlsOpacity // percent, 20..100 (default 65)
+		get() = sharedPreferences.getInt(touchControlsOpacityKey, 65).coerceIn(20, 100)
+		set(value) { sharedPreferences.edit().putInt(touchControlsOpacityKey, value.coerceIn(20, 100)).apply() }
+
+	val touchControlsScaleKey get() = resources.getString(R.string.preferences_touch_controls_scale_key)
+	var touchControlsScale // percent, 70..130 (default 100)
+		get() = sharedPreferences.getInt(touchControlsScaleKey, 100).coerceIn(70, 130)
+		set(value) { sharedPreferences.edit().putInt(touchControlsScaleKey, value.coerceIn(70, 130)).apply() }
+
+	val touchControlsLayoutPresetKey get() = resources.getString(R.string.preferences_touch_controls_layout_preset_key)
+	var touchControlsLayoutPreset // standard, compact, expanded, custom
+		get() = sharedPreferences.getString(touchControlsLayoutPresetKey, "standard") ?: "standard"
+		set(value) { sharedPreferences.edit().putString(touchControlsLayoutPresetKey, value).apply() }
+
+	val touchControlsCustomOffsetsKey get() = "touch_controls_custom_offsets"
+	var touchControlsCustomOffsets: String // Format: "key:dx,dy;key2:dx,dy"
+		get() = sharedPreferences.getString(touchControlsCustomOffsetsKey, "") ?: ""
+		set(value) { sharedPreferences.edit().putString(touchControlsCustomOffsetsKey, value).apply() }
 
 	/** Where the motion data (gyro/accel/orientation) streamed to the console comes
 	 * from. Matches iOS' MotionSource setting. */
@@ -231,6 +281,16 @@ class Preferences(context: Context)
 			Codec.values().firstOrNull { it.value == value }
 		}  ?: codecDefault
 		set(value) { sharedPreferences.edit().putString(codecKey, value.value).apply() }
+
+	val audioBufferSizeKey get() = resources.getString(R.string.preferences_audio_buffer_size_key)
+	var audioBufferSize: Int // 2, 4, 5, 8, 10 (multiplied by 10 for ms)
+		get() = sharedPreferences.getString(audioBufferSizeKey, "5")?.toIntOrNull() ?: 5
+		set(value) { sharedPreferences.edit().putString(audioBufferSizeKey, value.toString()).apply() }
+
+	val aspectRatioKey get() = resources.getString(R.string.preferences_aspect_ratio_key)
+	var aspectRatio: String // "fit", "zoom", "stretch", "16_10", "20_9"
+		get() = sharedPreferences.getString(aspectRatioKey, "fit") ?: "fit"
+		set(value) { sharedPreferences.edit().putString(aspectRatioKey, value).apply() }
 
 	private val videoProfileDefaultBitrate get() = ConnectVideoProfile.preset(resolution.preset, fps.preset, codec.codec)
 	val videoProfile get() = videoProfileDefaultBitrate.let {

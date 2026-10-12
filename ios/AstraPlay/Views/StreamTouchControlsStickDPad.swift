@@ -68,6 +68,7 @@ final class AstraPlayAnalogStickView: UIView {
     var radius: CGFloat = 48
     var handleRadius: CGFloat = 32
     var onStick: ((CGFloat, CGFloat) -> Void)?
+    var hapticOnBegan: (() -> Void)?
 
     private let tracker = TouchPointerTracker()
     private var centerPt: CGPoint?
@@ -130,6 +131,7 @@ final class AstraPlayAnalogStickView: UIView {
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        hapticOnBegan?()
         tracker.handleTouches(touches, in: self, phase: .began)
     }
 

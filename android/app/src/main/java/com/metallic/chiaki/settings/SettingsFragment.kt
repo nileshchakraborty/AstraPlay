@@ -63,6 +63,8 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 		preferences.fpsKey -> preferences.fps.value
 		preferences.bitrateKey -> preferences.bitrate?.toString() ?: ""
 		preferences.codecKey -> preferences.codec.value
+		preferences.audioBufferSizeKey -> preferences.audioBufferSize.toString()
+		preferences.aspectRatioKey -> preferences.aspectRatio
 		preferences.cloudDatacenterPsnowKey -> preferences.getCloudDatacenterPsnow()
 		preferences.cloudDatacenterPscloudKey -> preferences.getCloudDatacenterPscloud()
 		preferences.cloudLanguageKey -> preferences.getCloudGameLanguage()
@@ -100,6 +102,8 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 				val codec = Preferences.Codec.values().firstOrNull { it.value == value } ?: return
 				preferences.codec = codec
 			}
+			preferences.audioBufferSizeKey -> preferences.audioBufferSize = value?.toIntOrNull() ?: 5
+			preferences.aspectRatioKey -> preferences.aspectRatio = value ?: "fit"
 			preferences.cloudDatacenterPsnowKey -> preferences.setCloudDatacenterPsnow(value ?: "Auto")
 			preferences.cloudDatacenterPscloudKey -> preferences.setCloudDatacenterPscloud(value ?: "Auto")
 			// Manual streaming-language override. Stored separately from the

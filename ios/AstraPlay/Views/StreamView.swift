@@ -27,6 +27,8 @@ enum DisplayMode: String, CaseIterable {
     case fit = "Fit"
     case zoom = "Zoom"
     case stretch = "Stretch"
+    case ratio16_10 = "16:10"
+    case ratio20_9 = "20:9"
 }
 
 struct StreamView: View {
@@ -37,8 +39,11 @@ struct StreamView: View {
     @State private var displayMode: DisplayMode = .fit
     @State private var onScreenControls: Bool
     @State private var touchpadOnly: Bool
+    @State private var touchpadEmulation: Bool
     @State private var showStats: Bool
+    @State private var micEnabled: Bool = true
     @State private var statsText: String = ""
+    @State private var isTouchpadPillPressed = false
     /// Previous cumulative dropped-frame total so the overlay can show drops *this tick*
     /// (per second) instead of a lifetime total. -1 = uninitialized.
     @State private var lastDroppedFrames: Int64 = -1
@@ -53,6 +58,9 @@ struct StreamView: View {
     @State private var pipClosedByUser = false
     @State private var pipIsPossible = false
     @State private var connectedAt: Date? = nil
+    @State private var touchOpacity: Double = 0.65
+    @State private var touchScale: CGFloat = 1.0
+    @State private var isEditingLayout = false
 
     init(connectInfo: StreamConnectInfo) {
         self.connectInfo = connectInfo
@@ -61,7 +69,19 @@ struct StreamView: View {
         let fullOn = prefs.onScreenControlsEnabled
         _onScreenControls = State(initialValue: tpOnly ? false : fullOn)
         _touchpadOnly = State(initialValue: tpOnly)
+        _touchpadEmulation = State(initialValue: prefs.touchpadEmulationEnabled)
         _showStats = State(initialValue: prefs.streamStatsOverlayEnabled)
+        let initialMode: DisplayMode
+        switch prefs.aspectRatio {
+        case "zoom": initialMode = .zoom
+        case "stretch": initialMode = .stretch
+        case "16_10": initialMode = .ratio16_10
+        case "20_9": initialMode = .ratio20_9
+        default: initialMode = .fit
+        }
+        _displayMode = State(initialValue: initialMode)
+        _touchOpacity = State(initialValue: Double(prefs.touchControlsOpacity) / 100.0)
+        _touchScale = State(initialValue: CGFloat(prefs.touchControlsScale) / 100.0)
         _session = StateObject(wrappedValue: StreamSession(connectInfo: connectInfo, input: StreamInput()))
     }
 
@@ -101,6 +121,9 @@ struct StreamView: View {
         parts.append(String(format: "%.0f FPS", m.fps))
         if m.rttMs > 0 { parts.append(String(format: "%.0f ms", m.rttMs)) }
         parts.append("\(m.width)×\(m.height)")
+        if let bat = session.input.controllerBattery {
+            parts.append("Bat \(bat)")
+        }
         statsText = parts.joined(separator: "   •   ")
     }
 
@@ -108,16 +131,20 @@ struct StreamView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            // Full-screen video bounds; fit/zoom/stretch come only from AVLayerVideoGravity (matches Android
-            // SurfaceView in a full-screen AspectRatioFrameLayout — a fixed 16:9 SwiftUI box made fit≈zoom for 16:9 streams).
-            StreamVideoView(
-                aspectRatio: CGFloat(connectInfo.videoWidth) / CGFloat(max(connectInfo.videoHeight, 1)),
-                displayMode: displayMode
-            ) { view in
-                videoHostView = view
-                session.attachToView(view)
+            // Video bounds with aspect ratio preset framing (matches Android AspectRatioFrameLayout)
+            GeometryReader { geo in
+                let targetSize = calculateVideoSize(mode: displayMode, containerSize: geo.size)
+
+                StreamVideoView(
+                    aspectRatio: CGFloat(connectInfo.videoWidth) / CGFloat(max(connectInfo.videoHeight, 1)),
+                    displayMode: displayMode
+                ) { view in
+                    videoHostView = view
+                    session.attachToView(view)
+                }
+                .frame(width: targetSize.width, height: targetSize.height)
+                .position(x: geo.size.width / 2, y: geo.size.height / 2)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
             .clipped()
 
@@ -125,11 +152,14 @@ struct StreamView: View {
             StreamTouchControlsOverlayRepresentable(
                 mode: touchpadOnly ? .touchpadOnly : (onScreenControls ? .full : .psOnly),
                 streamInput: session.input,
+                isEditingLayout: isEditingLayout,
                 onPSButtonPressed: {
                     showOverlay = true
                     scheduleHideOverlay()
                 }
             )
+            .opacity(touchOpacity)
+            .scaleEffect(touchScale)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
             .allowsHitTesting(true)
@@ -152,6 +182,76 @@ struct StreamView: View {
                     Spacer()
                 }
                 .transition(.opacity)
+            }
+
+            // Floating DualSense Touchpad Pill (for mobile telescopic grips when on-screen controls are off)
+            if touchpadEmulation && !onScreenControls && !touchpadOnly {
+                VStack {
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 6) {
+                            Image(systemName: "hand.tap.fill")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("TOUCHPAD")
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .tracking(0.5)
+                        }
+                        .foregroundColor(.white.opacity(isTouchpadPillPressed ? 0.95 : 0.65))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.black.opacity(isTouchpadPillPressed ? 0.65 : 0.35))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(Color.white.opacity(isTouchpadPillPressed ? 0.45 : 0.15), lineWidth: 1)
+                                )
+                        )
+                        .scaleEffect(isTouchpadPillPressed ? 1.05 : 1.0)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    if !isTouchpadPillPressed {
+                                        isTouchpadPillPressed = true
+                                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                        session.input.sendEmulatedTouchpadClick(down: true)
+                                        session.input.sendEmulatedTouchpadTouch(phase: 0, xNorm: 0.5, yNorm: 0.5)
+                                    } else {
+                                        let normX = Float(min(max(value.location.x / 110.0, 0.0), 1.0))
+                                        let normY = Float(min(max(value.location.y / 28.0, 0.0), 1.0))
+                                        session.input.sendEmulatedTouchpadTouch(phase: 1, xNorm: normX, yNorm: normY)
+                                    }
+                                }
+                                .onEnded { _ in
+                                    isTouchpadPillPressed = false
+                                    session.input.sendEmulatedTouchpadClick(down: false)
+                                    session.input.sendEmulatedTouchpadTouch(phase: 2, xNorm: 0.5, yNorm: 0.5)
+                                }
+                        )
+                        .padding(.top, 14)
+                        .padding(.trailing, 24)
+                    }
+                    Spacer()
+                }
+                .transition(.opacity)
+
+                // Invisible double-tap gesture recognizer on top 20% of screen for quick touchpad click
+                GeometryReader { geo in
+                    VStack {
+                        Color.clear
+                            .frame(width: geo.size.width, height: geo.size.height * 0.20)
+                            .contentShape(Rectangle())
+                            .onTapGesture(count: 2) {
+                                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                                session.input.sendEmulatedTouchpadClick(down: true)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                    session.input.sendEmulatedTouchpadClick(down: false)
+                                }
+                            }
+                        Spacer()
+                    }
+                }
             }
 
             // Bottom overlay bar (matches Android's stream overlay)
@@ -339,12 +439,78 @@ struct StreamView: View {
                 .foregroundColor(.white)
                 .fixedSize()
 
+            // Microphone mute toggle (matches Desktop and Android's micSwitch)
+            Toggle("Mic", isOn: $micEnabled)
+                .toggleStyle(.switch)
+                .font(.system(size: 13))
+                .foregroundColor(.white)
+                .fixedSize()
+                .onChange(of: micEnabled) { enabled in
+                    session.toggleMicrophone(muted: !enabled)
+                    scheduleHideOverlay()
+                }
+
+            if let battery = session.input.controllerBattery {
+                HStack(spacing: 4) {
+                    Image(systemName: "gamecontroller")
+                        .font(.system(size: 12))
+                    Text(battery)
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.9))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(0.15))
+                .cornerRadius(6)
+            }
+
+            // Edit Layout button (matches Android's editLayoutButton)
+            Button {
+                isEditingLayout.toggle()
+                if !isEditingLayout {
+                    scheduleHideOverlay()
+                }
+            } label: {
+                Text(isEditingLayout ? "Done" : "Edit Layout")
+                    .lineLimit(1)
+            }
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(isEditingLayout ? .yellow : .white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(isEditingLayout ? Color.yellow : Color.white.opacity(0.5), lineWidth: 1)
+            )
+
+            if isEditingLayout {
+                Button {
+                    var prefs = StreamPreferences.load()
+                    prefs.touchControlsLayoutPreset = "standard"
+                    prefs.touchControlsCustomOffsets = ""
+                    prefs.save()
+                    isEditingLayout = false
+                    scheduleHideOverlay()
+                } label: {
+                    Text("Reset")
+                        .lineLimit(1)
+                }
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.red)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.red, lineWidth: 1)
+                )
+            }
+
             Spacer()
 
             // Display mode toggle group (matches Android's displayModeToggle)
             HStack(spacing: 0) {
                 displayModeButton(.fit, icon: "rectangle.arrowtriangle.2.inward")
-                displayModeButton(.zoom, icon: "arrow.up.left.and.arrow.down.right")
+                zoomModeButton()
                 displayModeButton(.stretch, icon: "arrow.left.and.right")
             }
             .background(
@@ -393,6 +559,48 @@ struct StreamView: View {
         .background(Color.black.opacity(0.6))
     }
 
+    private var zoomOrPresetMode: DisplayMode {
+        let pref = StreamPreferences.load().aspectRatio
+        switch pref {
+        case "16_10": return .ratio16_10
+        case "20_9": return .ratio20_9
+        default: return .zoom
+        }
+    }
+
+    private var isZoomOrPresetActive: Bool {
+        displayMode == .zoom || displayMode == .ratio16_10 || displayMode == .ratio20_9
+    }
+
+    private var zoomModeIcon: String {
+        switch displayMode {
+        case .ratio16_10: return "aspectratio"
+        case .ratio20_9: return "rectangle.ratio.16.to.9"
+        case .zoom: return "arrow.up.left.and.arrow.down.right"
+        default:
+            switch zoomOrPresetMode {
+            case .ratio16_10: return "aspectratio"
+            case .ratio20_9: return "rectangle.ratio.16.to.9"
+            default: return "arrow.up.left.and.arrow.down.right"
+            }
+        }
+    }
+
+    private func zoomModeButton() -> some View {
+        Menu {
+            Button("Zoom (Fill / Crop)") { displayMode = .zoom }
+            Button("16:10 (iPad / Steam Deck)") { displayMode = .ratio16_10 }
+            Button("20:9 (Ultrawide)") { displayMode = .ratio20_9 }
+        } label: {
+            Image(systemName: zoomModeIcon)
+                .font(.system(size: 14))
+                .foregroundColor(isZoomOrPresetActive ? .accentColor : .white.opacity(0.7))
+                .frame(width: 48, height: 36)
+        } primaryAction: {
+            displayMode = zoomOrPresetMode
+        }
+    }
+
     private func displayModeButton(_ mode: DisplayMode, icon: String) -> some View {
         Button {
             displayMode = mode
@@ -404,7 +612,35 @@ struct StreamView: View {
         }
     }
 
+    private func calculateVideoSize(mode: DisplayMode, containerSize: CGSize) -> CGSize {
+        guard containerSize.width > 0 && containerSize.height > 0 else {
+            return containerSize
+        }
+        let containerAspect = containerSize.width / containerSize.height
+        let targetAspect: CGFloat
+        switch mode {
+        case .fit, .zoom, .stretch:
+            return containerSize
+        case .ratio16_10:
+            targetAspect = 16.0 / 10.0
+        case .ratio20_9:
+            targetAspect = 20.0 / 9.0
+        }
+
+        var width = containerSize.width
+        var height = containerSize.height
+
+        if containerAspect < targetAspect {
+            width = containerSize.height * targetAspect
+        } else {
+            height = containerSize.width / targetAspect
+        }
+
+        return CGSize(width: width, height: height)
+    }
+
     private func scheduleHideOverlay() {
+        guard !isEditingLayout else { return }
         hideOverlayTask?.cancel()
         hideOverlayTask = Task {
             try? await Task.sleep(nanoseconds: 4_000_000_000) // 4 seconds, matches Android

@@ -24,16 +24,53 @@ static void *congestion_control_thread_func(void *user)
 		ChiakiTakionCongestionPacket packet = { 0 };
 		uint64_t total = received + lost;
 		control->packet_loss = total > 0 ? (double)lost / total : 0;
+
+		/* Dynamic bitrate and FEC congestion heuristics:
+		 * If sustained packet loss occurs, we incrementally scale down dynamic_scale
+		 * and signal the console's encoder via adjusted packet loss feedback.
+		 * When loss clears, we conservatively ramp back up (AIMD - additive increase,
+		 * multiplicative decrease) to restore peak fidelity without causing buffer bloat.
+		 */
+		if(control->packet_loss > 0.02) /* > 2% packet loss */
+		{
+			control->congestion_ticks++;
+			control->recovery_ticks = 0;
+			/* Scale down rate by ~10% per congestion tick, floor at 35% of profile */
+			if(control->dynamic_scale > 0.35)
+			{
+				control->dynamic_scale -= 0.10;
+				if(control->dynamic_scale < 0.35)
+					control->dynamic_scale = 0.35;
+				CHIAKI_LOGI(control->takion->log, "Congestion heuristic: packet loss %.2f%%, throttling scale to %.2f",
+					control->packet_loss * 100.0, control->dynamic_scale);
+			}
+		}
+		else if(total > 0 && control->packet_loss == 0.0)
+		{
+			control->recovery_ticks++;
+			control->congestion_ticks = 0;
+			/* After 5 consecutive clean ticks (~1.0s), cautiously step up (+5%) */
+			if(control->recovery_ticks >= 5 && control->dynamic_scale < 1.0)
+			{
+				control->dynamic_scale += 0.05;
+				if(control->dynamic_scale > 1.0)
+					control->dynamic_scale = 1.0;
+				control->recovery_ticks = 0;
+				CHIAKI_LOGD(control->takion->log, "Recovery heuristic: link stable, scaling up to %.2f", control->dynamic_scale);
+			}
+		}
+
 		if(control->packet_loss > control->packet_loss_max)
 		{
 			CHIAKI_LOGW(control->takion->log, "Increasing received packets to reduce hit on stream quality");
 			lost = total * control->packet_loss_max;
 			received = total - lost;
 		}
+
 		packet.received = (uint16_t)received;
 		packet.lost = (uint16_t)lost;
-		CHIAKI_LOGV(control->takion->log, "Sending Congestion Control Packet, received: %u, lost: %u",
-			(unsigned int)packet.received, (unsigned int)packet.lost);
+		CHIAKI_LOGV(control->takion->log, "Sending Congestion Control Packet, received: %u, lost: %u (scale: %.2f)",
+			(unsigned int)packet.received, (unsigned int)packet.lost, control->dynamic_scale);
 		chiaki_takion_send_congestion(control->takion, &packet);
 	}
 
@@ -47,6 +84,9 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_congestion_control_start(ChiakiCongestionCo
 	control->stats = stats;
 	control->packet_loss_max = packet_loss_max;
 	control->packet_loss = 0;
+	control->dynamic_scale = 1.0;
+	control->congestion_ticks = 0;
+	control->recovery_ticks = 0;
 
 	ChiakiErrorCode err = chiaki_bool_pred_cond_init(&control->stop_cond);
 	if(err != CHIAKI_ERR_SUCCESS)

@@ -178,7 +178,9 @@ Dialog {
             C.Button {
                 id: checkAgainButton
                 text: qsTr("Check Again")
-                visible: !UpdateManager.updateAvailable && !UpdateManager.checking
+                // [ASTRAPLAY BEGIN]
+                visible: !UpdateManager.packageUpdatesManaged && !UpdateManager.updateAvailable && !UpdateManager.checking
+                // [ASTRAPLAY END]
                 onClicked: UpdateManager.checkForUpdates(true)
             }
 

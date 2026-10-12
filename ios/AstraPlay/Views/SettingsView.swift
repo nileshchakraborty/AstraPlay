@@ -75,6 +75,8 @@ struct StreamPreferences: Codable {
     var fps: Int = 60
     var bitrate: Int = 0               // 0 = auto (matches Android null -> auto)
     var codec: Int = 1                 // 0=H264, 1=H265 (matches Android default H265)
+    var audioBufferSize: Int = 5       // 2..10 (tens of ms, default 5 = 50ms)
+    var aspectRatio: String = "fit"    // "fit", "zoom", "stretch", "16_10", "20_9" (matches Android)
 
     // General
     var swapCrossMoon: Bool = false
@@ -90,8 +92,22 @@ struct StreamPreferences: Codable {
     var onScreenControlsEnabled: Bool = true
     /// Stream overlay: touchpad-only strip (matches Android `touchpadOnlyEnabled`, default false)
     var touchpadOnlyEnabled: Bool = false
+    /// DualSense touchpad emulation pill & top-screen gesture for telescopic mobile grips (default true)
+    var touchpadEmulationEnabled: Bool = true
     /// In-stream performance stats overlay toggle (matches Android `streamStatsOverlayEnabled`, default false)
     var streamStatsOverlayEnabled: Bool = false
+
+    // Gamepad Tuning & Remapping
+    var controllerDeadzone: Int = 5      // 0..30 percent
+    var controllerSensitivity: Int = 100 // 50..200 percent (100 = 1.0x)
+    var swapBumpersTriggers: Bool = false
+    var swapBoxPyramid: Bool = false
+
+    // Touch Controls Customization
+    var touchControlsOpacity: Int = 65  // 20..100 percent (default 65)
+    var touchControlsScale: Int = 100   // 70..130 percent (default 100)
+    var touchControlsLayoutPreset: String = "standard" // standard, compact, expanded, custom
+    var touchControlsCustomOffsets: String = "" // "key:dx,dy;key2:dx,dy"
 
     // Cloud Game Library (PSCloud)
     var cloudResolutionPscloud: String = "720"      // matches Android default
@@ -112,11 +128,12 @@ struct StreamPreferences: Codable {
     static let cloudBitrateDefaultKbps = 20000
 
     private enum CodingKeys: String, CodingKey {
-        case resolutionIndex, fps, bitrate, codec
+        case resolutionIndex, fps, bitrate, codec, audioBufferSize, aspectRatio
         case swapCrossMoon, rumbleEnabled, rumbleIntensity, motionSource, touchHapticsEnabled, logVerbose
         case motionEnabled // legacy bool, migrated into motionSource
         case adaptiveTriggersEnabled
-        case onScreenControlsEnabled, touchpadOnlyEnabled
+        case onScreenControlsEnabled, touchpadOnlyEnabled, touchpadEmulationEnabled
+        case touchControlsOpacity, touchControlsScale, touchControlsLayoutPreset, touchControlsCustomOffsets
         case cloudResolutionPscloud, cloudDatacenterPscloud, cloudBitratePscloud
         case cloudResolutionPsnow, cloudDatacenterPsnow, cloudBitratePsnow
         case cloudGameLanguage
@@ -128,6 +145,8 @@ struct StreamPreferences: Codable {
         fps: Int = 60,
         bitrate: Int = 0,
         codec: Int = 1,
+        audioBufferSize: Int = 5,
+        aspectRatio: String = "fit",
         swapCrossMoon: Bool = false,
         rumbleEnabled: Bool = true,
         rumbleIntensity: Int = 100,
@@ -136,6 +155,7 @@ struct StreamPreferences: Codable {
         logVerbose: Bool = false,
         onScreenControlsEnabled: Bool = true,
         touchpadOnlyEnabled: Bool = false,
+        touchpadEmulationEnabled: Bool = true,
         cloudResolutionPscloud: String = "720",
         cloudDatacenterPscloud: String = "Auto",
         cloudBitratePscloud: Int = StreamPreferences.cloudBitrateDefaultKbps,
@@ -148,6 +168,8 @@ struct StreamPreferences: Codable {
         self.fps = fps
         self.bitrate = bitrate
         self.codec = codec
+        self.audioBufferSize = audioBufferSize
+        self.aspectRatio = aspectRatio
         self.swapCrossMoon = swapCrossMoon
         self.rumbleEnabled = rumbleEnabled
         self.rumbleIntensity = Self.clampRumbleIntensity(rumbleIntensity)
@@ -156,6 +178,7 @@ struct StreamPreferences: Codable {
         self.logVerbose = logVerbose
         self.onScreenControlsEnabled = onScreenControlsEnabled
         self.touchpadOnlyEnabled = touchpadOnlyEnabled
+        self.touchpadEmulationEnabled = touchpadEmulationEnabled
         self.cloudResolutionPscloud = cloudResolutionPscloud
         self.cloudDatacenterPscloud = cloudDatacenterPscloud
         self.cloudBitratePscloud = Self.clampCloudBitrateKbps(cloudBitratePscloud)
@@ -171,6 +194,8 @@ struct StreamPreferences: Codable {
         fps = try c.decodeIfPresent(Int.self, forKey: .fps) ?? 60
         bitrate = try c.decodeIfPresent(Int.self, forKey: .bitrate) ?? 0
         codec = try c.decodeIfPresent(Int.self, forKey: .codec) ?? 1
+        audioBufferSize = try c.decodeIfPresent(Int.self, forKey: .audioBufferSize) ?? 5
+        aspectRatio = try c.decodeIfPresent(String.self, forKey: .aspectRatio) ?? "fit"
         swapCrossMoon = try c.decodeIfPresent(Bool.self, forKey: .swapCrossMoon) ?? false
         rumbleEnabled = try c.decodeIfPresent(Bool.self, forKey: .rumbleEnabled) ?? true
         rumbleIntensity = Self.clampRumbleIntensity(
@@ -188,6 +213,11 @@ struct StreamPreferences: Codable {
         logVerbose = try c.decodeIfPresent(Bool.self, forKey: .logVerbose) ?? false
         onScreenControlsEnabled = try c.decodeIfPresent(Bool.self, forKey: .onScreenControlsEnabled) ?? true
         touchpadOnlyEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadOnlyEnabled) ?? false
+        touchpadEmulationEnabled = try c.decodeIfPresent(Bool.self, forKey: .touchpadEmulationEnabled) ?? true
+        touchControlsOpacity = try c.decodeIfPresent(Int.self, forKey: .touchControlsOpacity) ?? 65
+        touchControlsScale = try c.decodeIfPresent(Int.self, forKey: .touchControlsScale) ?? 100
+        touchControlsLayoutPreset = try c.decodeIfPresent(String.self, forKey: .touchControlsLayoutPreset) ?? "standard"
+        touchControlsCustomOffsets = try c.decodeIfPresent(String.self, forKey: .touchControlsCustomOffsets) ?? ""
         cloudResolutionPscloud = try c.decodeIfPresent(String.self, forKey: .cloudResolutionPscloud) ?? "720"
         cloudDatacenterPscloud = try c.decodeIfPresent(String.self, forKey: .cloudDatacenterPscloud) ?? "Auto"
         cloudBitratePscloud = Self.clampCloudBitrateKbps(
@@ -208,6 +238,8 @@ struct StreamPreferences: Codable {
         try c.encode(fps, forKey: .fps)
         try c.encode(bitrate, forKey: .bitrate)
         try c.encode(codec, forKey: .codec)
+        try c.encode(audioBufferSize, forKey: .audioBufferSize)
+        try c.encode(aspectRatio, forKey: .aspectRatio)
         try c.encode(swapCrossMoon, forKey: .swapCrossMoon)
         try c.encode(rumbleEnabled, forKey: .rumbleEnabled)
         try c.encode(rumbleIntensity, forKey: .rumbleIntensity)
@@ -217,6 +249,11 @@ struct StreamPreferences: Codable {
         try c.encode(logVerbose, forKey: .logVerbose)
         try c.encode(onScreenControlsEnabled, forKey: .onScreenControlsEnabled)
         try c.encode(touchpadOnlyEnabled, forKey: .touchpadOnlyEnabled)
+        try c.encode(touchpadEmulationEnabled, forKey: .touchpadEmulationEnabled)
+        try c.encode(touchControlsOpacity, forKey: .touchControlsOpacity)
+        try c.encode(touchControlsScale, forKey: .touchControlsScale)
+        try c.encode(touchControlsLayoutPreset, forKey: .touchControlsLayoutPreset)
+        try c.encode(touchControlsCustomOffsets, forKey: .touchControlsCustomOffsets)
         try c.encode(cloudResolutionPscloud, forKey: .cloudResolutionPscloud)
         try c.encode(cloudDatacenterPscloud, forKey: .cloudDatacenterPscloud)
         try c.encode(cloudBitratePscloud, forKey: .cloudBitratePscloud)
@@ -360,7 +397,13 @@ struct SettingsView: View {
             // 1. General
             generalSection
 
-            // 3. Remote Play Settings
+            // 2. Gamepad Tuning & Remapping
+            controllerTuningSection
+
+            // 3. On-Screen Touch Controls
+            touchControlsSection
+
+            // 4. Remote Play Settings
             remotePlaySection
 
             // 4. Cloud Settings (shared across cloud library + catalog)
@@ -499,6 +542,16 @@ struct SettingsView: View {
             }
             .onChange(of: prefs.touchHapticsEnabled) { _ in prefs.save() }
 
+            Toggle(isOn: $prefs.touchpadEmulationEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("DualSense Touchpad Emulation")
+                    Text("Show floating touchpad pill and enable top-screen double-tap click for mobile grips")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.touchpadEmulationEnabled) { _ in prefs.save() }
+
             if showWorkInProgressGeneralSettings {
                 Toggle(isOn: $prefs.logVerbose) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -522,8 +575,139 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - 2. Gamepad Tuning & Remapping
 
-    // MARK: - 2. Remote Play Settings
+    private var controllerTuningSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Stick Deadzone")
+                    Spacer()
+                    Text("\(prefs.controllerDeadzone)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.controllerDeadzone) },
+                        set: { prefs.controllerDeadzone = min(30, max(0, Int($0.rounded()))) }
+                    ),
+                    in: 0...30,
+                    step: 1,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Radial deadzone to eliminate stick drift on mobile grips and Joy-Cons")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Stick Sensitivity")
+                    Spacer()
+                    Text("\(prefs.controllerSensitivity)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.controllerSensitivity) },
+                        set: { prefs.controllerSensitivity = min(200, max(50, Int($0.rounded()))) }
+                    ),
+                    in: 50...200,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Stick response multiplier (100% = 1.0x)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Toggle(isOn: $prefs.swapBumpersTriggers) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Swap Bumpers & Triggers")
+                    Text("Swap L1/R1 with L2/R2 (recommended for shooters on mobile telescopic grips)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.swapBumpersTriggers) { _ in prefs.save() }
+
+            Toggle(isOn: $prefs.swapBoxPyramid) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Swap Square & Triangle")
+                    Text("Swap Square and Triangle face buttons (Nintendo X/Y layout)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onChange(of: prefs.swapBoxPyramid) { _ in prefs.save() }
+        } header: {
+            Text("Gamepad Tuning & Remapping")
+        }
+    }
+
+    // MARK: - 3. On-Screen Touch Controls
+
+    private var touchControlsSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Button Opacity")
+                    Spacer()
+                    Text("\(prefs.touchControlsOpacity)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.touchControlsOpacity) },
+                        set: { prefs.touchControlsOpacity = min(100, max(20, Int($0.rounded()))) }
+                    ),
+                    in: 20...100,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Controls transparency over gameplay (default 65%)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Button Size / Scale")
+                    Spacer()
+                    Text("\(prefs.touchControlsScale)%")
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(
+                    value: Binding(
+                        get: { Double(prefs.touchControlsScale) },
+                        set: { prefs.touchControlsScale = min(130, max(70, Int($0.rounded()))) }
+                    ),
+                    in: 70...130,
+                    step: 5,
+                    onEditingChanged: { editing in if !editing { prefs.save() } }
+                )
+                Text("Scale factor for virtual buttons and sticks")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Picker("Genre Layout Preset", selection: $prefs.touchControlsLayoutPreset) {
+                Text("Standard (Default)").tag("standard")
+                Text("Compact (RPG & Menus)").tag("compact")
+                Text("Expanded (Shooters & Action)").tag("expanded")
+                Text("Custom (Drag & Reposition)").tag("custom")
+            }
+            .onChange(of: prefs.touchControlsLayoutPreset) { _ in prefs.save() }
+        } header: {
+            Text("On-Screen Touch Controls")
+        }
+    }
+
+    // MARK: - 4. Remote Play Settings
 
     private var remotePlaySection: some View {
         Section {
@@ -578,6 +762,26 @@ struct SettingsView: View {
                 Text("H.265 (PS5 only)").tag(1)
             }
             .onChange(of: prefs.codec) { _ in prefs.save() }
+
+            // Audio Buffer Size
+            Picker("Audio Buffer Size", selection: $prefs.audioBufferSize) {
+                Text("Ultra Low (20 ms)").tag(2)
+                Text("Low Latency (40 ms)").tag(4)
+                Text("Normal (50 ms / Default)").tag(5)
+                Text("Safe (80 ms)").tag(8)
+                Text("High (100 ms)").tag(10)
+            }
+            .onChange(of: prefs.audioBufferSize) { _ in prefs.save() }
+
+            // Aspect Ratio Preset (matches Android)
+            Picker("Aspect Ratio", selection: $prefs.aspectRatio) {
+                Text("Fit (16:9 Letterbox)").tag("fit")
+                Text("Zoom (Fill / Crop)").tag("zoom")
+                Text("Stretch").tag("stretch")
+                Text("16:10 (iPad / Steam Deck)").tag("16_10")
+                Text("20:9 (Ultrawide)").tag("20_9")
+            }
+            .onChange(of: prefs.aspectRatio) { _ in prefs.save() }
         } header: {
             Text("Remote Play Settings")
         }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="remote_play"
+        android:enabled="true"
+        android:icon="@drawable/ic_gamepad"
+        android:shortcutShortLabel="@string/shortcut_remote_play_short"
+        android:shortcutLongLabel="@string/shortcut_remote_play_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.nileshchakraborty.astraplay"
+            android:targetClass="com.metallic.chiaki.main.MainActivity">
+            <extra android:name="tab" android:value="0" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="cloud_play"
+        android:enabled="true"
+        android:icon="@drawable/ic_cloud"
+        android:shortcutShortLabel="@string/shortcut_cloud_play_short"
+        android:shortcutLongLabel="@string/shortcut_cloud_play_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.nileshchakraborty.astraplay"
+            android:targetClass="com.metallic.chiaki.main.MainActivity">
+            <extra android:name="tab" android:value="1" />
+        </intent>
+    </shortcut>
+</shortcuts>

@@ -21,6 +21,8 @@ typedef struct AstraPlayChiakiAudioOutput {
     AudioQueueBufferRef bufs[NUM_AQ_BUFS];
     int n_bufs;
     uint32_t channels;
+    int buffer_multiplier;
+    UInt32 buf_bytes;
     uint8_t *ring;
     size_t ring_cap;
     size_t read_pos;
@@ -106,7 +108,7 @@ static void aq_output_callback(void *userdata, AudioQueueRef q, AudioQueueBuffer
     AudioQueueEnqueueBuffer(ao->aq, buf, 0, NULL);
 }
 
-void *ios_chiaki_audio_output_create(void) {
+void *ios_chiaki_audio_output_create(int buffer_multiplier) {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         g_audio_log = os_log_create("com.astraplay.stream", "ChiakiAudio");
@@ -114,6 +116,7 @@ void *ios_chiaki_audio_output_create(void) {
     AstraPlayChiakiAudioOutput *ao = calloc(1, sizeof(*ao));
     if (!ao)
         return NULL;
+    ao->buffer_multiplier = (buffer_multiplier > 0) ? buffer_multiplier : 5;
     ao->ring_cap = RING_BYTES;
     ao->ring = malloc(ao->ring_cap);
     if (!ao->ring) {
@@ -181,14 +184,30 @@ void ios_chiaki_audio_output_settings(uint32_t channels, uint32_t rate, void *pt
             return;
         }
 
+        // Scale AudioQueue buffer bytes with buffer_multiplier (default 5 = ~50ms, 2 = ~20ms, 10 = ~100ms)
+        // At 48kHz 16-bit stereo: 1920 bytes per 10ms (100 frames * 4 bytes per frame)
+        UInt32 bytes_per_ms = (rate / 1000) * fmt.mBytesPerFrame;
+        if (bytes_per_ms == 0) bytes_per_ms = 192;
+        UInt32 target_buffer_bytes = bytes_per_ms * (ao->buffer_multiplier * 10);
+        // Divide across NUM_AQ_BUFS chunks, with safety clamp [1024, 8192]
+        UInt32 chunk_bytes = target_buffer_bytes / NUM_AQ_BUFS;
+        if (chunk_bytes < 1024) chunk_bytes = 1024;
+        if (chunk_bytes > 8192) chunk_bytes = 8192;
+        ao->buf_bytes = chunk_bytes;
+
+        double io_duration = (double)(ao->buffer_multiplier * 10) / 1000.0 / 2.0;
+        if (io_duration < 0.005) io_duration = 0.005;
+        if (io_duration > 0.05) io_duration = 0.05;
+        [session setPreferredIOBufferDuration:io_duration error:&nserr];
+
         ao->n_bufs = 0;
         for (int i = 0; i < NUM_AQ_BUFS; i++) {
             AudioQueueBufferRef b = NULL;
-            st = AudioQueueAllocateBuffer(ao->aq, AQ_BUF_BYTES, &b);
+            st = AudioQueueAllocateBuffer(ao->aq, ao->buf_bytes, &b);
             if (st != noErr || !b)
                 break;
-            memset(b->mAudioData, 0, AQ_BUF_BYTES);
-            b->mAudioDataByteSize = AQ_BUF_BYTES;
+            memset(b->mAudioData, 0, ao->buf_bytes);
+            b->mAudioDataByteSize = ao->buf_bytes;
             AudioQueueEnqueueBuffer(ao->aq, b, 0, NULL);
             ao->bufs[ao->n_bufs++] = b;
         }
@@ -197,7 +216,7 @@ void ios_chiaki_audio_output_settings(uint32_t channels, uint32_t rate, void *pt
         if (st != noErr)
             os_log_with_type(g_audio_log, OS_LOG_TYPE_ERROR, "[ChiakiAudio] AudioQueueStart failed: %d", (int)st);
         else
-            os_log(g_audio_log, "[ChiakiAudio] stream started ch=%u rate=%u", channels, rate);
+            os_log(g_audio_log, "[ChiakiAudio] stream started ch=%u rate=%u buf_bytes=%u (multiplier=%d)", channels, rate, (unsigned int)ao->buf_bytes, ao->buffer_multiplier);
     });
 }
 

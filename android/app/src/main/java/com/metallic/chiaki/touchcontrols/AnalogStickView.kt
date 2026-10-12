@@ -22,6 +22,7 @@ class AnalogStickView @JvmOverloads constructor(
 	private val handleRadius: Float
 	private val drawableBase: Drawable?
 	private val drawableHandle: Drawable?
+	private val haptics = ButtonHaptics(context)
 
 	var state = Vector(0f, 0f)
 		private set(value)
@@ -122,6 +123,7 @@ class AnalogStickView @JvmOverloads constructor(
 				val index = event.actionIndex
 				if(!isInside(event.getX(index), event.getY(index)))
 					return false
+				haptics.trigger()
 			}
 		}
 		touchTracker.touchEvent(event)

@@ -1,20 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="AstraPlay" Language="1033" Version="$(var.Version)" Manufacturer="nileshchakraborty" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
+  <Product Id="*" Name="AstraPlay" Language="1033" Version="1.0.0" Manufacturer="nileshchakraborty" UpgradeCode="B4F8E9C2-1A5D-4E7B-9C3F-8D2A1B4E6C9D">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of AstraPlay is already installed." />
     <Media Id="1" Cabinet="astraplay.cab" EmbedCab="yes" />
+    <Property Id="CREATE_START_MENU_SHORTCUT" Value="1" />
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="AstraPlay">
-          <Component Id="MainExecutable" Guid="*" Win64="yes">
-            <File Id="AstraPlayEXE" Source="$(var.SourceExe)" KeyPath="yes" />
+        </Directory>
+      </Directory>
+      <Directory Id="CommonProgramsFolder">
+        <Directory Id="AstraPlayProgramMenuFolder" Name="AstraPlay">
+          <Component Id="StartMenuShortcutComponent" Guid="64A6342D-1354-5D7D-B367-DCFF7CB69D66">
+            <Condition>CREATE_START_MENU_SHORTCUT="1"</Condition>
+            <Shortcut Id="StartMenuShortcut" Name="AstraPlay" Target="[#AstraPlayEXE]" WorkingDirectory="INSTALLFOLDER" />
+            <RemoveFolder Id="RemoveAstraPlayProgramMenuFolder" On="uninstall" />
+            <RegistryValue Root="HKLM" Key="Software\AstraPlay" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
+      <Directory Id="CommonDesktopFolder">
+        <Component Id="DesktopShortcutComponent" Guid="7CA15B2F-D065-5C61-908B-7D9F4832C441">
+          <Condition>CREATE_DESKTOP_SHORTCUT="1"</Condition>
+          <Shortcut Id="DesktopShortcut" Name="AstraPlay" Target="[#AstraPlayEXE]" WorkingDirectory="INSTALLFOLDER" />
+          <RegistryValue Root="HKLM" Key="Software\AstraPlay" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
     </Directory>
     <Feature Id="MainFeature" Title="AstraPlay" Level="1">
-      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcutComponent" />
+      <ComponentRef Id="DesktopShortcutComponent" />
     </Feature>
   </Product>
 </Wix>

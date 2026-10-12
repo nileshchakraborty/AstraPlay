@@ -234,6 +234,11 @@ final class StreamSession: ObservableObject {
         _ = chiaki_session_bridge_set_login_pin(ref, pinBytes, pinBytes.count)
     }
 
+    func toggleMicrophone(muted: Bool) {
+        guard let ref = sessionRef else { return }
+        _ = chiaki_session_bridge_toggle_microphone(ref, muted)
+    }
+
     /// Latest live stream metrics for the stats overlay, or nil if no session is active.
     func metrics() -> StreamMetrics? {
         guard let ref = sessionRef else { return nil }
@@ -529,6 +534,7 @@ final class StreamSession: ObservableObject {
                         cInfo.cloud_mtu_in = connectInfo.cloudMtuIn
                         cInfo.cloud_mtu_out = connectInfo.cloudMtuOut
                         cInfo.cloud_rtt_us = connectInfo.cloudRttUs
+                        cInfo.audio_buffer_size = Int32(StreamPreferences.load().audioBufferSize)
                         _ = withUnsafeMutableBytes(of: &cInfo.regist_key) { buf in
                             connectInfo.registKey.copyBytes(to: buf, count: min(16, connectInfo.registKey.count))
                         }
@@ -702,6 +708,7 @@ final class StreamSession: ObservableObject {
             cInfo.enable_dualsense = true
             cInfo.holepunch_session = holepunchPtr
             cInfo.auto_regist = connectInfo.autoRegist
+            cInfo.audio_buffer_size = Int32(StreamPreferences.load().audioBufferSize)
             _ = withUnsafeMutableBytes(of: &cInfo.regist_key) { buf in
                 connectInfo.registKey.copyBytes(to: buf, count: min(16, connectInfo.registKey.count))
             }

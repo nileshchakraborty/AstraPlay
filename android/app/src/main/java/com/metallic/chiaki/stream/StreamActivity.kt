@@ -136,7 +136,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		}
 
 		binding.displayModeToggle.addOnButtonCheckedListener { _, _, _ ->
-			adjustStreamViewAspect()
+			adjustSurfaceViewAspect()
 			showOverlay()
 		}
 
@@ -152,6 +152,20 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			updateStatsVisibility()
 			showOverlay()
 		}
+
+		// In-stream microphone mute toggle (mirrors Qt's micButton in HUD row)
+		binding.micSwitch.isChecked = true // Default unmuted
+		binding.micSwitch.setOnCheckedChangeListener { _, isChecked ->
+			// When checked, mic is active/unmuted (muted = false). When unchecked, muted = true.
+			viewModel.session.toggleMicrophone(!isChecked)
+			showOverlay()
+		}
+
+		// On-Screen Touch Controls Drag & Reposition Editor
+		setupTouchLayoutEditor()
+
+		// Setup DualSense Touchpad Emulation (Floating Pill & Top-Zone Gesture)
+		setupTouchpadEmulation()
 
 		// Handle back button — on TV show a disconnect confirmation dialog; on touch show the overlay
 		onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
@@ -181,7 +195,14 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			if (it > lastMenuRequest) showOverlay()
 			lastMenuRequest = it
 		})
-		adjustStreamViewAspect()
+		// Initialize display mode from user settings preference if specified
+		val initialAspectPref = viewModel.preferences.aspectRatio
+		when (initialAspectPref) {
+			"zoom", "16_10", "20_9" -> binding.displayModeToggle.check(R.id.display_mode_zoom_button)
+			"stretch" -> binding.displayModeToggle.check(R.id.display_mode_stretch_button)
+			else -> binding.displayModeToggle.check(R.id.display_mode_normal_button)
+		}
+		adjustSurfaceViewAspect()
 
 		if (isTv()) {
 			// On TV: hide the touch-oriented overlay and controls permanently
@@ -191,17 +212,25 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		if(Preferences(this).rumbleEnabled)
 		{
 			val phoneVibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+			val phoneHapticsFallback = Preferences(this).phoneHapticsFallback
 			// User-scalable strength (0..500%). Read once at stream start (restart to change);
 			// avoids reading SharedPreferences on every rumble event (~80/s).
 			val rumbleScale = Preferences(this).rumbleIntensity / 100f
 			var lastVibrator: Vibrator? = null
 			viewModel.session.rumbleState.observe(this, Observer {
-				// Prefer the connected controller's own motor over the phone's
-				// (resolved per event so controller hotplug just works; the device
-				// list is tiny and rumble events are sparse). L/R are averaged into
-				// one amplitude because both targets expose a single channel here.
+				// Prefer the connected controller's own motor over the phone's.
+				// If a controller is attached but lacks rumble (e.g. mobile grips like
+				// Backbone One, Razer Kishi, GameSir), fall back to the phone vibrator
+				// if phoneHapticsFallback is enabled.
 				val cv = controllerVibrator()
-				val vibrator = cv ?: phoneVibrator
+				val vibrator = cv ?: if (phoneHapticsFallback || !hasConnectedGamepad()) phoneVibrator else null
+				if (vibrator == null)
+				{
+					lastVibrator?.cancel()
+					lastVibrator = null
+					return@Observer
+				}
+
 				val amplitude = (((it.left.toInt() + it.right.toInt()) / 2) * rumbleScale).toInt().coerceIn(0, 255)
 				// Cancel the PREVIOUS target too: when the target switches
 				// (controller connects/disconnects mid-rumble), cancelling only the
@@ -215,18 +244,23 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 					vibrator.vibrate(VibrationEffect.createOneShot(1000, amplitude))
 				else
+					@Suppress("DEPRECATION")
 					vibrator.vibrate(1000)
 			})
 		}
 	}
 
 	private val controlsDisposable = CompositeDisposable()
+	private var touchControlsFragment: DefaultTouchControlsFragment? = null
+	private var isLayoutEditing = false
 
 	override fun onAttachFragment(fragment: Fragment)
 	{
 		super.onAttachFragment(fragment)
 		if(fragment is TouchControlsFragment)
 		{
+			if(fragment is DefaultTouchControlsFragment)
+				touchControlsFragment = fragment
 			if (isTv()) {
 				// Force controls hidden on TV by giving the fragment a LiveData that always emits false
 				fragment.onScreenControlsEnabled = androidx.lifecycle.MutableLiveData(false)
@@ -238,6 +272,34 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			fragment.onScreenControlsEnabled = viewModel.onScreenControlsEnabled
 			if(fragment is TouchpadOnlyFragment)
 				fragment.touchpadOnlyEnabled = viewModel.touchpadOnlyEnabled
+		}
+	}
+
+	private fun setupTouchLayoutEditor() {
+		binding.editLayoutButton.setOnClickListener {
+			val frag = touchControlsFragment ?: return@setOnClickListener
+			isLayoutEditing = !isLayoutEditing
+			frag.setEditMode(isLayoutEditing)
+			if (isLayoutEditing) {
+				binding.editLayoutButton.text = getString(R.string.touch_controls_done_editing)
+				binding.resetLayoutButton.visibility = View.VISIBLE
+			} else {
+				binding.editLayoutButton.text = getString(R.string.touch_controls_edit_layout)
+				binding.resetLayoutButton.visibility = View.GONE
+				showOverlay()
+			}
+		}
+
+		binding.resetLayoutButton.setOnClickListener {
+			val frag = touchControlsFragment ?: return@setOnClickListener
+			viewModel.preferences.touchControlsLayoutPreset = "standard"
+			viewModel.preferences.touchControlsCustomOffsets = ""
+			frag.applyLayoutPreset(viewModel.preferences)
+			isLayoutEditing = false
+			frag.setEditMode(false)
+			binding.editLayoutButton.text = getString(R.string.touch_controls_edit_layout)
+			binding.resetLayoutButton.visibility = View.GONE
+			showOverlay()
 		}
 	}
 
@@ -452,8 +514,10 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 			})
 		uiVisibilityHandler.removeCallbacks(hideSystemUIRunnable)
 		uiVisibilityHandler.removeCallbacks(hideOverlayRunnable)
-		uiVisibilityHandler.postDelayed(hideSystemUIRunnable, HIDE_UI_TIMEOUT_MS)
-		uiVisibilityHandler.postDelayed(hideOverlayRunnable, HIDE_UI_TIMEOUT_MS)
+		if (!isLayoutEditing) {
+			uiVisibilityHandler.postDelayed(hideSystemUIRunnable, HIDE_UI_TIMEOUT_MS)
+			uiVisibilityHandler.postDelayed(hideOverlayRunnable, HIDE_UI_TIMEOUT_MS)
+		}
 	}
 
 	private fun hideOverlay()
@@ -510,7 +574,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	}
 
 	/** Single compact top row with short labels, e.g.
-	 *  "4.7 Mbps • PL 1.1% • DF/s 0 • 60 FPS • 90 ms • 1280×720". */
+	 *  "4.7 Mbps • PL 1.1% • DF/s 0 • 60 FPS • 90 ms • 1280×720 • Bat 85%". */
 	private fun formatStats(m: StreamMetrics, dropsPerTick: Long): String
 	{
 		val sep = "   •   "
@@ -522,7 +586,31 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		if (m.rttMs > 0)
 			parts.add(String.format(Locale.US, "%.0f ms", m.rttMs))
 		parts.add("${m.width}×${m.height}")
+		controllerBattery()?.let { parts.add("Bat $it") }
 		return parts.joinToString(sep)
+	}
+
+	private fun controllerBattery(): String?
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+		{
+			val dev = InputDevice.getDeviceIds().asSequence()
+				.mapNotNull { InputDevice.getDevice(it) }
+				.filter {
+					it.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+						|| it.sources and InputDevice.SOURCE_CLASS_JOYSTICK == InputDevice.SOURCE_CLASS_JOYSTICK
+				}
+				.firstOrNull() ?: return null
+
+			val battery = dev.batteryState
+			if (battery.isPresent)
+			{
+				val capacity = (battery.capacity * 100).toInt()
+				val charging = battery.status == android.hardware.BatteryState.STATUS_CHARGING
+				return if (charging) "$capacity%⚡" else "$capacity%"
+			}
+		}
+		return null
 	}
 
 	override fun onWindowFocusChanged(hasFocus: Boolean)
@@ -564,6 +652,14 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 					@Suppress("DEPRECATION") dev.vibrator.takeIf { it.hasVibrator() }
 			}
 			.firstOrNull()
+
+	private fun hasConnectedGamepad(): Boolean
+		= InputDevice.getDeviceIds().asSequence()
+			.mapNotNull { InputDevice.getDevice(it) }
+			.any {
+				it.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+					|| it.sources and InputDevice.SOURCE_CLASS_JOYSTICK == InputDevice.SOURCE_CLASS_JOYSTICK
+			}
 
 	/**
 	 * Physical controller touchpad (DualSense/DS4) support: Android only delivers
@@ -762,10 +858,85 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	{
 		val videoProfile = viewModel.session.connectInfo.videoProfile
 		binding.aspectRatioLayout.aspectRatio = videoProfile.width.toFloat() / videoProfile.height.toFloat()
-		binding.aspectRatioLayout.mode = TransformMode.fromButton(binding.displayModeToggle.checkedButtonId)
+		val buttonMode = TransformMode.fromButton(binding.displayModeToggle.checkedButtonId)
+		val pref = viewModel.preferences.aspectRatio
+		binding.aspectRatioLayout.mode = if (buttonMode == TransformMode.ZOOM && (pref == "16_10" || pref == "20_9")) {
+			TransformMode.fromPreference(pref)
+		} else {
+			buttonMode
+		}
 	}
 
-	private fun adjustStreamViewAspect() = adjustSurfaceViewAspect()
+	private var topGestureDetector: GestureDetector? = null
+
+	private fun setupTouchpadEmulation()
+	{
+		val emulationEnabled = viewModel.preferences.touchpadEmulationEnabled
+		binding.touchpadPillContainer.visibility = if (emulationEnabled) View.VISIBLE else View.GONE
+
+		binding.touchpadPillContainer.setOnTouchListener { v, event ->
+			when (event.actionMasked) {
+				MotionEvent.ACTION_DOWN -> {
+					v.animate().alpha(0.95f).scaleX(1.06f).scaleY(1.06f).setDuration(80).start()
+					try {
+						val vib = getSystemService(Vibrator::class.java)
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+							vib?.vibrate(VibrationEffect.createOneShot(35, VibrationEffect.DEFAULT_AMPLITUDE))
+						} else {
+							@Suppress("DEPRECATION") vib?.vibrate(35)
+						}
+					} catch (_: Exception) {}
+					viewModel.input.sendEmulatedTouchpadClick(true)
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(MotionEvent.ACTION_DOWN, normX, normY)
+					true
+				}
+				MotionEvent.ACTION_MOVE -> {
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(MotionEvent.ACTION_MOVE, normX, normY)
+					true
+				}
+				MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+					v.animate().alpha(0.5f).scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+					viewModel.input.sendEmulatedTouchpadClick(false)
+					val normX = (event.x / v.width.toFloat()).coerceIn(0f, 1f)
+					val normY = (event.y / v.height.toFloat()).coerceIn(0f, 1f)
+					viewModel.input.sendEmulatedTouchpadTouch(event.actionMasked, normX, normY)
+					true
+				}
+				else -> false
+			}
+		}
+
+		topGestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+			override fun onDoubleTap(e: MotionEvent): Boolean {
+				// If double-tap occurs in the top 20% area of the screen
+				if (e.y < binding.root.height * 0.20f) {
+					try {
+						val vib = getSystemService(Vibrator::class.java)
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+							vib?.vibrate(VibrationEffect.createOneShot(45, VibrationEffect.DEFAULT_AMPLITUDE))
+						} else {
+							@Suppress("DEPRECATION") vib?.vibrate(45)
+						}
+					} catch (_: Exception) {}
+					viewModel.input.sendEmulatedTouchpadClick(true)
+					binding.root.postDelayed({
+						viewModel.input.sendEmulatedTouchpadClick(false)
+					}, 150)
+					return true
+				}
+				return false
+			}
+		})
+	}
+
+	override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+		topGestureDetector?.onTouchEvent(event)
+		return super.dispatchTouchEvent(event)
+	}
 
 	override fun dispatchKeyEvent(event: KeyEvent) = viewModel.input.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
 	override fun onGenericMotionEvent(event: MotionEvent) = viewModel.input.onGenericMotionEvent(event) || super.onGenericMotionEvent(event)
@@ -775,7 +946,9 @@ enum class TransformMode
 {
 	FIT,
 	STRETCH,
-	ZOOM;
+	ZOOM,
+	PRESET_16_10,
+	PRESET_20_9;
 
 	companion object
 	{
@@ -784,6 +957,16 @@ enum class TransformMode
 			{
 				R.id.display_mode_stretch_button -> STRETCH
 				R.id.display_mode_zoom_button -> ZOOM
+				else -> FIT
+			}
+
+		fun fromPreference(pref: String)
+			= when (pref)
+			{
+				"zoom" -> ZOOM
+				"stretch" -> STRETCH
+				"16_10" -> PRESET_16_10
+				"20_9" -> PRESET_20_9
 				else -> FIT
 			}
 	}
@@ -801,7 +984,7 @@ class TextureViewTransform(private val videoProfile: ConnectVideoProfile, privat
 		= when(mode)
 		{
 			TransformMode.STRETCH -> strechedResolution
-			TransformMode.ZOOM -> zoomedResolution
+			TransformMode.ZOOM, TransformMode.PRESET_16_10, TransformMode.PRESET_20_9 -> zoomedResolution
 			TransformMode.FIT -> normalResolution
 		}
 

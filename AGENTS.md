@@ -117,12 +117,11 @@ cmake --build build -t chiaki-unit-tests
 
 | Branch | Purpose |
 |--------|---------|
-| `master` | Stable; manual deploy → production stores |
-| `release/beta` | PR merge target → auto-builds and deploys beta to all stores |
-| `release/alpha` | Experimental; no CI |
-| Feature branches | Off `master`; PRs target `release/beta` |
+| `dev` | Integration branch; target for all feature, fix, and documentation PRs |
+| `master` | Stable release branch; only release PRs from `dev` target it |
+| Feature branches | Branch from `dev`; open PRs back to `dev` |
 
-**Never push directly to `release/beta` or `master`.**
+**Never push directly to `dev` or `master`.** Prepare a release by opening a PR from `dev` to `master`. Merging that release PR triggers the `release-on-merge.yml` build and GitHub Release workflow.
 
 ---
 

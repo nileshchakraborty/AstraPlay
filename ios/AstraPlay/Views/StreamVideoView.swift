@@ -79,7 +79,7 @@ final class StreamVideoUIView: UIView {
         let gravity: AVLayerVideoGravity
         switch mode {
         case .fit: gravity = .resizeAspect
-        case .zoom: gravity = .resizeAspectFill
+        case .zoom, .ratio16_10, .ratio20_9: gravity = .resizeAspectFill
         case .stretch: gravity = .resize
         }
         guard let avLayer = layer as? AVSampleBufferDisplayLayer else { return }

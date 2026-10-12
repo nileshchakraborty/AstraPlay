@@ -22,6 +22,7 @@
     <string name="action_login_pin_connect">Connect</string>
     <string name="stream_disconnect_button">Disconnect</string>
     <string name="stream_stats_toggle">Stats</string>
+    <string name="stream_mic_toggle">Mic</string>
     <string name="action_settings">Settings</string>
     <string name="action_discover">Discover Consoles Automatically</string>
     <string name="display_host_host">Address: %s</string>
@@ -93,6 +94,25 @@
     <string name="preferences_fps_title">FPS</string>
     <string name="preferences_bitrate_title">Bitrate</string>
     <string name="preferences_codec_title">Codec</string>
+    <string name="preferences_audio_buffer_size_title">Audio Buffer Size</string>
+    <string name="preferences_audio_buffer_size_summary">Low latency (safe on fast Wi-Fi) or higher buffer (prevents audio crackling)</string>
+    <string name="preferences_aspect_ratio_title">Aspect Ratio</string>
+    <string name="preferences_aspect_ratio_summary">Display presentation for ultrawide phones, 16:10 tablets &amp; Steam Deck</string>
+    <string-array name="aspect_ratio_entries">
+        <item>Fit (16:9 Black Bars)</item>
+        <item>Zoom (Crop to Fill Screen)</item>
+        <item>Stretch (Fill Entire Screen)</item>
+        <item>16:10 Preset (Steam Deck / Tablet)</item>
+        <item>20:9 Ultrawide Preset (Modern Phones)</item>
+    </string-array>
+    <string-array name="aspect_ratio_values">
+        <item>fit</item>
+        <item>zoom</item>
+        <item>stretch</item>
+        <item>16_10</item>
+        <item>20_9</item>
+    </string-array>
+    <string name="preferences_aspect_ratio_key">stream_aspect_ratio</string>
     <string name="preferences_log_verbose_title">Verbose Logging</string>
     <string name="preferences_log_verbose_summary">Warning: This logs a LOT! Don\'t enable for regular use.</string>
     <string name="preferences_resolution_title_360p">360p</string>
@@ -297,6 +317,21 @@
     <string name="preferences_fps_key">stream_fps</string>
     <string name="preferences_bitrate_key">stream_bitrate</string>
     <string name="preferences_codec_key">stream_codec</string>
+    <string name="preferences_audio_buffer_size_key">stream_audio_buffer_size</string>
+    <string-array name="audio_buffer_size_entries">
+        <item>Ultra Low (20 ms / 2 bursts)</item>
+        <item>Low Latency (40 ms / 4 bursts)</item>
+        <item>Normal (50 ms / Default)</item>
+        <item>Safe (80 ms / 8 bursts)</item>
+        <item>High (100 ms / Unstable Wi-Fi)</item>
+    </string-array>
+    <string-array name="audio_buffer_size_values">
+        <item>2</item>
+        <item>4</item>
+        <item>5</item>
+        <item>8</item>
+        <item>10</item>
+    </string-array>
     <string name="preferences_cloud_datacenter_psnow_key">cloud_datacenter_psnow</string>
     <string name="preferences_cloud_datacenters_json_psnow_key">cloud_datacenters_json_psnow</string>
     <string name="preferences_cloud_datacenter_pscloud_key">cloud_datacenter_pscloud</string>
@@ -311,5 +346,55 @@
     <string name="preferences_cloud_language_dialog_message">Not all regions support every language. A language only works on datacenters that offer it — if your chosen language isn\'t applied, pick a datacenter in a matching region.</string>
     <string name="preferences_cloud_language_note">Language availability depends on your datacenter\'s region.</string>
     <string name="preferences_pip_enabled_key">pip_enabled</string>
+    <string name="preferences_touchpad_emulation_key">touchpad_emulation_enabled</string>
+    <string name="preferences_touchpad_emulation_title">Touchpad Emulation for Mobile Grips</string>
+    <string name="preferences_touchpad_emulation_summary">Enables floating touchpad button and top-screen gestures when using mobile controllers (Backbone, Kishi, GameSir)</string>
+    <string name="touchpad_pill_desc">DualSense Touchpad</string>
+    <string name="preferences_phone_haptics_fallback_key">phone_haptics_fallback</string>
+    <string name="preferences_phone_haptics_fallback_title">Phone Haptics for Mobile Grips</string>
+    <string name="preferences_phone_haptics_fallback_summary">Vibrate phone motors when connected gamepad or telescopic grip lacks rumble</string>
+    <string name="shortcut_remote_play_short">Remote Play</string>
+    <string name="shortcut_remote_play_long">Stream PlayStation Console</string>
+    <string name="shortcut_cloud_play_short">Cloud Games</string>
+    <string name="shortcut_cloud_play_long">Play Cloud Games</string>
+    <string name="preferences_category_title_controller_tuning">Gamepad Tuning &amp; Remapping</string>
+    <string name="preferences_controller_deadzone_key">controller_deadzone</string>
+    <string name="preferences_controller_deadzone_title">Stick Deadzone Calibration</string>
+    <string name="preferences_controller_deadzone_summary">Radial deadzone percentage to eliminate stick drift (default 5%%)</string>
+    <string name="preferences_controller_sensitivity_key">controller_sensitivity</string>
+    <string name="preferences_controller_sensitivity_title">Stick Sensitivity</string>
+    <string name="preferences_controller_sensitivity_summary">Analog stick sensitivity multiplier (100 = 1.0x)</string>
+    <string name="preferences_swap_bumpers_triggers_key">swap_bumpers_triggers</string>
+    <string name="preferences_swap_bumpers_triggers_title">Swap Bumpers &amp; Triggers (L1/R1 ↔ L2/R2)</string>
+    <string name="preferences_swap_bumpers_triggers_summary">Swap shoulder bumpers and triggers for mobile grips</string>
+    <string name="preferences_swap_box_pyramid_key">swap_box_pyramid</string>
+    <string name="preferences_swap_box_pyramid_title">Swap Square &amp; Triangle</string>
+    <string name="preferences_swap_box_pyramid_summary">Swap Square and Triangle buttons (Nintendo X/Y layout)</string>
+
+    <string-array name="touch_controls_layout_preset_entries">
+        <item>Standard (Default)</item>
+        <item>Compact (RPG &amp; Menus)</item>
+        <item>Expanded (Shooters &amp; Action)</item>
+        <item>Custom (Drag &amp; Reposition)</item>
+    </string-array>
+    <string-array name="touch_controls_layout_preset_values">
+        <item>standard</item>
+        <item>compact</item>
+        <item>expanded</item>
+        <item>custom</item>
+    </string-array>
+
+    <string name="preferences_category_title_touch_customization">On-Screen Touch Controls</string>
+    <string name="preferences_touch_controls_opacity_key">touch_controls_opacity</string>
+    <string name="preferences_touch_controls_opacity_title">Button Opacity</string>
+    <string name="preferences_touch_controls_opacity_summary">Controls transparency on screen (default 65%%)</string>
+    <string name="preferences_touch_controls_scale_key">touch_controls_scale</string>
+    <string name="preferences_touch_controls_scale_title">Button Size &amp; Scale</string>
+    <string name="preferences_touch_controls_scale_summary">Scale factor for virtual buttons (default 100%%)</string>
+    <string name="preferences_touch_controls_layout_preset_key">touch_controls_layout_preset</string>
+    <string name="preferences_touch_controls_layout_preset_title">Genre Layout Preset</string>
+    <string name="touch_controls_edit_layout">Edit Layout</string>
+    <string name="touch_controls_done_editing">Done</string>
+    <string name="touch_controls_reset_layout">Reset Layout</string>
 
 </resources>

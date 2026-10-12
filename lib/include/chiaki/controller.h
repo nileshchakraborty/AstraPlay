@@ -92,6 +92,38 @@ CHIAKI_EXPORT bool chiaki_controller_state_equals(ChiakiControllerState *a, Chia
  */
 CHIAKI_EXPORT void chiaki_controller_state_or(ChiakiControllerState *out, ChiakiControllerState *a, ChiakiControllerState *b);
 
+typedef enum chiaki_deadzone_mode_t
+{
+	CHIAKI_DEADZONE_RADIAL = 0,
+	CHIAKI_DEADZONE_AXIAL  = 1
+} ChiakiDeadzoneMode;
+
+typedef struct chiaki_stick_calibration_t
+{
+	float deadzone;       /**< Inner deadzone threshold: 0.0f to 0.9f. Default 0.0f */
+	float sensitivity;    /**< Multiplier: 0.1f to 3.0f. Default 1.0f */
+	float linearity;      /**< Curve exponent: 0.5f to 2.5f. Default 1.0f (linear) */
+	ChiakiDeadzoneMode mode;
+} ChiakiStickCalibration;
+
+typedef struct chiaki_button_remap_t
+{
+	bool swap_cross_moon;
+	bool swap_box_pyramid;
+	bool swap_l1_l2;
+	bool swap_r1_r2;
+	bool swap_l3_r3;
+} ChiakiButtonRemap;
+
+CHIAKI_EXPORT void chiaki_stick_calibration_init_default(ChiakiStickCalibration *calib);
+CHIAKI_EXPORT void chiaki_stick_apply_calibration(int16_t *x, int16_t *y, const ChiakiStickCalibration *calib);
+CHIAKI_EXPORT void chiaki_controller_state_apply_calibration(ChiakiControllerState *state,
+                                                             const ChiakiStickCalibration *left,
+                                                             const ChiakiStickCalibration *right);
+
+CHIAKI_EXPORT void chiaki_button_remap_init_default(ChiakiButtonRemap *remap);
+CHIAKI_EXPORT void chiaki_controller_state_apply_remap(ChiakiControllerState *state, const ChiakiButtonRemap *remap);
+
 #ifdef __cplusplus
 }
 #endif

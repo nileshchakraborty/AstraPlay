@@ -38,6 +38,44 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <!-- Floating DualSense Touchpad Pill for Mobile Grips / External Gamepads -->
+    <LinearLayout
+        android:id="@+id/touchpadPillContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_touchpad_pill"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:clickable="true"
+        android:focusable="false"
+        android:elevation="6dp"
+        android:alpha="0.5"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="12dp"
+            android:src="@drawable/control_touchpad"
+            app:tint="#FFFFFF"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/touchpad_pill_desc"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TOUCHPAD"
+            android:textColor="#FFFFFF"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp"
+            android:letterSpacing="0.1"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/overlay"
         android:layout_width="match_parent"
@@ -85,6 +123,42 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/touchpadOnlySwitch"
                 app:switchPadding="8dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/micSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/stream_mic_toggle"
+                android:textColor="@color/stream_text"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/statsSwitch"
+                app:switchPadding="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/editLayoutButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/touch_controls_edit_layout"
+                android:textColor="@color/stream_text"
+                app:strokeColor="@color/stream_text"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/micSwitch" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/resetLayoutButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/touch_controls_reset_layout"
+                android:textColor="@color/stream_text"
+                app:strokeColor="@color/stream_text"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/editLayoutButton" />
 
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/displayModeToggle"

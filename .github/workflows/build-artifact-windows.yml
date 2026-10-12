@@ -118,8 +118,8 @@ jobs:
 
       - name: Package AstraPlay
         run: |
-          mkdir astraplay
-          cp build/gui/chiaki.exe astraplay/astraplay.exe
+          mkdir -p astraplay
+          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/mingw64/share/qt6/bin/:/mingw64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/mingw64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/mingw64/share/qt6/qml"
@@ -172,6 +172,19 @@ jobs:
       - name: Extract version
         id: extract_version
         uses: ./.github/actions/extract-version
+
+      - name: Build development MSIX
+        shell: pwsh
+        run: |
+          python scripts/build-windows-msix.py astraplay-windows-x64.zip "${{ steps.extract_version.outputs.version }}" x64 astraplay-windows-x64-development.msix
+
+      - name: Upload unsigned development MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstraPlay-Windows-x64-development-msix
+          path: astraplay-windows-x64-development.msix
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
@@ -298,8 +311,8 @@ jobs:
 
       - name: Package AstraPlay ARM64
         run: |
-          mkdir astraplay
-          cp build/gui/chiaki.exe astraplay/astraplay.exe
+          mkdir -p astraplay
+          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           export PATH="${{ github.workspace }}/build/third-party/cpp-steam-tools:/clangarm64/share/qt6/bin/:/clangarm64/bin/:${PATH}"
           export QT_PLUGIN_PATH="/clangarm64/share/qt6/plugins"
           export QML2_IMPORT_PATH="/clangarm64/share/qt6/qml"
@@ -351,6 +364,19 @@ jobs:
       - name: Extract version
         id: extract_version
         uses: ./.github/actions/extract-version
+
+      - name: Build development MSIX
+        shell: pwsh
+        run: |
+          python scripts/build-windows-msix.py astraplay-windows-arm64.zip "${{ steps.extract_version.outputs.version }}" arm64 astraplay-windows-arm64-development.msix
+
+      - name: Upload unsigned development MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstraPlay-Windows-arm64-development-msix
+          path: astraplay-windows-arm64-development.msix
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Compile Inno Setup ARM64 Installer
         continue-on-error: true

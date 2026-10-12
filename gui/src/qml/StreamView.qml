@@ -443,6 +443,20 @@ Item {
                     font.pixelSize: 18
                 }
             }
+
+            Label {
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("ctrl bat")
+                font.pixelSize: 15
+                visible: (Chiaki.session?.controllerBattery ?? "") !== ""
+                Label {
+                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
+                    text: parent.visible ? (Chiaki.session?.controllerBattery ?? "") : ""
+                    color: Material.accent
+                    font.bold: true
+                    font.pixelSize: 18
+                }
+            }
         }
     }
 
@@ -564,6 +578,27 @@ Item {
                 checked: Chiaki.session && !Chiaki.session.muted
                 onToggled: Chiaki.session.muted = !Chiaki.session.muted
                 KeyNavigation.left: volumeSlider
+                KeyNavigation.right: steamDeck1610Button
+                Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolButton {
+                id: steamDeck1610Button
+                text: qsTr("16:10 Fill")
+                padding: 10
+                checkable: true
+                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor === -1
+                onToggled: {
+                    if (checked) {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                    } else {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
+                        Chiaki.window.ZoomFactor = -1
+                        Chiaki.settings.sZoomFactor = -1
+                    }
+                }
+                KeyNavigation.left: muteButton
                 KeyNavigation.right: zoomButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
@@ -571,12 +606,22 @@ Item {
 
             ToolButton {
                 id: zoomButton
-                text: qsTr("Zoom")
+                text: qsTr("Custom Zoom")
                 padding: 10
                 checkable: true
-                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom
-                onToggled: Chiaki.window.videoMode = Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom ? ChiakiWindow.VideoMode.Normal : ChiakiWindow.VideoMode.Zoom
-                KeyNavigation.left: muteButton
+                checked: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
+                onToggled: {
+                    if (Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1) {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Normal
+                    } else {
+                        Chiaki.window.videoMode = ChiakiWindow.VideoMode.Zoom
+                        if (Chiaki.window.ZoomFactor === -1) {
+                            Chiaki.window.ZoomFactor = 0
+                            Chiaki.settings.sZoomFactor = 0
+                        }
+                    }
+                }
+                KeyNavigation.left: steamDeck1610Button
                 KeyNavigation.right: {
                     if(Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom)
                         zoomFactor
@@ -594,7 +639,7 @@ Item {
                 to: 4
                 Layout.preferredHeight: 100
                 stepSize: 0.01
-                visible: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom
+                visible: Chiaki.window.videoMode == ChiakiWindow.VideoMode.Zoom && Chiaki.window.ZoomFactor !== -1
                 value: Chiaki.window.ZoomFactor
                 onMoved: {
                     Chiaki.window.ZoomFactor = value
@@ -625,7 +670,6 @@ Item {
 
             ToolButton {
                 id: stretchButton
-                Layout.rightMargin: 50
                 text: qsTr("Stretch")
                 padding: 10
                 checkable: true
@@ -637,6 +681,38 @@ Item {
                     else
                         zoomButton
                 }
+                KeyNavigation.right: sharpenButton
+                Keys.onReturnPressed: toggled()
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolButton {
+                id: sharpenButton
+                Layout.rightMargin: 50
+                text: {
+                    if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom) {
+                        return Chiaki.settings.placeboUpscaler === 9 ? qsTr("Sharp (CAS)") : qsTr("Soft / Custom")
+                    } else if (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality) {
+                        return qsTr("Sharp (HQ)")
+                    } else {
+                        return qsTr("Sharpen: Off")
+                    }
+                }
+                padding: 10
+                checkable: true
+                checked: Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.HighQuality || (Chiaki.window.videoPreset === ChiakiWindow.VideoPreset.Custom && Chiaki.settings.placeboUpscaler === 9)
+                onToggled: {
+                    // Toggle between Sharp (EwaLanczosSharp) and Fast/Default (Off)
+                    if (checked) {
+                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
+                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
+                    } else {
+                        Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Custom
+                        Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Custom
+                        Chiaki.settings.placeboUpscaler = 9 // EwaLanczosSharp
+                    }
+                }
+                KeyNavigation.left: stretchButton
                 KeyNavigation.right: defaultButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
@@ -652,7 +728,7 @@ Item {
                     Chiaki.window.videoPreset = ChiakiWindow.VideoPreset.Default
                     Chiaki.settings.videoPreset = ChiakiWindow.VideoPreset.Default
                 }
-                KeyNavigation.left: stretchButton
+                KeyNavigation.left: sharpenButton
                 KeyNavigation.right: highQualityButton
                 Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
@@ -710,10 +786,10 @@ Item {
                 onClicked: root.openDisplaySettings()
                 KeyNavigation.left: highQualityButton
                 KeyNavigation.right: {
-                    if(Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
                         placeboSettingsButton;
                     else
-                        displaySettingsButton;
+                        statsOverlayButton;
                 }
                 Keys.onReturnPressed: {
                     menuView.close();
@@ -730,11 +806,34 @@ Item {
                 checkable: false
                 onClicked: root.openPlaceboSettings()
                 KeyNavigation.left: displaySettingsButton
+                KeyNavigation.right: statsOverlayButton
                 visible: Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom
                 Keys.onReturnPressed: {
                     menuView.close();
                     clicked();
                 }
+                Keys.onEscapePressed: menuView.close()
+            }
+
+            ToolSeparator {
+                Layout.leftMargin: -10
+                Layout.rightMargin: -10
+            }
+
+            ToolButton {
+                id: statsOverlayButton
+                text: qsTr("Stats")
+                padding: 10
+                checkable: true
+                checked: Chiaki.settings.showStreamStats
+                onToggled: Chiaki.settings.showStreamStats = !Chiaki.settings.showStreamStats
+                KeyNavigation.left: {
+                    if (Chiaki.window.videoPreset == ChiakiWindow.VideoPreset.Custom)
+                        placeboSettingsButton;
+                    else
+                        displaySettingsButton;
+                }
+                Keys.onReturnPressed: toggled()
                 Keys.onEscapePressed: menuView.close()
             }
         }
@@ -846,6 +945,29 @@ Item {
                             rightMargin: 5
                         }
                         text: visible ? (Chiaki.session?.measuredFps ?? 0).toFixed(0) : ""
+                        color: Material.accent
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+
+                Label {
+                    Layout.leftMargin: ctrlBatMenuLabel.width + 6
+                    text: qsTr("ctrl bat")
+                    font.pixelSize: 15
+                    opacity: parent.visible && (Chiaki.session?.controllerBattery ?? "") !== "" ? 1.0 : 0.0
+                    visible: opacity
+
+                    Behavior on opacity { NumberAnimation { duration: 250 } }
+
+                    Label {
+                        id: ctrlBatMenuLabel
+                        anchors {
+                            right: parent.left
+                            baseline: parent.baseline
+                            rightMargin: 5
+                        }
+                        text: visible ? (Chiaki.session?.controllerBattery ?? "") : ""
                         color: Material.accent
                         font.bold: true
                         font.pixelSize: 18

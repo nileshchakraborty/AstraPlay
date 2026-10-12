@@ -1,0 +1,86 @@
+name: Prepare Windows Store MSIX
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published AstraPlay release tag (for example v2.11.4.16)
+        required: true
+        type: string
+      package_name:
+        description: Exact Package/Identity/Name from Partner Center
+        required: true
+        type: string
+      publisher:
+        description: Exact Package/Identity/Publisher from Partner Center
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Prepare x64 and ARM64 Store packages
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch release source
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$') {
+            throw 'Release tag must be an AstraPlay version tag.'
+          }
+          git fetch --no-tags origin "refs/tags/$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) { throw 'Release tag was not found.' }
+          $source = git show 'FETCH_HEAD:gui/src/updatemanager.cpp'
+          if ($LASTEXITCODE -ne 0 -or -not ($source | Select-String -SimpleMatch 'GetCurrentPackageFullName')) {
+            throw 'This release predates the MSIX updater guard. Publish a newer release before Store preparation.'
+          }
+          git checkout --detach FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check out release source.' }
+
+      - name: Download published Windows payloads and checksums
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          New-Item -ItemType Directory -Path release-assets | Out-Null
+          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --dir release-assets --pattern 'astraplay-windows-x64.zip' --pattern 'astraplay-windows-arm64.zip' --pattern 'SHA256SUMS.txt'
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download all published release assets.' }
+          $sums = Get-Content release-assets/SHA256SUMS.txt
+          foreach ($name in @('astraplay-windows-x64.zip', 'astraplay-windows-arm64.zip')) {
+            $path = Join-Path release-assets $name
+            if (-not (Test-Path $path)) { throw "Missing release asset: $name" }
+            $line = $sums | Where-Object { $_ -match "^[a-fA-F0-9]{64}  $([regex]::Escape($name))$" } | Select-Object -First 1
+            if (-not $line) { throw "No published checksum for $name" }
+            $expected = $line.Substring(0, 64).ToLowerInvariant()
+            $actual = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $expected) { throw "SHA-256 mismatch for $name" }
+          }
+
+      - name: Build Store submission packages
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_NAME: ${{ inputs.package_name }}
+          PUBLISHER: ${{ inputs.publisher }}
+        run: |
+          New-Item -ItemType Directory -Path store-packages | Out-Null
+          foreach ($arch in @('x64', 'arm64')) {
+            python scripts/build-windows-msix.py "release-assets/astraplay-windows-$arch.zip" $env:RELEASE_TAG $arch "store-packages/astraplay-windows-$arch-store.msix" --package-name $env:PACKAGE_NAME --publisher $env:PUBLISHER
+            if ($LASTEXITCODE -ne 0) { throw "MSIX packaging failed for $arch" }
+          }
+          Get-ChildItem store-packages/*.msix | Get-FileHash -Algorithm SHA256 | Format-Table
+
+      - name: Upload private Store submission artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstraPlay-Windows-Store-submission-${{ inputs.release_tag }}
+          path: store-packages/*.msix
+          retention-days: 7
+          if-no-files-found: error

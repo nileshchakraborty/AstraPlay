@@ -106,8 +106,8 @@ jobs:
           
       - name: Package AstraPlay
         run: |
-          mkdir astraplay
-          cp build/gui/chiaki.exe astraplay/astraplay.exe
+          mkdir -p astraplay
+          [ -f build/gui/chiaki.exe ] && cp -f build/gui/chiaki.exe astraplay/astraplay.exe || cp -f build/gui/*.exe astraplay/astraplay.exe
           if [ "${{ env.CHIAKI_ENABLE_STEAMWORKS }}" = "ON" ]; then
             cp third-party/steamworks/steamworks_sdk/redistributable_bin/win64/steam_api64.dll astraplay/
             cp steam_appid.txt astraplay/ 2>/dev/null || echo "Warning: steam_appid.txt not found"

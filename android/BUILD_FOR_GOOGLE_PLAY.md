@@ -119,7 +119,7 @@ The **Deploy Android** workflow runs **`./gradlew bundleRelease` first**, then (
 
 ### Recent CI history (reference)
 
-From the **`Deploy Android + Android TV (Google Play)`** workflow on GitHub (standalone runs, not “Release all”):
+From the **`Deploy Android + Android TV (Google Play)`** workflow on GitHub (standalone runs, not “Release all”). This table is historical; `release/beta` is no longer the PR target:
 
 | When (UTC)        | Trigger            | Result  |
 |-------------------|--------------------|---------|

@@ -43,21 +43,27 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
 		var width = measuredWidth
 		var height = measuredHeight
 		val viewAspectRatio = width.toFloat() / height
-		val aspectDeformation = aspectRatio / viewAspectRatio - 1
-		if(Math.abs(aspectDeformation) <= MAX_ASPECT_RATIO_DEFORMATION_FRACTION)
+		val targetAspect = when(mode)
+		{
+			TransformMode.PRESET_16_10 -> 16f / 10f
+			TransformMode.PRESET_20_9 -> 20f / 9f
+			else -> aspectRatio
+		}
+		val aspectDeformation = targetAspect / viewAspectRatio - 1
+		if(kotlin.math.abs(aspectDeformation) <= MAX_ASPECT_RATIO_DEFORMATION_FRACTION)
 			return
 		when(mode)
 		{
-			TransformMode.ZOOM -> 
+			TransformMode.ZOOM, TransformMode.PRESET_16_10, TransformMode.PRESET_20_9 -> 
 				if(aspectDeformation > 0)
-					width = (height * aspectRatio).toInt()
+					width = (height * targetAspect).toInt()
 				else
-					height = (width / aspectRatio).toInt()
+					height = (width / targetAspect).toInt()
 			TransformMode.FIT ->
 				if(aspectDeformation > 0)
-					height = (width / aspectRatio).toInt()
+					height = (width / targetAspect).toInt()
 				else
-					width = (height * aspectRatio).toInt()
+					width = (height * targetAspect).toInt()
 			TransformMode.STRETCH -> {}
 		}
 		super.onMeasure(

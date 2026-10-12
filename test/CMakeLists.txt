@@ -19,7 +19,9 @@ add_executable(chiaki-unit
 		cloudcatalog_merge.c
 		cloudsession_kamaji.c
 		ctrl_lifecycle.c
-		pschord.c)
+		pschord.c
+		congestioncontrol_test.c
+		controller_test.c)
 
 target_link_libraries(chiaki-unit chiaki-lib munit)
 if(TARGET PkgConfig::json-c)

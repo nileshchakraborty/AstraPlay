@@ -324,10 +324,17 @@ deploy_app() {
     
     # Copy app bundle
     rm -rf "$output_path"
-    cp -a "$REPO_ROOT/$build_dir/gui/chiaki.app" "$output_path"
+    local _built_app="$REPO_ROOT/$build_dir/gui/AstraPlay.app"
+    if [ ! -d "$_built_app" ]; then
+        _built_app="$REPO_ROOT/$build_dir/gui/chiaki.app"
+    fi
+    cp -a "$_built_app" "$output_path"
     
     # macdeployqt qmldir scan: stub only if chiaki links WebEngine (matches CHIAKI_ENABLE_GUI_WEBENGINE / Linux off)
-    local _chiaki_bin="$REPO_ROOT/$build_dir/gui/chiaki.app/Contents/MacOS/chiaki"
+    local _chiaki_bin="$output_path/Contents/MacOS/AstraPlay"
+    if [ ! -f "$_chiaki_bin" ]; then
+        _chiaki_bin="$output_path/Contents/MacOS/chiaki"
+    fi
     if otool -L "$_chiaki_bin" 2>/dev/null | grep -q 'QtWebEngineQuick'; then
         if [ "$(uname -m)" = "arm64" ]; then
             echo "import QtWebEngine; WebEngineView {}" > "$REPO_ROOT/gui/src/qml/qtwebengine_import.qml"
@@ -387,7 +394,9 @@ deploy_app() {
         install_name_tool -id "@rpath/libsteam_api.dylib" "$output_path/Contents/Frameworks/libsteam_api.dylib"
         
         # Fix Steam API library reference in main executable
-        install_name_tool -change "@loader_path/libsteam_api.dylib" "@rpath/libsteam_api.dylib" "$output_path/Contents/MacOS/chiaki"
+        local _steam_bin="$output_path/Contents/MacOS/AstraPlay"
+        [ ! -f "$_steam_bin" ] && _steam_bin="$output_path/Contents/MacOS/chiaki"
+        install_name_tool -change "@loader_path/libsteam_api.dylib" "@rpath/libsteam_api.dylib" "$_steam_bin"
         
         # Create steam_appid.txt for Steamworks (in Resources to avoid codesign failure:
         # a .txt file in MacOS/ triggers "code object is not signed" with hardened runtime)
@@ -469,7 +478,9 @@ sign_app_bundle() {
         codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" {} \;
     
     echo "  Signing main executable..."
-    codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$app_path/Contents/MacOS/chiaki"
+    local _main_bin="$app_path/Contents/MacOS/AstraPlay"
+    [ ! -f "$_main_bin" ] && _main_bin="$app_path/Contents/MacOS/chiaki"
+    codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$_main_bin"
     
     echo "  Signing app bundle..."
     codesign --force "${CODE_SIGN_EXTRA[@]}" --entitlements "$ENTITLEMENTS_PLIST" \
@@ -501,15 +512,31 @@ if [ "$ITERATE" = "true" ]; then
     cmake --build "$REPO_ROOT/$build_dir" --config Release --target chiaki
 
     echo "=== Iterate: updating app bundle ==="
-    cp "$REPO_ROOT/$build_dir/gui/chiaki.app/Contents/MacOS/chiaki" "$output_path/Contents/MacOS/chiaki"
+    _src_app="$REPO_ROOT/$build_dir/gui/AstraPlay.app"
+    [ ! -d "$_src_app" ] && _src_app="$REPO_ROOT/$build_dir/gui/chiaki.app"
 
-    if [ -d "$REPO_ROOT/$build_dir/gui/chiaki.app/Contents/Resources" ]; then
-        rsync -a "$REPO_ROOT/$build_dir/gui/chiaki.app/Contents/Resources/" "$output_path/Contents/Resources/" 2>/dev/null || true
+    _src_bin="$_src_app/Contents/MacOS/AstraPlay"
+    _target_bin="$output_path/Contents/MacOS/AstraPlay"
+    if [ ! -f "$_src_bin" ]; then
+        _src_bin="$_src_app/Contents/MacOS/chiaki"
+        _target_bin="$output_path/Contents/MacOS/chiaki"
+    else
+        rm -f "$output_path/Contents/MacOS/chiaki"
+    fi
+
+    cp "$_src_bin" "$_target_bin"
+
+    if [ -f "$_src_app/Contents/Info.plist" ]; then
+        cp "$_src_app/Contents/Info.plist" "$output_path/Contents/Info.plist"
+    fi
+
+    if [ -d "$_src_app/Contents/Resources" ]; then
+        rsync -a "$_src_app/Contents/Resources/" "$output_path/Contents/Resources/" 2>/dev/null || true
     fi
 
     # Rewrite Homebrew library paths to @executable_path/../Frameworks/ (replicates macdeployqt)
     echo "=== Iterate: fixing library paths ==="
-    _bin="$output_path/Contents/MacOS/chiaki"
+    _bin="$_target_bin"
     _fw="@executable_path/../Frameworks"
     otool -L "$_bin" | awk '{print $1}' | while read -r _lib; do
         case "$_lib" in
@@ -562,9 +589,12 @@ elif [ "$BUILD_MODE" = "universal" ]; then
     echo "=== Creating universal binary ==="
     
     # Find the main executable
-    MAIN_BINARY="$BUILD_OUTPUT_DIR/AstraPlay.app/Contents/MacOS/chiaki"
-    ARM64_BINARY="$REPO_ROOT/build-arm64/gui/chiaki.app/Contents/MacOS/chiaki"
-    X86_64_BINARY="$REPO_ROOT/build-x86_64/gui/chiaki.app/Contents/MacOS/chiaki"
+    MAIN_BINARY="$BUILD_OUTPUT_DIR/AstraPlay.app/Contents/MacOS/AstraPlay"
+    [ ! -f "$MAIN_BINARY" ] && MAIN_BINARY="$BUILD_OUTPUT_DIR/AstraPlay.app/Contents/MacOS/chiaki"
+    ARM64_BINARY="$REPO_ROOT/build-arm64/gui/AstraPlay.app/Contents/MacOS/AstraPlay"
+    [ ! -f "$ARM64_BINARY" ] && ARM64_BINARY="$REPO_ROOT/build-arm64/gui/chiaki.app/Contents/MacOS/chiaki"
+    X86_64_BINARY="$REPO_ROOT/build-x86_64/gui/AstraPlay.app/Contents/MacOS/AstraPlay"
+    [ ! -f "$X86_64_BINARY" ] && X86_64_BINARY="$REPO_ROOT/build-x86_64/gui/chiaki.app/Contents/MacOS/chiaki"
     
     # Use lipo to create universal binary
     lipo -create "$ARM64_BINARY" "$X86_64_BINARY" -output "$MAIN_BINARY"

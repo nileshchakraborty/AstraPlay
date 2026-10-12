@@ -324,7 +324,9 @@ Item {
         else if (Chiaki.autoConnect)
             stack.replace(stack.get(0), autoConnectViewComponent, {}, StackView.Immediate);
 
-        if (!root.updateChecked && Chiaki.settings.autoUpdateEnabled) {
+        // [ASTRAPLAY BEGIN] The Windows package updater owns MSIX updates.
+        if (!root.updateChecked && UpdateManager.autoCheckEnabled) {
+        // [ASTRAPLAY END]
             root.updateChecked = true;
             // Slight delay so window fully renders first
             Qt.callLater(() => {

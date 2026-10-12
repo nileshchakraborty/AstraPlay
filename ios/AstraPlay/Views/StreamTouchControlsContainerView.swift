@@ -121,6 +121,8 @@ final class StreamTouchControlsContainerView: UIView {
         touchpad.hapticLight = { [weak self] in self?.playLightHaptic() }
         touchpad.hapticMedium = { [weak self] in self?.playMediumHaptic() }
         dpad.hapticOnDirectionChange = { [weak self] in self?.playLightHaptic() }
+        leftStick.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
+        rightStick.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         l2v.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         r2v.hapticOnBegan = { [weak self] in self?.playLightHaptic() }
         wireButtons()
@@ -430,9 +432,20 @@ final class StreamTouchControlsContainerView: UIView {
         // L1/R1 bottom (fragment_controls: marginTop 32dp + 80dp height from parent top).
         let shoulderRowBottom = 32 * s + st + 80 * s
 
+        let preset = StreamPreferences.load().touchControlsLayoutPreset
+        var dpadMarginLeft: CGFloat = 16 * s
+        var faceMarginRight: CGFloat = 32 * s
+        if preset == "compact" {
+            dpadMarginLeft = 8 * s
+            faceMarginRight = 16 * s
+        } else if preset == "expanded" {
+            dpadMarginLeft = 24 * s
+            faceMarginRight = 44 * s
+        }
+
         // D-pad: 160dp, marginLeft 16dp; vertically centered in XML, but must sit below L1 or it overlaps.
         let dSize = 160 * s
-        let dpadX = 16 * s + sl
+        let dpadX = dpadMarginLeft + sl
         let dpadIdealY = (h - dSize - 16 * s) / 2
         let dpadYRaw = max(st, shoulderRowBottom + 10 * s, dpadIdealY)
         let dpadY = min(dpadYRaw, h - dSize - 16 * s)
@@ -440,7 +453,7 @@ final class StreamTouchControlsContainerView: UIView {
 
         // Face: 176dp, marginRight 32dp; same vertical rule vs R1.
         let faceSize = 176 * s
-        let faceX = w - faceSize - 32 * s - sr
+        let faceX = w - faceSize - faceMarginRight - sr
         let faceIdealY = (h - faceSize - 32 * s) / 2
         let faceYRaw = max(st, shoulderRowBottom + 10 * s, faceIdealY)
         let faceY = min(faceYRaw, h - faceSize - 32 * s)
@@ -499,5 +512,95 @@ final class StreamTouchControlsContainerView: UIView {
         r3.frame = CGRect(x: w - l3s - edgeR, y: h - l3s, width: l3s, height: l3s)
         let pss: CGFloat = 48 * s
         psB.frame = CGRect(x: (w - pss) / 2, y: h - pss, width: pss, height: pss)
+
+        // Apply custom offsets if preset is "custom"
+        let prefs = StreamPreferences.load()
+        if prefs.touchControlsLayoutPreset == "custom" {
+            applyCustomOffsets(prefs.touchControlsCustomOffsets)
+        } else {
+            clearCustomTranslations()
+        }
+    }
+
+    private var namedViews: [String: UIView] {
+        [
+            "dpad": dpad,
+            "face": face,
+            "l1": l1,
+            "r1": r1,
+            "l2": l2v,
+            "r2": r2v,
+            "l3": l3,
+            "r3": r3,
+            "share": shareB,
+            "options": optionsB,
+            "ps": psB,
+            "touchpad": touchpad
+        ]
+    }
+
+    private func clearCustomTranslations() {
+        namedViews.values.forEach {
+            $0.transform = .identity
+        }
+    }
+
+    func applyCustomOffsets(_ offsetsStr: String) {
+        guard !offsetsStr.isEmpty else {
+            clearCustomTranslations()
+            return
+        }
+        var map: [String: CGPoint] = [:]
+        for entry in offsetsStr.split(separator: ";") {
+            let parts = entry.split(separator: ":")
+            if parts.count == 2 {
+                let coords = parts[1].split(separator: ",")
+                if coords.count == 2,
+                   let dx = Double(coords[0]),
+                   let dy = Double(coords[1]) {
+                    map[String(parts[0])] = CGPoint(x: dx, y: dy)
+                }
+            }
+        }
+        for (key, view) in namedViews {
+            if let pt = map[key] {
+                view.transform = CGAffineTransform(translationX: pt.x, y: pt.y)
+            } else {
+                view.transform = .identity
+            }
+        }
+    }
+
+    func serializeCustomOffsets() -> String {
+        namedViews.map { "\($0.key):\($0.value.transform.tx),\($0.value.transform.ty)" }.joined(separator: ";")
+    }
+
+    private var panRecognizers: [UIPanGestureRecognizer] = []
+
+    func setEditMode(_ enabled: Bool) {
+        panRecognizers.forEach { $0.view?.removeGestureRecognizer($0) }
+        panRecognizers.removeAll()
+
+        guard enabled else { return }
+
+        for (_, view) in namedViews {
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(handleViewPan(_:)))
+            view.addGestureRecognizer(pan)
+            panRecognizers.append(pan)
+        }
+    }
+
+    @objc private func handleViewPan(_ gesture: UIPanGestureRecognizer) {
+        guard let target = gesture.view else { return }
+        let translation = gesture.translation(in: self)
+        target.transform = target.transform.translatedBy(x: translation.x, y: translation.y)
+        gesture.setTranslation(.zero, in: self)
+
+        if gesture.state == .ended || gesture.state == .cancelled {
+            var prefs = StreamPreferences.load()
+            prefs.touchControlsLayoutPreset = "custom"
+            prefs.touchControlsCustomOffsets = serializeCustomOffsets()
+            prefs.save()
+        }
     }
 }

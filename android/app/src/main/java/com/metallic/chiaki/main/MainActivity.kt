@@ -68,11 +68,12 @@ class MainActivity : AppCompatActivity()
 		setupNavigation()
 		observeViewModel()
 
-		// Restore last selected tab
-		val lastTab = preferences.getLastMainTab()
-		if (lastTab in 0..1) {
-			binding.viewPager.setCurrentItem(lastTab, false)
-			currentPage = lastTab
+		// Restore last selected tab or honor shortcut intent extra
+		val requestedTab = intent.getIntExtra("tab", -1).takeIf { it in 0..1 }
+		val initialTab = requestedTab ?: preferences.getLastMainTab()
+		if (initialTab in 0..1) {
+			binding.viewPager.setCurrentItem(initialTab, false)
+			currentPage = initialTab
 			updateModeIcons()
 			updateActionIcons()
 		}
@@ -83,6 +84,13 @@ class MainActivity : AppCompatActivity()
 			// In-app review: once per *new* Main instance (not every resume). Play throttles whether a sheet is shown.
 			if (savedInstanceState == null)
 				InAppReviewHelper.tryPromptIfEligible(this, preferences)
+		}
+	}
+
+	override fun onNewIntent(intent: Intent?) {
+		super.onNewIntent(intent)
+		intent?.getIntExtra("tab", -1)?.takeIf { it in 0..1 }?.let { tab ->
+			binding.viewPager.setCurrentItem(tab, true)
 		}
 	}
 

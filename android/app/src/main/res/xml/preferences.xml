@@ -28,6 +28,13 @@
             app:icon="@drawable/ic_gamepad" />
 
         <SwitchPreference
+            app:key="@string/preferences_touchpad_emulation_key"
+            app:title="@string/preferences_touchpad_emulation_title"
+            app:summary="@string/preferences_touchpad_emulation_summary"
+            app:defaultValue="true"
+            app:icon="@drawable/control_touchpad" />
+
+        <SwitchPreference
             app:key="@string/preferences_rumble_enabled_key"
             app:title="@string/preferences_rumble_enabled_title"
             app:summary="@string/preferences_rumble_enabled_summary"
@@ -43,6 +50,14 @@
             app:seekBarIncrement="10"
             app:defaultValue="100"
             app:showSeekBarValue="true"
+            app:icon="@drawable/ic_rumble" />
+
+        <SwitchPreference
+            app:key="@string/preferences_phone_haptics_fallback_key"
+            app:title="@string/preferences_phone_haptics_fallback_title"
+            app:summary="@string/preferences_phone_haptics_fallback_summary"
+            app:dependency="@string/preferences_rumble_enabled_key"
+            app:defaultValue="true"
             app:icon="@drawable/ic_rumble" />
 
         <ListPreference
@@ -106,6 +121,24 @@
             app:title="@string/preferences_codec_title"
             app:summary="%s"
             app:icon="@drawable/ic_codec"/>
+
+        <ListPreference
+            app:key="@string/preferences_audio_buffer_size_key"
+            app:title="@string/preferences_audio_buffer_size_title"
+            app:summary="%s"
+            app:entries="@array/audio_buffer_size_entries"
+            app:entryValues="@array/audio_buffer_size_values"
+            app:defaultValue="5"
+            app:icon="@drawable/ic_resolution"/>
+
+        <ListPreference
+            app:key="@string/preferences_aspect_ratio_key"
+            app:title="@string/preferences_aspect_ratio_title"
+            app:summary="%s"
+            app:entries="@array/aspect_ratio_entries"
+            app:entryValues="@array/aspect_ratio_values"
+            app:defaultValue="fit"
+            app:icon="@drawable/ic_display_normal"/>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -263,6 +296,83 @@
             app:entries="@array/dpad_touch_button_entries"
             app:entryValues="@array/dpad_touch_button_values"
             app:defaultValue="0"
+            app:icon="@drawable/ic_gamepad" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="category_controller_tuning"
+        app:title="@string/preferences_category_title_controller_tuning">
+
+        <SeekBarPreference
+            app:key="@string/preferences_controller_deadzone_key"
+            app:title="@string/preferences_controller_deadzone_title"
+            app:summary="@string/preferences_controller_deadzone_summary"
+            app:min="0"
+            android:max="30"
+            app:seekBarIncrement="1"
+            app:defaultValue="5"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SeekBarPreference
+            app:key="@string/preferences_controller_sensitivity_key"
+            app:title="@string/preferences_controller_sensitivity_title"
+            app:summary="@string/preferences_controller_sensitivity_summary"
+            app:min="50"
+            android:max="200"
+            app:seekBarIncrement="5"
+            app:defaultValue="100"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SwitchPreference
+            app:key="@string/preferences_swap_bumpers_triggers_key"
+            app:title="@string/preferences_swap_bumpers_triggers_title"
+            app:summary="@string/preferences_swap_bumpers_triggers_summary"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SwitchPreference
+            app:key="@string/preferences_swap_box_pyramid_key"
+            app:title="@string/preferences_swap_box_pyramid_title"
+            app:summary="@string/preferences_swap_box_pyramid_summary"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_gamepad" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="category_touch_customization"
+        app:title="@string/preferences_category_title_touch_customization">
+
+        <SeekBarPreference
+            app:key="@string/preferences_touch_controls_opacity_key"
+            app:title="@string/preferences_touch_controls_opacity_title"
+            app:summary="@string/preferences_touch_controls_opacity_summary"
+            app:min="20"
+            android:max="100"
+            app:seekBarIncrement="5"
+            app:defaultValue="65"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SeekBarPreference
+            app:key="@string/preferences_touch_controls_scale_key"
+            app:title="@string/preferences_touch_controls_scale_title"
+            app:summary="@string/preferences_touch_controls_scale_summary"
+            app:min="70"
+            android:max="130"
+            app:seekBarIncrement="5"
+            app:defaultValue="100"
+            app:showSeekBarValue="true"
+            app:icon="@drawable/ic_gamepad" />
+
+        <ListPreference
+            app:key="@string/preferences_touch_controls_layout_preset_key"
+            app:title="@string/preferences_touch_controls_layout_preset_title"
+            app:summary="%s"
+            app:entries="@array/touch_controls_layout_preset_entries"
+            app:entryValues="@array/touch_controls_layout_preset_values"
+            app:defaultValue="standard"
             app:icon="@drawable/ic_gamepad" />
     </PreferenceCategory>
 

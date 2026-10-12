@@ -33,6 +33,8 @@ class TouchpadOnlyFragment : TouchControlsFragment()
 		touchpadOnlyEnabled?.observe(viewLifecycleOwner, Observer {
 			view.visibility = if(it) View.VISIBLE else View.GONE
 		})
+		val preferences = com.metallic.chiaki.common.Preferences(requireContext())
+		view.alpha = preferences.touchControlsOpacity / 100.0f
 	}
 
 	private fun buttonStateChanged(buttonMask: UInt) = { pressed: Boolean ->

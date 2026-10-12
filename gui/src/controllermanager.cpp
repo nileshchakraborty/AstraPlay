@@ -366,6 +366,8 @@ Controller::Controller(int device_id, ControllerManager *manager)
 	chiaki_accel_new_zero_set_inactive(&this->accel_zero, false);
 	chiaki_accel_new_zero_set_inactive(&this->real_accel, true);
 	chiaki_controller_state_set_idle(&this->state);
+	chiaki_stick_calibration_init_default(&this->stick_calib);
+	this->stick_calib.deadzone = 0.05f;
 
 #ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
 	controller = nullptr;
@@ -589,15 +591,19 @@ inline bool Controller::HandleAxisEvent(SDL_ControllerAxisEvent event) {
 			break;
 		case SDL_CONTROLLER_AXIS_LEFTX:
 			state.left_x = event.value;
+			chiaki_stick_apply_calibration(&state.left_x, &state.left_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_LEFTY:
 			state.left_y = event.value;
+			chiaki_stick_apply_calibration(&state.left_x, &state.left_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTX:
 			state.right_x = event.value;
+			chiaki_stick_apply_calibration(&state.right_x, &state.right_y, &stick_calib);
 			break;
 		case SDL_CONTROLLER_AXIS_RIGHTY:
 			state.right_y = event.value;
+			chiaki_stick_apply_calibration(&state.right_x, &state.right_y, &stick_calib);
 			break;
 		default:
 			return false;
@@ -738,6 +744,36 @@ QString Controller::GetGUIDString()
 	SDL_JoystickGUID guid = SDL_JoystickGetGUID(js);
 	SDL_JoystickGetGUIDString(guid, guid_str, sizeof(guid_str));
 	return QString("%1").arg(guid_str);
+#else
+	return QString();
+#endif
+}
+
+QString Controller::GetBatteryLevel()
+{
+#ifdef CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+	if(!controller)
+		return QString();
+	SDL_Joystick *js = SDL_GameControllerGetJoystick(controller);
+	if(!js)
+		return QString();
+	SDL_JoystickPowerLevel power = SDL_JoystickCurrentPowerLevel(js);
+	switch(power)
+	{
+		case SDL_JOYSTICK_POWER_EMPTY:
+			return QStringLiteral("5%");
+		case SDL_JOYSTICK_POWER_LOW:
+			return QStringLiteral("20%");
+		case SDL_JOYSTICK_POWER_MEDIUM:
+			return QStringLiteral("70%");
+		case SDL_JOYSTICK_POWER_FULL:
+			return QStringLiteral("100%");
+		case SDL_JOYSTICK_POWER_WIRED:
+			return QStringLiteral("Wired");
+		case SDL_JOYSTICK_POWER_UNKNOWN:
+		default:
+			return QString();
+	}
 #else
 	return QString();
 #endif

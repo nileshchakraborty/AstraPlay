@@ -92,6 +92,7 @@ class Controller : public QObject
 		int id;
 		ChiakiOrientationTracker orientation_tracker;
 		ChiakiControllerState state;
+		ChiakiStickCalibration stick_calib;
 		bool updating_mapping_button;
 		bool enable_analog_stick_mapping;
 		bool is_dualsense;
@@ -143,6 +144,7 @@ class Controller : public QObject
 		bool IsSteamVirtualUnmasked();
 		bool IsDualSenseEdge();
 		void resetMotionControls();
+		QString GetBatteryLevel();
 
 	signals:
 		void StateChanged();

@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-void *ios_chiaki_audio_output_create(void);
+void *ios_chiaki_audio_output_create(int buffer_multiplier);
 void ios_chiaki_audio_output_free(void *ptr);
 void ios_chiaki_audio_output_settings(uint32_t channels, uint32_t rate, void *ptr);
 void ios_chiaki_audio_output_frame(int16_t *buf, size_t total_interleaved_samples, void *ptr);

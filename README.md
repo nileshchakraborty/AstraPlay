@@ -32,7 +32,7 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
 
 | Operating System | Architecture | Available Packages | Description |
 | :--- | :--- | :--- | :--- |
-| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X) | [`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.msi WiX Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`Standalone .exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Full Inno Setup installer (`astraplay-windows-installer.exe`), WiX MSI package (`astraplay-windows-x64.msi`), portable runtime ZIP, or standalone executable. |
+| **Windows** | **x86_64** (Desktop, ROG Xbox Ally X) | [`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.msi WiX Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`Standalone .exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Full Inno Setup installer (`astraplay-windows-installer.exe`) with Start Menu and desktop shortcut choices, WiX MSI package (`astraplay-windows-x64.msi`), portable runtime ZIP, or standalone executable. |
 | **Windows** | **ARM64** (Snapdragon X Elite, WoA) | [`.exe Setup Installer (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`Standalone .exe (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Windows on ARM Inno Setup installer (`astraplay-windows-arm64-installer.exe`), portable ARM64 ZIP, or standalone ARM64 executable. |
 | **macOS** | **Apple Silicon** (`arm64`: M1–M4) | [`.dmg Disk Image (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Apple Silicon `.dmg` installer and compressed `AstraPlay.app` bundle. |
 | **macOS** | **Intel** (`x86_64`) | [`.dmg Disk Image (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Intel x86_64 `.dmg` installer and compressed `AstraPlay.app` bundle. |
@@ -40,6 +40,10 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
 | **Linux & Handhelds** | **ARM64** (`aarch64`: Raspberry Pi 5, SBCs) | [`.AppImage (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native ARM64 AppImage executable and portable archive. |
 | **Android** | **Universal / ARM64 & x86** (Phones, Tablets, TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable release APK and Google Play Store App Bundle (`io.github.nileshchakraborty.astraplay`), with native binaries for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`. |
 | **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable unsigned IPA (AltStore, Sideloadly, LiveContainer, TrollStore) and TestFlight. |
+
+The Windows `.exe` setup asks whether to create Start Menu and desktop shortcuts (Start Menu is selected by default). The MSI creates a Start Menu shortcut by default; administrators can opt out or add a desktop shortcut with `msiexec /i astraplay-windows-x64.msi CREATE_START_MENU_SHORTCUT=0 CREATE_DESKTOP_SHORTCUT=1`. The standalone `.exe` and portable ZIP do not run an installer or create shortcuts. After installation, launch AstraPlay and use **Pin to taskbar** from its taskbar icon if desired; Windows requires that choice to be made by the user.
+
+Windows MSIX packages are being prepared for Microsoft Store distribution; they are not yet a published install option. The on-demand development MSIX is unsigned and intended only for build validation. Store-distributed MSIX updates are managed by Windows; the existing GitHub EXE/MSI installers retain their in-app updater. See [Windows MSIX packaging](packaging/windows-msix/README.md) for the preparation and validation steps.
 
 ---
 
@@ -57,12 +61,20 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
   - macOS & iOS: Apple VideoToolbox (Metal-backed)
   - Linux: VAAPI, VDPAU, Vulkan Video
   - Android: Android MediaCodec (AMediaCodec NDK)
-- **Audio Engines**: Low-latency audio with SDL, Oboe (Android), CoreAudio (Apple), and PulseAudio / PipeWire (Linux).
+- **Contrast Adaptive Sharpening (CAS) & Upscaling**: In-stream sharpness quick toggle on Desktop QML HUD supporting FidelityFX CAS and EWA Lanczos Sharp shaders.
+- **Aspect Ratio Presets**: Flexible aspect ratio controls across Desktop, Android, and iOS supporting **Fit (16:9)**, **Fill / 16:10** (ideal for Steam Deck and handhelds), **20:9** (modern smartphones), **Zoom**, and **Stretch**.
+- **Dynamic Bitrate & Congestion Control**: Adaptive bitrate scaling heuristics in `libchiaki` that react in real-time to network congestion, packet drops, and RTT spikes to eliminate stuttering.
+- **Audio Engines & Latency Tuning**: Low-latency audio with SDL, Oboe (Android), CoreAudio (Apple), and PulseAudio / PipeWire (Linux). Configurable audio latency buffer size tuning (Ultra-Low, Low, Balanced, High) across mobile and desktop.
+- **In-Stream Microphone Mute**: Quick toggle to mute or unmute microphone pass-through on the fly during active streaming sessions.
 
 ### Controller & Input Support
 - **DualSense & DualShock 4**: Full support for haptic feedback, adaptive triggers, motion sensors (gyro/accelerometer), and touchpad navigation.
-- **Xbox & Handheld Controllers**: Native mapping for Xbox wireless controllers, ROG Ally controls, Steam Deck controls, and third-party XInput / DirectInput controllers.
-- **Touchscreen Controls**: Highly responsive on-screen overlay controls with multi-touch support for iOS and Android.
+- **Controller Battery Indicator**: Real-time battery status HUD overlay displaying charge level and state (Charging, Low, Normal) on Desktop, Android, and iOS.
+- **Xbox & Handheld Controllers**: Native mapping for Xbox wireless controllers, ROG Ally controls, Steam Deck controls, and third-party XInput / DirectInput controllers with deadzone calibration, stick sensitivity curves, and button remapping.
+- **Tactile Touch Haptics**: Virtual thumbstick haptic feedback using device vibration motors on Android and iOS when crossing stick thresholds or clicking virtual L3/R3.
+- **Customizable Virtual Touch Overlay**: Drag-and-drop repositioning with layout persistence, adjustable touch opacity and scale sliders, genre layout presets (Standard, Action/Shooter, RPG), and phone vibrator fallback for mobile grips.
+- **Touchpad Emulation**: Dedicated DualSense touchpad gesture and tap emulation for mobile controller grips and touch overlays.
+- **Android App Shortcuts**: Quick 1-tap launcher shortcuts on Android home screens directly into Remote Play and Cloud streaming sessions.
 
 ---
 
