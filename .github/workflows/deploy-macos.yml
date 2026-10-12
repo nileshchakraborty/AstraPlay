@@ -175,7 +175,7 @@ jobs:
       - name: Create tarball for PKG job (cache, not workflow artifact)
         run: |
           cd build/gui
-          mv chiaki.app AstraPlay.app
+          [ -d chiaki.app ] && mv chiaki.app AstraPlay.app || true
           tar -czf AstraPlay-${{ matrix.arch }}.tar.gz AstraPlay.app
           mv "AstraPlay-${{ matrix.arch }}.tar.gz" "$GITHUB_WORKSPACE/"
 
@@ -239,8 +239,9 @@ jobs:
           python3 -m lipomerge AstraPlay-arm64.app AstraPlay-x86_64.app AstraPlay.app
 
           echo ""
-          echo "=== Verification ==="
-          lipo -info AstraPlay.app/Contents/MacOS/chiaki
+          MAIN_EXEC="AstraPlay.app/Contents/MacOS/AstraPlay"
+          [ ! -f "$MAIN_EXEC" ] && MAIN_EXEC="AstraPlay.app/Contents/MacOS/chiaki"
+          lipo -info "$MAIN_EXEC"
           lipo -info AstraPlay.app/Contents/Frameworks/QtCore.framework/Versions/A/QtCore || true
 
       - name: Import Apple Distribution certificate
@@ -359,7 +360,9 @@ jobs:
           find "$APP/Contents/Frameworks" -maxdepth 1 -name "*.dylib" -type f -exec \
             codesign --force --timestamp --options runtime --sign "$SIGN_ID" {} \;
 
-          codesign --force --timestamp --options runtime --sign "$SIGN_ID" "$APP/Contents/MacOS/chiaki"
+          MAIN_EXEC="$APP/Contents/MacOS/AstraPlay"
+          [ ! -f "$MAIN_EXEC" ] && MAIN_EXEC="$APP/Contents/MacOS/chiaki"
+          codesign --force --timestamp --options runtime --sign "$SIGN_ID" "$MAIN_EXEC"
 
           codesign --force --timestamp --options runtime \
             --entitlements "$ENTITLEMENTS" \
