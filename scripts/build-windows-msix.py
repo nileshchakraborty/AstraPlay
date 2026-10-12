@@ -32,11 +32,14 @@ def msix_version(value: str) -> str:
     if len(parts) not in (3, 4) or not all(part.isdecimal() for part in parts):
         raise ValueError(f"Invalid release version: {value}")
     numbers = [int(part) for part in parts]
-    if len(numbers) == 3:
-        numbers.append(0)
-    if any(number > 65535 for number in numbers):
-        raise ValueError(f"MSIX version field exceeds 65535: {value}")
-    return ".".join(map(str, numbers))
+    major, minor, patch = numbers[:3]
+    iteration = numbers[3] if len(numbers) == 4 else 0
+    combined_patch = patch * 1000 + iteration
+    if major == 0 or major > 65535 or minor > 65535 or iteration > 999 or combined_patch > 65535:
+        raise ValueError(f"Version is outside Microsoft Store MSIX limits: {value}")
+    # The Store reserves the fourth field as zero. Fold AstraPlay's release
+    # iteration into the third field so each GitHub release still upgrades.
+    return f"{major}.{minor}.{combined_patch}.0"
 
 
 def find_makeappx() -> str:
