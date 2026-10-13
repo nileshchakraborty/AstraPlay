@@ -1080,7 +1080,7 @@ static ChiakiErrorCode session_thread_request_session(ChiakiSession *session, Ch
 			}
 			else if(err != CHIAKI_ERR_SUCCESS)
 			{
-				CHIAKI_LOGE(session->log, "Session request connect failed: %s", chiaki_error_string(err));
+				CHIAKI_LOGE(session->log, "Session request connect failed: %s (errno: %d, %s)", chiaki_error_string(err), errno, strerror(errno));
 				if(err == CHIAKI_ERR_CONNECTION_REFUSED)
 					session->quit_reason = CHIAKI_QUIT_REASON_SESSION_REQUEST_CONNECTION_REFUSED;
 				else

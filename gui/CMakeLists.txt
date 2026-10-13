@@ -210,6 +210,9 @@ if(APPLE)
 			MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.nileshchakraborty.astraplay"
 			MACOSX_BUNDLE_ICON_FILE astraplay.icns
 			RESOURCE "${RESOURCE_FILES}")
+	add_custom_command(TARGET astraplay POST_BUILD
+			COMMAND codesign --force --deep --sign - "$<TARGET_BUNDLE_DIR:astraplay>"
+			COMMENT "Ad-hoc signing AstraPlay.app bundle for macOS local network permission compatibility")
 else()
 	set_target_properties(astraplay PROPERTIES
 			OUTPUT_NAME astraplay)

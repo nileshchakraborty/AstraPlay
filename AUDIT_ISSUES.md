@@ -89,3 +89,25 @@ This audit documents pending items, enhancement opportunities, and technical tas
   The command-line launcher currently lacks explicit options to select console target generation directly (`--target=ps4|ps5`) and verbose diagnostic logging (`-v / --verbose`).
 - **Task**:
   Add CLI parser options in `gui/src/main.cpp` for `--target` and `--verbose`.
+
+---
+
+## Issue 8: [Discovery] macOS Subnet Broadcast Routing Failure (Resolved in v2.12.2)
+- **Type**: Bug / Network (Resolved)
+- **Priority**: Critical
+- **Components**: `lib/src/utils.h`
+- **Description**:
+  Broadcast socket calls on macOS returned `errno 65 (No route to host)` when sending to `INADDR_BROADCAST (255.255.255.255)`.
+- **Resolution**:
+  Enabled interface traversal via `getifaddrs` on macOS (`defined(__APPLE__)`) to broadcast directly to each active interface's `ifa_broadaddr`.
+
+---
+
+## Issue 9: [Relay] Dedicated Port 25525 for Embedded and Standalone PSN Relay (Resolved in v2.12.3)
+- **Type**: Bug / Port Collision (Resolved)
+- **Priority**: Medium
+- **Components**: `gui/include/embeddedrelayserver.h`, `gui/src/embeddedrelayserver.cpp`, `gui/src/qmlbackend.cpp`, `psstream-server/`
+- **Description**:
+  Port 8080 caused binding conflicts with local development web servers and developer environments.
+- **Resolution**:
+  Migrated embedded server and standalone `psstream-server` defaults to dedicated port `25525`.

@@ -50,7 +50,7 @@ Windows MSIX packages are being prepared for Microsoft Store distribution; they 
 ## Features & Capabilities
 
 ### Console Discovery & Remote Play
-- **Local Network Broadcast**: Automatic discovery of PS4 and PS5 consoles on local networks via standard discovery protocols.
+- **Local Network Broadcast**: Automatic discovery of PS4 and PS5 consoles on local networks via standard discovery protocols, with active multi-interface subnet broadcast routing on macOS, Linux, and Windows.
 - **PIN Pairing**: Fast pairing using the official PlayStation Remote Play registration PIN.
 - **Internet Remote Play**: Connect to your home consoles over WAN and mobile networks with port forwarding or UPnP.
 
