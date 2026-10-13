@@ -667,64 +667,26 @@
 <div class="tabbed-block">
 <div class="admonition tip">
 <p class="admonition-title">Steam Deck</p>
-<p>Flatpak is the recommended install for Steam Deck — it integrates with the Discover store and updates automatically.</p>
+<p>A Flathub listing is not available yet. The AppImage installer below adds AstraPlay to the desktop application menu; the portable ZIP is another current option.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Copying from and Pasting into Konsole Windows</p>
 <p>You can copy from and paste into <code>konsole</code> windows with <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-c">C</kbd></span> (copy) and <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-shift">Shift</kbd><span>+</span><kbd class="key-v">V</kbd></span> (paste) instead of the normal <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-c">C</kbd></span> (copy) and <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-v">V</kbd></span> (paste) shortcuts.</p>
 </div>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Flatpak (Recommended)</label><label for="__tabbed_2_2">AppImage</label><label for="__tabbed_2_3">Portable zip</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Using the Discover Store</label><label for="__tabbed_3_2">Using the <code>konsole</code></label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<ol>
-<li>
-<p>Open the Discover store</p>
-<p><img alt="Open Discover" src="../images/OpenDiscover.png" /></p>
-</li>
-<li>
-<p>Search for <code>AstraPlay</code> in the search bar</p>
-</li>
-<li>
-<p>Click Install</p>
-</li>
-</ol>
-</div>
-<div class="tabbed-block">
-<ol>
-<li>
-<p>Run the following command in the <code>konsole</code></p>
-<div class="highlight"><pre><span></span><code>flatpak install flathub io.github.nileshchakraborty.AstraPlay -y
-</code></pre></div>
-</li>
-</ol>
-</div>
-</div>
-</div>
 <div class="admonition note">
-<p class="admonition-title">About the AstraPlay Flatpak</p>
-<p>The AstraPlay flatpak is available on <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest" rel="noopener" target="_blank">Flathub</a>.</p>
-<p>You can also build the flatpak yourself by following the instructions in <a href="../diy/buildit.md" rel="noopener" target="_blank">Building the Flatpak Yourself</a>.</p>
+<p class="admonition-title">Flatpak availability</p>
+<p>AstraPlay's Flatpak build is currently verified in CI, but it is not published to Flathub yet. Install instructions will be added when the human-reviewed Flathub submission is published.</p>
 </div>
-</div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">AppImage with user installer</label><label for="__tabbed_2_2">Portable zip</label></div>
+<div class="tabbed-content">
 <div class="tabbed-block">
-<ol>
-<li>
-<p>Download the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest" rel="noopener" target="_blank">AppImage for your architecture</a></p>
-</li>
-<li>
-<p>Make it executable and run it:</p>
-<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span>AstraPlay-Linux-x86_64.AppImage
-./AstraPlay-Linux-x86_64.AppImage
+<p>Download the <a href="https://github.com/nileshchakraborty/AstraPlay/blob/dev/scripts/install-appimage.sh" rel="noopener" target="_blank">installer script</a> and run it from Konsole:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fL<span class="w"> </span>-o<span class="w"> </span>install-appimage.sh<span class="w"> </span>https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/dev/scripts/install-appimage.sh
+bash<span class="w"> </span>install-appimage.sh
 </code></pre></div>
-<div class="admonition tip">
-<p class="admonition-title">Steam Deck / Steam</p>
-<p>Set <code>APPIMAGE_EXTRACT_AND_RUN=1</code> if Steam misbehaves with the AppImage.</p>
-</div>
-</li>
-</ol>
+<p>It downloads the latest AppImage for your CPU, verifies the release checksum, and creates an AstraPlay entry in the desktop application menu. It installs under your home directory, without <code>sudo</code>. Run it again to update.</p>
+<p>If you already downloaded the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest" rel="noopener" target="_blank">AppImage</a>, use <code>bash install-appimage.sh --file ~/Downloads/AstraPlay-Linux-x86_64.AppImage</code> instead. Download <code>SHA256SUMS.txt</code> beside it if you want the script to verify this local file. If FUSE is unavailable, add <code>--extract-and-run</code>; this is slower because the AppImage is extracted on every launch.</p>
+<p>To use the installed app in Steam Gaming Mode, add <strong>AstraPlay</strong> as a non-Steam game from Steam Desktop Mode. The installer leaves existing Steam shortcuts and controller layouts unchanged. On the ROG Xbox Ally X with Bazzite, also <a href="../controlling/#rog-xbox-ally-x-on-bazzite">map a rear paddle to the PS button</a>.</p>
 </div>
 <div class="tabbed-block">
 <ol>
@@ -732,7 +694,10 @@
 <p>Download the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest" rel="noopener" target="_blank">portable zip for your platform</a></p>
 </li>
 <li>
-<p>Unzip and run <code>launch.sh</code> (sets up bundled libs and OpenSSL fallback automatically)</p>
+<p>Extract the archive, then run <code>launch.sh</code> (sets up bundled libraries and the OpenSSL fallback automatically). This is portable but does not create an application-menu entry or handle updates.</p>
+</li>
+<li>
+<p>To launch it in Gaming Mode, open Steam in Desktop Mode, choose <strong>Games → Add a Non-Steam Game</strong>, browse to the extracted <code>launch.sh</code>, and add it. Switch back to Gaming Mode and start AstraPlay from your library.</p>
 </li>
 </ol>
 </div>
@@ -763,7 +728,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 11, 2026 08:34:37 UTC">October 11, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 13, 2026 06:47:23 UTC">October 13, 2026</span>
   </span>
 
     
