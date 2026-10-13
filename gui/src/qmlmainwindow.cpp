@@ -135,32 +135,41 @@ QmlMainWindow::QmlMainWindow(Settings *settings, const QString &serviceType, con
 
 QmlMainWindow::~QmlMainWindow()
 {
-    Q_ASSERT(!placebo_swapchain);
+    if (placebo_swapchain) {
+        if (render_thread && render_thread->isRunning())
+            QMetaObject::invokeMethod(quick_render, std::bind(&QmlMainWindow::destroySwapchain, this), Qt::BlockingQueuedConnection);
+        else {
+            pl_swapchain_destroy(&placebo_swapchain);
+            swapchain_size = QSize();
+        }
+    }
 
-#ifndef Q_OS_MACOS
-    QMetaObject::invokeMethod(quick_render, &QQuickRenderControl::invalidate);
-    render_thread->quit();
-    render_thread->wait();
-#endif
+    if (render_thread && render_thread->isRunning()) {
+        QMetaObject::invokeMethod(quick_render, &QQuickRenderControl::invalidate, Qt::BlockingQueuedConnection);
+        render_thread->quit();
+        render_thread->wait();
+    }
 
     delete quick_item;
     delete quick_window;
-    // calls invalidate here if not already called
     delete quick_render;
-    delete render_thread->parent();
+    delete render_thread;
     delete qml_engine;
     delete qt_vk_inst;
 
     av_buffer_unref(&vulkan_hw_dev_ctx);
 
-    pl_unmap_avframe(placebo_vulkan->gpu, &current_frame);
-    pl_unmap_avframe(placebo_vulkan->gpu, &previous_frame);
+    if (placebo_vulkan && placebo_vulkan->gpu) {
+        pl_gpu_finish(placebo_vulkan->gpu);
+        pl_unmap_avframe(placebo_vulkan->gpu, &current_frame);
+        pl_unmap_avframe(placebo_vulkan->gpu, &previous_frame);
 
-    pl_tex_destroy(placebo_vulkan->gpu, &quick_tex);
-    pl_vulkan_sem_destroy(placebo_vulkan->gpu, &quick_sem);
+        pl_tex_destroy(placebo_vulkan->gpu, &quick_tex);
+        pl_vulkan_sem_destroy(placebo_vulkan->gpu, &quick_sem);
 
-    for (auto tex : placebo_tex)
-        pl_tex_destroy(placebo_vulkan->gpu, &tex);
+        for (auto tex : placebo_tex)
+            pl_tex_destroy(placebo_vulkan->gpu, &tex);
+    }
 
     FILE *file = fopen(qPrintable(shader_cache_path()), "wb");
     if (file) {

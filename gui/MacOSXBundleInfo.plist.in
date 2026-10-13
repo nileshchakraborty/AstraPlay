@@ -34,6 +34,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>For mic support, AstraPlay requires access to your microphone.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>AstraPlay needs local network access to discover and stream from PlayStation consoles on your home network.</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
