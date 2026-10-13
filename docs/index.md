@@ -24,7 +24,7 @@ Desktop and mobile releases are published on the [releases page](https://github.
 
 === "Linux / Steam Deck"
     !!! tip "Steam Deck"
-        A Flathub listing is not available yet. For Steam Deck and Bazzite, use the portable ZIP and add `launch.sh` as a non-Steam game.
+        A Flathub listing is not available yet. The [AppImage installer](setup/installation.md#linux-steam-deck) creates a desktop application entry; you can add it as a non-Steam game for Gaming Mode. The portable ZIP remains available.
 
     [:material-download: Download portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 

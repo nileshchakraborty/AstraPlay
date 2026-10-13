@@ -30,7 +30,7 @@
 === "Linux / Steam Deck"
 
     !!! tip "Steam Deck"
-        A Flathub listing is not available yet. On Steam Deck or Bazzite, the portable ZIP is the easiest current option: add its `launch.sh` as a non-Steam game for Gaming Mode.
+        A Flathub listing is not available yet. The AppImage installer below adds AstraPlay to the desktop application menu; the portable ZIP is another current option.
 
     !!! Tip "Copying from and Pasting into Konsole Windows"
 
@@ -39,24 +39,25 @@
     !!! note "Flatpak availability"
         AstraPlay's Flatpak build is currently verified in CI, but it is not published to Flathub yet. Install instructions will be added when the human-reviewed Flathub submission is published.
 
-    === "AppImage"
+    === "AppImage with user installer"
 
-        1. Download the [AppImage for your architecture](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+        Download the [installer script](https://github.com/nileshchakraborty/AstraPlay/blob/dev/scripts/install-appimage.sh){ target="_blank" rel="noopener" } and run it from Konsole:
 
-        2. Make it executable and run it:
+        ```bash
+        curl -fL -o install-appimage.sh https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/dev/scripts/install-appimage.sh
+        bash install-appimage.sh
+        ```
 
-            ```bash
-            chmod +x AstraPlay-Linux-x86_64.AppImage
-            ./AstraPlay-Linux-x86_64.AppImage
-            ```
+        It downloads the latest AppImage for your CPU, verifies the release checksum, and creates an AstraPlay entry in the desktop application menu. It installs under your home directory, without `sudo`. Run it again to update.
 
-            !!! Tip "Steam Deck / Steam"
-                Set `APPIMAGE_EXTRACT_AND_RUN=1` if Steam misbehaves with the AppImage.
+        If you already downloaded the [AppImage](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }, use `bash install-appimage.sh --file ~/Downloads/AstraPlay-Linux-x86_64.AppImage` instead. Download `SHA256SUMS.txt` beside it if you want the script to verify this local file. If FUSE is unavailable, add `--extract-and-run`; this is slower because the AppImage is extracted on every launch.
+
+        To use the installed app in Steam Gaming Mode, add **AstraPlay** as a non-Steam game from Steam Desktop Mode. The installer leaves existing Steam shortcuts and controller layouts unchanged. On the ROG Xbox Ally X with Bazzite, also [map a rear paddle to the PS button](controlling.md#rog-xbox-ally-x-on-bazzite).
 
     === "Portable zip"
 
         1. Download the [portable zip for your platform](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
-        2. Extract the archive, then run `launch.sh` (sets up bundled libraries and the OpenSSL fallback automatically).
+        2. Extract the archive, then run `launch.sh` (sets up bundled libraries and the OpenSSL fallback automatically). This is portable but does not create an application-menu entry or handle updates.
 
         3. To launch it in Gaming Mode, open Steam in Desktop Mode, choose **Games → Add a Non-Steam Game**, browse to the extracted `launch.sh`, and add it. Switch back to Gaming Mode and start AstraPlay from your library.
