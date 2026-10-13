@@ -123,6 +123,14 @@ I have also mapped gyro controls `As joystick`. Whenever you touch the right joy
 
     Of course, you could leave the right stick mapping on (so that it maps to both gyro and right joystick), if that is truly what you want.
 
+## ROG Xbox Ally X on Bazzite
+
+In Steam Gaming Mode, the dedicated Xbox button opens the Steam overlay. AstraPlay maps a controller's Guide button to the PlayStation button only when the button event reaches the app. On the ROG Xbox Ally X, Steam can consume it before AstraPlay receives it.
+
+For a Steam shortcut, open its **Controller Settings → Edit Layout**, select the **View** button, and add a **Double Press** command that sends keyboard **Esc**. AstraPlay maps Esc to the PlayStation button. This is how the Xbox-controller Steam layout used by PyLux exposes the PlayStation button while leaving a single View press available for another action. You can keep the normal View action as gamepad Back (PlayStation Share), or map it to **T** for touchpad click as in that PyLux layout. Keep Menu mapped to gamepad Start (PlayStation Options).
+
+AstraPlay also supports holding **View + Menu** together for **two seconds** as a PlayStation-button shortcut, but this works only when Steam passes both buttons through as gamepad Back and Start. When it fires, AstraPlay also opens its in-stream menu; close that menu to see the console screen. If the chord does nothing, use the View double-press mapping above.
+
 ## Standard Controller Mappings
 
 You can create your own controller profile by mapping the relevant buttons in Steam or using the [controller mapper](#change-controller-mapping) to map your controller's button to the PlayStation controller buttons. The [special button mappings](#special-button-mappings-you-need-to-assign-these-yourself) (functions not assigned to the controller by default) [set these] and the [standard button mappings](#standard-button-mappings-these-directly-map-and-dont-need-to-be-specifically-set) (controls that directly map and are thus assigned by default) [no need to set these unless you prefer different mappings] are listed in tables below for your convenience.
