@@ -41,6 +41,13 @@ UpdateManager::UpdateManager(Settings *settings, QObject *parent)
         m_statusMessage = tr("Windows manages updates for this package through Microsoft Store or App Installer.");
     // [ASTRAPLAY END]
 #endif
+#ifdef Q_OS_LINUX
+    // Flatpak updates are delivered by the configured remote, so the in-app
+    // AppImage updater must not replace the sandboxed installation.
+    m_packageUpdatesManaged = qEnvironmentVariableIsSet("FLATPAK_ID");
+    if (m_packageUpdatesManaged)
+        m_statusMessage = tr("Flatpak manages updates for this package. Update AstraPlay through Discover or your software center.");
+#endif
 }
 
 UpdateManager::~UpdateManager()
@@ -105,9 +112,13 @@ bool UpdateManager::isVersionNewer(const QString &remoteVersion, const QString &
 
 void UpdateManager::checkForUpdates(bool userInitiated)
 {
-    // [ASTRAPLAY BEGIN] Keep packaged installations off the EXE/MSI update path.
+    // [ASTRAPLAY BEGIN] Keep packaged installations off the self-update path.
     if (m_packageUpdatesManaged) {
+#ifdef Q_OS_WIN
         m_statusMessage = tr("Windows manages updates for this package through Microsoft Store or App Installer.");
+#else
+        m_statusMessage = tr("Flatpak manages updates for this package. Update AstraPlay through Discover or your software center.");
+#endif
         emit statusMessageChanged();
         emit updateCheckCompleted(false, userInitiated, QString());
         return;

@@ -30,37 +30,14 @@
 === "Linux / Steam Deck"
 
     !!! tip "Steam Deck"
-        Flatpak is the recommended install for Steam Deck — it integrates with the Discover store and updates automatically.
+        A Flathub listing is not available yet. On Steam Deck or Bazzite, the portable ZIP is the easiest current option: add its `launch.sh` as a non-Steam game for Gaming Mode.
 
     !!! Tip "Copying from and Pasting into Konsole Windows"
 
         You can copy from and paste into `konsole` windows with ++ctrl+shift+c++ (copy) and ++ctrl+shift+v++ (paste) instead of the normal ++ctrl+c++ (copy) and ++ctrl+v++ (paste) shortcuts.
 
-    === "Flatpak (Recommended)"
-
-        === "Using the Discover Store"
-
-            1. Open the Discover store
-
-                ![Open Discover](images/OpenDiscover.png)
-
-            2. Search for `AstraPlay` in the search bar
-
-            3. Click Install
-
-        === "Using the `konsole`"
-
-            1. Run the following command in the `konsole`
-
-                ```
-                flatpak install flathub io.github.nileshchakraborty.AstraPlay -y
-                ```
-
-        !!! Note "About the AstraPlay Flatpak"
-
-            The AstraPlay flatpak is available on [Flathub](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }.
-
-            You can also build the flatpak yourself by following the instructions in [Building the Flatpak Yourself](../diy/buildit.md){ target="_blank" rel="noopener" }.
+    !!! note "Flatpak availability"
+        AstraPlay's Flatpak build is currently verified in CI, but it is not published to Flathub yet. Install instructions will be added when the human-reviewed Flathub submission is published.
 
     === "AppImage"
 
@@ -80,4 +57,6 @@
 
         1. Download the [portable zip for your platform](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
 
-        2. Unzip and run `launch.sh` (sets up bundled libs and OpenSSL fallback automatically)
+        2. Extract the archive, then run `launch.sh` (sets up bundled libraries and the OpenSSL fallback automatically).
+
+        3. To launch it in Gaming Mode, open Steam in Desktop Mode, choose **Games → Add a Non-Steam Game**, browse to the extracted `launch.sh`, and add it. Switch back to Gaming Mode and start AstraPlay from your library.

@@ -3,8 +3,8 @@
 # AppStream release history (gui/*.metainfo.xml) is maintained manually for Flathub — not overwritten from CMake.
 #
 # Architecture: x86_64 (build verification) — Flathub itself builds both x86_64 + aarch64
-# Output: verified Flatpak bundle as a run artifact (published to the GitHub release).
-# Users on Steam Deck should install from Flathub for automatic updates via Discover.
+# Output: CI build verification only. The bundle is not uploaded or attached to releases.
+# Flathub publication requires a separate, human-reviewed submission.
 #
 # Manifest is kept in sync with:
 #   https://github.com/flathub/io.github.nileshchakraborty.AstraPlay
@@ -21,10 +21,6 @@ on:
       flatpak_build_succeeded:
         description: Whether the Flatpak CI verify build succeeded
         value: ${{ jobs.build-and-verify.outputs.flatpak_build_succeeded }}
-      flatpak_run_command:
-        description: Launch AstraPlay after install
-        value: flatpak run io.github.nileshchakraborty.AstraPlay
-
 concurrency:
   group: deploy-flatpak-${{ github.ref }}
   cancel-in-progress: true
@@ -79,7 +75,7 @@ jobs:
               echo "| --- | --- |"
               echo "| Flatpak bundle | ${FP_SIZE:-?} |"
               echo ""
-              echo "Bundles are published to the [GitHub release](https://github.com/nileshchakraborty/AstraPlay/releases/latest)."
+              echo "This CI job verifies the Flatpak build; it does not publish or upload the bundle."
               echo ""
               echo "### Run"
               echo ""
@@ -87,8 +83,8 @@ jobs:
               echo 'flatpak run io.github.nileshchakraborty.AstraPlay'
               echo '```'
               echo ""
-              echo "### Flathub (recommended)"
-              echo "\`flatpak install flathub io.github.nileshchakraborty.AstraPlay\` — [store listing](https://flathub.org/apps/io.github.nileshchakraborty.AstraPlay)"
+              echo "### Flathub publication"
+              echo "AstraPlay is not available on Flathub yet. A human-reviewed submission is required before users can install it from Discover."
             else
               echo "Flatpak build step outcome: **${{ steps.flatpak_build.outcome }}**. Fix manifest or build errors above."
             fi
