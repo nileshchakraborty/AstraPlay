@@ -24,13 +24,13 @@ Desktop and mobile releases are published on the [releases page](https://github.
 
 === "Linux / Steam Deck"
     !!! tip "Steam Deck"
-        Flatpak is the recommended install method for Steam Deck — it integrates cleanly with the Discover store and updates automatically.
+        A Flathub listing is not available yet. The [AppImage installer](setup/installation.md#linux-steam-deck) creates a desktop application entry; you can add it as a non-Steam game for Gaming Mode. The portable ZIP remains available.
 
-    [:material-download: Get on Flathub](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+    [:material-download: Download portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
     [:material-download: Download AppImage](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
-    [:material-folder-zip-outline: Download Portable zip](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+    **Flatpak:** The Flathub listing is not published yet.
 
 ## Getting Started
 

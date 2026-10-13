@@ -123,6 +123,17 @@ I have also mapped gyro controls `As joystick`. Whenever you touch the right joy
 
     Of course, you could leave the right stick mapping on (so that it maps to both gyro and right joystick), if that is truly what you want.
 
+## ROG Xbox Ally X on Bazzite
+
+In Steam Gaming Mode, the Xbox button opens Steam's menu before its Guide event can reach AstraPlay. The app maps keyboard **Esc** to the PlayStation button, so assign Esc to an available rear paddle in **Steam Input for the AstraPlay shortcut**. This was verified on a ROG Xbox Ally X running Bazzite: pressing the upper-left rear paddle opened the PS5 home menu during a stream.
+
+1. Open AstraPlay's **Controller Settings → Edit Layout → Buttons** in Steam. You can reach Controller Settings from the Steam menu while a stream is running.
+2. If necessary, enable **Extended Buttons** on the Controller Settings page. In **Extended Buttons**, select the first command, which is **Y Button** in the default Ally layout. This is the upper-left rear paddle (**M1/L4**).
+3. Choose **Keyboard → Esc**. Back out of the editor to save the layout.
+4. Return to the stream and press the upper-left rear paddle once. The PS5 home menu should open. The Xbox button still opens Steam; View and Menu keep their normal PlayStation Share and Options actions.
+
+Do not use a double press of View for this shortcut: its normal gamepad Select action can also fire and take a screenshot. Steam stores the paddle binding for this AstraPlay shortcut; repeat these steps if you replace it with a new shortcut.
+
 ## Standard Controller Mappings
 
 You can create your own controller profile by mapping the relevant buttons in Steam or using the [controller mapper](#change-controller-mapping) to map your controller's button to the PlayStation controller buttons. The [special button mappings](#special-button-mappings-you-need-to-assign-these-yourself) (functions not assigned to the controller by default) [set these] and the [standard button mappings](#standard-button-mappings-these-directly-map-and-dont-need-to-be-specifically-set) (controls that directly map and are thus assigned by default) [no need to set these unless you prefer different mappings] are listed in tables below for your convenience.
