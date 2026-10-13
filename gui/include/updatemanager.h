@@ -21,7 +21,7 @@ class UpdateManager : public QObject
     Q_PROPERTY(QString releaseUrl READ releaseUrl NOTIFY releaseUrlChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool autoCheckEnabled READ autoCheckEnabled WRITE setAutoCheckEnabled NOTIFY autoCheckEnabledChanged)
-    // [ASTRAPLAY BEGIN] Keep MSIX installations on their package update channel.
+    // [ASTRAPLAY BEGIN] Keep package-managed installations on their update channel.
     Q_PROPERTY(bool packageUpdatesManaged READ packageUpdatesManaged CONSTANT)
     // [ASTRAPLAY END]
 

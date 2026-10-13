@@ -553,7 +553,8 @@ DialogView {
                         }
                         // [ASTRAPLAY END]
                         Label {
-                            text: qsTr("Managed by Microsoft Store or Windows App Installer")
+                            text: UpdateManager.statusMessage
+                            wrapMode: Text.WordWrap
                             visible: UpdateManager.packageUpdatesManaged
                         }
                         Label {
