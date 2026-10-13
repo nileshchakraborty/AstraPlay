@@ -125,11 +125,14 @@ I have also mapped gyro controls `As joystick`. Whenever you touch the right joy
 
 ## ROG Xbox Ally X on Bazzite
 
-In Steam Gaming Mode, the dedicated Xbox button opens the Steam overlay. AstraPlay maps a controller's Guide button to the PlayStation button only when the button event reaches the app. On the ROG Xbox Ally X, Steam can consume it before AstraPlay receives it.
+In Steam Gaming Mode, the Xbox button opens Steam's menu before its Guide event can reach AstraPlay. The app maps keyboard **Esc** to the PlayStation button, so assign Esc to an available rear paddle in **Steam Input for the AstraPlay shortcut**. This was verified on a ROG Xbox Ally X running Bazzite: pressing the upper-left rear paddle opened the PS5 home menu during a stream.
 
-For a Steam shortcut, open its **Controller Settings → Edit Layout**, select the **View** button, and add a **Double Press** command that sends keyboard **Esc**. AstraPlay maps Esc to the PlayStation button. This is how the Xbox-controller Steam layout used by PyLux exposes the PlayStation button while leaving a single View press available for another action. You can keep the normal View action as gamepad Back (PlayStation Share), or map it to **T** for touchpad click as in that PyLux layout. Keep Menu mapped to gamepad Start (PlayStation Options).
+1. Open AstraPlay's **Controller Settings → Edit Layout → Buttons** in Steam. You can reach Controller Settings from the Steam menu while a stream is running.
+2. If necessary, enable **Extended Buttons** on the Controller Settings page. In **Extended Buttons**, select the first command, which is **Y Button** in the default Ally layout. This is the upper-left rear paddle (**M1/L4**).
+3. Choose **Keyboard → Esc**. Back out of the editor to save the layout.
+4. Return to the stream and press the upper-left rear paddle once. The PS5 home menu should open. The Xbox button still opens Steam; View and Menu keep their normal PlayStation Share and Options actions.
 
-AstraPlay also supports holding **View + Menu** together for **two seconds** as a PlayStation-button shortcut, but this works only when Steam passes both buttons through as gamepad Back and Start. When it fires, AstraPlay also opens its in-stream menu; close that menu to see the console screen. If the chord does nothing, use the View double-press mapping above.
+Do not use a double press of View for this shortcut: its normal gamepad Select action can also fire and take a screenshot. Steam stores the paddle binding for this AstraPlay shortcut; repeat these steps if you replace it with a new shortcut.
 
 ## Standard Controller Mappings
 
