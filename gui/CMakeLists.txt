@@ -230,6 +230,7 @@ install(TARGETS astraplay
 		BUNDLE DESTINATION bin)
 # [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
 install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
-install(FILES astraplay.png DESTINATION share/icons/hicolor/512x512/apps)
+install(FILES astraplay-512.png DESTINATION share/icons/hicolor/512x512/apps
+		RENAME astraplay.png)
 install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
 # [ASTRAPLAY END]
