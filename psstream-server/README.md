@@ -30,7 +30,7 @@ On your server:
 ```bash
 cd ~/psstream-server
 npm install
-node server.js
+npm start
 ```
 
 ### Option 3: Run as a Systemd Service
@@ -44,7 +44,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/opt/psstream-server
-ExecStart=/usr/bin/node /opt/psstream-server/server.js
+ExecStart=/usr/bin/npm start
 Restart=always
 Environment=PORT=25525
 

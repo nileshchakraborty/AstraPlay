@@ -15,7 +15,7 @@
                  ┌─────────────────────┐
                  │   Manual E2E Tests  │  ← Stream to real PS4/PS5 console
                  ├─────────────────────┤
-                 │  Platform UI Tests  │  ← Espresso, XCTest UI, Qt test
+                 │  Platform UI Tests  │  ← Qt relay BDD; mobile suites pending
                  ├─────────────────────┤
                  │ Integration Tests   │  ← lib ↔ platform boundary
                  ├─────────────────────┤
@@ -34,13 +34,13 @@ The `test/` directory contains C unit tests using the [munit](https://nemequ.git
 ```bash
 # Build with tests enabled (default)
 cmake -B build -DCHIAKI_ENABLE_TESTS=ON
-cmake --build build -t chiaki-unit-tests
+cmake --build build -t chiaki-unit
 
 # Run
-./build/test/chiaki-unit-tests
+./build/test/chiaki-unit
 
 # Run with verbose output
-./build/test/chiaki-unit-tests --log-visible debug
+./build/test/chiaki-unit --log-visible debug
 ```
 
 ### 3.2 Existing test modules
@@ -142,36 +142,25 @@ pwsh android/build.ps1
 
 ## 5. Platform Integration Tests
 
-### 5.1 Android (Espresso)
+Only suites that currently exist are described as runnable below. Android Espresso and iOS XCTest targets are not configured in this repository; their scenarios remain desired coverage, not passing test suites.
 
-Test location: `android/app/src/androidTest/`
+### 5.1 Android
 
-Key test cases:
-- `MainActivityTest` — app launches, home screen renders
-- `DiscoveryTest` — console discovery list populates (mocked)
-- `StreamSessionTest` — session init / teardown lifecycle (mocked lib)
-- `PSNLoginRelayTest` — code display, polling flow (mocked server)
+Status: no `androidTest` suite is currently present.
 
-Run:
-```bash
-./gradlew connectedAndroidTest
-```
+The Android build can be run with `./android/build-local.sh`; it does not provide BDD coverage.
 
 ### 5.2 iOS (XCTest)
 
-Test location: `ios/AstraPlayTests/` (unit) and `ios/AstraPlayUITests/` (UI)
+Status: no AstraPlay XCTest or UI-test target is currently present.
 
-Key test cases:
-- `SessionBridgeTests` — verifies all `_ex` wrapper calls compile and link
-- `CatalogParserTests` — cloud catalog JSON parse
-- `LoginRelayTests` — PSStream code display and token poll
-
-Run from Xcode: `Product → Test` (⌘U)
+The iOS build can be run with `./ios/build.sh dev`; it does not provide BDD coverage.
 
 ### 5.3 Desktop Qt
 
 ```bash
-cmake --build build -t chiaki-qt-test  # if Qt test target exists
+cmake --build build -t chiaki-qt-test
+ctest --test-dir build -R qt-embedded-relay-bdd --output-on-failure
 ```
 
 Manual verification checklist:
@@ -184,49 +173,11 @@ Manual verification checklist:
 
 ---
 
-## 6. PSStream Server Tests
+## 6. PSStream Server BDD Tests
 
-Test location: `psstream-server/` (add `test/` subdirectory)
+Test location: `psstream-server/test/`. Scenarios use Node's built-in test runner and mock the clock and logger; no third-party service or network is contacted.
 
-Recommended framework: Jest + supertest
-
-```javascript
-// psstream-server/test/relay.test.js
-const request = require('supertest');
-const app = require('../server');
-
-describe('POST /astraplay/create-code', () => {
-    it('returns success with valid code', async () => {
-        const res = await request(app)
-            .post('/astraplay/create-code')
-            .send({ code: 'ABC123' });
-        expect(res.status).toBe(200);
-        expect(res.body.result).toBe('success');
-        expect(res.body.code).toBe('ABC123');
-    });
-
-    it('returns 400 for missing code', async () => {
-        const res = await request(app).post('/astraplay/create-code').send({});
-        expect(res.status).toBe(400);
-    });
-});
-
-describe('POST /astraplay/get-tokens', () => {
-    it('returns 404 when token not yet ready', async () => {
-        await request(app).post('/astraplay/create-code').send({ code: 'XYZ999' });
-        const res = await request(app)
-            .post('/astraplay/get-tokens')
-            .send({ code: 'XYZ999' });
-        expect(res.status).toBe(404);
-        expect(res.body.error).toMatch(/not ready/i);
-    });
-
-    it('returns token and deletes code on success', async () => { ... });
-    it('returns 404 for unknown/expired code', async () => { ... });
-});
-```
-
-Run: `npm test` (add `jest` to devDependencies)
+Run with `cd psstream-server && npm run test:bdd`. For line, branch, and function thresholds run `npm run test:bdd:coverage` (Node 22 or newer).
 
 ---
 
@@ -253,7 +204,9 @@ For PRs targeting `dev`, run the applicable checks below. The current Windows MS
 
 | Gate | Platform | Tool |
 |------|----------|------|
-| C unit tests | Linux (CI container) | munit (`chiaki-unit-tests`) |
+| C unit tests | Local / CI build | munit (`chiaki-unit`) |
+| Qt embedded relay BDD | Qt build with tests enabled | Qt Test (`chiaki-qt-test`) |
+| PSStream relay BDD | Node 22+ | Node test runner, 100% module coverage threshold |
 | Android build | Ubuntu (GitHub Actions) | Gradle |
 | iOS build | macOS (GitHub Actions) | `ios/build.sh dev` |
 | macOS build | macOS (GitHub Actions) | `scripts/build-macos.sh` |
