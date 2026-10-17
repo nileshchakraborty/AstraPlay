@@ -16,6 +16,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QRegularExpression>
+#include <QSysInfo>
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -202,43 +203,93 @@ void UpdateManager::onCheckFinished()
     m_latestVersion = tagName;
     emit latestVersionChanged();
 
-    // Look for matching asset for current platform
+    // Look for matching asset for current platform and CPU architecture
     m_downloadUrl.clear();
     QJsonArray assets = obj.value("assets").toArray();
+
+    QString arch = QSysInfo::currentCpuArchitecture().toLower();
+    bool isArm = (arch == QLatin1String("arm64") || arch == QLatin1String("aarch64"));
+    bool isX86 = (arch == QLatin1String("x86_64") || arch == QLatin1String("amd64") || arch == QLatin1String("x64"));
+
+#if defined(Q_OS_LINUX)
+    QString bestUrl;
     for (const auto &val : assets) {
         QJsonObject asset = val.toObject();
         QString name = asset.value("name").toString();
         QString dlUrl = asset.value("browser_download_url").toString();
 
-#if defined(Q_OS_WIN)
-        // Prefer MSI installer (.msi), then exe installer, fallback to portable zip or astraplay.exe
+        if (name.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
+            bool assetIsArm = (name.contains(QLatin1String("aarch64"), Qt::CaseInsensitive) || name.contains(QLatin1String("arm64"), Qt::CaseInsensitive));
+            bool assetIsX86 = (name.contains(QLatin1String("x86_64"), Qt::CaseInsensitive) || name.contains(QLatin1String("x64"), Qt::CaseInsensitive));
+
+            if (isArm && assetIsArm) {
+                bestUrl = dlUrl;
+                break;
+            } else if (isX86 && assetIsX86) {
+                bestUrl = dlUrl;
+                break;
+            } else if (!assetIsArm && !assetIsX86 && bestUrl.isEmpty()) {
+                bestUrl = dlUrl;
+            }
+        }
+    }
+    m_downloadUrl = bestUrl;
+#elif defined(Q_OS_MACOS)
+    QString bestUrl;
+    QString universalUrl;
+    for (const auto &val : assets) {
+        QJsonObject asset = val.toObject();
+        QString name = asset.value("name").toString();
+        QString dlUrl = asset.value("browser_download_url").toString();
+
+        if (name.endsWith(QLatin1String(".dmg"), Qt::CaseInsensitive)) {
+            bool assetIsArm = name.contains(QLatin1String("arm64"), Qt::CaseInsensitive);
+            bool assetIsX86 = name.contains(QLatin1String("x86_64"), Qt::CaseInsensitive);
+
+            if (isArm && assetIsArm) {
+                bestUrl = dlUrl;
+                break;
+            } else if (isX86 && assetIsX86) {
+                bestUrl = dlUrl;
+                break;
+            } else if (!assetIsArm && !assetIsX86) {
+                universalUrl = dlUrl;
+            }
+        }
+    }
+    m_downloadUrl = !bestUrl.isEmpty() ? bestUrl : universalUrl;
+#elif defined(Q_OS_WIN)
+    QString msiUrl;
+    QString installerExeUrl;
+    QString portableExeUrl;
+    for (const auto &val : assets) {
+        QJsonObject asset = val.toObject();
+        QString name = asset.value("name").toString();
+        QString dlUrl = asset.value("browser_download_url").toString();
+
+        bool assetIsArm = name.contains(QLatin1String("arm64"), Qt::CaseInsensitive);
+        if (isArm && !assetIsArm && !name.contains(QLatin1String("x64"), Qt::CaseInsensitive))
+            continue;
+        if (!isArm && assetIsArm)
+            continue;
+
         if (name.endsWith(QLatin1String(".msi"), Qt::CaseInsensitive)) {
-            m_downloadUrl = dlUrl;
-            break;
+            msiUrl = dlUrl;
         } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) &&
                    (name.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
                     name.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
-            m_downloadUrl = dlUrl;
-            break;
-        } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) || (name.endsWith(QLatin1String(".zip"), Qt::CaseInsensitive) && name.contains(QLatin1String("windows"), Qt::CaseInsensitive))) {
-            if (m_downloadUrl.isEmpty())
-                m_downloadUrl = dlUrl;
+            installerExeUrl = dlUrl;
+        } else if (name.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
+            portableExeUrl = dlUrl;
         }
-#elif defined(Q_OS_LINUX)
-        if (name.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
-            m_downloadUrl = dlUrl;
-            break;
-        } else if (name.endsWith(QLatin1String(".flatpak"), Qt::CaseInsensitive)) {
-            if (m_downloadUrl.isEmpty())
-                m_downloadUrl = dlUrl;
-        }
-#elif defined(Q_OS_MACOS)
-        if (name.endsWith(QLatin1String(".dmg"), Qt::CaseInsensitive) || name.endsWith(QLatin1String(".pkg"), Qt::CaseInsensitive)) {
-            m_downloadUrl = dlUrl;
-            break;
-        }
-#endif
     }
+    if (!msiUrl.isEmpty())
+        m_downloadUrl = msiUrl;
+    else if (!installerExeUrl.isEmpty())
+        m_downloadUrl = installerExeUrl;
+    else
+        m_downloadUrl = portableExeUrl;
+#endif
 
     m_updateAvailable = hasUpdate;
     emit updateAvailableChanged();
@@ -476,6 +527,54 @@ void UpdateManager::installAndRestart()
     }
 #elif defined(Q_OS_LINUX)
     if (m_downloadedFilePath.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
+        // Find installed AppImage target ($APPIMAGE environment variable or standard location)
+        QString appImageTarget = qEnvironmentVariable("APPIMAGE");
+        if (appImageTarget.isEmpty()) {
+            QString appPath = QCoreApplication::applicationFilePath();
+            if (appPath.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
+                appImageTarget = appPath;
+            } else {
+                QString optPath = QDir::home().filePath(QStringLiteral(".local/opt/astraplay/AstraPlay.AppImage"));
+                if (QFile::exists(optPath)) {
+                    appImageTarget = optPath;
+                }
+            }
+        }
+
+        qint64 currentPid = QCoreApplication::applicationPid();
+        QString scriptPath = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("astraplay_update.sh"));
+        QFile scriptFile(scriptPath);
+        if (scriptFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            QTextStream out(&scriptFile);
+            out << "#!/bin/sh\n";
+            out << "TARGET=\"" << appImageTarget << "\"\n";
+            out << "UPDATE=\"" << m_downloadedFilePath << "\"\n";
+            out << "for i in $(seq 1 50); do\n";
+            out << "  if ! kill -0 " << currentPid << " 2>/dev/null; then\n";
+            out << "    break\n";
+            out << "  fi\n";
+            out << "  sleep 0.2\n";
+            out << "done\n";
+            out << "chmod +x \"$UPDATE\"\n";
+            out << "if [ -n \"$TARGET\" ]; then\n";
+            out << "  mkdir -p \"$(dirname \"$TARGET\")\"\n";
+            out << "  rm -f \"$TARGET\" 2>/dev/null\n";
+            out << "  cp -f \"$UPDATE\" \"$TARGET\" 2>/dev/null || mv -f \"$UPDATE\" \"$TARGET\"\n";
+            out << "  chmod +x \"$TARGET\"\n";
+            out << "  rm -f \"$UPDATE\"\n";
+            out << "  rm -f \"$0\"\n";
+            out << "  exec \"$TARGET\"\n";
+            out << "else\n";
+            out << "  rm -f \"$0\"\n";
+            out << "  exec \"$UPDATE\"\n";
+            out << "fi\n";
+            scriptFile.close();
+            QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup | QFile::ReadOther | QFile::ExeOther);
+            QProcess::startDetached(QStringLiteral("/bin/sh"), QStringList() << scriptPath);
+            QGuiApplication::quit();
+            return;
+        }
+
         QFile::setPermissions(m_downloadedFilePath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup | QFile::ReadOther | QFile::ExeOther);
         QProcess::startDetached(m_downloadedFilePath, QStringList());
         QGuiApplication::quit();
