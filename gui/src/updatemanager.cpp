@@ -31,6 +31,62 @@ static QString formatByteSize(qint64 bytes)
     return QString::asprintf("%lld B", static_cast<long long>(bytes));
 }
 
+static QString escapeSh(const QString &str)
+{
+    QString res = str;
+    res.replace(QLatin1Char('\''), QLatin1String("'\\''"));
+    return QLatin1Char('\'') + res + QLatin1Char('\'');
+}
+
+bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &errorMsg)
+{
+    QFileInfo fi(filePath);
+    if (!fi.exists() || !fi.isFile()) {
+        errorMsg = tr("Downloaded update file does not exist.");
+        return false;
+    }
+
+    qint64 size = fi.size();
+    if (size < 5 * 1024 * 1024) { // Minimum 5 MB for any AstraPlay artifact
+        errorMsg = tr("Downloaded file is incomplete or corrupted (size: %1).").arg(formatByteSize(size));
+        return false;
+    }
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        errorMsg = tr("Cannot open downloaded file for verification.");
+        return false;
+    }
+
+    QByteArray header = file.read(16);
+    file.close();
+
+    if (header.startsWith("<!DOC") || header.startsWith("<html") || header.startsWith("<?xml") || header.startsWith("{\"error\"")) {
+        errorMsg = tr("Downloaded file is not a valid update payload (server returned web/text content).");
+        return false;
+    }
+
+#if defined(Q_OS_LINUX)
+    if (filePath.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
+        // Linux executable / AppImage must begin with standard ELF magic: \x7fELF
+        if (header.size() < 4 || header[0] != '\x7f' || header[1] != 'E' || header[2] != 'L' || header[3] != 'F') {
+            errorMsg = tr("Downloaded payload is not a valid Linux binary (missing ELF header).");
+            return false;
+        }
+    }
+#elif defined(Q_OS_WIN)
+    if (filePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
+        // Windows PE executable must begin with MZ header: 'M', 'Z'
+        if (header.size() < 2 || header[0] != 'M' || header[1] != 'Z') {
+            errorMsg = tr("Downloaded payload is not a valid Windows executable.");
+            return false;
+        }
+    }
+#endif
+
+    return true;
+}
+
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <shellapi.h>
@@ -358,6 +414,7 @@ void UpdateManager::startDownload()
 
     m_downloading = true;
     m_failed = false;
+    m_userCancelled = false;
     m_readyToInstall = false;
     m_bytesReceived = 0;
     m_bytesTotal = 0;
@@ -390,9 +447,30 @@ void UpdateManager::startDownload()
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     m_downloadedFilePath = QDir(tempDir).filePath(filename);
 
-    QFile file(m_downloadedFilePath);
-    if (file.exists())
-        file.remove();
+    if (m_downloadFile) {
+        if (m_downloadFile->isOpen())
+            m_downloadFile->close();
+        delete m_downloadFile;
+        m_downloadFile = nullptr;
+    }
+
+    QFile::remove(m_downloadedFilePath);
+
+    m_downloadFile = new QFile(this);
+    m_downloadFile->setFileName(m_downloadedFilePath);
+    if (!m_downloadFile->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        m_downloading = false;
+        m_failed = true;
+        m_lastError = tr("Cannot create destination file in temporary directory.");
+        m_statusMessage = m_lastError;
+        emit downloadingChanged();
+        emit failedChanged();
+        emit lastErrorChanged();
+        emit statusMessageChanged();
+        delete m_downloadFile;
+        m_downloadFile = nullptr;
+        return;
+    }
 
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
@@ -420,14 +498,10 @@ void UpdateManager::retryDownload()
 
 void UpdateManager::onDownloadDataAvailable()
 {
-    if (!m_downloadReply)
+    if (!m_downloadReply || !m_downloadFile || !m_downloadFile->isOpen())
         return;
 
-    QFile file(m_downloadedFilePath);
-    if (file.open(QIODevice::Append)) {
-        file.write(m_downloadReply->readAll());
-        file.close();
-    }
+    m_downloadFile->write(m_downloadReply->readAll());
 }
 
 void UpdateManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
@@ -472,49 +546,104 @@ void UpdateManager::onDownloadFinished()
     m_downloading = false;
     emit downloadingChanged();
 
-    if (m_downloadReply->error() != QNetworkReply::NoError) {
+    if (m_downloadFile) {
+        if (m_downloadFile->isOpen()) {
+            m_downloadFile->flush();
+            m_downloadFile->close();
+        }
+        delete m_downloadFile;
+        m_downloadFile = nullptr;
+    }
+
+    int statusCode = m_downloadReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (statusCode != 0 && (statusCode < 200 || statusCode >= 300)) {
         m_failed = true;
-        m_lastError = m_downloadReply->errorString();
+        m_lastError = tr("Server returned HTTP %1").arg(statusCode);
         emit failedChanged();
         emit lastErrorChanged();
-        qWarning() << "[UpdateManager] Download error:" << m_lastError;
         m_statusMessage = tr("Download failed: %1").arg(m_lastError);
         emit statusMessageChanged();
         emit downloadFailed(m_lastError);
+        QFile::remove(m_downloadedFilePath);
         m_downloadReply->deleteLater();
         m_downloadReply = nullptr;
         return;
     }
 
-    m_failed = false;
-    emit failedChanged();
+    if (m_downloadReply->error() != QNetworkReply::NoError) {
+        if (m_userCancelled) {
+            m_userCancelled = false;
+            m_statusMessage = tr("Download cancelled.");
+            emit statusMessageChanged();
+        } else {
+            m_failed = true;
+            m_lastError = m_downloadReply->errorString();
+            emit failedChanged();
+            emit lastErrorChanged();
+            qWarning() << "[UpdateManager] Download error:" << m_lastError;
+            m_statusMessage = tr("Download failed: %1").arg(m_lastError);
+            emit statusMessageChanged();
+            emit downloadFailed(m_lastError);
+        }
+        QFile::remove(m_downloadedFilePath);
+        m_downloadReply->deleteLater();
+        m_downloadReply = nullptr;
+        return;
+    }
+
     m_downloadReply->deleteLater();
     m_downloadReply = nullptr;
+
+    QString verifyError;
+    if (!verifyDownloadedPayload(m_downloadedFilePath, verifyError)) {
+        m_failed = true;
+        m_lastError = verifyError;
+        emit failedChanged();
+        emit lastErrorChanged();
+        qWarning() << "[UpdateManager] Payload verification failed:" << verifyError;
+        m_statusMessage = tr("Verification failed: %1").arg(verifyError);
+        emit statusMessageChanged();
+        emit downloadFailed(verifyError);
+        QFile::remove(m_downloadedFilePath);
+        return;
+    }
+
+    m_failed = false;
+    emit failedChanged();
 
     m_downloadProgress = 1.0;
     m_readyToInstall = true;
     emit downloadProgressChanged();
     emit readyToInstallChanged();
 
-    m_statusMessage = tr("Download complete. Ready to install.");
+    m_statusMessage = tr("Download complete and verified. Ready to install.");
     emit statusMessageChanged();
     emit downloadFinished(m_downloadedFilePath);
 }
 
 void UpdateManager::cancelDownload()
 {
+    m_userCancelled = true;
     if (m_downloadReply) {
         m_downloadReply->abort();
         m_downloadReply->deleteLater();
         m_downloadReply = nullptr;
     }
+    if (m_downloadFile) {
+        if (m_downloadFile->isOpen())
+            m_downloadFile->close();
+        delete m_downloadFile;
+        m_downloadFile = nullptr;
+    }
     if (m_downloading) {
         m_downloading = false;
         emit downloadingChanged();
     }
+    QFile::remove(m_downloadedFilePath);
     m_speedLastTime = 0;
     m_speedLastBytes = 0;
     m_downloadSpeed.clear();
+    m_downloadSizeString.clear();
     emit downloadProgressChanged();
 }
 
@@ -638,27 +767,56 @@ void UpdateManager::installAndRestart()
         if (scriptFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             QTextStream out(&scriptFile);
             out << "#!/bin/sh\n";
-            out << "TARGET=\"" << appImageTarget << "\"\n";
-            out << "UPDATE=\"" << m_downloadedFilePath << "\"\n";
-            out << "for i in $(seq 1 50); do\n";
+            out << "LOG=\"/tmp/astraplay_update.log\"\n";
+            out << "echo \"=== AstraPlay Update $(date) ===\" > \"$LOG\" 2>&1\n";
+            out << "TARGET=" << escapeSh(appImageTarget) << "\n";
+            out << "UPDATE=" << escapeSh(m_downloadedFilePath) << "\n";
+            out << "for i in $(seq 1 100); do\n";
             out << "  if ! kill -0 " << currentPid << " 2>/dev/null; then\n";
             out << "    break\n";
             out << "  fi\n";
-            out << "  sleep 0.2\n";
+            out << "  sleep 0.1\n";
             out << "done\n";
-            out << "chmod +x \"$UPDATE\"\n";
-            out << "if [ -n \"$TARGET\" ]; then\n";
-            out << "  mkdir -p \"$(dirname \"$TARGET\")\"\n";
-            out << "  rm -f \"$TARGET\" 2>/dev/null\n";
-            out << "  cp -f \"$UPDATE\" \"$TARGET\" 2>/dev/null || mv -f \"$UPDATE\" \"$TARGET\"\n";
-            out << "  chmod +x \"$TARGET\"\n";
-            out << "  rm -f \"$UPDATE\"\n";
+            out << "echo \"Process exited or timeout reached.\" >> \"$LOG\"\n";
+            out << "if [ ! -f \"$UPDATE\" ]; then\n";
+            out << "  echo \"Update file $UPDATE missing!\" >> \"$LOG\"\n";
+            out << "  if [ -n \"$TARGET\" ] && [ -x \"$TARGET\" ]; then\n";
+            out << "    rm -f \"$0\"\n";
+            out << "    exec \"$TARGET\"\n";
+            out << "  fi\n";
             out << "  rm -f \"$0\"\n";
-            out << "  exec \"$TARGET\"\n";
-            out << "else\n";
-            out << "  rm -f \"$0\"\n";
-            out << "  exec \"$UPDATE\"\n";
+            out << "  exit 1\n";
             out << "fi\n";
+            out << "chmod +x \"$UPDATE\" >> \"$LOG\" 2>&1\n";
+            out << "if [ -n \"$TARGET\" ]; then\n";
+            out << "  TARGET_DIR=\"$(dirname \"$TARGET\")\"\n";
+            out << "  mkdir -p \"$TARGET_DIR\" >> \"$LOG\" 2>&1\n";
+            out << "  TMP_TARGET=\"${TARGET}.new.$$\"\n";
+            out << "  echo \"Staging update to $TMP_TARGET\" >> \"$LOG\"\n";
+            out << "  if cp -f \"$UPDATE\" \"$TMP_TARGET\" >> \"$LOG\" 2>&1; then\n";
+            out << "    chmod +x \"$TMP_TARGET\" >> \"$LOG\" 2>&1\n";
+            out << "    if mv -f \"$TMP_TARGET\" \"$TARGET\" >> \"$LOG\" 2>&1; then\n";
+            out << "      echo \"Atomic replacement succeeded: $TARGET\" >> \"$LOG\"\n";
+            out << "      rm -f \"$UPDATE\" 2>/dev/null\n";
+            out << "      rm -f \"$0\" 2>/dev/null\n";
+            out << "      exec \"$TARGET\"\n";
+            out << "    else\n";
+            out << "      echo \"mv to $TARGET failed!\" >> \"$LOG\"\n";
+            out << "      rm -f \"$TMP_TARGET\" 2>/dev/null\n";
+            out << "    fi\n";
+            out << "  else\n";
+            out << "    echo \"cp to $TMP_TARGET failed!\" >> \"$LOG\"\n";
+            out << "    rm -f \"$TMP_TARGET\" 2>/dev/null\n";
+            out << "  fi\n";
+            out << "  if [ -x \"$TARGET\" ]; then\n";
+            out << "    echo \"Falling back to existing target: $TARGET\" >> \"$LOG\"\n";
+            out << "    rm -f \"$0\" 2>/dev/null\n";
+            out << "    exec \"$TARGET\"\n";
+            out << "  fi\n";
+            out << "fi\n";
+            out << "echo \"Executing UPDATE directly: $UPDATE\" >> \"$LOG\"\n";
+            out << "rm -f \"$0\" 2>/dev/null\n";
+            out << "exec \"$UPDATE\"\n";
             scriptFile.close();
             QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup | QFile::ReadOther | QFile::ExeOther);
             QProcess::startDetached(QStringLiteral("/bin/sh"), QStringList() << scriptPath);
@@ -693,9 +851,9 @@ void UpdateManager::installAndRestart()
         if (scriptFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             QTextStream out(&scriptFile);
             out << "#!/bin/sh\n";
-            out << "APP_BUNDLE=\"" << appBundlePath << "\"\n";
-            out << "UPDATE_FILE=\"" << m_downloadedFilePath << "\"\n";
-            out << "while kill -0 " << currentPid << " 2>/dev/null; do sleep 0.5; done\n";
+            out << "APP_BUNDLE=" << escapeSh(appBundlePath) << "\n";
+            out << "UPDATE_FILE=" << escapeSh(m_downloadedFilePath) << "\n";
+            out << "while kill -0 " << currentPid << " 2>/dev/null; do sleep 0.2; done\n";
             out << "WORKDIR=$(mktemp -d /tmp/astraplay-upd.XXXXXX) || exit 1\n";
             out << "cleanup() { hdiutil detach \"$WORKDIR/mnt\" >/dev/null 2>&1; rm -rf \"$WORKDIR\"; }\n";
             if (isDmg) {
@@ -713,11 +871,23 @@ void UpdateManager::installAndRestart()
             out << "if [ -z \"$NEWAPP\" ]; then\n";
             out << "  cleanup; open \"$UPDATE_FILE\"; rm -f \"$0\"; exit 0\n";
             out << "fi\n";
-            out << "rm -rf \"$APP_BUNDLE\"\n";
-            out << "if ditto \"$NEWAPP\" \"$APP_BUNDLE\"; then\n";
-            out << "  cleanup; rm -f \"$UPDATE_FILE\"\n";
-            out << "  open \"$APP_BUNDLE\"\n";
+            out << "TMP_BUNDLE=\"${APP_BUNDLE}.new.$$\"\n";
+            out << "rm -rf \"$TMP_BUNDLE\"\n";
+            out << "if ditto \"$NEWAPP\" \"$TMP_BUNDLE\"; then\n";
+            out << "  OLD_BUNDLE=\"${APP_BUNDLE}.old.$$\"\n";
+            out << "  rm -rf \"$OLD_BUNDLE\"\n";
+            out << "  mv \"$APP_BUNDLE\" \"$OLD_BUNDLE\" 2>/dev/null\n";
+            out << "  if mv \"$TMP_BUNDLE\" \"$APP_BUNDLE\"; then\n";
+            out << "    rm -rf \"$OLD_BUNDLE\"\n";
+            out << "    cleanup; rm -f \"$UPDATE_FILE\"\n";
+            out << "    open \"$APP_BUNDLE\"\n";
+            out << "  else\n";
+            out << "    mv \"$OLD_BUNDLE\" \"$APP_BUNDLE\" 2>/dev/null\n";
+            out << "    rm -rf \"$TMP_BUNDLE\"\n";
+            out << "    cleanup; open \"$UPDATE_FILE\"\n";
+            out << "  fi\n";
             out << "else\n";
+            out << "  rm -rf \"$TMP_BUNDLE\"\n";
             out << "  cleanup; open \"$UPDATE_FILE\"\n";
             out << "fi\n";
             out << "rm -f \"$0\"\n";

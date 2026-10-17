@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 
 class Settings;
+class QFile;
 
 class UpdateManager : public QObject
 {
@@ -72,6 +73,7 @@ public:
 
     // Utility to compare semver versions (returns true if remote > current)
     static bool isVersionNewer(const QString &remoteVersion, const QString &currentVersion);
+    static bool verifyDownloadedPayload(const QString &filePath, QString &errorMsg);
 
 signals:
     void checkingChanged();
@@ -119,6 +121,8 @@ private:
     QString m_downloadUrl;
     QString m_statusMessage;
     QString m_downloadedFilePath;
+    QFile *m_downloadFile = nullptr;
+    bool m_userCancelled = false;
 
     qint64 m_bytesReceived = 0;
     qint64 m_bytesTotal = 0;

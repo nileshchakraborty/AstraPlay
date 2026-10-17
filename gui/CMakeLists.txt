@@ -246,4 +246,13 @@ if(CHIAKI_ENABLE_TESTS)
 	target_include_directories(chiaki-qt-test PRIVATE include)
 	target_link_libraries(chiaki-qt-test PRIVATE Qt::Core Qt::Network Qt::Test)
 	add_test(NAME qt-embedded-relay-bdd COMMAND chiaki-qt-test)
+
+	add_executable(chiaki-updater-test
+		test/updatemanager_test.cpp
+		include/updatemanager.h
+		src/updatemanager.cpp
+	)
+	target_include_directories(chiaki-updater-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include ${CMAKE_BINARY_DIR}/lib/include)
+	target_link_libraries(chiaki-updater-test PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Test)
+	add_test(NAME qt-updater-test COMMAND chiaki-updater-test)
 endif()
