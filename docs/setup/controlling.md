@@ -409,3 +409,18 @@ Use the dpad touch switch button combo (default is `L1+R1+Dpad Up` but it's user
     - For a swipe from down to up:
 
         First touch dpad down and then hold dpad up for a second or so. This will start you at the bottom of the touchpad and move you across the touchpad in the up direction.
+
+## Handling Blocked Scenes (DRM & EULA Prompts)
+
+Some games (such as *WWE 2K*, *Persona*, or titles with licensed entrance music and mandatory publisher account linking) trigger a system-level block on the PlayStation:
+
+> *"The screen contains content that can't be displayed using Remote Play."*
+
+### Why It Happens
+Sony's PlayStation operating system enforces DRM and privacy protection at the console encoder level (`sceRemotePlayProhibit`). During introductory terms-of-service dialogs, 2K account logins, or copyright-protected entrance videos, the console halts video frame encoding.
+
+### How to Resolve It
+1. **Controller Input Forwarding**: AstraPlay keeps your controller inputs active during blocked scenes. If an invisible agreement or login screen is awaiting confirmation, press **Cross (X)** or **Circle (O)** on your controller to accept or skip the background modal. Once dismissed, the video stream will resume automatically.
+2. **One-Time Direct Screen Setup**: If an introductory prompt cannot be navigated blindly, launch the game once while connected directly to a physical TV or monitor to complete the initial agreement and account setup.
+3. **In-Game Streamer Mode**: In games with licensed music (like *WWE 2K*), open the in-game Audio/Jukebox options and enable **Streamer / Content Creator Mode** (or lower entrance music volume). This prevents copyright-flagged audio tracks from triggering the console's Remote Play DRM block during matches.
+4. **Return to Dashboard**: You can click **Go to Home Screen** on the AstraPlay blocked scene prompt to exit the blocked application and return to the console home screen.

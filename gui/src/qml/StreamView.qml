@@ -281,39 +281,92 @@ Item {
         }
     }
 
-    ColumnLayout {
+    Rectangle {
         id: cantDisplayMessage
         anchors.centerIn: parent
+        width: Math.min(parent.width - 60, 560)
+        implicitHeight: cantDisplayColumn.implicitHeight + 48
+        radius: 16
+        color: Qt.rgba(13 / 255, 17 / 255, 23 / 255, 0.92)
+        border.color: Qt.rgba(245 / 255, 158 / 255, 11 / 255, 0.5)
+        border.width: 1.5
         opacity: AstraPlay.window.hasVideo && AstraPlay.session && AstraPlay.session.cantDisplay ? 1.0 : 0.0
-        visible: opacity
-        spacing: 30
+        visible: opacity > 0.0
 
         Behavior on opacity { NumberAnimation { duration: 250 } }
 
         onVisibleChanged: {
             if (visible) {
                 menuView.close();
-                view.grabInput(goToHomeButton);
-            } else {
-                view.releaseInput();
             }
         }
 
-        Label {
-            Layout.alignment: Qt.AlignCenter
-            text: qsTr("The screen contains content that can't be displayed using Remote Play.")
-        }
+        ColumnLayout {
+            id: cantDisplayColumn
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                margins: 24
+            }
+            spacing: 16
 
-        Button {
-            id: goToHomeButton
-            Layout.alignment: Qt.AlignCenter
-            Layout.preferredHeight: 60
-            text: qsTr("Go to Home Screen")
-            Material.background: activeFocus ? parent.Material.accent : undefined
-            Material.roundedScale: Material.SmallScale
-            onClicked: AstraPlay.sessionGoHome()
-            Keys.onReturnPressed: clicked()
-            Keys.onEscapePressed: clicked()
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Text {
+                    text: "🔒"
+                    font.pixelSize: 26
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Restricted Scene (Blocked by Console)")
+                    font.pixelSize: 18
+                    font.weight: Font.DemiBold
+                    color: "#F59E0B"
+                }
+            }
+
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("The PlayStation console paused video transmission because this screen contains protected content (e.g. initial 2K account login, EULA agreements, or copyright-licensed music).")
+                font.pixelSize: 14
+                color: Qt.rgba(255, 255, 255, 0.85)
+                lineHeight: 1.2
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: Qt.rgba(255, 255, 255, 0.1)
+            }
+
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("💡 Controller inputs remain active! If an introductory EULA or account prompt is pending, press Cross (X) or Circle (O) on your controller to accept/skip it. The video stream will resume automatically.")
+                font.pixelSize: 13
+                color: Qt.rgba(255, 255, 255, 0.7)
+                lineHeight: 1.2
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.topMargin: 8
+                spacing: 16
+
+                Button {
+                    id: goToHomeButton
+                    text: qsTr("Go to Home Screen")
+                    Material.background: activeFocus ? parent.Material.accent : undefined
+                    Material.roundedScale: Material.SmallScale
+                    onClicked: AstraPlay.sessionGoHome()
+                    Keys.onReturnPressed: clicked()
+                }
+            }
         }
     }
 
