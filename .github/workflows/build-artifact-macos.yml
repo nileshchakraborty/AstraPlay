@@ -24,7 +24,7 @@ jobs:
     runs-on: ${{ (inputs.arch == 'x86_64') && 'macos-15-intel' || 'macos-latest' }}
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -47,7 +47,7 @@ jobs:
           zip -ry AstraPlay-macos-${{ inputs.arch || 'arm64' }}.zip AstraPlay.app
 
       - name: Upload macOS DMG artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.dmg
           path: build-output/AstraPlay.dmg
@@ -55,7 +55,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload macOS Zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-macOS-${{ inputs.arch || 'arm64' }}-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
           path: build-output/AstraPlay-macos-${{ inputs.arch || 'arm64' }}.zip

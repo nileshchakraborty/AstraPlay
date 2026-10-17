@@ -32,7 +32,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
@@ -66,7 +66,7 @@ jobs:
           cmakelists: astraplay/CMakeLists.txt
 
       - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Linux-x86_64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.AppImage
           path: astraplay/appimage/astraplay.AppImage
@@ -74,7 +74,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload portable zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Linux-x86_64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
           path: astraplay/appimage/astraplay-x86_64.zip
@@ -94,7 +94,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
@@ -128,7 +128,7 @@ jobs:
           cmakelists: astraplay/CMakeLists.txt
 
       - name: Upload ARM64 AppImage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Linux-aarch64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.AppImage
           path: astraplay/appimage/astraplay.AppImage
@@ -136,7 +136,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload ARM64 portable zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Linux-aarch64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
           path: astraplay/appimage/astraplay-aarch64.zip

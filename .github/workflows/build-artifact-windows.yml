@@ -40,7 +40,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -179,7 +179,7 @@ jobs:
           python scripts/build-windows-msix.py astraplay-windows-x64.zip "${{ steps.extract_version.outputs.version }}" x64 astraplay-windows-x64-development.msix
 
       - name: Upload unsigned development MSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-x64-development-msix
           path: astraplay-windows-x64-development.msix
@@ -187,7 +187,7 @@ jobs:
           if-no-files-found: error
 
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -199,7 +199,7 @@ jobs:
           echo "INSTALLER_NAME=${INSTALLER_NAME}" >> $GITHUB_ENV
 
       - name: Upload installer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
           path: ${{ env.INSTALLER_NAME }}
@@ -207,7 +207,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload portable zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-x64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
           path: astraplay-windows-x64.zip
@@ -232,7 +232,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -371,7 +371,7 @@ jobs:
           python scripts/build-windows-msix.py astraplay-windows-arm64.zip "${{ steps.extract_version.outputs.version }}" arm64 astraplay-windows-arm64-development.msix
 
       - name: Upload unsigned development MSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-arm64-development-msix
           path: astraplay-windows-arm64-development.msix
@@ -380,7 +380,7 @@ jobs:
 
       - name: Compile Inno Setup ARM64 Installer
         continue-on-error: true
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -395,7 +395,7 @@ jobs:
 
       - name: Upload ARM64 installer artifact
         if: env.INSTALLER_NAME != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.exe
           path: ${{ env.INSTALLER_NAME }}
@@ -403,7 +403,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload ARM64 portable zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-arm64-${{ steps.extract_version.outputs.version }}-${{ env.SHORT_SHA }}.zip
           path: astraplay-windows-arm64.zip

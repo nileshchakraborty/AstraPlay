@@ -37,7 +37,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -144,7 +144,7 @@ jobs:
           zip -r astraplay.zip astraplay
 
       - name: Compile Inno Setup Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -157,7 +157,7 @@ jobs:
           cp astraplay-windows-installer.exe windows_staging/
 
       - name: Upload Windows x64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-windows-x64-build
           path: windows_staging/
@@ -182,7 +182,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -287,7 +287,7 @@ jobs:
 
       - name: Compile Inno Setup ARM64 Installer
         continue-on-error: true
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -302,7 +302,7 @@ jobs:
           fi
 
       - name: Upload Windows ARM64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-windows-arm64-build
           path: windows_arm64_staging/
@@ -317,7 +317,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -338,7 +338,7 @@ jobs:
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS.zip
 
       - name: Upload macOS Apple Silicon Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-macos-arm64-build
           path: build-output/macos_staging/
@@ -354,7 +354,7 @@ jobs:
     continue-on-error: true
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -373,7 +373,7 @@ jobs:
           cp AstraPlay-macOS-x86_64.zip macos_intel_staging/
 
       - name: Upload macOS Intel Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-macos-intel-build
           path: build-output/macos_intel_staging/
@@ -392,7 +392,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
@@ -421,7 +421,7 @@ jobs:
           cp astraplay-linux-x86_64.zip linux_staging/
 
       - name: Upload Linux x86_64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-linux-build
           path: astraplay/appimage/linux_staging/
@@ -441,7 +441,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
@@ -470,7 +470,7 @@ jobs:
           cp astraplay-linux-aarch64.zip linux_arm64_staging/
 
       - name: Upload Linux ARM64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-linux-arm64-build
           path: astraplay/appimage/linux_arm64_staging/
@@ -486,12 +486,12 @@ jobs:
     continue-on-error: true
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -566,7 +566,7 @@ jobs:
           fi
 
       - name: Upload Android Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-android-build
           path: android_staging/
@@ -582,7 +582,7 @@ jobs:
     continue-on-error: true
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -679,7 +679,7 @@ jobs:
           cp ios/AstraPlay-unsigned.ipa ios_staging/AstraPlay-iOS.ipa
 
       - name: Upload iOS Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-ios-build
           path: ios_staging/
@@ -705,12 +705,12 @@ jobs:
     if: always() && !cancelled() && (needs.build-windows-x64.result == 'success' || needs.build-macos-arm64.result == 'success' || needs.build-linux-x64.result == 'success')
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
