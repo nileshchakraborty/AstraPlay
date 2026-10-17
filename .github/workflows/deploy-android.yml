@@ -177,7 +177,7 @@ jobs:
 
       - name: Upload APK artifact
         if: ${{ inputs.build_apk }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-android-apk
           path: ${{ steps.build_apk.outputs.apk_name }}
