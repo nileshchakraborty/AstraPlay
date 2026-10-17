@@ -350,6 +350,28 @@ void QmlSettings::setAutoUpdateEnabled(bool enabled)
     emit autoUpdateEnabledChanged();
 }
 
+bool QmlSettings::autoDownloadUpdates() const
+{
+    return settings->GetAutoDownloadUpdates();
+}
+
+void QmlSettings::setAutoDownloadUpdates(bool enabled)
+{
+    settings->SetAutoDownloadUpdates(enabled);
+    emit autoDownloadUpdatesChanged();
+}
+
+QString QmlSettings::skippedUpdateVersion() const
+{
+    return settings->GetSkippedUpdateVersion();
+}
+
+void QmlSettings::setSkippedUpdateVersion(const QString &version)
+{
+    settings->SetSkippedUpdateVersion(version);
+    emit skippedUpdateVersionChanged();
+}
+
 int QmlSettings::rumbleHapticsIntensity() const
 {
     return static_cast<int>(settings->GetRumbleHapticsIntensity());

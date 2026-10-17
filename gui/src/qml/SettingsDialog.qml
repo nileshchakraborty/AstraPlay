@@ -533,6 +533,19 @@ DialogView {
                                 KeyNavigation.up: autoUpdateEnabledRadio
                                 KeyNavigation.left: autoUpdateOptOutRadio
                                 KeyNavigation.right: autoUpdateOptOutRadio
+                                KeyNavigation.down: autoDownloadCheckbox
+                            }
+                            C.CheckBox {
+                                id: autoDownloadCheckbox
+                                text: qsTr("Automatically download updates in background")
+                                checked: AstraPlay.settings.autoDownloadUpdates
+                                onToggled: AstraPlay.settings.autoDownloadUpdates = !AstraPlay.settings.autoDownloadUpdates
+                                enabled: AstraPlay.settings.autoUpdateEnabled
+                                opacity: enabled ? 1.0 : 0.5
+                                KeyNavigation.priority: KeyNavigation.BeforeItem
+                                KeyNavigation.up: autoUpdateOptOutRadio
+                                KeyNavigation.left: autoDownloadCheckbox
+                                KeyNavigation.right: autoDownloadCheckbox
                                 KeyNavigation.down: checkUpdatesButton
                             }
                         }
@@ -582,7 +595,7 @@ DialogView {
                                     UpdateManager.checkForUpdates(true);
                                 }
                                 KeyNavigation.priority: KeyNavigation.BeforeItem
-                                KeyNavigation.up: autoUpdateOptOutRadio
+                                KeyNavigation.up: autoDownloadCheckbox
                                 KeyNavigation.left: checkUpdatesButton
                                 KeyNavigation.right: installUpdateButton.visible ? installUpdateButton : checkUpdatesButton
                                 KeyNavigation.down: {

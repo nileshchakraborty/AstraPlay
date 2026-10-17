@@ -32,6 +32,8 @@ class QmlSettings : public QObject
     Q_PROPERTY(bool logVerbose READ logVerbose WRITE setLogVerbose NOTIFY logVerboseChanged)
     Q_PROPERTY(bool steamCloudSync READ steamCloudSync WRITE setSteamCloudSync NOTIFY steamCloudSyncChanged)
     Q_PROPERTY(bool autoUpdateEnabled READ autoUpdateEnabled WRITE setAutoUpdateEnabled NOTIFY autoUpdateEnabledChanged)
+    Q_PROPERTY(bool autoDownloadUpdates READ autoDownloadUpdates WRITE setAutoDownloadUpdates NOTIFY autoDownloadUpdatesChanged)
+    Q_PROPERTY(QString skippedUpdateVersion READ skippedUpdateVersion WRITE setSkippedUpdateVersion NOTIFY skippedUpdateVersionChanged)
     Q_PROPERTY(int rumbleHapticsIntensity READ rumbleHapticsIntensity WRITE setRumbleHapticsIntensity NOTIFY rumbleHapticsIntensityChanged)
 #ifdef CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
     Q_PROPERTY(bool steamDeckHaptics READ steamDeckHaptics WRITE setSteamDeckHaptics NOTIFY steamDeckHapticsChanged)
@@ -225,6 +227,10 @@ public:
     void setSteamCloudSync(bool enabled);
     bool autoUpdateEnabled() const;
     void setAutoUpdateEnabled(bool enabled);
+    bool autoDownloadUpdates() const;
+    void setAutoDownloadUpdates(bool enabled);
+    QString skippedUpdateVersion() const;
+    void setSkippedUpdateVersion(const QString &version);
 
     int rumbleHapticsIntensity() const;
     void setRumbleHapticsIntensity(int intensity);
@@ -740,6 +746,8 @@ signals:
     void psnAuthTokenExpiryChanged();
     void psnNpssoTokenChanged();
     void autoUpdateEnabledChanged();
+    void autoDownloadUpdatesChanged();
+    void skippedUpdateVersionChanged();
     void accountAttributesCheckPassedChanged();
     void psnAccountIdChanged();
     void psnGamesSyncEnabledChanged();

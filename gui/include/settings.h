@@ -782,6 +782,10 @@ class Settings : public QObject
 		// Auto Update
 		bool GetAutoUpdateEnabled() const                   { return settings.value("settings/auto_update_enabled", true).toBool(); }
 		void SetAutoUpdateEnabled(bool enabled)             { settings.setValue("settings/auto_update_enabled", enabled); }
+		bool GetAutoDownloadUpdates() const                 { return settings.value("settings/auto_download_updates", false).toBool(); }
+		void SetAutoDownloadUpdates(bool enabled)           { settings.setValue("settings/auto_download_updates", enabled); }
+		QString GetSkippedUpdateVersion() const             { return settings.value("settings/skipped_update_version", QString()).toString(); }
+		void SetSkippedUpdateVersion(const QString &ver)    { settings.setValue("settings/skipped_update_version", ver); }
 
 	signals:
 		void RegisteredHostsUpdated();

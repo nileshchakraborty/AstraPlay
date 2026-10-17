@@ -17,7 +17,19 @@
 #include <QUrl>
 #include <QRegularExpression>
 #include <QSysInfo>
+#include <QDateTime>
 #include <QDebug>
+
+static QString formatByteSize(qint64 bytes)
+{
+    if (bytes >= 1024ULL * 1024 * 1024)
+        return QString::asprintf("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+    if (bytes >= 1024ULL * 1024)
+        return QString::asprintf("%.1f MB", bytes / (1024.0 * 1024.0));
+    if (bytes >= 1024ULL)
+        return QString::asprintf("%.0f KB", bytes / 1024.0);
+    return QString::asprintf("%lld B", static_cast<long long>(bytes));
+}
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -81,6 +93,25 @@ void UpdateManager::setAutoCheckEnabled(bool enabled)
     if (m_settings) {
         m_settings->SetAutoUpdateEnabled(enabled);
         emit autoCheckEnabledChanged();
+    }
+}
+
+bool UpdateManager::autoDownloadUpdates() const
+{
+    if (m_packageUpdatesManaged)
+        return false;
+    if (m_settings)
+        return m_settings->GetAutoDownloadUpdates();
+    return false;
+}
+
+void UpdateManager::setAutoDownloadUpdates(bool enabled)
+{
+    if (m_packageUpdatesManaged)
+        return;
+    if (m_settings) {
+        m_settings->SetAutoDownloadUpdates(enabled);
+        emit autoDownloadUpdatesChanged();
     }
 }
 
@@ -301,6 +332,10 @@ void UpdateManager::onCheckFinished()
     }
     emit statusMessageChanged();
 
+    if (hasUpdate && autoDownloadUpdates() && !m_downloadUrl.isEmpty()) {
+        startDownload();
+    }
+
     emit updateCheckCompleted(hasUpdate, m_userInitiated, tagName);
 }
 
@@ -322,8 +357,19 @@ void UpdateManager::startDownload()
     }
 
     m_downloading = true;
+    m_failed = false;
+    m_readyToInstall = false;
+    m_bytesReceived = 0;
+    m_bytesTotal = 0;
     m_downloadProgress = 0.0;
+    m_downloadSpeed.clear();
+    m_downloadSizeString.clear();
+    m_speedLastTime = 0;
+    m_speedLastBytes = 0;
+
     emit downloadingChanged();
+    emit failedChanged();
+    emit readyToInstallChanged();
     emit downloadProgressChanged();
 
     m_statusMessage = tr("Downloading update...");
@@ -363,6 +409,15 @@ void UpdateManager::startDownload()
     connect(m_downloadReply, &QNetworkReply::finished, this, &UpdateManager::onDownloadFinished);
 }
 
+void UpdateManager::retryDownload()
+{
+    m_failed = false;
+    m_lastError.clear();
+    emit failedChanged();
+    emit lastErrorChanged();
+    startDownload();
+}
+
 void UpdateManager::onDownloadDataAvailable()
 {
     if (!m_downloadReply)
@@ -377,10 +432,34 @@ void UpdateManager::onDownloadDataAvailable()
 
 void UpdateManager::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
+    m_bytesReceived = bytesReceived;
+    m_bytesTotal = bytesTotal;
     if (bytesTotal > 0) {
         m_downloadProgress = static_cast<qreal>(bytesReceived) / static_cast<qreal>(bytesTotal);
+        m_downloadSizeString = QStringLiteral("%1 / %2").arg(formatByteSize(bytesReceived), formatByteSize(bytesTotal));
     } else {
         m_downloadProgress = 0.0;
+        m_downloadSizeString = formatByteSize(bytesReceived);
+    }
+
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (m_speedLastTime == 0) {
+        m_speedLastTime = now;
+        m_speedLastBytes = bytesReceived;
+    } else {
+        qint64 elapsed = now - m_speedLastTime;
+        if (elapsed >= 500) {
+            qint64 diff = bytesReceived - m_speedLastBytes;
+            qreal bytesPerSec = (diff * 1000.0) / elapsed;
+            if (bytesPerSec >= 1024 * 1024)
+                m_downloadSpeed = QString::asprintf("%.1f MB/s", bytesPerSec / (1024.0 * 1024.0));
+            else if (bytesPerSec >= 1024)
+                m_downloadSpeed = QString::asprintf("%.0f KB/s", bytesPerSec / 1024.0);
+            else
+                m_downloadSpeed = QString::asprintf("%lld B/s", static_cast<long long>(bytesPerSec));
+            m_speedLastTime = now;
+            m_speedLastBytes = bytesReceived;
+        }
     }
     emit downloadProgressChanged();
 }
@@ -394,20 +473,28 @@ void UpdateManager::onDownloadFinished()
     emit downloadingChanged();
 
     if (m_downloadReply->error() != QNetworkReply::NoError) {
-        qWarning() << "[UpdateManager] Download error:" << m_downloadReply->errorString();
-        m_statusMessage = tr("Download failed: %1").arg(m_downloadReply->errorString());
+        m_failed = true;
+        m_lastError = m_downloadReply->errorString();
+        emit failedChanged();
+        emit lastErrorChanged();
+        qWarning() << "[UpdateManager] Download error:" << m_lastError;
+        m_statusMessage = tr("Download failed: %1").arg(m_lastError);
         emit statusMessageChanged();
-        emit downloadFailed(m_downloadReply->errorString());
+        emit downloadFailed(m_lastError);
         m_downloadReply->deleteLater();
         m_downloadReply = nullptr;
         return;
     }
 
+    m_failed = false;
+    emit failedChanged();
     m_downloadReply->deleteLater();
     m_downloadReply = nullptr;
 
     m_downloadProgress = 1.0;
+    m_readyToInstall = true;
     emit downloadProgressChanged();
+    emit readyToInstallChanged();
 
     m_statusMessage = tr("Download complete. Ready to install.");
     emit statusMessageChanged();
@@ -425,6 +512,10 @@ void UpdateManager::cancelDownload()
         m_downloading = false;
         emit downloadingChanged();
     }
+    m_speedLastTime = 0;
+    m_speedLastBytes = 0;
+    m_downloadSpeed.clear();
+    emit downloadProgressChanged();
 }
 
 void UpdateManager::installAndRestart()

@@ -622,7 +622,7 @@ Pane {
                     MenuItem {
                         text: UpdateManager.updateAvailable ? qsTr("Software Updates (Available!)") : qsTr("Software Updates")
                         icon.source: "qrc:/icons/refresh-24px.svg"
-                        onTriggered: root.showSettingsDialog()
+                        onTriggered: root.showUpdateDialog()
                     }
                 }
             }

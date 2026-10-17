@@ -474,12 +474,35 @@ Item {
         id: updateDialog
     }
 
+    UpdateSplashDialog {
+        id: updateSplashDialog
+    }
+
     Connections {
         target: UpdateManager
         function onUpdateCheckCompleted(hasUpdate, userInitiated, version) {
-            // Never auto-popup: update lives in Settings → General (inline status)
-            // and Settings → Config → Software Updates (explicit button via
-            // root.showUpdateDialog()). Badges signal availability.
+            if (userInitiated) {
+                updateDialog.open();
+                return;
+            }
+
+            if (hasUpdate) {
+                // If in active stream session, don't interrupt gameplay
+                if (AstraPlay.session || AstraPlay.window.directStream)
+                    return;
+                // If first-time walkthrough is active, don't interrupt
+                if (!AstraPlay.settings.setupGuideShown)
+                    return;
+                // If user chose to skip this specific version
+                if (AstraPlay.settings.skippedUpdateVersion === version)
+                    return;
+                // If modal dialogs or settings are currently open, badge on gear handles it
+                if (stack.depth > 1)
+                    return;
+
+                updateSplashDialog.version = version;
+                updateSplashDialog.open();
+            }
         }
     }
 

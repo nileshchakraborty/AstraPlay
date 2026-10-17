@@ -21,9 +21,17 @@ class UpdateManager : public QObject
     Q_PROPERTY(QString releaseUrl READ releaseUrl NOTIFY releaseUrlChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool autoCheckEnabled READ autoCheckEnabled WRITE setAutoCheckEnabled NOTIFY autoCheckEnabledChanged)
+    Q_PROPERTY(bool autoDownloadUpdates READ autoDownloadUpdates WRITE setAutoDownloadUpdates NOTIFY autoDownloadUpdatesChanged)
     // [ASTRAPLAY BEGIN] Keep package-managed installations on their update channel.
     Q_PROPERTY(bool packageUpdatesManaged READ packageUpdatesManaged CONSTANT)
     // [ASTRAPLAY END]
+    Q_PROPERTY(qint64 bytesReceived READ bytesReceived NOTIFY downloadProgressChanged)
+    Q_PROPERTY(qint64 bytesTotal READ bytesTotal NOTIFY downloadProgressChanged)
+    Q_PROPERTY(QString downloadSpeed READ downloadSpeed NOTIFY downloadProgressChanged)
+    Q_PROPERTY(QString downloadSizeString READ downloadSizeString NOTIFY downloadProgressChanged)
+    Q_PROPERTY(bool failed READ isFailed NOTIFY failedChanged)
+    Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
+    Q_PROPERTY(bool readyToInstall READ isReadyToInstall NOTIFY readyToInstallChanged)
 
 public:
     explicit UpdateManager(Settings *settings, QObject *parent = nullptr);
@@ -40,13 +48,25 @@ public:
     QString statusMessage() const { return m_statusMessage; }
 
     bool autoCheckEnabled() const;
+    void setAutoCheckEnabled(bool enabled);
+    bool autoDownloadUpdates() const;
+    void setAutoDownloadUpdates(bool enabled);
+
     // [ASTRAPLAY BEGIN]
     bool packageUpdatesManaged() const { return m_packageUpdatesManaged; }
     // [ASTRAPLAY END]
-    void setAutoCheckEnabled(bool enabled);
+
+    qint64 bytesReceived() const { return m_bytesReceived; }
+    qint64 bytesTotal() const { return m_bytesTotal; }
+    QString downloadSpeed() const { return m_downloadSpeed; }
+    QString downloadSizeString() const { return m_downloadSizeString; }
+    bool isFailed() const { return m_failed; }
+    QString lastError() const { return m_lastError; }
+    bool isReadyToInstall() const { return m_readyToInstall; }
 
     Q_INVOKABLE void checkForUpdates(bool userInitiated = false);
     Q_INVOKABLE void startDownload();
+    Q_INVOKABLE void retryDownload();
     Q_INVOKABLE void installAndRestart();
     Q_INVOKABLE void cancelDownload();
 
@@ -63,6 +83,10 @@ signals:
     void releaseUrlChanged();
     void statusMessageChanged();
     void autoCheckEnabledChanged();
+    void autoDownloadUpdatesChanged();
+    void failedChanged();
+    void lastErrorChanged();
+    void readyToInstallChanged();
 
     void updateCheckCompleted(bool hasUpdate, bool userInitiated, const QString &version);
     void downloadFinished(const QString &downloadedFilePath);
@@ -95,4 +119,14 @@ private:
     QString m_downloadUrl;
     QString m_statusMessage;
     QString m_downloadedFilePath;
+
+    qint64 m_bytesReceived = 0;
+    qint64 m_bytesTotal = 0;
+    qint64 m_speedLastTime = 0;
+    qint64 m_speedLastBytes = 0;
+    QString m_downloadSpeed;
+    QString m_downloadSizeString;
+    bool m_failed = false;
+    QString m_lastError;
+    bool m_readyToInstall = false;
 };
