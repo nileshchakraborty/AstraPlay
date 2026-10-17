@@ -889,14 +889,22 @@ jobs:
           TAG: ${{ steps.versioning.outputs.tag }}
         run: |
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $TAG already exists on GitHub. Updating release notes and overwriting assets..."
-            gh release edit "$TAG" \
-              --repo "$GITHUB_REPOSITORY" \
-              --title "AstraPlay ${TAG}" \
-              --notes-file "${{ steps.notes.outputs.notes_file }}"
-            gh release upload "$TAG" \
-              --repo "$GITHUB_REPOSITORY" \
-              --clobber dist/*
+            echo "Release $TAG already exists on GitHub."
+            IS_DRAFT=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null || echo "false")
+            if [ "$IS_DRAFT" = "true" ]; then
+              echo "Release is draft. Uploading assets and publishing..."
+              gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber dist/*
+              gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+            else
+              echo "Release is already published. Attempting asset upload with fallback for immutable releases..."
+              gh release edit "$TAG" \
+                --repo "$GITHUB_REPOSITORY" \
+                --title "AstraPlay ${TAG}" \
+                --notes-file "${{ steps.notes.outputs.notes_file }}" || true
+              gh release upload "$TAG" \
+                --repo "$GITHUB_REPOSITORY" \
+                --clobber dist/* || echo "Warning: Assets cannot be added to an immutable published release."
+            fi
           else
             echo "Publishing release $TAG with all multi-platform assets..."
             gh release create "$TAG" \
