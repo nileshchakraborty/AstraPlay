@@ -176,7 +176,7 @@ jobs:
           mv "AstraPlay-${{ matrix.arch }}.tar.gz" "$GITHUB_WORKSPACE/"
 
       - name: Save bundle for merge job
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           key: astraplay-appstore-${{ github.run_id }}-${{ matrix.cmake_arch }}
           path: AstraPlay-${{ matrix.arch }}.tar.gz
@@ -210,14 +210,14 @@ jobs:
             https://github.com/faaxm/lipo-dir-merge/archive/refs/heads/master.zip
 
       - name: Restore ARM64 app bundle
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           key: astraplay-appstore-${{ github.run_id }}-arm64
           path: AstraPlay-ARM64.tar.gz
           fail-on-cache-miss: true
 
       - name: Restore x86_64 app bundle
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           key: astraplay-appstore-${{ github.run_id }}-x86_64
           path: AstraPlay-x86_64.tar.gz
