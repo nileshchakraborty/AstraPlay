@@ -308,23 +308,32 @@ Item {
         onVisibleChanged: {
             if (visible) {
                 menuView.close();
+                goToHomeButton.forceActiveFocus();
             }
         }
 
+        MouseArea {
+            anchors.fill: parent
+        }
+
         RoundButton {
+            id: closeBlockedButton
             anchors {
                 top: parent.top
                 right: parent.right
-                margins: 10
+                margins: 8
             }
-            implicitWidth: 32
-            implicitHeight: 32
+            implicitWidth: 44
+            implicitHeight: 44
             flat: true
             text: "✕"
-            font.pixelSize: 14
+            font.pixelSize: 16
             font.weight: Font.Bold
             Material.foreground: Qt.rgba(255, 255, 255, 0.7)
             onClicked: cantDisplayMessage.userDismissed = true
+            TapHandler {
+                onTapped: cantDisplayMessage.userDismissed = true
+            }
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Dismiss overlay")
         }
@@ -389,18 +398,28 @@ Item {
                 Button {
                     id: dismissOverlayButton
                     text: qsTr("Dismiss / Hide")
+                    implicitHeight: 44
+                    implicitWidth: 140
                     Material.background: activeFocus ? parent.Material.accent : Qt.rgba(255, 255, 255, 0.15)
                     Material.roundedScale: Material.SmallScale
                     onClicked: cantDisplayMessage.userDismissed = true
+                    TapHandler {
+                        onTapped: cantDisplayMessage.userDismissed = true
+                    }
                     Keys.onReturnPressed: clicked()
                 }
 
                 Button {
                     id: goToHomeButton
                     text: qsTr("Go to Home Screen")
+                    implicitHeight: 44
+                    implicitWidth: 170
                     Material.background: activeFocus ? parent.Material.accent : undefined
                     Material.roundedScale: Material.SmallScale
                     onClicked: AstraPlay.sessionGoHome()
+                    TapHandler {
+                        onTapped: AstraPlay.sessionGoHome()
+                    }
                     Keys.onReturnPressed: clicked()
                 }
             }
@@ -414,9 +433,9 @@ Item {
             topMargin: 16
             horizontalCenter: parent.horizontalCenter
         }
-        height: 36
-        implicitWidth: pillRow.implicitWidth + 24
-        radius: 18
+        height: 40
+        implicitWidth: pillRow.implicitWidth + 28
+        radius: 20
         color: Qt.rgba(13 / 255, 17 / 255, 23 / 255, 0.88)
         border.color: Qt.rgba(245 / 255, 158 / 255, 11 / 255, 0.5)
         border.width: 1
@@ -431,7 +450,7 @@ Item {
 
             Text {
                 text: "🔒"
-                font.pixelSize: 13
+                font.pixelSize: 14
             }
 
             Label {
@@ -443,18 +462,24 @@ Item {
 
             Button {
                 flat: true
-                implicitHeight: 26
+                implicitHeight: 32
                 text: qsTr("Show Info")
-                font.pixelSize: 11
+                font.pixelSize: 12
                 onClicked: cantDisplayMessage.userDismissed = false
+                TapHandler {
+                    onTapped: cantDisplayMessage.userDismissed = false
+                }
             }
 
             Button {
                 flat: true
-                implicitHeight: 26
+                implicitHeight: 32
                 text: qsTr("Go Home")
-                font.pixelSize: 11
+                font.pixelSize: 12
                 onClicked: AstraPlay.sessionGoHome()
+                TapHandler {
+                    onTapped: AstraPlay.sessionGoHome()
+                }
             }
         }
     }

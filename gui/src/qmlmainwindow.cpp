@@ -600,6 +600,13 @@ void QmlMainWindow::init(Settings *settings, bool exit_app_on_stream_exit, Steam
             // OPTIONS+SHARE chord fired -> open the in-stream menu, same as Ctrl+O,
             // so a controller-only player can reach disconnect/stats without a keyboard.
             connect(session, &StreamSession::PsChordFired, this, &QmlMainWindow::menuRequested, Qt::QueuedConnection);
+            connect(session, &StreamSession::CantDisplayChanged, this, [this](bool cantDisplay) {
+                if (cantDisplay) {
+                    setCursor(Qt::ArrowCursor);
+                } else if (!grab_input && has_video && this->settings->GetHideCursor()) {
+                    setCursor(Qt::BlankCursor);
+                }
+            });
         }
         if(!session)
         {
@@ -1256,9 +1263,9 @@ bool QmlMainWindow::event(QEvent *event)
     case QEvent::MouseMove:
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
-        if (static_cast<QMouseEvent*>(event)->source() != Qt::MouseEventNotSynthesized)
-            return true;
-        if (session && !grab_input) {
+        if (session && !grab_input && !session->GetCantDisplay()) {
+            if (static_cast<QMouseEvent*>(event)->source() != Qt::MouseEventNotSynthesized)
+                return true;
             if (event->type() == QEvent::MouseMove)
                 session->HandleMouseMoveEvent(static_cast<QMouseEvent*>(event), width(), height());
             else if (event->type() == QEvent::MouseButtonPress)
@@ -1272,7 +1279,7 @@ bool QmlMainWindow::event(QEvent *event)
     case QEvent::MouseButtonDblClick:
         if(!settings->GetFullscreenDoubleClickEnabled())
             break;
-        if (session && !grab_input) {
+        if (session && !grab_input && !session->GetCantDisplay()) {
             if (windowState() != Qt::WindowFullScreen)
                 fullscreenTime();
             else
@@ -1283,7 +1290,7 @@ bool QmlMainWindow::event(QEvent *event)
         if (handleShortcut(static_cast<QKeyEvent*>(event)))
             return true;
     case QEvent::KeyRelease:
-        if (session && !grab_input) {
+        if (session && !grab_input && !session->GetCantDisplay()) {
             QKeyEvent *e = static_cast<QKeyEvent*>(event);
             if (e->timestamp()) // Don't send controller emulated key events
                 session->HandleKeyboardEvent(e);
@@ -1294,7 +1301,7 @@ bool QmlMainWindow::event(QEvent *event)
     case QEvent::TouchBegin:
     case QEvent::TouchUpdate:
     case QEvent::TouchEnd:
-        if (session && !grab_input) {
+        if (session && !grab_input && !session->GetCantDisplay()) {
             session->HandleTouchEvent(static_cast<QTouchEvent*>(event), width(), height());
             return true;
         }

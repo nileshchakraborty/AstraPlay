@@ -376,7 +376,7 @@ class StreamSession : public QObject
 		void SetMuted(bool enable)	{ if (enable != muted) ToggleMute(); }
 		Q_INVOKABLE int GetAudioVolume() { return audio_volume; }
 		Q_INVOKABLE void SetAudioVolume(int volume) { audio_volume = volume; }
-		bool GetCantDisplay()	{ return cant_display; }
+		bool GetCantDisplay() const	{ return cant_display; }
 		QString GetLoadingMessage() { return loading_message; }
 		void SetLoadingMessage(const QString &message) { 
 			if (loading_message != message) {
