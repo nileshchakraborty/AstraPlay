@@ -78,7 +78,7 @@ jobs:
           Get-ChildItem store-packages/*.msix | Get-FileHash -Algorithm SHA256 | Format-Table
 
       - name: Upload private Store submission artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AstraPlay-Windows-Store-submission-${{ inputs.release_tag }}
           path: store-packages/*.msix

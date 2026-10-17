@@ -157,7 +157,7 @@ jobs:
           cp astraplay-windows-installer.exe windows_staging/
 
       - name: Upload Windows x64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-windows-x64-build
           path: windows_staging/
@@ -302,7 +302,7 @@ jobs:
           fi
 
       - name: Upload Windows ARM64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-windows-arm64-build
           path: windows_arm64_staging/
@@ -338,7 +338,7 @@ jobs:
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS.zip
 
       - name: Upload macOS Apple Silicon Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-macos-arm64-build
           path: build-output/macos_staging/
@@ -373,7 +373,7 @@ jobs:
           cp AstraPlay-macOS-x86_64.zip macos_intel_staging/
 
       - name: Upload macOS Intel Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-macos-intel-build
           path: build-output/macos_intel_staging/
@@ -421,7 +421,7 @@ jobs:
           cp astraplay-linux-x86_64.zip linux_staging/
 
       - name: Upload Linux x86_64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-linux-build
           path: astraplay/appimage/linux_staging/
@@ -470,7 +470,7 @@ jobs:
           cp astraplay-linux-aarch64.zip linux_arm64_staging/
 
       - name: Upload Linux ARM64 Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-linux-arm64-build
           path: astraplay/appimage/linux_arm64_staging/
@@ -566,7 +566,7 @@ jobs:
           fi
 
       - name: Upload Android Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-android-build
           path: android_staging/
@@ -679,7 +679,7 @@ jobs:
           cp ios/AstraPlay-unsigned.ipa ios_staging/AstraPlay-iOS.ipa
 
       - name: Upload iOS Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astraplay-ios-build
           path: ios_staging/
