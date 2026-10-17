@@ -283,6 +283,7 @@ Item {
 
     Rectangle {
         id: cantDisplayMessage
+        property bool userDismissed: false
         anchors.centerIn: parent
         width: Math.min(parent.width - 60, 560)
         implicitHeight: cantDisplayColumn.implicitHeight + 48
@@ -290,15 +291,42 @@ Item {
         color: Qt.rgba(13 / 255, 17 / 255, 23 / 255, 0.92)
         border.color: Qt.rgba(245 / 255, 158 / 255, 11 / 255, 0.5)
         border.width: 1.5
-        opacity: AstraPlay.window.hasVideo && AstraPlay.session && AstraPlay.session.cantDisplay ? 1.0 : 0.0
+        opacity: AstraPlay.window.hasVideo && AstraPlay.session && AstraPlay.session.cantDisplay && !userDismissed ? 1.0 : 0.0
         visible: opacity > 0.0
 
         Behavior on opacity { NumberAnimation { duration: 250 } }
+
+        Connections {
+            target: AstraPlay.session ? AstraPlay.session : null
+            function onCantDisplayChanged(cantDisplay) {
+                if (cantDisplay) {
+                    cantDisplayMessage.userDismissed = false;
+                }
+            }
+        }
 
         onVisibleChanged: {
             if (visible) {
                 menuView.close();
             }
+        }
+
+        RoundButton {
+            anchors {
+                top: parent.top
+                right: parent.right
+                margins: 10
+            }
+            implicitWidth: 32
+            implicitHeight: 32
+            flat: true
+            text: "✕"
+            font.pixelSize: 14
+            font.weight: Font.Bold
+            Material.foreground: Qt.rgba(255, 255, 255, 0.7)
+            onClicked: cantDisplayMessage.userDismissed = true
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Dismiss overlay")
         }
 
         ColumnLayout {
@@ -359,6 +387,15 @@ Item {
                 spacing: 16
 
                 Button {
+                    id: dismissOverlayButton
+                    text: qsTr("Dismiss / Hide")
+                    Material.background: activeFocus ? parent.Material.accent : Qt.rgba(255, 255, 255, 0.15)
+                    Material.roundedScale: Material.SmallScale
+                    onClicked: cantDisplayMessage.userDismissed = true
+                    Keys.onReturnPressed: clicked()
+                }
+
+                Button {
                     id: goToHomeButton
                     text: qsTr("Go to Home Screen")
                     Material.background: activeFocus ? parent.Material.accent : undefined
@@ -366,6 +403,58 @@ Item {
                     onClicked: AstraPlay.sessionGoHome()
                     Keys.onReturnPressed: clicked()
                 }
+            }
+        }
+    }
+
+    Rectangle {
+        id: restrictedScenePill
+        anchors {
+            top: parent.top
+            topMargin: 16
+            horizontalCenter: parent.horizontalCenter
+        }
+        height: 36
+        implicitWidth: pillRow.implicitWidth + 24
+        radius: 18
+        color: Qt.rgba(13 / 255, 17 / 255, 23 / 255, 0.88)
+        border.color: Qt.rgba(245 / 255, 158 / 255, 11 / 255, 0.5)
+        border.width: 1
+        visible: AstraPlay.window.hasVideo && AstraPlay.session && AstraPlay.session.cantDisplay && cantDisplayMessage.userDismissed
+        opacity: visible ? 1.0 : 0.0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        RowLayout {
+            id: pillRow
+            anchors.centerIn: parent
+            spacing: 8
+
+            Text {
+                text: "🔒"
+                font.pixelSize: 13
+            }
+
+            Label {
+                text: qsTr("Restricted Scene Active")
+                font.pixelSize: 12
+                font.weight: Font.Medium
+                color: "#F59E0B"
+            }
+
+            Button {
+                flat: true
+                implicitHeight: 26
+                text: qsTr("Show Info")
+                font.pixelSize: 11
+                onClicked: cantDisplayMessage.userDismissed = false
+            }
+
+            Button {
+                flat: true
+                implicitHeight: 26
+                text: qsTr("Go Home")
+                font.pixelSize: 11
+                onClicked: AstraPlay.sessionGoHome()
             }
         }
     }

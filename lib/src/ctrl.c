@@ -892,10 +892,11 @@ static void ctrl_message_received_displaya(ChiakiCtrl *ctrl, uint8_t *payload, s
 	{
 		ctrl->cant_displaya = true;
 	}
-	else if (payload[0] == 0x0 && !ctrl->cant_displayb)
+	else if (payload[0] == 0x0)
 	{
 		ctrl->cant_displaya = false;
-		CHIAKI_LOGI(ctrl->session->log, "Ctrl received message that the stream can now display.");
+		ctrl->cant_displayb = false;
+		CHIAKI_LOGI(ctrl->session->log, "Ctrl received message that the stream can now display (displaya).");
 		ctrl->session->display_sink.cantdisplay_cb(ctrl->session->display_sink.user, false);
 	}
 }
@@ -912,7 +913,11 @@ static void ctrl_message_received_displayb(ChiakiCtrl *ctrl, uint8_t *payload, s
 		}
 	}
 	if(ctrl->cant_displayb && payload[0] == 0x01 && payload[1] == 0xff)
+	{
 		ctrl->cant_displayb = false;
+		CHIAKI_LOGI(ctrl->session->log, "Ctrl received message that the restricted scene has ended (displayb).");
+		ctrl->session->display_sink.cantdisplay_cb(ctrl->session->display_sink.user, false);
+	}
 }
 
 static void ctrl_message_received_login(ChiakiCtrl *ctrl, uint8_t *payload, size_t payload_size)
