@@ -726,17 +726,8 @@ jobs:
             PATCH=$(grep '^set(CHIAKI_VERSION_PATCH' CMakeLists.txt | awk '{print $2}' | tr -d ')')
             BASE_VER="${MAJOR}.${MINOR}.${PATCH}"
 
-            if ! git rev-parse -q --verify "refs/tags/v${BASE_VER}" >/dev/null 2>&1 && ! gh release view "v${BASE_VER}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              TAG="v${BASE_VER}"
-              VER="${BASE_VER}"
-            else
-              BUILD_NUM=$((PATCH + 1))
-              while git rev-parse -q --verify "refs/tags/v${MAJOR}.${MINOR}.${BUILD_NUM}" >/dev/null 2>&1 || gh release view "v${MAJOR}.${MINOR}.${BUILD_NUM}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; do
-                BUILD_NUM=$((BUILD_NUM + 1))
-              done
-              TAG="v${MAJOR}.${MINOR}.${BUILD_NUM}"
-              VER="${MAJOR}.${MINOR}.${BUILD_NUM}"
-            fi
+            TAG="v${BASE_VER}"
+            VER="${BASE_VER}"
           fi
 
           echo "Computed release tag: $TAG"
@@ -892,18 +883,29 @@ jobs:
           python3 scripts/generate_release_notes.py "$NOTES_FILE" "$TAG" "$VER" "$CHANGES"
           echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release and Tag
+      - name: Create or Update GitHub Release and Tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.versioning.outputs.tag }}
         run: |
-          echo "Publishing release $TAG with all multi-platform assets..."
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target master \
-            --title "AstraPlay ${TAG}" \
-            --notes-file "${{ steps.notes.outputs.notes_file }}" \
-            dist/*
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists on GitHub. Updating release notes and overwriting assets..."
+            gh release edit "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "AstraPlay ${TAG}" \
+              --notes-file "${{ steps.notes.outputs.notes_file }}"
+            gh release upload "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber dist/*
+          else
+            echo "Publishing release $TAG with all multi-platform assets..."
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target master \
+              --title "AstraPlay ${TAG}" \
+              --notes-file "${{ steps.notes.outputs.notes_file }}" \
+              dist/*
+          fi
 
-          echo "Release $TAG published successfully with assets:"
+          echo "Release $TAG published/updated successfully with assets:"
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY"
