@@ -37,7 +37,7 @@ jobs:
       options: --privileged
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -100,12 +100,12 @@ jobs:
   #
   #   steps:
   #     - name: Checkout AstraPlay repo
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v7
   #       with:
   #         path: astraplay
   #
   #     - name: Checkout Flathub repo
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v7
   #       with:
   #         repository: flathub/io.github.nileshchakraborty.AstraPlay
   #         token: ${{ secrets.FLATHUB_TOKEN }}

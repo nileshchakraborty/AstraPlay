@@ -32,7 +32,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
@@ -94,7 +94,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install podman zip jq
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           path: astraplay
