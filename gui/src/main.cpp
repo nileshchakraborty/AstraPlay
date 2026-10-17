@@ -211,6 +211,12 @@ int real_main(int argc, char *argv[])
 	QCommandLineOption entitlement_id_option("entitlement-id", "Entitlement ID of game to stream (for use with cloudGameLibrary command).", "entitlement-id");
 	parser.addOption(entitlement_id_option);
 
+	QCommandLineOption target_option("target", "Target console generation: 'ps4' or 'ps5' (default: ps4).", "target");
+	parser.addOption(target_option);
+
+	QCommandLineOption verbose_option(QStringList() << "v" << "verbose", "Enable verbose diagnostic logging.");
+	parser.addOption(verbose_option);
+
 	parser.process(app);
 	QStringList args = parser.positionalArguments();
 
@@ -224,6 +230,22 @@ int real_main(int argc, char *argv[])
 	bool use_alt_settings = false;
 	if(!parser.isSet(profile_option))
 		use_alt_settings = true;
+
+	if(parser.isSet(verbose_option))
+	{
+		settings.SetLogVerboseOverride(true);
+		alt_settings.SetLogVerboseOverride(true);
+	}
+
+	if(parser.isSet(target_option))
+	{
+		QString t = parser.value(target_option).trimmed().toLower();
+		if(t != "ps4" && t != "ps5")
+		{
+			fprintf(stderr, "ERROR: Invalid --target '%s'. Must be 'ps4' or 'ps5'.\n", parser.value(target_option).toLocal8Bit().constData());
+			return 1;
+		}
+	}
 
 	if(args.length() == 0)
 		return RunMain(app, use_alt_settings ? &alt_settings : &settings, exit_app_on_stream_exit);
@@ -351,6 +373,15 @@ int real_main(int argc, char *argv[])
 			fprintf(stderr, "ERROR: No last known IP for console '%s'. Please connect to it normally first.\n", nickname.toLocal8Bit().constData());
 			return 1;
 		}
+
+		if(parser.isSet(target_option))
+		{
+			QString t = parser.value(target_option).trimmed().toLower();
+			if(t == "ps5")
+				target = CHIAKI_TARGET_PS5_1;
+			else if(t == "ps4")
+				target = CHIAKI_TARGET_PS4_10;
+		}
 		
 		// Create session with game launch parameters
 		StreamSessionConnectInfo connect_info(
@@ -408,7 +439,6 @@ int real_main(int argc, char *argv[])
 		}
 		else
 		{
-			// TODO: explicit option for target
 			regist_key = parser.value(regist_key_option).toUtf8();
 			if(regist_key.length() > sizeof(ChiakiConnectInfo::regist_key))
 			{
@@ -427,6 +457,15 @@ int real_main(int argc, char *argv[])
 				printf("Given morning has invalid size (expected %llu)", (unsigned long long)sizeof(ChiakiConnectInfo::morning));
 				return 1;
 			}
+		}
+
+		if(parser.isSet(target_option))
+		{
+			QString t = parser.value(target_option).trimmed().toLower();
+			if(t == "ps5")
+				target = CHIAKI_TARGET_PS5_1;
+			else if(t == "ps4")
+				target = CHIAKI_TARGET_PS4_10;
 		}
 		if ((parser.isSet(stretch_option) && (parser.isSet(zoom_option) || parser.isSet(fullscreen_option))) || (parser.isSet(zoom_option) && parser.isSet(fullscreen_option)))
 		{
@@ -496,8 +535,8 @@ int real_main(int argc, char *argv[])
 	else if(cli_commands.contains(args[0]))
 	{
 		ChiakiLog log;
-		// TODO: add verbose arg
-		chiaki_log_init(&log, CHIAKI_LOG_ALL & ~CHIAKI_LOG_VERBOSE, chiaki_log_cb_print, nullptr);
+		uint32_t log_mask = (parser.isSet(verbose_option) || (use_alt_settings ? alt_settings : settings).GetLogVerbose()) ? CHIAKI_LOG_ALL : (CHIAKI_LOG_ALL & ~CHIAKI_LOG_VERBOSE);
+		chiaki_log_init(&log, log_mask, chiaki_log_cb_print, nullptr);
 
 		const auto &cmd = cli_commands[args[0]];
 		int sub_argc = args.count();

@@ -182,6 +182,8 @@ class Settings : public QObject
 		QSettings default_settings;
 		QSettings placebo_settings;
 		QString time_format;
+		bool has_log_verbose_override = false;
+		bool log_verbose_override = false;
 		QMap<HostMAC, HiddenHost> hidden_hosts;
 
 		QMap<HostMAC, RegisteredHost> registered_hosts;
@@ -241,8 +243,9 @@ class Settings : public QObject
 		bool GetAddSteamShortcutAsk() const           { return settings.value("settings/add_steam_shortcut_ask", true).toBool(); }
 		void SetAddSteamShortcutAsk(bool asked)       { settings.setValue("settings/add_steam_shortcut_ask", asked); }
 
-		bool GetLogVerbose() const 				{ return settings.value("settings/log_verbose", false).toBool(); }
+		bool GetLogVerbose() const 				{ return has_log_verbose_override ? log_verbose_override : settings.value("settings/log_verbose", false).toBool(); }
 		void SetLogVerbose(bool enabled)		{ settings.setValue("settings/log_verbose", enabled); }
+		void SetLogVerboseOverride(bool enabled)	{ has_log_verbose_override = true; log_verbose_override = enabled; }
 		bool GetSteamCloudSync() const 			{ return settings.value("settings/steam_cloud_sync", true).toBool(); }
 		void SetSteamCloudSync(bool enabled)	{ settings.setValue("settings/steam_cloud_sync", enabled); }
 		uint32_t GetLogLevelMask();
