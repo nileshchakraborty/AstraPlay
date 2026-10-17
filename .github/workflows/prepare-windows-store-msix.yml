@@ -24,7 +24,7 @@ jobs:
     name: Prepare x64 and ARM64 Store packages
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Fetch release source
         shell: pwsh
