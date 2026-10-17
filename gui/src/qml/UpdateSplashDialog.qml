@@ -5,40 +5,36 @@ import QtQuick.Controls.Material
 
 import io.github.nileshchakraborty.astraplay
 
-import "controls" as C
-
 Dialog {
     id: splashDialog
     property string version: ""
     property Item restoreFocusItem
 
     parent: Overlay.overlay
-    x: Math.round((parent.width - width) / 2)
-    y: Math.round((parent.height - height) / 2)
-    width: Math.min(parent.width * 0.9, 560)
+    x: Math.round((root.width - width) / 2)
+    y: Math.round((root.height - height) / 2)
+    width: Math.min(root.width * 0.9, 520)
     modal: true
     dim: true
     closePolicy: Popup.CloseOnEscape
     Material.roundedScale: Material.MediumScale
-    padding: 0
-    topPadding: 0
-    bottomPadding: 0
-    leftPadding: 0
-    rightPadding: 0
+    padding: 24
 
     Overlay.modal: Rectangle {
         color: Qt.rgba(0, 0, 0, 0.75)
     }
 
     background: Rectangle {
-        color: "#111827"
+        color: Material.dialogColor
         radius: 12
         border.color: Material.accent
         border.width: 2
-        clip: true
     }
 
-    Component.onCompleted: header.visible = false
+    Component.onCompleted: {
+        header.horizontalAlignment = Text.AlignHCenter;
+        header.background = null;
+    }
 
     onOpened: {
         updateNowButton.forceActiveFocus(Qt.TabFocusReason);
@@ -46,224 +42,195 @@ Dialog {
 
     Keys.onEscapePressed: splashDialog.close()
 
-    contentItem: ColumnLayout {
-        spacing: 0
+    ColumnLayout {
+        spacing: 18
+        anchors.fill: parent
 
-        // Title Header Bar
+        // Title with icon
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 10
+
+            Image {
+                Layout.preferredWidth: 26
+                Layout.preferredHeight: 26
+                sourceSize: Qt.size(26, 26)
+                source: "qrc:/icons/refresh-24px.svg"
+            }
+
+            Label {
+                text: qsTr("Update Available")
+                font.pixelSize: 20
+                font.bold: true
+                color: Material.accent
+            }
+        }
+
+        Label {
+            Layout.fillWidth: true
+            text: qsTr("A new version of AstraPlay is available to install.")
+            font.pixelSize: 14
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            color: "#ffffff"
+        }
+
+        // Version card
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
-            color: Qt.rgba(245/255, 158/255, 11/255, 0.12)
+            Layout.preferredHeight: 60
+            radius: 8
+            color: Qt.rgba(0, 0, 0, 0.3)
+            border.color: Qt.rgba(245/255, 158/255, 11/255, 0.35)
+            border.width: 1
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                spacing: 10
+                anchors.leftMargin: 16
+                anchors.rightMargin: 16
+                spacing: 12
 
-                Image {
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    source: "qrc:/icons/refresh-24px.svg"
-                }
-
-                Label {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    font.pixelSize: 19
-                    font.bold: true
-                    color: Material.accent
-                    text: qsTr("Update Available!")
+                    spacing: 2
+
+                    Label {
+                        text: qsTr("New version: %1").arg(splashDialog.version.length > 0 ? splashDialog.version : UpdateManager.latestVersion)
+                        font.bold: true
+                        font.pixelSize: 14
+                        color: Material.accent
+                    }
+
+                    Label {
+                        text: qsTr("Current version: v%1").arg(UpdateManager.currentVersion)
+                        font.pixelSize: 12
+                        color: "#94a3b8"
+                    }
                 }
             }
         }
 
+        // Background download progress bar if active
         ColumnLayout {
             Layout.fillWidth: true
-            Layout.margins: 22
-            spacing: 16
+            visible: UpdateManager.downloading || UpdateManager.readyToInstall
+            spacing: 4
+
+            ProgressBar {
+                Layout.fillWidth: true
+                value: UpdateManager.downloadProgress
+                Material.accent: "#F59E0B"
+            }
 
             Label {
-                Layout.fillWidth: true
-                text: qsTr("A new version of AstraPlay is available for download.")
-                font.pixelSize: 15
-                font.bold: true
-                wrapMode: Text.WordWrap
+                Layout.alignment: Qt.AlignHCenter
+                text: UpdateManager.readyToInstall
+                    ? qsTr("Ready to install.")
+                    : qsTr("Downloading... %1%").arg(Math.round(UpdateManager.downloadProgress * 100))
+                font.pixelSize: 12
+                color: Material.accent
             }
+        }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 64
-                radius: 8
-                color: Qt.rgba(255, 255, 255, 0.05)
-                border.color: Qt.rgba(255, 255, 255, 0.1)
-                border.width: 1
+        // Action Buttons
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 6
+            spacing: 12
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 14
+            Button {
+                id: updateNowButton
+                text: (UpdateManager.readyToInstall || UpdateManager.downloadProgress >= 1.0)
+                    ? qsTr("Install")
+                    : qsTr("Update")
+                Material.background: Material.accent
+                flat: true
+                leftPadding: 44
+                rightPadding: 16
+                Material.roundedScale: Material.SmallScale
 
-                    Rectangle {
-                        Layout.preferredWidth: 40
-                        Layout.preferredHeight: 40
-                        radius: 20
-                        color: Qt.rgba(245/255, 158/255, 11/255, 0.2)
-                        border.color: Material.accent
-                        border.width: 1
-
-                        Label {
-                            anchors.centerIn: parent
-                            text: "★"
-                            color: Material.accent
-                            font.pixelSize: 18
-                        }
+                Image {
+                    anchors {
+                        left: parent.left
+                        verticalCenter: parent.verticalCenter
+                        leftMargin: 10
                     }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        Label {
-                            text: qsTr("Latest Release: %1").arg(splashDialog.version.length > 0 ? splashDialog.version : UpdateManager.latestVersion)
-                            font.bold: true
-                            font.pixelSize: 14
-                            color: Material.accent
-                        }
-
-                        Label {
-                            text: qsTr("Current version: v%1").arg(UpdateManager.currentVersion)
-                            font.pixelSize: 12
-                            opacity: 0.75
-                        }
-                    }
-                }
-            }
-
-            // Status or auto-download progress
-            ColumnLayout {
-                Layout.fillWidth: true
-                visible: UpdateManager.downloading || UpdateManager.readyToInstall
-                spacing: 6
-
-                ProgressBar {
-                    Layout.fillWidth: true
-                    value: UpdateManager.downloadProgress
-                    Material.accent: "#F59E0B"
+                    width: 24
+                    height: 24
+                    sourceSize: Qt.size(width, height)
+                    source: root.controllerButton("cross")
                 }
 
-                Label {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: UpdateManager.readyToInstall
-                        ? qsTr("Download complete! Ready to install.")
-                        : qsTr("Downloading update in background... (%1%)").arg(Math.round(UpdateManager.downloadProgress * 100))
-                    font.pixelSize: 12
-                    color: Material.accent
-                }
-            }
-
-            // Action Buttons
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.topMargin: 6
-                spacing: 12
-
-                // Update / Install button
-                C.Button {
-                    id: updateNowButton
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    text: (UpdateManager.readyToInstall || UpdateManager.downloadProgress >= 1.0)
-                        ? qsTr("Install & Restart")
-                        : qsTr("Update Now")
-                    Material.background: Material.accent
-                    flat: false
-
-                    leftPadding: 40
-                    rightPadding: 16
-
-                    Image {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 10
-                        }
-                        width: 22
-                        height: 22
-                        sourceSize: Qt.size(width, height)
-                        source: root.controllerButton("cross")
-                    }
-
-                    onClicked: {
-                        splashDialog.close();
-                        if (UpdateManager.readyToInstall || UpdateManager.downloadProgress >= 1.0) {
-                            UpdateManager.installAndRestart();
-                        } else {
-                            root.showUpdateDialog();
-                            UpdateManager.startDownload();
-                        }
-                    }
-
-                    KeyNavigation.priority: KeyNavigation.BeforeItem
-                    KeyNavigation.right: notesButton
-                }
-
-                // Release Notes button
-                C.Button {
-                    id: notesButton
-                    Layout.preferredHeight: 44
-                    text: qsTr("What's New")
-                    flat: true
-                    leftPadding: 38
-                    rightPadding: 14
-
-                    Image {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 8
-                        }
-                        width: 20
-                        height: 20
-                        sourceSize: Qt.size(width, height)
-                        source: root.controllerButton("square")
-                    }
-
-                    onClicked: {
-                        splashDialog.close();
+                onClicked: {
+                    splashDialog.close();
+                    if (UpdateManager.readyToInstall || UpdateManager.downloadProgress >= 1.0) {
+                        UpdateManager.installAndRestart();
+                    } else {
                         root.showUpdateDialog();
+                        UpdateManager.startDownload();
                     }
-
-                    KeyNavigation.priority: KeyNavigation.BeforeItem
-                    KeyNavigation.left: updateNowButton
-                    KeyNavigation.right: remindLaterButton
                 }
 
-                // Remind Me Later button
-                C.Button {
-                    id: remindLaterButton
-                    Layout.preferredHeight: 44
-                    text: qsTr("Later")
-                    flat: true
-                    leftPadding: 36
-                    rightPadding: 14
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.right: detailsButton
+            }
 
-                    Image {
-                        anchors {
-                            left: parent.left
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: 8
-                        }
-                        width: 20
-                        height: 20
-                        sourceSize: Qt.size(width, height)
-                        source: root.controllerButton("circle")
+            Button {
+                id: detailsButton
+                text: qsTr("Details")
+                Material.background: Material.accent
+                flat: true
+                leftPadding: 44
+                rightPadding: 16
+                Material.roundedScale: Material.SmallScale
+
+                Image {
+                    anchors {
+                        left: parent.left
+                        verticalCenter: parent.verticalCenter
+                        leftMargin: 10
                     }
-
-                    onClicked: splashDialog.close()
-
-                    KeyNavigation.priority: KeyNavigation.BeforeItem
-                    KeyNavigation.left: notesButton
+                    width: 24
+                    height: 24
+                    sourceSize: Qt.size(width, height)
+                    source: root.controllerButton("square")
                 }
+
+                onClicked: {
+                    splashDialog.close();
+                    root.showUpdateDialog();
+                }
+
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.left: updateNowButton
+                KeyNavigation.right: laterButton
+            }
+
+            Button {
+                id: laterButton
+                text: qsTr("Later")
+                Material.background: Material.accent
+                flat: true
+                leftPadding: 44
+                rightPadding: 16
+                Material.roundedScale: Material.SmallScale
+
+                Image {
+                    anchors {
+                        left: parent.left
+                        verticalCenter: parent.verticalCenter
+                        leftMargin: 10
+                    }
+                    width: 24
+                    height: 24
+                    sourceSize: Qt.size(width, height)
+                    source: root.controllerButton("circle")
+                }
+
+                onClicked: splashDialog.close()
+
+                KeyNavigation.priority: KeyNavigation.BeforeItem
+                KeyNavigation.left: detailsButton
             }
         }
     }

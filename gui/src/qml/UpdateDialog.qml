@@ -10,9 +10,9 @@ import "controls" as C
 Dialog {
     id: updateDialog
     parent: Overlay.overlay
-    x: Math.round((parent.width - width) / 2)
-    y: Math.round((parent.height - height) / 2)
-    width: Math.min(parent.width * 0.9, 620)
+    x: Math.round((root.width - width) / 2)
+    y: Math.round((root.height - height) / 2)
+    width: Math.min(root.width * 0.9, 620)
     modal: true
     dim: true
     closePolicy: Popup.CloseOnEscape
@@ -28,14 +28,17 @@ Dialog {
     }
 
     background: Rectangle {
-        color: "#111827"
+        color: Material.dialogColor
         radius: 12
         border.color: Material.accent
         border.width: 2
         clip: true
     }
 
-    Component.onCompleted: header.visible = false
+    Component.onCompleted: {
+        header.visible = false;
+        header.background = null;
+    }
 
     onOpened: {
         if (UpdateManager.updateAvailable)
