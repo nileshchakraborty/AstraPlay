@@ -187,7 +187,7 @@ jobs:
           if-no-files-found: error
 
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -380,7 +380,7 @@ jobs:
 
       - name: Compile Inno Setup ARM64 Installer
         continue-on-error: true
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
         with:
           path: "scripts/astraplay.iss"
           options: /O+
