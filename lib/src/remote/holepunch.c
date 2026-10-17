@@ -1072,16 +1072,21 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_holepunch_session_create(Session* session)
     }
     chiaki_mutex_unlock(&session->stop_mutex);
 
-    // FIXME: We're currently not using a shared timeout for both  notifications, i.e. if the first one
-    //        takes 29 secs arrive, and the second one takes 15 secs, we're not going to time out despite
-    //        exceeing SESSION_CREATION_TIMEOUT_SEC.
     bool finished = false;
     Notification *notif = NULL;
     int notif_query = NOTIFICATION_TYPE_SESSION_CREATED
                     | NOTIFICATION_TYPE_MEMBER_CREATED;
+    uint64_t deadline_ms = chiaki_time_now_monotonic_ms() + (uint64_t)(SESSION_CREATION_TIMEOUT_SEC * 1000);
     while (!finished)
     {
-        err = wait_for_notification(session, &notif, notif_query, SESSION_CREATION_TIMEOUT_SEC * 1000);
+        uint64_t now_ms = chiaki_time_now_monotonic_ms();
+        if (now_ms >= deadline_ms)
+        {
+            CHIAKI_LOGE(session->log, "chiaki_holepunch_session_create: Timed out waiting for holepunch session creation notifications.");
+            return CHIAKI_ERR_TIMEOUT;
+        }
+        uint64_t remaining_ms = deadline_ms - now_ms;
+        err = wait_for_notification(session, &notif, notif_query, remaining_ms);
         if (err == CHIAKI_ERR_TIMEOUT)
         {
             CHIAKI_LOGE(session->log, "chiaki_holepunch_session_create: Timed out waiting for holepunch session creation notifications.");
@@ -1220,16 +1225,22 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_holepunch_session_start(
     }
     chiaki_mutex_unlock(&session->stop_mutex);
 
-    // FIXME: We're currently not using a shared timeout for both  notifications, i.e. if the first one
-    //        takes 29 secs arrive, and the second one takes 15 secs, we're not going to time out despite
-    //        exceeding SESSION_START_TIMEOUT_SEC.
     bool finished = false;
     Notification *notif = NULL;
     int notif_query = NOTIFICATION_TYPE_MEMBER_CREATED
                     | NOTIFICATION_TYPE_CUSTOM_DATA1_UPDATED;
+    uint64_t deadline_ms = chiaki_time_now_monotonic_ms() + (uint64_t)(SESSION_START_TIMEOUT_SEC * 1000);
     while (!finished)
     {
-        err = wait_for_notification(session, &notif, notif_query, SESSION_START_TIMEOUT_SEC * 1000);
+        uint64_t now_ms = chiaki_time_now_monotonic_ms();
+        if (now_ms >= deadline_ms)
+        {
+            CHIAKI_LOGE(session->log, "chiaki_holepunch_session_start: Timed out waiting for holepunch session start notifications.");
+            session_set_last_error(session, "Timed out waiting for session setup");
+            return CHIAKI_ERR_HOST_DOWN;
+        }
+        uint64_t remaining_ms = deadline_ms - now_ms;
+        err = wait_for_notification(session, &notif, notif_query, remaining_ms);
         if (err == CHIAKI_ERR_TIMEOUT)
         {
             CHIAKI_LOGE(session->log, "chiaki_holepunch_session_start: Timed out waiting for holepunch session start notifications.");
@@ -5055,9 +5066,18 @@ static ChiakiErrorCode wait_for_session_message(
     Notification *notif = NULL;
     SessionMessage *msg = NULL;
     uint32_t notif_query = NOTIFICATION_TYPE_SESSION_MESSAGE_CREATED;
+    uint64_t effective_timeout = timeout_ms > 0 ? timeout_ms : (uint64_t)(SESSION_START_TIMEOUT_SEC * 1000);
+    uint64_t deadline_ms = chiaki_time_now_monotonic_ms() + effective_timeout;
     while (!finished)
     {
-        err = wait_for_notification(session, &notif, notif_query, SESSION_START_TIMEOUT_SEC * 1000);
+        uint64_t now_ms = chiaki_time_now_monotonic_ms();
+        if (now_ms >= deadline_ms)
+        {
+            CHIAKI_LOGE(session->log, "Timed out waiting for holepunch session message notification.");
+            return CHIAKI_ERR_TIMEOUT;
+        }
+        uint64_t remaining_ms = deadline_ms - now_ms;
+        err = wait_for_notification(session, &notif, notif_query, remaining_ms);
         if (err == CHIAKI_ERR_TIMEOUT)
         {
             CHIAKI_LOGE(session->log, "Timed out waiting for holepunch session message notification.");
