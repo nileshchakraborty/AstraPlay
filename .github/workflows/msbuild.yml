@@ -94,6 +94,7 @@ jobs:
           cmake -S . -B build -G "Ninja" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCHIAKI_ENABLE_CLI=OFF \
+            -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF \
             -DCHIAKI_ENABLE_STEAMWORKS=${{ env.CHIAKI_ENABLE_STEAMWORKS }} \
             -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
