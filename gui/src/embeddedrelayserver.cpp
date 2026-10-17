@@ -11,10 +11,11 @@
 
 constexpr qint64 RELAY_CODE_TTL_MS = 15LL * 60LL * 1000LL; // 15 minutes
 
-EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent)
+EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now)
     : QObject(parent)
     , m_server(new QTcpServer(this))
     , m_cleanupTimer(new QTimer(this))
+    , m_now(now ? std::move(now) : [] { return QDateTime::currentMSecsSinceEpoch(); })
 {
     connect(m_server, &QTcpServer::newConnection, this, &EmbeddedRelayServer::onNewConnection);
 
@@ -108,44 +109,43 @@ bool EmbeddedRelayServer::createCode(const QString &code)
 
     RelayCodeEntry entry;
     entry.npsso = QString();
-    entry.createdAt = QDateTime::currentMSecsSinceEpoch();
+    entry.createdAt = m_now();
     m_codes.insert(trimmed, entry);
-    qDebug() << "[EmbeddedRelayServer] Registered code:" << trimmed;
+    qDebug() << "[EmbeddedRelayServer] Registered login code";
     return true;
 }
 
 bool EmbeddedRelayServer::getTokens(const QString &code, QString &outNpsso)
 {
     QString trimmed = code.trimmed().toUpper();
-    if (!m_codes.contains(trimmed))
+    RelayCodeEntry *entry = activeCode(trimmed);
+    if (!entry)
         return false;
 
-    RelayCodeEntry entry = m_codes.value(trimmed);
-    if (entry.npsso.isEmpty())
+    if (entry->npsso.isEmpty())
         return false;
 
-    outNpsso = entry.npsso;
+    outNpsso = entry->npsso;
     m_codes.remove(trimmed); // One-time consumption
-    qDebug() << "[EmbeddedRelayServer] Token retrieved for code:" << trimmed;
+    qDebug() << "[EmbeddedRelayServer] Retrieved one-time login token";
     return true;
 }
 
 bool EmbeddedRelayServer::validateCode(const QString &code)
 {
     QString trimmed = code.trimmed().toUpper();
-    return m_codes.contains(trimmed);
+    return activeCode(trimmed) != nullptr;
 }
 
 bool EmbeddedRelayServer::setTokens(const QString &code, const QString &npsso)
 {
     QString trimmed = code.trimmed().toUpper();
-    if (!m_codes.contains(trimmed) || npsso.trimmed().isEmpty())
+    RelayCodeEntry *entry = activeCode(trimmed);
+    if (!entry || npsso.trimmed().isEmpty())
         return false;
 
-    RelayCodeEntry entry = m_codes.value(trimmed);
-    entry.npsso = npsso.trimmed();
-    m_codes.insert(trimmed, entry);
-    qDebug() << "[EmbeddedRelayServer] Stored NPSSO token for code:" << trimmed;
+    entry->npsso = npsso.trimmed();
+    qDebug() << "[EmbeddedRelayServer] Stored login token";
     return true;
 }
 
@@ -207,7 +207,7 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         if (createCode(code)) {
             QJsonObject resp;
             resp["result"] = "success";
-            resp["code"] = code.toUpper();
+            resp["code"] = code.trimmed().toUpper();
             sendJsonResponse(socket, 200, resp);
         } else {
             QJsonObject resp;
@@ -332,13 +332,25 @@ void EmbeddedRelayServer::sendJsonResponse(QTcpSocket *socket, int statusCode, c
 
 void EmbeddedRelayServer::cleanupExpiredCodes()
 {
-    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    const qint64 now = m_now();
     for (auto it = m_codes.begin(); it != m_codes.end();) {
-        if (now - it.value().createdAt > RELAY_CODE_TTL_MS) {
-            qDebug() << "[EmbeddedRelayServer] Expiring stale code:" << it.key();
+        if (now - it.value().createdAt >= RELAY_CODE_TTL_MS) {
+            qDebug() << "[EmbeddedRelayServer] Expiring stale login code";
             it = m_codes.erase(it);
         } else {
             ++it;
         }
     }
+}
+
+RelayCodeEntry *EmbeddedRelayServer::activeCode(const QString &normalizedCode)
+{
+    auto it = m_codes.find(normalizedCode);
+    if (it == m_codes.end())
+        return nullptr;
+    if (m_now() - it.value().createdAt >= RELAY_CODE_TTL_MS) {
+        m_codes.erase(it);
+        return nullptr;
+    }
+    return &it.value();
 }

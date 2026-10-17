@@ -230,6 +230,20 @@ install(TARGETS astraplay
 		BUNDLE DESTINATION bin)
 # [ASTRAPLAY BEGIN] Install metadata under the canonical Flatpak/AppStream ID.
 install(FILES io.github.nileshchakraborty.AstraPlay.desktop DESTINATION share/applications)
-install(FILES astraplay.png DESTINATION share/icons/hicolor/512x512/apps)
+install(FILES astraplay-512.png DESTINATION share/icons/hicolor/512x512/apps
+		RENAME astraplay.png)
 install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
 # [ASTRAPLAY END]
+
+if(CHIAKI_ENABLE_TESTS)
+	enable_testing()
+	find_package(Qt6 REQUIRED COMPONENTS Test)
+	add_executable(chiaki-qt-test
+		test/embeddedrelayserver_bdd.cpp
+		include/embeddedrelayserver.h
+		src/embeddedrelayserver.cpp
+	)
+	target_include_directories(chiaki-qt-test PRIVATE include)
+	target_link_libraries(chiaki-qt-test PRIVATE Qt::Core Qt::Network Qt::Test)
+	add_test(NAME qt-embedded-relay-bdd COMMAND chiaki-qt-test)
+endif()
