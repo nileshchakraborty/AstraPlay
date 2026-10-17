@@ -8,8 +8,9 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
+# CodeQL runs through the repository's default setup. GitHub rejects SARIF
+# uploads from advanced workflows while that setup is enabled.
 jobs:
   secret-scan:
     name: Secret & Credential Leak Scan
@@ -48,43 +49,3 @@ jobs:
             exit 1
           fi
           echo "No secrets or private keys detected."
-
-  codeql-analysis:
-    name: CodeQL SAST Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['cpp']
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
-
-      - name: Install Build Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libsdl2-dev libspeexdsp-dev libplacebo-dev libvulkan-dev \
-            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libjson-c-dev libminiupnpc-dev libssl-dev \
-            qt6-base-dev qt6-declarative-dev qt6-svg-dev
-
-      - name: Configure and Build
-        run: |
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_TESTS=ON
-          cmake --build build -j$(nproc)
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{ matrix.language }}"
