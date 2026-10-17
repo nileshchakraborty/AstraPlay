@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability Reporting
+    url: https://github.com/nileshchakraborty/AstraPlay/security/advisories/new
+    about: Privately disclose a security vulnerability to the maintainers.
+  - name: 💬 Community Discussions & Questions
+    url: https://github.com/nileshchakraborty/AstraPlay/discussions
+    about: Ask questions, share setups, or discuss features with the community.

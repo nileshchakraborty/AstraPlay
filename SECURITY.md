@@ -161,10 +161,10 @@ The iOS ↔ C library boundary is a security-relevant correctness concern:
 
 ## 9. Responsible Disclosure
 
-Security issues should be reported to [forward.technologies.llc@gmail.com](mailto:forward.technologies.llc@gmail.com) with subject `[SECURITY] AstraPlay`.
+Security issues should be reported via [GitHub Private Vulnerability Reporting](https://github.com/nileshchakraborty/AstraPlay/security/advisories/new).
 
 - Do not open public GitHub issues for security vulnerabilities.
-- Maintainers will acknowledge within 72 hours.
+- Maintainers will acknowledge within 48 hours.
 - Coordinated disclosure after patch release (typically ≤ 30 days).
 
 ---

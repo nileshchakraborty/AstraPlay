@@ -1,0 +1,124 @@
+name: AstraPlay Bot & Triage
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-label Issue
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = (issue.title || '').toLowerCase();
+            const body = (issue.body || '').toLowerCase();
+            const labelsToAdd = [];
+
+            if (title.includes('steamos') || title.includes('bazzite') || title.includes('linux') || body.includes('steamos') || body.includes('bazzite') || body.includes('appimage')) {
+              labelsToAdd.push('area:linux');
+            }
+            if (title.includes('windows') || title.includes('win11') || body.includes('windows') || body.includes('msi')) {
+              labelsToAdd.push('area:windows');
+            }
+            if (title.includes('macos') || title.includes('mac') || body.includes('macos')) {
+              labelsToAdd.push('area:macos');
+            }
+            if (title.includes('controller') || title.includes('gamepad') || title.includes('dualsense') || body.includes('controller') || body.includes('gamepad')) {
+              labelsToAdd.push('area:controller');
+            }
+            if (title.includes('cloud') || body.includes('cloud streaming') || body.includes('playstation cloud')) {
+              labelsToAdd.push('area:cloud');
+            }
+            if (title.includes('update') || body.includes('updater') || body.includes('auto-update')) {
+              labelsToAdd.push('area:updater');
+            }
+            if (title.includes('crash') || title.includes('bug') || body.includes('crash') || body.includes('segfault')) {
+              labelsToAdd.push('kind:bug');
+            }
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labelsToAdd
+              });
+            }
+
+      - name: Triage Pull Request
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labelsToAdd = [];
+
+            // Check modified files
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+
+            let touchesWorkflows = false;
+            let touchesUpdater = false;
+            let touchesLinux = false;
+            let touchesWindows = false;
+            let touchesMac = false;
+            let touchesGui = false;
+
+            for (const file of files.data) {
+              const filename = file.filename;
+              if (filename.startsWith('.github/')) touchesWorkflows = true;
+              if (filename.includes('updatemanager') || filename.includes('UpdateDialog') || filename.includes('UpdateSplash')) touchesUpdater = true;
+              if (filename.includes('linux') || filename.endsWith('.AppImage')) touchesLinux = true;
+              if (filename.includes('windows') || filename.endsWith('.msi') || filename.endsWith('.bat')) touchesWindows = true;
+              if (filename.includes('mac') || filename.endsWith('.dmg')) touchesMac = true;
+              if (filename.startsWith('gui/')) touchesGui = true;
+            }
+
+            if (touchesWorkflows) labelsToAdd.push('ci/cd');
+            if (touchesUpdater) labelsToAdd.push('area:updater');
+            if (touchesLinux) labelsToAdd.push('area:linux');
+            if (touchesWindows) labelsToAdd.push('area:windows');
+            if (touchesMac) labelsToAdd.push('area:macos');
+            if (touchesGui) labelsToAdd.push('area:ui');
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labelsToAdd
+              });
+            }
+
+            // Greet first-time contributors
+            if (pr.author_association === 'FIRST_TIME_CONTRIBUTOR' || pr.author_association === 'NONE') {
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number
+              });
+
+              const alreadyCommented = comments.data.some(c => c.body.includes('Welcome to AstraPlay!'));
+              if (!alreadyCommented) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: `👋 **Welcome to AstraPlay, @${pr.user.login}!**\n\nThank you for contributing to AstraPlay! Our CI build and automated test suites will run shortly to verify this change across all platforms.\n\n- Please make sure all unit tests pass locally (\`ctest --output-on-failure\`).\n- Check that your PR doesn't contain any sensitive tokens or private credentials.\n- If your change affects UI, please test with both gamepad controller and keyboard navigation.\n\nA maintainer will review your pull request soon!`
+                });
+              }
+            }

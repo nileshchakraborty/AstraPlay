@@ -26,14 +26,28 @@ Feature PRs merge into `dev` for integration. When the maintainer is ready to re
 
 Do not push directly to `dev` or `master`.
 
-## Local development
+## Local development & Testing
 
 Each platform has its own build setup. See the relevant directories for details:
 
+- **Desktop (Qt 6)** — root `CMakeLists.txt` (CMake + Qt 6)
+- **Linux** — built in a container (see `.github/workflows/build-linux.yml`)
+- **Windows** — built via MSYS2 / MSBuild (see `.github/workflows/build-windows.yml`)
+- **macOS** — CMake + Qt 6 macOS bundle
 - **Android** — `android/` (Gradle + CMake, requires Android SDK/NDK)
 - **iOS** — `ios/` (Xcode project + CMake for native libs)
-- **macOS App Store** — `macos/` (CMake + Xcode tooling)
-- **Desktop (Qt)** — root `CMakeLists.txt` (CMake + Qt 6)
-- **Windows** — built via MSYS2 (see `.github/workflows/build-windows.yml`)
-- **Linux** — built in a container (see `.github/workflows/build-linux.yml`)
-- **Flatpak** — manifest at `scripts/flatpak/io.github.nileshchakraborty.astraplay.yml` (see `.github/workflows/deploy-flatpak.yml`)
+- **Flatpak** — manifest at `scripts/flatpak/io.github.nileshchakraborty.astraplay.yml`
+
+### Running the Test Suite Locally
+
+AstraPlay includes comprehensive unit, BDD, and updater test suites. Before submitting a PR, make sure all tests pass:
+
+```bash
+# Configure with tests enabled
+cmake -B build -DCHIAKI_ENABLE_TESTS=ON
+cmake --build build -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+
+# Run test suite
+ctest --test-dir build --output-on-failure
+```
+All pull requests must maintain 100% passing test status.
