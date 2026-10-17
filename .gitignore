@@ -30,6 +30,8 @@ secret.tar
 keystore-env.sh
 
 # Secrets (local); allow tracked templates and READMEs only
+.env
+.env.*
 /secrets/*
 !/secrets/macos/
 /secrets/macos/*
