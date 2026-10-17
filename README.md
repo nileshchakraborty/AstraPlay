@@ -26,6 +26,118 @@ Engineered for ultra-low latency, crisp visuals, and cross-platform flexibility,
 
 ---
 
+## Download
+
+<p align="center">
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><img src="assets/google-play-badge.svg" height="48" alt="Get it on Google Play"></a>&nbsp;
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe"><img src="assets/windows-installer-badge.svg" height="48" alt="Download for Windows"></a>&nbsp;
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><img src="assets/app-store-badge.svg" height="48" alt="Download on the App Store"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><img src="assets/mac-app-store-badge.svg" height="48" alt="Download on the Mac App Store"></a>&nbsp;
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><img src="assets/flathub-badge.svg" height="48" alt="Get it on Flathub"></a>&nbsp;
+  <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/AstraPlay-Linux-x86_64.AppImage"><img src="assets/linux-appimage-badge.svg" height="48" alt="Download AppImage"></a>
+</p>
+
+<p align="center">
+  For full release notes, SHA-256 checksums, and all platform packages, visit the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><b>Releases Page</b></a>.
+</p>
+
+---
+
+## Installation Guide
+
+AstraPlay supports flexible installation methods across every platform, matching standard application store channels and native package managers.
+
+### 🪟 Windows (10 & 11)
+
+- **Setup Installer (`.exe`) — Recommended**:
+  Download and run [`astraplay-windows-installer.exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe) (or `astraplay-windows-arm64-installer.exe` for Snapdragon / Windows on ARM devices). Follow the setup wizard to customize Start Menu and Desktop shortcuts.
+- **Windows Package Manager (`winget`)**:
+  ```powershell
+  winget install AstraPlay
+  ```
+- **Enterprise MSI Installer**:
+  Download [`astraplay-windows-x64.msi`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for silent automated deployments:
+  ```powershell
+  msiexec /i astraplay-windows-x64.msi /quiet
+  ```
+- **Portable ZIP**:
+  Download and extract [`astraplay-windows-x64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest), then launch `AstraPlay.exe` directly without administrative privileges.
+
+---
+
+### 🐧 Linux, Steam Deck & Handhelds (Bazzite / ROG Xbox Ally X / Legion Go / Claw)
+
+- **One-Command User Installer (Recommended for Handhelds)**:
+  Run our verified installer script in terminal / Konsole. It automatically detects your CPU architecture (`x86_64` or `aarch64`), verifies release SHA-256 checksums, installs desktop menu shortcuts with high-resolution icons, and enables clean in-app updates:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-appimage.sh | bash
+  ```
+- **Direct AppImage**:
+  Download [`AstraPlay-Linux-x86_64.AppImage`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/AstraPlay-Linux-x86_64.AppImage), mark it executable, and launch:
+  ```bash
+  chmod +x AstraPlay-Linux-x86_64.AppImage
+  ./AstraPlay-Linux-x86_64.AppImage
+  ```
+- **Flathub / Flatpak**:
+  Install via Flatpak from terminal or your desktop software store (Discover / GNOME Software):
+  ```bash
+  flatpak install flathub io.github.nileshchakraborty.AstraPlay
+  flatpak run io.github.nileshchakraborty.AstraPlay
+  ```
+- **Portable ZIP with `launch.sh`**:
+  Extract `astraplay-linux-x86_64.zip` and run `./launch.sh`. Bundled libraries and OpenSSL runtime environments are initialized automatically.
+- **Steam Gaming Mode Setup (Steam Deck & Bazzite)**:
+  1. Switch to **Desktop Mode**.
+  2. Open **Steam** and click **Games → Add a Non-Steam Game to My Library...**
+  3. Select **AstraPlay** (or browse to `~/.local/bin/astraplay` or your extracted `launch.sh`).
+  4. Return to **Gaming Mode** — AstraPlay is now integrated into your Steam library with full gamepad controls and QAM support.
+
+---
+
+### 🍏 macOS (Apple Silicon & Intel)
+
+- **Drag-and-Drop Disk Image (`.dmg`) — Recommended**:
+  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel). Open the `.dmg` and drag `AstraPlay.app` into your `Applications` folder.
+- **Homebrew Cask**:
+  ```bash
+  brew install --cask astraplay
+  ```
+- **Mac App Store**:
+  Install directly from the Mac App Store for automatic updates.
+- **Portable ZIP**:
+  Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
+
+---
+
+### 📱 Android & Android TV
+
+- **Google Play Store**:
+  Install directly from the [Google Play Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for automatic background updates across phones, tablets, and Android TV / Google TV devices.
+- **Direct APK Sideload**:
+  Download the latest [`AstraPlay-release.apk`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) from GitHub Releases and open it on your device to install.
+- **Android TV / Fire TV Wireless Sideloading (ADB)**:
+  Install to your television or streaming device over your local network:
+  ```bash
+  adb connect <android-tv-ip>:5555
+  adb install -r AstraPlay-release.apk
+  ```
+
+---
+
+### 🍎 iOS & iPadOS
+
+- **Apple App Store / TestFlight**:
+  Download via the [Apple App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest) or join the TestFlight community channel.
+- **IPA Sideloading**:
+  Download [`AstraPlay.ipa`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) and install using your preferred sideloading manager:
+  - **AltStore / SideStore**: Add the IPA directly through the on-device AltStore manager.
+  - **Sideloadly**: Connect your iPhone/iPad to a PC or Mac and install with automatic signing.
+  - **LiveContainer / TrollStore**: Install the IPA directly without weekly resign requirements (iOS 14.0–17.0).
+
+---
+
 ## Downloads & Supported Packages
 
 All release binaries, packages, and SHA-256 checksums are published on the [**GitHub Releases Page**](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
@@ -38,7 +150,6 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
 | **macOS** | **Intel** (`x86_64`) | [`.dmg Disk Image (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Intel x86_64 `.dmg` installer and compressed `AstraPlay.app` bundle. |
 | **Linux & Handhelds** | **x86_64** (Steam Deck, ROG Ally, PC) | [`.AppImage (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Portable AppImage executable and Steam-ready ZIP archive with `launch.sh` for Steam Deck and Bazzite Gaming Mode. |
 | **Linux & Handhelds** | **ARM64** (`aarch64`: Raspberry Pi 5, SBCs) | [`.AppImage (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native ARM64 AppImage executable and portable archive. |
-
 | **Android** | **Universal / ARM64 & x86** (Phones, Tablets, TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable release APK and Google Play Store App Bundle (`io.github.nileshchakraborty.astraplay`), with native binaries for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`. |
 | **iOS / iPadOS** | **ARM64** (iPhone & iPad) | [`.ipa Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable unsigned IPA (AltStore, Sideloadly, LiveContainer, TrollStore) and TestFlight. |
 

@@ -9,28 +9,37 @@ Desktop and mobile releases are published on the [releases page](https://github.
 === "Android / Android TV"
     [:simple-googleplay: Get it on Google Play](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
-    Works on phones, tablets, and Android TV devices.
+    [:material-android: Download Release APK](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+
+    Works on phones, tablets, foldables, and Android TV / Google TV devices.
 
 === "iOS / iPadOS"
     [:simple-apple: Download on the App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
+    [:material-apple: Download Unsigned IPA](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+
 === "macOS"
     [:simple-apple: Download on the Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
+    [:material-apple: Download DMG (Apple Silicon)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+
+    [:material-apple: Download DMG (Intel x86_64)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+
 === "Windows"
-    [:material-download: Download Installer](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+    [:material-download: Download Windows Installer (.exe)](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
-    [:material-folder-zip-outline: Download Portable zip](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+    [:material-package-variant: Download MSI Package](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
-=== "Linux / Steam Deck"
-    !!! tip "Steam Deck"
-        A Flathub listing is not available yet. The [AppImage installer](setup/installation.md#linux-steam-deck) creates a desktop application entry; you can add it as a non-Steam game for Gaming Mode. The portable ZIP remains available.
+    [:material-folder-zip-outline: Download Portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
-    [:material-download: Download portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+=== "Linux & Handhelds"
+    [:material-lightning-bolt: One-Line Installer Script](setup/installation.md#option-1-one-line-user-installer-recommended-for-handhelds){ .md-button .md-button--primary }
 
-    [:material-download: Download AppImage](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
+    [:simple-flathub: Get it on Flathub](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
-    **Flatpak:** The Flathub listing is not published yet.
+    [:material-download: Download AppImage](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/AstraPlay-Linux-x86_64.AppImage){ .md-button target="_blank" rel="noopener" }
+
+    [:material-folder-zip-outline: Download Portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
 ## Getting Started
 
