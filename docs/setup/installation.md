@@ -1,63 +1,189 @@
 # Installing AstraPlay
 
-=== "Android / Android TV"
+AstraPlay provides native application packages, automated installers, and store distribution options for all major operating systems and handheld gaming devices.
 
-    Install directly from the Play Store:
+---
 
-    [Get it on Google Play](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+=== "Windows (10 & 11)"
 
-    Works on phones, tablets, and Android TV devices.
+    AstraPlay supports all modern 64-bit Windows installations on both **x86_64** (Intel/AMD) and **ARM64** (Qualcomm Snapdragon X Elite / Windows on ARM).
 
-=== "iOS / iPadOS"
+    ### Option 1: Setup Installer (`.exe`) — Recommended
 
-    Install from the App Store:
+    The Inno Setup installer configures shortcuts, file associations, and bundled runtime dependencies:
 
-    [Download on the App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+    1. Download [`astraplay-windows-installer.exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe) (or `astraplay-windows-arm64-installer.exe` for ARM64).
+    2. Run the executable and follow the wizard instructions.
+    3. Select whether to create Start Menu and Desktop shortcuts (Start Menu is enabled by default).
+    4. Launch **AstraPlay** from your Start Menu.
 
-=== "macOS"
+    ### Option 2: Windows Package Manager (`winget`)
 
-    Install from the Mac App Store:
+    Install or update AstraPlay from PowerShell or Windows Terminal:
 
-    [Download on the Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+    ```powershell
+    winget install AstraPlay
+    ```
 
-=== "Windows"
+    To upgrade AstraPlay in the future:
+    ```powershell
+    winget upgrade AstraPlay
+    ```
 
-    Get the latest release from the [releases page](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }:
+    ### Option 3: Enterprise MSI Package
 
-    - **Installer** — recommended for most users
-    - **Portable zip** — unzip and run, no install required
+    For IT administrators or automated enterprise deployments:
 
-=== "Linux / Steam Deck"
+    ```powershell
+    msiexec /i astraplay-windows-x64.msi /quiet
+    ```
 
-    !!! tip "Steam Deck"
-        A Flathub listing is not available yet. The AppImage installer below adds AstraPlay to the desktop application menu; the portable ZIP is another current option.
+    Options:
+    - `CREATE_START_MENU_SHORTCUT=0` to skip Start Menu entry
+    - `CREATE_DESKTOP_SHORTCUT=1` to add desktop icon
 
-    !!! Tip "Copying from and Pasting into Konsole Windows"
+    ### Option 4: Portable ZIP
 
-        You can copy from and paste into `konsole` windows with ++ctrl+shift+c++ (copy) and ++ctrl+shift+v++ (paste) instead of the normal ++ctrl+c++ (copy) and ++ctrl+v++ (paste) shortcuts.
+    Zero-installation runtime for USB drives or standard user accounts:
 
-    !!! note "Flatpak availability"
-        AstraPlay's Flatpak build is currently verified in CI, but it is not published to Flathub yet. Install instructions will be added when the human-reviewed Flathub submission is published.
+    1. Download [`astraplay-windows-x64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
+    2. Extract the archive into any folder.
+    3. Launch `AstraPlay.exe`.
 
-    === "AppImage with user installer"
+=== "Linux & Handhelds (Steam Deck / Bazzite / ROG Ally)"
 
-        Download the [installer script](https://github.com/nileshchakraborty/AstraPlay/blob/dev/scripts/install-appimage.sh){ target="_blank" rel="noopener" } and run it from Konsole:
+    AstraPlay is optimized for handheld gaming consoles like the **Steam Deck**, **ROG Xbox Ally X**, **Lenovo Legion Go**, and **MSI Claw**, as well as desktop Linux distributions (Ubuntu, Fedora, Arch, Debian, openSUSE).
 
-        ```bash
-        curl -fL -o install-appimage.sh https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/dev/scripts/install-appimage.sh
-        bash install-appimage.sh
-        ```
+    ### Option 1: One-Line User Installer — Recommended for Handhelds
 
-        It downloads the latest AppImage for your CPU, verifies the release checksum, and creates an AstraPlay entry in the desktop application menu. It installs under your home directory, without `sudo`. Run it again to update.
+    Run this automated command in terminal / Konsole (no `sudo` required):
 
-        If you already downloaded the [AppImage](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }, use `bash install-appimage.sh --file ~/Downloads/AstraPlay-Linux-x86_64.AppImage` instead. Download `SHA256SUMS.txt` beside it if you want the script to verify this local file. If FUSE is unavailable, add `--extract-and-run`; this is slower because the AppImage is extracted on every launch.
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-appimage.sh | bash
+    ```
 
-        To use the installed app in Steam Gaming Mode, add **AstraPlay** as a non-Steam game from Steam Desktop Mode. The installer leaves existing Steam shortcuts and controller layouts unchanged. On the ROG Xbox Ally X with Bazzite, also [map a rear paddle to the PS button](controlling.md#rog-xbox-ally-x-on-bazzite).
+    **What this does automatically:**
+    - Detects your CPU architecture (`x86_64` or `aarch64`)
+    - Downloads the latest verified release from GitHub
+    - Verifies release checksums against `SHA256SUMS.txt`
+    - Installs the binary into `~/.local/opt/astraplay/AstraPlay.AppImage`
+    - Creates a terminal launcher at `~/.local/bin/astraplay`
+    - Registers a desktop menu shortcut with high-resolution 512x512 icons
+    - Supports clean in-place updates by re-running the command anytime
 
-    === "Portable zip"
+    ### Option 2: Flathub / Flatpak
 
-        1. Download the [portable zip for your platform](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+    Install via Flatpak from terminal or your software manager (KDE Discover / GNOME Software):
 
-        2. Extract the archive, then run `launch.sh` (sets up bundled libraries and the OpenSSL fallback automatically). This is portable but does not create an application-menu entry or handle updates.
+    ```bash
+    flatpak install flathub io.github.nileshchakraborty.AstraPlay
+    flatpak run io.github.nileshchakraborty.AstraPlay
+    ```
 
-        3. To launch it in Gaming Mode, open Steam in Desktop Mode, choose **Games → Add a Non-Steam Game**, browse to the extracted `launch.sh`, and add it. Switch back to Gaming Mode and start AstraPlay from your library.
+    ### Option 3: Direct AppImage
+
+    1. Download [`AstraPlay-Linux-x86_64.AppImage`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/AstraPlay-Linux-x86_64.AppImage).
+    2. Make it executable:
+       ```bash
+       chmod +x AstraPlay-Linux-x86_64.AppImage
+       ```
+    3. Run directly:
+       ```bash
+       ./AstraPlay-Linux-x86_64.AppImage
+       ```
+
+    ### Option 4: Portable ZIP with `launch.sh`
+
+    1. Download [`astraplay-linux-x86_64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
+    2. Extract the archive and execute `./launch.sh`.
+    3. Bundled runtime libraries and OpenSSL certificates are configured automatically.
+
+    ### Adding to Steam Gaming Mode (Steam Deck & Bazzite)
+
+    To play seamlessly with full gamepad navigation and Gamescope overlay:
+
+    1. Open **Steam** in **Desktop Mode**.
+    2. Click **Games → Add a Non-Steam Game to My Library...**
+    3. Check **AstraPlay** in the list (or browse to `~/.local/bin/astraplay` or the extracted `launch.sh`).
+    4. Click **Add Selected Programs**.
+    5. Return to **Gaming Mode**. AstraPlay will be in your **Non-Steam** library ready to stream.
+
+=== "macOS (Apple Silicon & Intel)"
+
+    AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.
+
+    ### Option 1: Drag-and-Drop Disk Image (`.dmg`) — Recommended
+
+    1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (for Apple Silicon M1/M2/M3/M4 Macs) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (for Intel Macs).
+    2. Open the downloaded `.dmg` disk image.
+    3. Drag the **AstraPlay** application icon into your **Applications** folder.
+    4. Launch **AstraPlay** from Launchpad or Spotlight.
+
+    ### Option 2: Homebrew Cask
+
+    Install via Homebrew terminal:
+
+    ```bash
+    brew install --cask astraplay
+    ```
+
+    To upgrade via Homebrew:
+    ```bash
+    brew upgrade --cask astraplay
+    ```
+
+    ### Option 3: Mac App Store
+
+    Download directly from the [Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for automatic background updates.
+
+    ### Option 4: Portable App Bundle ZIP
+
+    Download and extract `AstraPlay-macOS-arm64.zip` directly into `~/Applications`.
+
+=== "Android & Android TV"
+
+    AstraPlay supports modern Android phones, foldable devices, tablets, and Android TV / Google TV streaming boxes.
+
+    ### Option 1: Google Play Store — Recommended
+
+    Install directly from Google Play:
+
+    - [:simple-googleplay: Get it on Google Play](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+
+    Automatic updates, cloud saves, and TV leanback launcher integrations are enabled out of the box.
+
+    ### Option 2: Sideload Release APK
+
+    1. Download [`AstraPlay-release.apk`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) on your Android device.
+    2. Tap the downloaded APK in your notification shade or file manager.
+    3. Allow "Install unknown apps" if prompted by your browser or file manager.
+    4. Tap **Install** to complete setup.
+
+    ### Option 3: Android TV & Fire TV Sideloading via ADB
+
+    If installing to a Smart TV or streaming device (e.g. Chromecast with Google TV, NVIDIA Shield, Fire TV Cube):
+
+    ```bash
+    # Enable ADB debugging in Developer Options on your TV
+    adb connect <tv-ip-address>:5555
+    adb install -r AstraPlay-release.apk
+    ```
+
+=== "iOS & iPadOS"
+
+    AstraPlay delivers full-screen remote streaming on iPhone and iPad with native touch overlays, DualSense adaptive triggers, and Apple M-series hardware decoding.
+
+    ### Option 1: Apple App Store / TestFlight — Recommended
+
+    Install directly via the App Store:
+
+    - [:simple-apple: Download on the App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ target="_blank" rel="noopener" }
+
+    ### Option 2: Sideloading Unsigned IPA (`.ipa`)
+
+    Download [`AstraPlay.ipa`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) and install using your preferred method:
+
+    - **AltStore / SideStore**: Add the IPA file directly in your on-device AltStore app.
+    - **Sideloadly**: Connect your iPhone or iPad to your PC or Mac via USB and drag the `.ipa` into Sideloadly to install.
+    - **LiveContainer / TrollStore**: Install the IPA directly without weekly resigning limits (supported on iOS 14.0–17.0).
+
