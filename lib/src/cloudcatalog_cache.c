@@ -78,15 +78,33 @@ ChiakiErrorCode cc_cache_ensure_dir(const char *cache_dir)
 	return CHIAKI_ERR_SUCCESS;
 }
 
+#ifdef _WIN32
+#include <io.h>
+#define cc_fileno(f) _fileno(f)
+#define cc_fstat(fd, st) _fstat(fd, st)
+typedef struct _stat cc_stat_t;
+#else
+#define cc_fileno(f) fileno(f)
+#define cc_fstat(fd, st) fstat(fd, st)
+typedef struct stat cc_stat_t;
+#endif
+
 struct json_object *cc_cache_read(ChiakiLog *log, const char *cache_dir, const char *key, long max_age_ms)
 {
 	char path[1024];
 	cache_file_path(cache_dir, key, path, sizeof(path));
 
-	struct stat st;
-	if(stat(path, &st) != 0)
+	FILE *f = fopen(path, "rb");
+	if(!f)
 	{
 		CHIAKI_LOGI(log, "[CACHE MISS] %s", key);
+		return NULL;
+	}
+
+	cc_stat_t st;
+	if(cc_fstat(cc_fileno(f), &st) != 0)
+	{
+		fclose(f);
 		return NULL;
 	}
 
@@ -94,17 +112,13 @@ struct json_object *cc_cache_read(ChiakiLog *log, const char *cache_dir, const c
 	int64_t age_ms = (int64_t)difftime(now, st.st_mtime) * 1000;
 	if(age_ms > max_age_ms)
 	{
+		fclose(f);
 		remove(path);
 		CHIAKI_LOGI(log, "[CACHE EXPIRED] %s (age %lldsec)", key, (long long)(age_ms / 1000));
 		return NULL;
 	}
 
-	FILE *f = fopen(path, "rb");
-	if(!f)
-		return NULL;
-	fseek(f, 0, SEEK_END);
-	long sz = ftell(f);
-	fseek(f, 0, SEEK_SET);
+	long sz = (long)st.st_size;
 	if(sz <= 0)
 	{
 		fclose(f);

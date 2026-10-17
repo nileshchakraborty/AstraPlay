@@ -17,6 +17,10 @@ concurrency:
 
 env:
   CHIAKI_ENABLE_STEAMWORKS: "OFF"
+
+permissions:
+  contents: read
+
 jobs:
   build-windows_x64-msys2:
     name: Build AstraPlay Windows x86_64

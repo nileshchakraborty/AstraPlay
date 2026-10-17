@@ -25,6 +25,9 @@ concurrency:
   group: deploy-flatpak-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-and-verify:
     name: Build and verify Flatpak (x86_64)

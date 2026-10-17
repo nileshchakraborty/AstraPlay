@@ -18,6 +18,9 @@ concurrency:
   group: build-artifact-macos-${{ github.ref }}-${{ inputs.arch }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build macOS (${{ inputs.arch || 'arm64' }})

@@ -11,6 +11,9 @@ concurrency:
   group: build-artifact-ios-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build iOS unsigned .ipa (artifact)

@@ -41,6 +41,9 @@ concurrency:
   group: build-android-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-android:
     name: Build and deploy to Google Play

@@ -46,6 +46,9 @@ env:
     -DCHIAKI_ENABLE_GUI_WEBENGINE=OFF
     -DCHIAKI_IS_MAC_APPSTORE=ON
 
+permissions:
+  contents: read
+
 jobs:
   build-appstore:
     name: Build ${{ matrix.arch }}

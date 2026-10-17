@@ -19,6 +19,9 @@ concurrency:
   group: build-artifact-linux-${{ github.ref }}-${{ inputs.arch }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # =========================================================================
   # LINUX X86_64

@@ -22,6 +22,9 @@ concurrency:
 env:
   CHIAKI_ENABLE_STEAMWORKS: "OFF"
 
+permissions:
+  contents: read
+
 jobs:
   # =========================================================================
   # WINDOWS X86_64
