@@ -1,0 +1,32 @@
+name: BDD tests
+
+on:
+  pull_request:
+    branches: [dev, master]
+    paths:
+      - 'psstream-server/**'
+      - '.github/workflows/bdd.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bdd-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  psstream-relay:
+    name: PSStream relay BDD and coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: psstream-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: psstream-server/package-lock.json
+      - run: npm ci
+      - run: npm run test:bdd:coverage

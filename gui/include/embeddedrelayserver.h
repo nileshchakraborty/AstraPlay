@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QHostAddress>
+#include <functional>
 
 struct RelayCodeEntry {
     QString npsso;
@@ -19,7 +20,8 @@ class EmbeddedRelayServer : public QObject
     Q_OBJECT
 
 public:
-    explicit EmbeddedRelayServer(QObject *parent = nullptr);
+    explicit EmbeddedRelayServer(QObject *parent = nullptr,
+                                 std::function<qint64()> now = {});
     ~EmbeddedRelayServer() override;
 
     bool start(quint16 port = 25525);
@@ -45,9 +47,11 @@ private:
     void sendResponse(QTcpSocket *socket, int statusCode, const QString &statusText,
                       const QByteArray &contentType, const QByteArray &body);
     void sendJsonResponse(QTcpSocket *socket, int statusCode, const QJsonObject &json);
+    RelayCodeEntry *activeCode(const QString &normalizedCode);
 
     QTcpServer *m_server = nullptr;
     quint16 m_port = 25525;
     QMap<QString, RelayCodeEntry> m_codes;
     QTimer *m_cleanupTimer = nullptr;
+    std::function<qint64()> m_now;
 };
