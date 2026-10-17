@@ -6,14 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       arch:
-        description: "Target macOS Architecture"
+        description: "Target macOS architecture (universal builds use the App Store workflow)"
         required: true
         type: choice
         default: "arm64"
         options:
           - "arm64"
           - "x86_64"
-          - "universal"
 
 concurrency:
   group: build-artifact-macos-${{ github.ref }}-${{ inputs.arch }}
