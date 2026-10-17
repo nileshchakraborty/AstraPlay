@@ -443,10 +443,10 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_discovery_wakeup(ChiakiLog *log, ChiakiDisc
 		hints.ai_family = AF_INET6;
 	else
 		hints.ai_family = AF_INET;
-	int r = getaddrinfo(host, NULL, &hints, &addrinfos); // TODO: this blocks, use something else
+	int r = chiaki_resolve_host_async(log, host, &hints, &addrinfos, 3000);
 	if(r != 0)
 	{
-		CHIAKI_LOGE(log, "DiscoveryManager failed to getaddrinfo for wakeup");
+		CHIAKI_LOGE(log, "DiscoveryManager failed to resolve host '%s' for wakeup", host);
 		return CHIAKI_ERR_NETWORK;
 	}
 	struct sockaddr_in6 addr = { 0 };

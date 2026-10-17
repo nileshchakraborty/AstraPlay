@@ -5,10 +5,15 @@
 
 #include <chiaki/sock.h>
 #include <chiaki/log.h>
+#include <chiaki/thread.h>
+#include <chiaki/time.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #endif
@@ -165,6 +170,123 @@ static inline ChiakiErrorCode format_hex(char *hex_buf, size_t hex_buf_size, con
 	hex_buf[buf_size*2] = '\0';
 
 	return CHIAKI_ERR_SUCCESS;
+}
+
+typedef struct ChiakiDnsResolveContext
+{
+	char *host;
+	struct addrinfo hints;
+	struct addrinfo *addrinfos;
+	int result;
+	bool finished;
+	bool abandoned;
+	ChiakiMutex mutex;
+	ChiakiCond cond;
+} ChiakiDnsResolveContext;
+
+static inline void *chiaki_dns_resolve_worker(void *arg)
+{
+	ChiakiDnsResolveContext *ctx = (ChiakiDnsResolveContext *)arg;
+	struct addrinfo *res = NULL;
+	int r = getaddrinfo(ctx->host, NULL, &ctx->hints, &res);
+
+	chiaki_mutex_lock(&ctx->mutex);
+	if (ctx->abandoned)
+	{
+		if (res)
+			freeaddrinfo(res);
+		chiaki_mutex_unlock(&ctx->mutex);
+		chiaki_cond_fini(&ctx->cond);
+		chiaki_mutex_fini(&ctx->mutex);
+		free(ctx->host);
+		free(ctx);
+		return NULL;
+	}
+
+	ctx->result = r;
+	ctx->addrinfos = res;
+	ctx->finished = true;
+	chiaki_cond_signal(&ctx->cond);
+	chiaki_mutex_unlock(&ctx->mutex);
+	return NULL;
+}
+
+static inline int chiaki_resolve_host_async(ChiakiLog *log, const char *host, const struct addrinfo *hints, struct addrinfo **out_addrinfos, uint64_t timeout_ms)
+{
+	struct addrinfo local_hints = *hints;
+	// Fast path: if host is already a numeric IPv4 or IPv6 literal, resolve synchronously without DNS lookup
+	struct in_addr in4;
+	struct in6_addr in6;
+	if (inet_pton(AF_INET, host, &in4) == 1)
+	{
+		local_hints.ai_family = AF_INET;
+		local_hints.ai_flags |= AI_NUMERICHOST;
+		return getaddrinfo(host, NULL, &local_hints, out_addrinfos);
+	}
+	else if (inet_pton(AF_INET6, host, &in6) == 1)
+	{
+		local_hints.ai_family = AF_INET6;
+		local_hints.ai_flags |= AI_NUMERICHOST;
+		return getaddrinfo(host, NULL, &local_hints, out_addrinfos);
+	}
+
+	// Hostname resolution: run in background worker thread with timeout to prevent stalling event/discovery loops
+	ChiakiDnsResolveContext *ctx = (ChiakiDnsResolveContext *)calloc(1, sizeof(ChiakiDnsResolveContext));
+	if (!ctx)
+		return getaddrinfo(host, NULL, &local_hints, out_addrinfos);
+
+	ctx->host = strdup(host);
+	if (!ctx->host)
+	{
+		free(ctx);
+		return getaddrinfo(host, NULL, &local_hints, out_addrinfos);
+	}
+	ctx->hints = local_hints;
+	chiaki_mutex_init(&ctx->mutex, false);
+	chiaki_cond_init(&ctx->cond);
+
+	ChiakiThread thread;
+	ChiakiErrorCode terr = chiaki_thread_create(&thread, chiaki_dns_resolve_worker, ctx);
+	if (terr != CHIAKI_ERR_SUCCESS)
+	{
+		chiaki_cond_fini(&ctx->cond);
+		chiaki_mutex_fini(&ctx->mutex);
+		free(ctx->host);
+		free(ctx);
+		return getaddrinfo(host, NULL, &local_hints, out_addrinfos);
+	}
+
+	chiaki_mutex_lock(&ctx->mutex);
+	ChiakiErrorCode wait_err = CHIAKI_ERR_SUCCESS;
+	uint64_t deadline = chiaki_time_now_monotonic_ms() + timeout_ms;
+	while (!ctx->finished && wait_err == CHIAKI_ERR_SUCCESS)
+	{
+		uint64_t now = chiaki_time_now_monotonic_ms();
+		if (now >= deadline)
+			break;
+		wait_err = chiaki_cond_timedwait(&ctx->cond, &ctx->mutex, deadline - now);
+	}
+
+	if (ctx->finished)
+	{
+		chiaki_mutex_unlock(&ctx->mutex);
+		chiaki_thread_join(&thread, NULL);
+		int r = ctx->result;
+		*out_addrinfos = ctx->addrinfos;
+		chiaki_cond_fini(&ctx->cond);
+		chiaki_mutex_fini(&ctx->mutex);
+		free(ctx->host);
+		free(ctx);
+		return r;
+	}
+	else
+	{
+		ctx->abandoned = true;
+		chiaki_mutex_unlock(&ctx->mutex);
+		chiaki_thread_detach(&thread);
+		CHIAKI_LOGE(log, "DNS resolution timed out after %llu ms for '%s'", (unsigned long long)timeout_ms, host);
+		return EAI_AGAIN;
+	}
 }
 
 #endif // CHIAKI_UTILS_H

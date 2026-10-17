@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <chiaki/discoveryservice.h>
+#include "utils.h"
 
 #include <string.h>
 #include <assert.h>
@@ -176,10 +177,10 @@ static void discovery_service_ping(ChiakiDiscoveryService *service)
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_family = ((struct sockaddr *)service->options.send_addr)->sa_family;
-		int r = getaddrinfo(service->options.send_host, NULL, &hints, &host_addrinfos);
+		int r = chiaki_resolve_host_async(service->log, service->options.send_host, &hints, &host_addrinfos, 2000);
 		if(r != 0)
 		{
-			CHIAKI_LOGE(service->log, "getaddrinfo failed");
+			CHIAKI_LOGE(service->log, "DiscoveryService failed to resolve host '%s'", service->options.send_host);
 			return;
 		}
 
