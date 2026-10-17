@@ -103,7 +103,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
+          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DCHIAKI_ENABLE_STEAMWORKS=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
       - name: Build AstraPlay
         run: |
@@ -248,7 +248,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMWORKS=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
+          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCHIAKI_ENABLE_CLI=OFF -DCHIAKI_ENABLE_STEAMDECK_NATIVE=OFF -DCHIAKI_ENABLE_STEAMWORKS=OFF -DCHIAKI_ENABLE_STEAM_SHORTCUT=ON
 
       - name: Build AstraPlay ARM64
         run: |
