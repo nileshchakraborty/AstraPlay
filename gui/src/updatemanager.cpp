@@ -91,6 +91,14 @@ bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &er
             return false;
         }
     }
+#elif defined(Q_OS_MACOS)
+    if (filePath.endsWith(QLatin1String(".zip"), Qt::CaseInsensitive)) {
+        // Zip magic: 'P', 'K'
+        if (header.size() < 2 || header[0] != 'P' || header[1] != 'K') {
+            errorMsg = tr("Downloaded payload is not a valid zip archive.");
+            return false;
+        }
+    }
 #endif
 
     return true;
@@ -363,29 +371,49 @@ void UpdateManager::onCheckFinished()
     }
     m_downloadUrl = bestUrl;
 #elif defined(Q_OS_MACOS)
-    QString bestUrl;
-    QString universalUrl;
+    QString bestZipUrl;
+    QString bestDmgUrl;
+    QString universalZipUrl;
+    QString universalDmgUrl;
     for (const auto &val : assets) {
         QJsonObject asset = val.toObject();
         QString name = asset.value("name").toString();
         QString dlUrl = asset.value("browser_download_url").toString();
 
-        if (name.endsWith(QLatin1String(".dmg"), Qt::CaseInsensitive)) {
-            bool assetIsArm = name.contains(QLatin1String("arm64"), Qt::CaseInsensitive);
-            bool assetIsX86 = name.contains(QLatin1String("x86_64"), Qt::CaseInsensitive);
+        bool isZip = name.endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
+        bool isDmg = name.endsWith(QLatin1String(".dmg"), Qt::CaseInsensitive);
+        if (!isZip && !isDmg)
+            continue;
 
-            if (isArm && assetIsArm) {
-                bestUrl = dlUrl;
-                break;
-            } else if (isX86 && assetIsX86) {
-                bestUrl = dlUrl;
-                break;
-            } else if (!assetIsArm && !assetIsX86) {
-                universalUrl = dlUrl;
-            }
+        bool assetIsArm = name.contains(QLatin1String("arm64"), Qt::CaseInsensitive);
+        bool assetIsX86 = name.contains(QLatin1String("x86_64"), Qt::CaseInsensitive);
+
+        if (isZip) {
+            if (isArm && assetIsArm)
+                bestZipUrl = dlUrl;
+            else if (isX86 && assetIsX86)
+                bestZipUrl = dlUrl;
+            else if (!assetIsArm && !assetIsX86 && universalZipUrl.isEmpty())
+                universalZipUrl = dlUrl;
+        } else if (isDmg) {
+            if (isArm && assetIsArm)
+                bestDmgUrl = dlUrl;
+            else if (isX86 && assetIsX86)
+                bestDmgUrl = dlUrl;
+            else if (!assetIsArm && !assetIsX86 && universalDmgUrl.isEmpty())
+                universalDmgUrl = dlUrl;
         }
     }
-    m_downloadUrl = !bestUrl.isEmpty() ? bestUrl : universalUrl;
+    // Prefer .zip payload: extracts in sub-second via ditto with zero disk image mount/unmount overhead,
+    // avoiding "Resource busy" kernel lock conflicts and macOS Sequoia Gatekeeper DMG mount blockers.
+    if (!bestZipUrl.isEmpty())
+        m_downloadUrl = bestZipUrl;
+    else if (!universalZipUrl.isEmpty())
+        m_downloadUrl = universalZipUrl;
+    else if (!bestDmgUrl.isEmpty())
+        m_downloadUrl = bestDmgUrl;
+    else
+        m_downloadUrl = universalDmgUrl;
 #elif defined(Q_OS_WIN)
     QString msiUrl;
     QString installerExeUrl;
@@ -905,18 +933,30 @@ void UpdateManager::installAndRestart()
     }
 #elif defined(Q_OS_MACOS)
     // Silent replace-and-relaunch: a helper script waits for our PID to exit,
-    // extracts the new .app from the downloaded .dmg/.zip, dittos it over this
-    // bundle in place, then reopens it. Falls back to opening the file if the
-    // running app isn't inside a writable .app bundle (e.g. translocated run
-    // from Downloads or from a mounted disk image) or the payload is a .pkg.
-    QString appBundlePath = QFileInfo(QCoreApplication::applicationDirPath() + QStringLiteral("/../..")).absoluteFilePath();
+    // extracts the new .app from the downloaded .zip/.dmg, dittos it over the
+    // target bundle, clears Gatekeeper quarantine, applies ad-hoc signature,
+    // and reopens it. Handles AppTranslocation, mounted volumes, and user-dir fallback.
+    QString appBundlePath = QFileInfo(QCoreApplication::applicationDirPath() + QStringLiteral("/../..")).canonicalFilePath();
+    if (appBundlePath.isEmpty())
+        appBundlePath = QFileInfo(QCoreApplication::applicationDirPath() + QStringLiteral("/../..")).absoluteFilePath();
+
     QString lowerPath = m_downloadedFilePath.toLower();
     bool isPayload = lowerPath.endsWith(QLatin1String(".dmg")) || lowerPath.endsWith(QLatin1String(".zip"));
-    bool inBundle = appBundlePath.endsWith(QLatin1String(".app"), Qt::CaseInsensitive)
-        && QDir(appBundlePath).exists()
-        && !appBundlePath.startsWith(QLatin1String("/Volumes/"))
-        && !appBundlePath.contains(QLatin1String("AppTranslocation"));
-    if (isPayload && inBundle) {
+
+    // If running from AppTranslocation, mounted DMG, or Downloads, target standard /Applications
+    QString targetBundle = appBundlePath;
+    if (targetBundle.contains(QLatin1String("AppTranslocation"), Qt::CaseInsensitive)
+        || targetBundle.startsWith(QLatin1String("/Volumes/"), Qt::CaseInsensitive)
+        || targetBundle.contains(QLatin1String("/Downloads/"), Qt::CaseInsensitive)
+        || !targetBundle.endsWith(QLatin1String(".app"), Qt::CaseInsensitive)) {
+        if (QFileInfo(QStringLiteral("/Applications")).isWritable()) {
+            targetBundle = QStringLiteral("/Applications/AstraPlay.app");
+        } else {
+            targetBundle = QDir::home().filePath(QStringLiteral("Applications/AstraPlay.app"));
+        }
+    }
+
+    if (isPayload) {
         qint64 currentPid = QCoreApplication::applicationPid();
         bool isDmg = lowerPath.endsWith(QLatin1String(".dmg"));
         QString scriptPath = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(QStringLiteral("astraplay_update.sh"));
@@ -924,52 +964,107 @@ void UpdateManager::installAndRestart()
         if (scriptFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
             QTextStream out(&scriptFile);
             out << "#!/bin/sh\n";
-            out << "APP_BUNDLE=" << escapeSh(appBundlePath) << "\n";
+            out << "LOG=\"/tmp/astraplay_update.log\"\n";
+            out << "echo \"=== AstraPlay macOS Update $(date) ===\" > \"$LOG\" 2>&1\n";
+            out << "APP_BUNDLE=" << escapeSh(targetBundle) << "\n";
             out << "UPDATE_FILE=" << escapeSh(m_downloadedFilePath) << "\n";
-            out << "while kill -0 " << currentPid << " 2>/dev/null; do sleep 0.2; done\n";
+            out << "echo \"Target bundle: $APP_BUNDLE\" >> \"$LOG\"\n";
+            out << "echo \"Update file:   $UPDATE_FILE\" >> \"$LOG\"\n";
+            out << "for i in $(seq 1 50); do\n";
+            out << "  if ! kill -0 " << currentPid << " 2>/dev/null; then break; fi\n";
+            out << "  sleep 0.2\n";
+            out << "done\n";
+            out << "if kill -0 " << currentPid << " 2>/dev/null; then\n";
+            out << "  kill -9 " << currentPid << " 2>/dev/null || true\n";
+            out << "fi\n";
             out << "WORKDIR=$(mktemp -d /tmp/astraplay-upd.XXXXXX) || exit 1\n";
-            out << "cleanup() { hdiutil detach -force \"$WORKDIR/mnt\" >/dev/null 2>&1; rm -rf \"$WORKDIR\"; }\n";
+            out << "cleanup() {\n";
+            out << "  hdiutil detach -force \"$WORKDIR/mnt\" >/dev/null 2>&1 || true\n";
+            out << "  hdiutil detach \"/Volumes/AstraPlay\" -force >/dev/null 2>&1 || true\n";
+            out << "  rm -rf \"$WORKDIR\"\n";
+            out << "}\n";
             out << "trap cleanup EXIT INT TERM\n";
+            out << "xattr -c \"$UPDATE_FILE\" 2>/dev/null || true\n";
             if (isDmg) {
                 out << "mkdir -p \"$WORKDIR/mnt\"\n";
-                out << "if ! hdiutil attach -nobrowse -mountpoint \"$WORKDIR/mnt\" \"$UPDATE_FILE\" >/dev/null 2>&1; then\n";
-                out << "  open \"$UPDATE_FILE\"; rm -rf \"$WORKDIR\"; rm -f \"$0\"; exit 0\n";
+                out << "hdiutil detach \"/Volumes/AstraPlay\" -force >/dev/null 2>&1 || true\n";
+                out << "if ! hdiutil attach -nobrowse -readonly -mountpoint \"$WORKDIR/mnt\" \"$UPDATE_FILE\" >> \"$LOG\" 2>&1; then\n";
+                out << "  echo \"Mountpoint attach failed, trying default attach...\" >> \"$LOG\"\n";
+                out << "  hdiutil attach -nobrowse -readonly \"$UPDATE_FILE\" >> \"$LOG\" 2>&1 || true\n";
                 out << "fi\n";
-                out << "NEWAPP=$(find \"$WORKDIR/mnt\" -maxdepth 3 -name \"*.app\" -print -quit)\n";
+                out << "NEWAPP=$(find \"$WORKDIR/mnt\" \"/Volumes/AstraPlay\" \"$WORKDIR\" -maxdepth 3 -name \"AstraPlay.app\" -print -quit 2>/dev/null)\n";
+                out << "if [ -z \"$NEWAPP\" ]; then\n";
+                out << "  NEWAPP=$(find \"$WORKDIR/mnt\" \"/Volumes/AstraPlay\" \"$WORKDIR\" -maxdepth 3 -name \"*.app\" -print -quit 2>/dev/null)\n";
+                out << "fi\n";
             } else {
-                out << "if ! ditto -x -k \"$UPDATE_FILE\" \"$WORKDIR\" >/dev/null 2>&1; then\n";
-                out << "  open \"$UPDATE_FILE\"; rm -rf \"$WORKDIR\"; rm -f \"$0\"; exit 0\n";
+                out << "if ! ditto -x -k \"$UPDATE_FILE\" \"$WORKDIR\" >> \"$LOG\" 2>&1; then\n";
+                out << "  echo \"ditto zip extraction failed!\" >> \"$LOG\"\n";
                 out << "fi\n";
-                out << "NEWAPP=$(find \"$WORKDIR\" -maxdepth 3 -name \"*.app\" -print -quit)\n";
+                out << "NEWAPP=$(find \"$WORKDIR\" -maxdepth 3 -name \"AstraPlay.app\" -print -quit 2>/dev/null)\n";
+                out << "if [ -z \"$NEWAPP\" ]; then\n";
+                out << "  NEWAPP=$(find \"$WORKDIR\" -maxdepth 3 -name \"*.app\" -print -quit 2>/dev/null)\n";
+                out << "fi\n";
             }
-            out << "if [ -z \"$NEWAPP\" ]; then\n";
-            out << "  cleanup; open \"$UPDATE_FILE\"; rm -f \"$0\"; exit 0\n";
+            out << "echo \"Discovered new app at: $NEWAPP\" >> \"$LOG\"\n";
+            out << "if [ -z \"$NEWAPP\" ] || [ ! -d \"$NEWAPP\" ]; then\n";
+            out << "  echo \"Could not find valid .app in payload!\" >> \"$LOG\"\n";
+            out << "  cleanup\n";
+            out << "  exit 1\n";
             out << "fi\n";
-            out << "TMP_BUNDLE=\"${APP_BUNDLE}.new.$$\"\n";
-            out << "rm -rf \"$TMP_BUNDLE\"\n";
-            out << "if ditto \"$NEWAPP\" \"$TMP_BUNDLE\"; then\n";
-            out << "  OLD_BUNDLE=\"${APP_BUNDLE}.old.$$\"\n";
-            out << "  rm -rf \"$OLD_BUNDLE\"\n";
-            out << "  mv \"$APP_BUNDLE\" \"$OLD_BUNDLE\" 2>/dev/null\n";
-            out << "  if mv \"$TMP_BUNDLE\" \"$APP_BUNDLE\"; then\n";
-            out << "    rm -rf \"$OLD_BUNDLE\"\n";
-            out << "    xattr -dr com.apple.quarantine \"$APP_BUNDLE\" 2>/dev/null || true\n";
-            out << "    cleanup; rm -f \"$UPDATE_FILE\"\n";
-            out << "    open \"$APP_BUNDLE\"\n";
-            out << "  else\n";
-            out << "    mv \"$OLD_BUNDLE\" \"$APP_BUNDLE\" 2>/dev/null\n";
-            out << "    rm -rf \"$TMP_BUNDLE\"\n";
-            out << "    cleanup; open \"$UPDATE_FILE\"\n";
+            out << "REPLACED=0\n";
+            out << "TARGET_DIR=\"$(dirname \"$APP_BUNDLE\")\"\n";
+            out << "mkdir -p \"$TARGET_DIR\" >> \"$LOG\" 2>&1 || true\n";
+            out << "if [ -w \"$TARGET_DIR\" ]; then\n";
+            out << "  TMP_BUNDLE=\"${APP_BUNDLE}.new.$$\"\n";
+            out << "  rm -rf \"$TMP_BUNDLE\" 2>/dev/null\n";
+            out << "  echo \"Staging to $TMP_BUNDLE...\" >> \"$LOG\"\n";
+            out << "  if ditto \"$NEWAPP\" \"$TMP_BUNDLE\" >> \"$LOG\" 2>&1; then\n";
+            out << "    OLD_BUNDLE=\"${APP_BUNDLE}.old.$$\"\n";
+            out << "    rm -rf \"$OLD_BUNDLE\" 2>/dev/null\n";
+            out << "    mv \"$APP_BUNDLE\" \"$OLD_BUNDLE\" 2>/dev/null || true\n";
+            out << "    if mv \"$TMP_BUNDLE\" \"$APP_BUNDLE\" >> \"$LOG\" 2>&1; then\n";
+            out << "      rm -rf \"$OLD_BUNDLE\" 2>/dev/null\n";
+            out << "      xattr -cr \"$APP_BUNDLE\" 2>/dev/null || true\n";
+            out << "      codesign --force --deep --sign - \"$APP_BUNDLE\" >> \"$LOG\" 2>&1 || true\n";
+            out << "      echo \"Successfully replaced $APP_BUNDLE\" >> \"$LOG\"\n";
+            out << "      REPLACED=1\n";
+            out << "    else\n";
+            out << "      echo \"mv to $APP_BUNDLE failed!\" >> \"$LOG\"\n";
+            out << "      mv \"$OLD_BUNDLE\" \"$APP_BUNDLE\" 2>/dev/null || true\n";
+            out << "      rm -rf \"$TMP_BUNDLE\" 2>/dev/null\n";
+            out << "    fi\n";
             out << "  fi\n";
-            out << "else\n";
-            out << "  rm -rf \"$TMP_BUNDLE\"\n";
-            out << "  cleanup; open \"$UPDATE_FILE\"\n";
             out << "fi\n";
-            out << "rm -f \"$0\"\n";
+            out << "if [ \"$REPLACED\" -eq 0 ]; then\n";
+            out << "  USER_APP=\"$HOME/Applications/AstraPlay.app\"\n";
+            out << "  echo \"Primary target failed, staging to user directory: $USER_APP\" >> \"$LOG\"\n";
+            out << "  mkdir -p \"$HOME/Applications\" >> \"$LOG\" 2>&1\n";
+            out << "  TMP_BUNDLE=\"${USER_APP}.new.$$\"\n";
+            out << "  rm -rf \"$TMP_BUNDLE\" 2>/dev/null\n";
+            out << "  if ditto \"$NEWAPP\" \"$TMP_BUNDLE\" >> \"$LOG\" 2>&1; then\n";
+            out << "    rm -rf \"$USER_APP\" 2>/dev/null\n";
+            out << "    if mv \"$TMP_BUNDLE\" \"$USER_APP\" >> \"$LOG\" 2>&1; then\n";
+            out << "      xattr -cr \"$USER_APP\" 2>/dev/null || true\n";
+            out << "      codesign --force --deep --sign - \"$USER_APP\" >> \"$LOG\" 2>&1 || true\n";
+            out << "      echo \"Successfully installed to $USER_APP\" >> \"$LOG\"\n";
+            out << "      APP_BUNDLE=\"$USER_APP\"\n";
+            out << "      REPLACED=1\n";
+            out << "    fi\n";
+            out << "  fi\n";
+            out << "fi\n";
+            out << "cleanup\n";
+            out << "rm -f \"$UPDATE_FILE\" 2>/dev/null || true\n";
+            out << "rm -f \"$0\" 2>/dev/null || true\n";
+            out << "if [ \"$REPLACED\" -eq 1 ]; then\n";
+            out << "  echo \"Launching updated app: $APP_BUNDLE\" >> \"$LOG\"\n";
+            out << "  open \"$APP_BUNDLE\"\n";
+            out << "else\n";
+            out << "  echo \"Update installation failed!\" >> \"$LOG\"\n";
+            out << "fi\n";
             scriptFile.close();
-            QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+            QFile::setPermissions(scriptPath, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner | QFile::ReadGroup | QFile::ExeGroup | QFile::ReadOther | QFile::ExeOther);
             QProcess::startDetached(QStringLiteral("/bin/sh"), QStringList() << scriptPath);
-            QGuiApplication::quit();
+            QCoreApplication::exit(0);
             return;
         }
     }

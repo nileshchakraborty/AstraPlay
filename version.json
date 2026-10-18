@@ -28,8 +28,16 @@
       "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-arm64.dmg"
     },
     {
+      "name": "AstraPlay-macOS-arm64.zip",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-arm64.zip"
+    },
+    {
       "name": "AstraPlay-macOS-x86_64.dmg",
       "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-x86_64.dmg"
+    },
+    {
+      "name": "AstraPlay-macOS-x86_64.zip",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-x86_64.zip"
     },
     {
       "name": "AstraPlay-Android.apk",
