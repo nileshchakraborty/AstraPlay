@@ -1161,9 +1161,20 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
     }
     if (session_info.hw_decoder == "vulkan") {
 #if defined(Q_OS_LINUX)
-        if(qEnvironmentVariableIsSet("APPIMAGE") && (qEnvironmentVariableIsSet("SteamDeck") || qEnvironmentVariable("DESKTOP_SESSION").contains("steamos")))
+        bool is_steamos_or_bazzite = qEnvironmentVariableIsSet("SteamDeck") ||
+                                     qEnvironmentVariable("DESKTOP_SESSION").contains("steamos") ||
+                                     qEnvironmentVariable("XDG_CURRENT_DESKTOP").contains("gamescope");
+        if (!is_steamos_or_bazzite) {
+            QFile osRelease(QStringLiteral("/etc/os-release"));
+            if (osRelease.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                const QString osData = QString::fromUtf8(osRelease.readAll());
+                if (osData.contains("bazzite", Qt::CaseInsensitive) || osData.contains("steamos", Qt::CaseInsensitive))
+                    is_steamos_or_bazzite = true;
+            }
+        }
+        if(is_steamos_or_bazzite)
         {
-            qCInfo(chiakiGui) << "Auto hw decoder falling back to vaapi because radv has a bug with vulkan hw decode in SteamOS 3.6";
+            qCInfo(chiakiGui) << "Auto hw decoder selecting vaapi for SteamOS/Bazzite handheld compatibility";
             session_info.hw_decoder = "vaapi";
         }
         else

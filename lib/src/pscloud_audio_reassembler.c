@@ -156,11 +156,11 @@ static ChiakiErrorCode chiaki_pscloud_audio_reassembler_fec(
 	size_t erasures_count = expected_total - received_total;
 	if(erasures_count == 0)
 		return CHIAKI_ERR_SUCCESS; // Nothing to recover
-	
-	unsigned int *erasures = calloc(erasures_count, sizeof(unsigned int));
-	if(!erasures)
-		return CHIAKI_ERR_MEMORY;
-	
+	if(erasures_count > UNIT_SLOTS_MAX)
+		return CHIAKI_ERR_INVALID_DATA;
+
+	unsigned int erasures[UNIT_SLOTS_MAX];
+
 	size_t erasure_index = 0;
 	for(uint16_t i = 0; i < expected_total; i++)
 	{
@@ -169,7 +169,6 @@ static ChiakiErrorCode chiaki_pscloud_audio_reassembler_fec(
 			if(erasure_index >= erasures_count)
 			{
 				assert(false);
-				free(erasures);
 				return CHIAKI_ERR_UNKNOWN;
 			}
 			erasures[erasure_index++] = (unsigned int)i;
@@ -209,7 +208,6 @@ static ChiakiErrorCode chiaki_pscloud_audio_reassembler_fec(
 		}
 	}
 	
-	free(erasures);
 	return err;
 }
 

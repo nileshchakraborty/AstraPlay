@@ -760,6 +760,25 @@ void StreamSession::Start()
 	// that. chiaki_session_join itself is also guarded now, so even a stale flag can no
 	// longer reach pthread_join with an invalid handle.
 	session_started = true;
+#if defined(Q_OS_LINUX)
+	QTimer::singleShot(100, this, [this]() {
+		QProcess *proc = new QProcess(this);
+		connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this, proc](int exitCode, QProcess::ExitStatus status) {
+			Q_UNUSED(exitCode);
+			Q_UNUSED(status);
+			QString out = QString::fromUtf8(proc->readAllStandardOutput()).trimmed();
+			if (out.contains("power save: on", Qt::CaseInsensitive)) {
+				CHIAKI_LOGW(this->log.GetChiakiLog(), 
+					"Linux Wi-Fi 802.11 power saving is ON. This may cause 15-40ms latency spikes during video bursts. "
+					"Run 'iw dev <interface> set power_save off' or disable wifi.powersave in NetworkManager.");
+			} else if (out.contains("power save: off", Qt::CaseInsensitive)) {
+				CHIAKI_LOGI(this->log.GetChiakiLog(), "Linux Wi-Fi power saving is OFF (optimal for streaming)");
+			}
+			proc->deleteLater();
+		});
+		proc->start("sh", QStringList() << "-c" << "for iface in $(iw dev 2>/dev/null | awk '$1==\"Interface\"{print $2}'); do iw dev \"$iface\" get power_save 2>/dev/null; done");
+	});
+#endif
 }
 
 void StreamSession::Stop()
@@ -1305,6 +1324,9 @@ void StreamSession::InitAudio(unsigned int channels, unsigned int rate)
 	}
 	if(audio_out_device_name.isEmpty())
 		audio_out_device_name = "Auto";
+
+	if(audio_buffer_size == 0)
+		audio_buffer_size = obtained.size;
 
 	audio_out_drain_queue = false;
 

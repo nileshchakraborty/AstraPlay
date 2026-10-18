@@ -60,11 +60,22 @@ static void *congestion_control_thread_func(void *user)
 			}
 		}
 
-		if(control->packet_loss > control->packet_loss_max)
+		if(control->packet_loss_max > 0.0 && control->packet_loss > control->packet_loss_max)
 		{
-			CHIAKI_LOGW(control->takion->log, "Increasing received packets to reduce hit on stream quality");
-			lost = total * control->packet_loss_max;
-			received = total - lost;
+			/* If congestion persists (> 5 ticks / ~1.0s), allow genuine loss feedback to reach the console
+			 * so the encoder lowers its QP and bitrate rather than overwhelming the network buffer */
+			if(control->congestion_ticks > 5)
+			{
+				CHIAKI_LOGD(control->takion->log, "Sustained congestion (%u ticks): reporting un-clamped loss %.2f%% to console encoder",
+					(unsigned int)control->congestion_ticks, control->packet_loss * 100.0);
+			}
+			else
+			{
+				CHIAKI_LOGW(control->takion->log, "Transient burst loss: clamping loss to %.2f%% to prevent premature stream degradation",
+					control->packet_loss_max * 100.0);
+				lost = (uint64_t)(total * control->packet_loss_max);
+				received = total - lost;
+			}
 		}
 
 		packet.received = (uint16_t)received;
