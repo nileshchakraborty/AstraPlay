@@ -25,10 +25,19 @@ platform :android do
     end
     UI.user_error!("Could not determine Android versionCode (set ANDROID_VERSION_CODE or run from android/ with Gradle)") if vc.nil? || vc.empty?
 
-    changelog_text = "Continuing to provide regular updates and improvements for a better experience!"
     changelog_dir = File.expand_path("metadata/android/en-US/changelogs", __dir__)
     FileUtils.mkdir_p(changelog_dir)
-    File.write(File.join(changelog_dir, "#{vc}.txt"), changelog_text)
+    vc_changelog = File.join(changelog_dir, "#{vc}.txt")
+    default_changelog = File.join(changelog_dir, "default.txt")
+    unless File.file?(vc_changelog)
+      if File.file?(default_changelog)
+        FileUtils.cp(default_changelog, vc_changelog)
+        UI.message("Copied default changelog to #{vc}.txt")
+      else
+        File.write(vc_changelog, "Continuing to provide regular updates and improvements for a better experience!\n")
+        UI.message("Wrote fallback changelog to #{vc}.txt")
+      end
+    end
 
     supply_args = {
       json_key: json_key,
