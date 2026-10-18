@@ -42,6 +42,7 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QImageReader>
+#include <QFile>
 #include <QProcessEnvironment>
 #include <QDesktopServices>
 #include <QtConcurrent>

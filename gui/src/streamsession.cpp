@@ -13,6 +13,7 @@
 #include "../../lib/src/utils.h"
 
 #include <QKeyEvent>
+#include <QProcess>
 #include <QtMath>
 
 #include <cstring>
