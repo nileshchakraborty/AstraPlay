@@ -46,6 +46,7 @@ class QmlMainWindow : public QWindow
     Q_PROPERTY(float ZoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
     Q_PROPERTY(VideoPreset videoPreset READ videoPreset WRITE setVideoPreset NOTIFY videoPresetChanged)
     Q_PROPERTY(bool directStream READ directStream NOTIFY directStreamChanged)
+    Q_PROPERTY(bool overlayActive READ overlayActive WRITE setOverlayActive NOTIFY overlayActiveChanged)
 
 public:
     enum class VideoMode {
@@ -74,6 +75,9 @@ public:
     int droppedFrames() const;
 
     bool directStream() const;
+
+    bool overlayActive() const { return overlay_active.load(std::memory_order_relaxed); }
+    void setOverlayActive(bool active);
 
     bool keepVideo() const;
     void setKeepVideo(bool keep);
@@ -117,6 +121,7 @@ signals:
     void videoPresetChanged();
     void menuRequested();
     void directStreamChanged();
+    void overlayActiveChanged();
 
 private:
     void init(Settings *settings, bool exit_app_on_stream_exit = false, SteamworksWrapper *steamworks = nullptr);
@@ -184,6 +189,7 @@ private:
     bool quick_frame = false;
     bool quick_need_sync = false;
     std::atomic<bool> quick_need_render = {false};
+    std::atomic<bool> overlay_active = {true};
     pl_options renderparams_opts = {};
     bool renderparams_changed = false;
 

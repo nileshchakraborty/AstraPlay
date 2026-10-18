@@ -603,6 +603,13 @@ StreamSession::StreamSession(const StreamSessionConnectInfo &connect_info, QObje
 			emit ResolutionChanged();
 		}
 
+		double bitrate = session.stream_connection.measured_bitrate;
+		if(std::abs(bitrate - measured_bitrate) >= 0.05)
+		{
+			measured_bitrate = bitrate;
+			emit MeasuredBitrateChanged();
+		}
+
 		QString current_battery;
 		for(auto *ctrl : std::as_const(controllers))
 		{
@@ -2404,11 +2411,6 @@ void StreamSession::CancelPsnConnection(bool stop_thread)
 void StreamSession::TriggerFfmpegFrameAvailable()
 {
 	emit FfmpegFrameAvailable();
-	if(measured_bitrate != session.stream_connection.measured_bitrate)
-	{
-		measured_bitrate = session.stream_connection.measured_bitrate;
-		emit MeasuredBitrateChanged();
-	}
 }
 
 class StreamSessionPrivate

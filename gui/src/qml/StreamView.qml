@@ -73,8 +73,33 @@ Item {
             item.forceActiveFocus(Qt.TabFocusReason);
     }
 
-    StackView.onActivating: AstraPlay.window.keepVideo = true
-    StackView.onDeactivated: AstraPlay.window.keepVideo = false
+    readonly property bool overlayActive: (
+        (loadingView.visible && loadingView.opacity > 0.0) ||
+        (gameBackgroundLoader.active) ||
+        (cantDisplayMessage.visible) ||
+        (restrictedScenePill.visible) ||
+        (streamStats.visible) ||
+        (menuView.visible && menuView.opacity > 0.0) ||
+        (controllerOverlayLoader.active) ||
+        (sessionPinDialog.opened) ||
+        (sessionStopDialog.opened) ||
+        (networkIndicatorTimer.running)
+    )
+
+    Binding {
+        target: AstraPlay.window
+        property: "overlayActive"
+        value: view.overlayActive
+    }
+
+    StackView.onActivating: {
+        AstraPlay.window.keepVideo = true;
+        AstraPlay.window.overlayActive = view.overlayActive;
+    }
+    StackView.onDeactivated: {
+        AstraPlay.window.keepVideo = false;
+        AstraPlay.window.overlayActive = true;
+    }
 
     Component.onCompleted: {
         if (AstraPlay.session) {
@@ -508,120 +533,150 @@ Item {
         }
     }
 
-    Item {
+    Rectangle {
         id: streamStats
-        anchors.fill: parent
+        anchors {
+            right: parent.right
+            bottom: parent.bottom
+            rightMargin: 16
+            bottomMargin: 24
+        }
         visible: AstraPlay.settings.showStreamStats && !menuView.visible && !sessionLoading && !sessionError && !(AstraPlay.settings.audioVideoDisabled & 0x02)
+        color: Qt.rgba(10 / 255, 15 / 255, 26 / 255, 0.78)
+        border.color: Qt.rgba(255, 255, 255, 0.12)
+        border.width: 1
+        radius: 10
+        implicitWidth: statsColumn.implicitWidth + 24
+        implicitHeight: statsColumn.implicitHeight + 16
 
-        // Single bottom-right anchored column that grows UPWARD, so adding rows can
-        // never push the stats off the bottom of the screen.
         ColumnLayout {
+            id: statsColumn
             anchors {
-                right: parent.right
-                bottom: parent.bottom
-                rightMargin: 5
-                bottomMargin: 30
+                fill: parent
+                topMargin: 8
+                bottomMargin: 8
+                leftMargin: 12
+                rightMargin: 12
             }
-            spacing: 2
+            spacing: 3
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: "Mbps"
-                font.pixelSize: 18
-                visible: AstraPlay.session
+                spacing: 6
+                visible: AstraPlay.session !== null
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    // Guard the session itself, not just visibility: this binding can
-                    // re-evaluate during teardown before the parent's visible updates.
                     text: AstraPlay.session ? AstraPlay.session.measuredBitrate.toFixed(1) : ""
                     color: Material.accent
                     font.bold: true
-                    font.pixelSize: 28
+                    font.pixelSize: 22
                 }
-            }
-
-            Label {
-                Layout.alignment: Qt.AlignRight
-                id: statsPacketLossLabel
-                text: qsTr("packet loss")
-                font.pixelSize: 15
-                visible: AstraPlay.session
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    // Same teardown guard as the Mbps label above.
-                    text: AstraPlay.session ? "%1<font size=\"1\">%</font>".arg((AstraPlay.session.averagePacketLoss * 100).toFixed(1)) : ""
-                    font.bold: true
-                    color: "#ef9a9a" // Material.Red
-                    font.pixelSize: 18
+                    text: "Mbps"
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("dropped frames")
-                font.pixelSize: 15
+                spacing: 6
+                visible: AstraPlay.session !== null
+                Label {
+                    text: AstraPlay.session ? "%1%".arg((AstraPlay.session.averagePacketLoss * 100).toFixed(1)) : ""
+                    font.bold: true
+                    color: "#ef9a9a"
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("packet loss")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
+                }
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 6
+                visible: true
                 Label {
                     id: statsDroppedFramesLabel
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? AstraPlay.window.droppedFrames : ""
-                    color: "#ef9a9a" // Material.Red
+                    text: AstraPlay.window.droppedFrames
+                    color: AstraPlay.window.droppedFrames > 0 ? "#ef9a9a" : Qt.rgba(255, 255, 255, 0.75)
                     font.bold: true
-                    font.pixelSize: 18
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("dropped frames")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("fps")
-                font.pixelSize: 15
+                spacing: 6
+                visible: AstraPlay.session !== null
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (AstraPlay.session?.measuredFps ?? 0).toFixed(0) : ""
+                    text: (AstraPlay.session?.measuredFps ?? 0).toFixed(0)
                     color: Material.accent
                     font.bold: true
-                    font.pixelSize: 18
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("fps")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("ms rtt")
-                font.pixelSize: 15
+                spacing: 6
                 visible: (AstraPlay.session?.measuredRtt ?? 0) > 0
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (AstraPlay.session?.measuredRtt ?? 0).toFixed(0) : ""
+                    text: (AstraPlay.session?.measuredRtt ?? 0).toFixed(0)
                     color: Material.accent
                     font.bold: true
-                    font.pixelSize: 18
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("ms rtt")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("res")
-                font.pixelSize: 15
+                spacing: 6
                 visible: (AstraPlay.session?.resolution ?? "") !== ""
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (AstraPlay.session?.resolution ?? "") : ""
+                    text: AstraPlay.session?.resolution ?? ""
                     color: "white"
                     font.bold: true
-                    font.pixelSize: 18
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("res")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
 
-            Label {
+            RowLayout {
                 Layout.alignment: Qt.AlignRight
-                text: qsTr("ctrl bat")
-                font.pixelSize: 15
+                spacing: 6
                 visible: (AstraPlay.session?.controllerBattery ?? "") !== ""
                 Label {
-                    anchors { right: parent.left; baseline: parent.baseline; rightMargin: 5 }
-                    text: parent.visible ? (AstraPlay.session?.controllerBattery ?? "") : ""
+                    text: AstraPlay.session?.controllerBattery ?? ""
                     color: Material.accent
                     font.bold: true
-                    font.pixelSize: 18
+                    font.pixelSize: 16
+                }
+                Label {
+                    text: qsTr("ctrl bat")
+                    font.pixelSize: 14
+                    color: Qt.rgba(255, 255, 255, 0.75)
                 }
             }
         }
@@ -667,8 +722,18 @@ Item {
             anchors.fill: parent
             gradient: Gradient {
                 GradientStop { position: 0.0; color: Qt.rgba(0.0, 0.0, 0.0, 0.0) }
-                GradientStop { position: 0.7; color: Qt.rgba(0.5, 0.5, 0.5, 0.7) }
-                GradientStop { position: 1.0; color: Qt.rgba(0.5, 0.5, 0.5, 0.9) }
+                GradientStop { position: 0.45; color: Qt.rgba(10 / 255, 15 / 255, 26 / 255, 0.88) }
+                GradientStop { position: 1.0; color: Qt.rgba(10 / 255, 15 / 255, 26 / 255, 0.97) }
+            }
+
+            Rectangle {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                }
+                height: 1
+                color: Qt.rgba(245 / 255, 158 / 255, 11 / 255, 0.25)
             }
         }
 

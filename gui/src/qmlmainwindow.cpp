@@ -231,6 +231,14 @@ void QmlMainWindow::setKeepVideo(bool keep)
     emit keepVideoChanged();
 }
 
+void QmlMainWindow::setOverlayActive(bool active)
+{
+    if (overlay_active.exchange(active) != active) {
+        emit overlayActiveChanged();
+        scheduleUpdate();
+    }
+}
+
 void QmlMainWindow::grabInput()
 {
     setCursor(Qt::ArrowCursor);
@@ -1120,8 +1128,14 @@ void QmlMainWindow::render()
         .parts = &overlay_part,
         .num_parts = 1,
     };
-    target_frame.overlays = &overlay;
-    target_frame.num_overlays = 1;
+    const bool should_render_overlay = (!current_frame.num_planes) || overlay_active.load(std::memory_order_relaxed);
+    if (should_render_overlay && quick_tex) {
+        target_frame.overlays = &overlay;
+        target_frame.num_overlays = 1;
+    } else {
+        target_frame.overlays = nullptr;
+        target_frame.num_overlays = 0;
+    }
 
     const struct pl_render_params *render_params;
     switch (video_preset) {
