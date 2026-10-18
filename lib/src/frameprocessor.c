@@ -52,7 +52,7 @@ CHIAKI_EXPORT void chiaki_frame_processor_init(ChiakiFrameProcessor *frame_proce
 	frame_processor->units_fec_expected = 0;
 	frame_processor->units_source_received = 0;
 	frame_processor->units_fec_received = 0;
-	frame_processor->unit_slots = NULL;
+	frame_processor->unit_slots = calloc(UNIT_SLOTS_MAX, sizeof(ChiakiFrameUnit));
 	frame_processor->unit_slots_size = 0;
 	frame_processor->flushed = true;
 	chiaki_stream_stats_reset(&frame_processor->stream_stats);
@@ -105,27 +105,16 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_frame_processor_alloc_frame(ChiakiFrameProc
 		CHIAKI_LOGE(frame_processor->log, "Packet suggests more than %u unit slots", UNIT_SLOTS_MAX);
 		return CHIAKI_ERR_INVALID_DATA;
 	}
-	if(unit_slots_size_required != frame_processor->unit_slots_size)
+	if(!frame_processor->unit_slots)
 	{
-		void *new_ptr = NULL;
-		if(frame_processor->unit_slots)
-		{
-			new_ptr = realloc(frame_processor->unit_slots, unit_slots_size_required * sizeof(ChiakiFrameUnit));
-			if(!new_ptr)
-				free(frame_processor->unit_slots);
-		}
-		else
-			new_ptr = malloc(unit_slots_size_required * sizeof(ChiakiFrameUnit));
-
-		frame_processor->unit_slots = new_ptr;
-		if(!new_ptr)
+		frame_processor->unit_slots = calloc(UNIT_SLOTS_MAX, sizeof(ChiakiFrameUnit));
+		if(!frame_processor->unit_slots)
 		{
 			frame_processor->unit_slots_size = 0;
 			return CHIAKI_ERR_MEMORY;
 		}
-		else
-			frame_processor->unit_slots_size = unit_slots_size_required;
 	}
+	frame_processor->unit_slots_size = unit_slots_size_required;
 	memset(frame_processor->unit_slots, 0, frame_processor->unit_slots_size * sizeof(ChiakiFrameUnit));
 
 	if(frame_processor->unit_slots_size > SIZE_MAX / frame_processor->buf_stride_per_unit)
@@ -206,9 +195,10 @@ static ChiakiErrorCode chiaki_frame_processor_fec(ChiakiFrameProcessor *frame_pr
 
 	size_t erasures_count = (frame_processor->units_source_expected + frame_processor->units_fec_expected)
 			- (frame_processor->units_source_received + frame_processor->units_fec_received);
-	unsigned int *erasures = calloc(erasures_count, sizeof(unsigned int));
-	if(!erasures)
-		return CHIAKI_ERR_MEMORY;
+	if(erasures_count > UNIT_SLOTS_MAX)
+		return CHIAKI_ERR_INVALID_DATA;
+
+	unsigned int erasures[UNIT_SLOTS_MAX];
 
 	size_t erasure_index = 0;
 	for(size_t i=0; i<frame_processor->units_source_expected + frame_processor->units_fec_expected; i++)
@@ -220,7 +210,6 @@ static ChiakiErrorCode chiaki_frame_processor_fec(ChiakiFrameProcessor *frame_pr
 			{
 				// should never happen by design, but too scary not to check
 				assert(false);
-				free(erasures);
 				return CHIAKI_ERR_UNKNOWN;
 			}
 			erasures[erasure_index++] = (unsigned int)i;
@@ -260,7 +249,6 @@ static ChiakiErrorCode chiaki_frame_processor_fec(ChiakiFrameProcessor *frame_pr
 		}
 	}
 
-	free(erasures);
 	return err;
 }
 
