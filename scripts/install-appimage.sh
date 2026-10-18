@@ -120,9 +120,13 @@ chmod 755 "$staged_appimage"
 mv -f -- "$staged_appimage" "$installed_appimage"
 staged_appimage=""
 
-script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-repository_icon="$script_dir/../gui/res/logo_square_1024.png"
-if [[ -f "$repository_icon" ]]; then
+repository_icon=""
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+    repository_icon="$script_dir/../gui/res/logo_square_1024.png"
+fi
+
+if [[ -n "$repository_icon" && -f "$repository_icon" ]]; then
     cp -- "$repository_icon" "$icon_file"
 elif command -v curl >/dev/null && curl -fsSL --retry 2 \
     -o "$temp_dir/icon.png" \
