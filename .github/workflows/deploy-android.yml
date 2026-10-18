@@ -160,12 +160,10 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           if [ "$SIGNING_CONFIGURED" = "true" ]; then
-            cat >> local.properties <<PROPS
-astraplayKeystore=${{ env.KEYSTORE_PATH }}
-astraplayKeystorePW=$KEYSTORE_PASSWORD
-astraplayKeyAlias=$KEY_ALIAS
-astraplayKeyPW=$KEY_PASSWORD
-PROPS
+            echo "astraplayKeystore=${{ env.KEYSTORE_PATH }}" >> local.properties
+            echo "astraplayKeystorePW=$KEYSTORE_PASSWORD" >> local.properties
+            echo "astraplayKeyAlias=$KEY_ALIAS" >> local.properties
+            echo "astraplayKeyPW=$KEY_PASSWORD" >> local.properties
             echo "Signing configured in local.properties"
           else
             echo "No signing — unsigned build only"
