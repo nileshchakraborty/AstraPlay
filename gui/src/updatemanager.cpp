@@ -715,7 +715,7 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Process msiexec.exe -ArgumentList '/i \\\"" << nativePath << "\\\" /passive /norestart ALLUSERS=1' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << nativePath << "' -ErrorAction SilentlyContinue; Start-Process msiexec.exe -ArgumentList '/i \\\"" << nativePath << "\\\" /passive /norestart ALLUSERS=1' -Verb RunAs -Wait\" 2>nul\r\n";
             out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
             out << "    msiexec /i \"" << nativePath << "\" /passive /norestart ALLUSERS=1\r\n";
             out << ")\r\n";
@@ -745,7 +745,7 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Process '" << nativePath << "' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\\\"" << appDir << "\\\"' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << nativePath << "' -ErrorAction SilentlyContinue; Start-Process '" << nativePath << "' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\\\"" << appDir << "\\\"' -Verb RunAs -Wait\" 2>nul\r\n";
             out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
             out << "    start /wait \"\" \"" << nativePath << "\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\"" << appDir << "\"\r\n";
             out << ")\r\n";
