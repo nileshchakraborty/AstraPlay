@@ -98,24 +98,24 @@ AstraPlay supports flexible installation methods across every platform, matching
 
 ### 🍏 macOS (Apple Silicon & Intel)
 
-- **One-Command Terminal Installer (Recommended — Bypasses Gatekeeper Automatically)**:
+- **Native 1-Click Installer ZIP (Recommended)**:
+  Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  - Unzip and double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
+  - When prompted by macOS, authorize with **Touch ID** or your password. AstraPlay installs into `/Applications` with verified code signatures and zero Gatekeeper friction.
+- **One-Command Terminal Installer**:
   Run our automated installer in Terminal. It automatically detects Apple Silicon or Intel, verifies SHA-256 release checksums, installs directly into `/Applications`, and clears Gatekeeper quarantine:
   ```bash
   curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh | bash
   ```
-- **Direct Disk Image (`.dmg`) & Gatekeeper Guide**:
-  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-  - Open the `.dmg` and drag `AstraPlay.app` to your `Applications` folder.
-  - **If macOS Sequoia/Sonoma blocks opening** (*"Apple could not verify AstraPlay is free of malware"*):
-    1. Click **Done** on the alert.
-    2. Open **System Settings > Privacy & Security** and scroll to the **Security** section.
-    3. Click **Open Anyway** next to the AstraPlay notification, and confirm with **Open**.
-    4. *(Or double-click `Fix-Gatekeeper-and-Install.command` inside the DMG, or run `xattr -cr /Applications/AstraPlay.app` in Terminal).*
+- **Direct Disk Image (`.dmg`)**:
+  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  - Double-click `Install AstraPlay.app` or `Install AstraPlay.command` inside the disk image.
+  - Or drag `AstraPlay.app` to `Applications`. If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
 - **Homebrew Cask**:
   ```bash
   brew install --cask astraplay
   ```
-- **Portable ZIP**:
+- **Portable ZIP (In-App Updater Compatible)**:
   Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
 
 ---
@@ -155,8 +155,8 @@ All release binaries, packages, and SHA-256 checksums are published on the [**Gi
 | :--- | :--- | :--- | :--- |
 | **Windows** | **x86_64** (Desktop, ROG Xbox Ally X) | [`.exe Setup Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.msi WiX Installer`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`Standalone .exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Full Inno Setup installer (`astraplay-windows-installer.exe`) with Start Menu and desktop shortcut choices, WiX MSI package (`astraplay-windows-x64.msi`), portable runtime ZIP, or standalone executable. |
 | **Windows** | **ARM64** (Snapdragon X Elite, WoA) | [`.exe Setup Installer (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`Standalone .exe (ARM64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Windows on ARM Inno Setup installer (`astraplay-windows-arm64-installer.exe`), portable ARM64 ZIP, or standalone ARM64 executable. |
-| **macOS** | **Apple Silicon** (`arm64`: M1–M4) | [`.dmg Disk Image (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Apple Silicon `.dmg` installer and compressed `AstraPlay.app` bundle. |
-| **macOS** | **Intel** (`x86_64`) | [`.dmg Disk Image (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Intel x86_64 `.dmg` installer and compressed `AstraPlay.app` bundle. |
+| **macOS** | **Apple Silicon** (`arm64`: M1–M4) | [`.zip Installer (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.dmg Disk Image (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (arm64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Apple Silicon installer archive with Touch ID authorization (`AstraPlay-macOS-arm64-installer.zip`), `.dmg` disk image, and portable app bundle. |
+| **macOS** | **Intel** (`x86_64`) | [`.zip Installer (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.dmg Disk Image (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip App Bundle (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native Intel x86_64 installer archive with Touch ID authorization (`AstraPlay-macOS-x86_64-installer.zip`), `.dmg` disk image, and portable app bundle. |
 | **Linux & Handhelds** | **x86_64** (Steam Deck, ROG Ally, PC) | [`.AppImage (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (x86_64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Portable AppImage executable and Steam-ready ZIP archive with `launch.sh` for Steam Deck and Bazzite Gaming Mode. |
 | **Linux & Handhelds** | **ARM64** (`aarch64`: Raspberry Pi 5, SBCs) | [`.AppImage (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.zip Portable (aarch64)`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Native ARM64 AppImage executable and portable archive. |
 | **Android** | **Universal / ARM64 & x86** (Phones, Tablets, TV) | [`.apk Package`](https://github.com/nileshchakraborty/AstraPlay/releases/latest)<br>[`.aab Play Store Bundle`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) | Sideloadable release APK and Google Play Store App Bundle (`io.github.nileshchakraborty.astraplay`), with native binaries for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`. |

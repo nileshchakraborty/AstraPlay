@@ -320,10 +320,12 @@ jobs:
           if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
             bash ../scripts/package-macos-dmg.sh "AstraPlay.app" "AstraPlay.dmg" "-"
           fi
+          bash ../scripts/package-macos-installer-zip.sh "AstraPlay.app" "AstraPlay-macOS-arm64-installer.zip" "arm64"
           zip -ry AstraPlay-macOS.zip AstraPlay.app
           mkdir -p macos_staging
           cp AstraPlay.dmg macos_staging/AstraPlay-macOS-arm64.dmg
           cp AstraPlay.dmg macos_staging/AstraPlay-macOS.dmg
+          cp AstraPlay-macOS-arm64-installer.zip macos_staging/
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS-arm64.zip
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS.zip
 
@@ -357,9 +359,11 @@ jobs:
           if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
             bash ../scripts/package-macos-dmg.sh "AstraPlay.app" "AstraPlay.dmg" "-"
           fi
+          bash ../scripts/package-macos-installer-zip.sh "AstraPlay.app" "AstraPlay-macOS-x86_64-installer.zip" "x86_64"
           zip -ry AstraPlay-macOS-x86_64.zip AstraPlay.app
           mkdir -p macos_intel_staging
           cp AstraPlay.dmg macos_intel_staging/AstraPlay-macOS-x86_64.dmg
+          cp AstraPlay-macOS-x86_64-installer.zip macos_intel_staging/
           cp AstraPlay-macOS-x86_64.zip macos_intel_staging/
 
       - name: Upload macOS Intel Artifacts
@@ -797,6 +801,10 @@ jobs:
               cp "$MAC_ARM_DMG" dist/AstraPlay-macOS-arm64.dmg
               cp "$MAC_ARM_DMG" dist/AstraPlay-macOS.dmg
             fi
+            MAC_ARM_INSTALLER=$(find artifacts/astraplay-macos-arm64-build -name "*installer.zip" -o -name "*Installer.zip" | head -n 1)
+            if [ -n "$MAC_ARM_INSTALLER" ]; then
+              cp "$MAC_ARM_INSTALLER" dist/AstraPlay-macOS-arm64-installer.zip
+            fi
             MAC_ARM_ZIP=$(find artifacts/astraplay-macos-arm64-build -name "*arm64.zip" -o -name "*.zip" | head -n 1)
             if [ -n "$MAC_ARM_ZIP" ]; then
               cp "$MAC_ARM_ZIP" dist/AstraPlay-macOS-arm64.zip
@@ -809,6 +817,10 @@ jobs:
             MAC_INTEL_DMG=$(find artifacts/astraplay-macos-intel-build -name "*x86_64.dmg" | head -n 1)
             if [ -n "$MAC_INTEL_DMG" ]; then
               cp "$MAC_INTEL_DMG" dist/AstraPlay-macOS-x86_64.dmg
+            fi
+            MAC_INTEL_INSTALLER=$(find artifacts/astraplay-macos-intel-build -name "*installer.zip" -o -name "*Installer.zip" | head -n 1)
+            if [ -n "$MAC_INTEL_INSTALLER" ]; then
+              cp "$MAC_INTEL_INSTALLER" dist/AstraPlay-macOS-x86_64-installer.zip
             fi
             MAC_INTEL_ZIP=$(find artifacts/astraplay-macos-intel-build -name "*x86_64.zip" | head -n 1)
             if [ -n "$MAC_INTEL_ZIP" ]; then

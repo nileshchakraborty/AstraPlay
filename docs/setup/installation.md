@@ -112,27 +112,29 @@ AstraPlay provides native application packages, automated installers, and store 
 
     AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.
 
-    ### Option 1: One-Line Terminal Installer — Recommended (Bypasses Gatekeeper)
+    ### Option 1: Native 1-Click Installer ZIP — Recommended
 
-    The easiest and fastest way to install or update AstraPlay on macOS without encountering Gatekeeper prompts:
+    The most reliable and user-friendly way to install AstraPlay on modern macOS systems:
+
+    1. Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+    2. Double-click to extract the ZIP archive.
+    3. Double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
+    4. Click **Install** and authenticate when prompted via **Touch ID** or your Mac password.
+    5. AstraPlay is automatically installed into `/Applications/AstraPlay.app` with proper code signatures and zero Gatekeeper warnings.
+
+    ### Option 2: One-Line Terminal Installer
+
+    The automated CLI installer automatically downloads, verifies, installs, and unquarantines AstraPlay:
 
     ```bash
     curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh | bash
     ```
 
-    **What this does automatically:**
-    - Detects your Mac CPU architecture (`arm64` for M1/M2/M3/M4 or `x86_64` for Intel)
-    - Downloads the latest verified release from GitHub
-    - Verifies release checksums against `SHA256SUMS.txt`
-    - Installs the app bundle cleanly to `/Applications/AstraPlay.app`
-    - Strips Gatekeeper quarantine attributes (`xattr -cr`) so the app opens immediately
-    - Re-run anytime to update to the latest release
-
-    ### Option 2: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
+    ### Option 3: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
 
     1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
     2. Open the downloaded `.dmg` disk image.
-    3. Drag **AstraPlay** into your **Applications** folder (or double-click `Fix-Gatekeeper-and-Install.command` inside the disk image).
+    3. Double-click `Install AstraPlay.app` (or `Install AstraPlay.command`) inside the disk image, or drag **AstraPlay** into `/Applications`.
     4. **If macOS Sequoia or Sonoma displays** *"Apple could not verify AstraPlay is free of malware"*:
         - Click **Done** on the alert modal.
         - Open **System Settings → Privacy & Security**.
