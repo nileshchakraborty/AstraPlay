@@ -38,6 +38,15 @@ static QString escapeSh(const QString &str)
     return QLatin1Char('\'') + res + QLatin1Char('\'');
 }
 
+#ifdef Q_OS_WIN
+static QString escapePs(const QString &str)
+{
+    QString res = str;
+    res.replace(QLatin1Char('\''), QLatin1String("''"));
+    return res;
+}
+#endif
+
 bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &errorMsg)
 {
     QFileInfo fi(filePath);
@@ -715,7 +724,7 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << nativePath << "' -ErrorAction SilentlyContinue; Start-Process msiexec.exe -ArgumentList '/i \\\"" << nativePath << "\\\" /passive /norestart ALLUSERS=1' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << escapePs(nativePath) << "' -ErrorAction SilentlyContinue; Start-Process msiexec.exe -ArgumentList '/i \\\"" << nativePath << "\\\" /passive /norestart ALLUSERS=1' -Verb RunAs -Wait\" 2>nul\r\n";
             out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
             out << "    msiexec /i \"" << nativePath << "\" /passive /norestart ALLUSERS=1\r\n";
             out << ")\r\n";
@@ -745,7 +754,7 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << nativePath << "' -ErrorAction SilentlyContinue; Start-Process '" << nativePath << "' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\\\"" << appDir << "\\\"' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Unblock-File -LiteralPath '" << escapePs(nativePath) << "' -ErrorAction SilentlyContinue; Start-Process '" << escapePs(nativePath) << "' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\\\"" << escapePs(appDir) << "\\\"' -Verb RunAs -Wait\" 2>nul\r\n";
             out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
             out << "    start /wait \"\" \"" << nativePath << "\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\"" << appDir << "\"\r\n";
             out << ")\r\n";
@@ -943,6 +952,7 @@ void UpdateManager::installAndRestart()
             out << "  mv \"$APP_BUNDLE\" \"$OLD_BUNDLE\" 2>/dev/null\n";
             out << "  if mv \"$TMP_BUNDLE\" \"$APP_BUNDLE\"; then\n";
             out << "    rm -rf \"$OLD_BUNDLE\"\n";
+            out << "    xattr -dr com.apple.quarantine \"$APP_BUNDLE\" 2>/dev/null || true\n";
             out << "    cleanup; rm -f \"$UPDATE_FILE\"\n";
             out << "    open \"$APP_BUNDLE\"\n";
             out << "  else\n";

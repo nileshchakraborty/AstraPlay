@@ -33,7 +33,7 @@ DisableProgramGroupPage=yes
 LicenseFile=..\LICENSES\AGPL-3.0-only-OpenSSL.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=dialog
+PrivilegesRequiredOverridesAllowed=commandline dialog
 OutputBaseFilename=astraplay-windows-installer
 OutputDir=..
 SetupIconFile=..\gui\astraplay.ico
