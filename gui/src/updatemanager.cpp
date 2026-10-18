@@ -96,6 +96,7 @@ bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &er
 #endif
 
 static const QString REPO_RELEASES_API = QStringLiteral("https://api.github.com/repos/nileshchakraborty/AstraPlay/releases/latest");
+static const QString REPO_VERSION_FALLBACK_URL = QStringLiteral("https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/version.json");
 
 UpdateManager::UpdateManager(Settings *settings, QObject *parent)
     : QObject(parent)
@@ -216,6 +217,7 @@ void UpdateManager::checkForUpdates(bool userInitiated)
         return;
 
     m_userInitiated = userInitiated;
+    m_usedFallback = false;
     m_checking = true;
     emit checkingChanged();
 
@@ -250,10 +252,29 @@ void UpdateManager::onCheckFinished()
     if (!m_checkReply)
         return;
 
+    int statusCode = m_checkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    bool hasNetworkError = (m_checkReply->error() != QNetworkReply::NoError);
+    bool isHttpError = (statusCode == 403 || statusCode >= 400);
+
+    if ((hasNetworkError || isHttpError) && !m_usedFallback) {
+        qWarning() << "[UpdateManager] Primary update check failed (HTTP" << statusCode
+                   << (hasNetworkError ? m_checkReply->errorString() : QString())
+                   << "), attempting CDN fallback:" << REPO_VERSION_FALLBACK_URL;
+        m_usedFallback = true;
+        m_checkReply->deleteLater();
+        m_checkReply = nullptr;
+
+        QNetworkRequest fallbackRequest{QUrl(REPO_VERSION_FALLBACK_URL)};
+        fallbackRequest.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
+        m_checkReply = m_nam->get(fallbackRequest);
+        connect(m_checkReply, &QNetworkReply::finished, this, &UpdateManager::onCheckFinished);
+        return;
+    }
+
     m_checking = false;
     emit checkingChanged();
 
-    if (m_checkReply->error() != QNetworkReply::NoError) {
+    if (hasNetworkError) {
         qWarning() << "[UpdateManager] Network error checking updates:" << m_checkReply->errorString();
         m_statusMessage = tr("Failed to check for updates: %1").arg(m_checkReply->errorString());
         emit statusMessageChanged();
@@ -270,6 +291,17 @@ void UpdateManager::onCheckFinished()
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        if (!m_usedFallback) {
+            qWarning() << "[UpdateManager] JSON parse error, attempting CDN fallback:" << REPO_VERSION_FALLBACK_URL;
+            m_usedFallback = true;
+            m_checking = true;
+            emit checkingChanged();
+            QNetworkRequest fallbackRequest{QUrl(REPO_VERSION_FALLBACK_URL)};
+            fallbackRequest.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
+            m_checkReply = m_nam->get(fallbackRequest);
+            connect(m_checkReply, &QNetworkReply::finished, this, &UpdateManager::onCheckFinished);
+            return;
+        }
         qWarning() << "[UpdateManager] JSON parse error:" << parseError.errorString();
         m_statusMessage = tr("Failed to parse release metadata.");
         emit statusMessageChanged();
@@ -757,15 +789,26 @@ void UpdateManager::installAndRestart()
     if (m_downloadedFilePath.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
         // Find installed AppImage target ($APPIMAGE environment variable or standard location)
         QString appImageTarget = qEnvironmentVariable("APPIMAGE");
-        if (appImageTarget.isEmpty()) {
+        const QString optPath = QDir::home().filePath(QStringLiteral(".local/opt/astraplay/AstraPlay.AppImage"));
+        if (!appImageTarget.isEmpty()) {
+            QFileInfo fi(appImageTarget);
+            QFileInfo dirFi(fi.dir().absolutePath());
+            if ((fi.exists() && !fi.isWritable()) || !dirFi.isWritable()) {
+                qWarning() << "[UpdateManager] APPIMAGE target is not writable:" << appImageTarget << "falling back to" << optPath;
+                appImageTarget = optPath;
+            }
+        } else {
             QString appPath = QCoreApplication::applicationFilePath();
             if (appPath.endsWith(QLatin1String(".AppImage"), Qt::CaseInsensitive)) {
-                appImageTarget = appPath;
-            } else {
-                QString optPath = QDir::home().filePath(QStringLiteral(".local/opt/astraplay/AstraPlay.AppImage"));
-                if (QFile::exists(optPath)) {
+                QFileInfo fi(appPath);
+                QFileInfo dirFi(fi.dir().absolutePath());
+                if ((!fi.exists() || fi.isWritable()) && dirFi.isWritable()) {
+                    appImageTarget = appPath;
+                } else {
                     appImageTarget = optPath;
                 }
+            } else {
+                appImageTarget = optPath;
             }
         }
 
@@ -796,6 +839,7 @@ void UpdateManager::installAndRestart()
             out << "  exit 1\n";
             out << "fi\n";
             out << "chmod +x \"$UPDATE\" >> \"$LOG\" 2>&1\n";
+            out << "REPLACED=0\n";
             out << "if [ -n \"$TARGET\" ]; then\n";
             out << "  TARGET_DIR=\"$(dirname \"$TARGET\")\"\n";
             out << "  mkdir -p \"$TARGET_DIR\" >> \"$LOG\" 2>&1\n";
@@ -805,6 +849,7 @@ void UpdateManager::installAndRestart()
             out << "    chmod +x \"$TMP_TARGET\" >> \"$LOG\" 2>&1\n";
             out << "    if mv -f \"$TMP_TARGET\" \"$TARGET\" >> \"$LOG\" 2>&1; then\n";
             out << "      echo \"Atomic replacement succeeded: $TARGET\" >> \"$LOG\"\n";
+            out << "      REPLACED=1\n";
             out << "      rm -f \"$UPDATE\" 2>/dev/null\n";
             out << "      rm -f \"$0\" 2>/dev/null\n";
             out << "      exec \"$TARGET\"\n";
@@ -816,10 +861,21 @@ void UpdateManager::installAndRestart()
             out << "    echo \"cp to $TMP_TARGET failed!\" >> \"$LOG\"\n";
             out << "    rm -f \"$TMP_TARGET\" 2>/dev/null\n";
             out << "  fi\n";
-            out << "  if [ -x \"$TARGET\" ]; then\n";
-            out << "    echo \"Falling back to existing target: $TARGET\" >> \"$LOG\"\n";
-            out << "    rm -f \"$0\" 2>/dev/null\n";
-            out << "    exec \"$TARGET\"\n";
+            out << "fi\n";
+            out << "if [ \"$REPLACED\" -eq 0 ]; then\n";
+            out << "  FALLBACK_TARGET=\"$HOME/.local/opt/astraplay/AstraPlay.AppImage\"\n";
+            out << "  if [ \"$TARGET\" != \"$FALLBACK_TARGET\" ]; then\n";
+            out << "    echo \"Attempting fallback staging to $FALLBACK_TARGET\" >> \"$LOG\"\n";
+            out << "    mkdir -p \"$HOME/.local/opt/astraplay\" >> \"$LOG\" 2>&1\n";
+            out << "    if cp -f \"$UPDATE\" \"${FALLBACK_TARGET}.new.$$\" >> \"$LOG\" 2>&1; then\n";
+            out << "      chmod +x \"${FALLBACK_TARGET}.new.$$\" >> \"$LOG\" 2>&1\n";
+            out << "      if mv -f \"${FALLBACK_TARGET}.new.$$\" \"$FALLBACK_TARGET\" >> \"$LOG\" 2>&1; then\n";
+            out << "        echo \"Fallback replacement succeeded: $FALLBACK_TARGET\" >> \"$LOG\"\n";
+            out << "        rm -f \"$UPDATE\" 2>/dev/null\n";
+            out << "        rm -f \"$0\" 2>/dev/null\n";
+            out << "        exec \"$FALLBACK_TARGET\"\n";
+            out << "      fi\n";
+            out << "    fi\n";
             out << "  fi\n";
             out << "fi\n";
             out << "echo \"Executing UPDATE directly: $UPDATE\" >> \"$LOG\"\n";

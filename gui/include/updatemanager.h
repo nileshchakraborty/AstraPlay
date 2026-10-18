@@ -123,6 +123,7 @@ private:
     QString m_downloadedFilePath;
     QFile *m_downloadFile = nullptr;
     bool m_userCancelled = false;
+    bool m_usedFallback = false;
 
     qint64 m_bytesReceived = 0;
     qint64 m_bytesTotal = 0;

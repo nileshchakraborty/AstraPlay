@@ -861,7 +861,11 @@ jobs:
             fi
           fi
 
-          # 9. Checksums
+          # 9. Generate version.json for CDN / Fastly rate-limit bypass
+          python3 scripts/generate_version_json.py dist "${{ steps.versioning.outputs.tag }}" "$GITHUB_REPOSITORY" dist/version.json
+          cp dist/version.json ./version.json
+
+          # 10. Checksums
           cd dist
           sha256sum * > SHA256SUMS.txt
           cd ..

@@ -1,0 +1,43 @@
+{
+  "tag_name": "v2.12.16",
+  "html_url": "https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.16",
+  "body": "AstraPlay v2.12.16: Resilient cross-device auto-updates with Inno Setup elevation and package channel isolation.",
+  "assets": [
+    {
+      "name": "astraplay-windows-installer.exe",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/astraplay-windows-installer.exe"
+    },
+    {
+      "name": "astraplay-windows-x64.zip",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/astraplay-windows-x64.zip"
+    },
+    {
+      "name": "astraplay-windows-arm64-installer.exe",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/astraplay-windows-arm64-installer.exe"
+    },
+    {
+      "name": "AstraPlay-Linux-x86_64.AppImage",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-Linux-x86_64.AppImage"
+    },
+    {
+      "name": "AstraPlay-Linux-aarch64.AppImage",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-Linux-aarch64.AppImage"
+    },
+    {
+      "name": "AstraPlay-macOS-arm64.dmg",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-arm64.dmg"
+    },
+    {
+      "name": "AstraPlay-macOS-x86_64.dmg",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-macOS-x86_64.dmg"
+    },
+    {
+      "name": "AstraPlay-Android.apk",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-Android.apk"
+    },
+    {
+      "name": "AstraPlay-iOS.ipa",
+      "browser_download_url": "https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.16/AstraPlay-iOS.ipa"
+    }
+  ]
+}
