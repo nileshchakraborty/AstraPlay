@@ -80,9 +80,10 @@ Get running immediately with one command in Terminal or PowerShell. These automa
 - **In-App Direct Updates (v2.12.16+)**:
   AstraPlay includes a built-in background updater in **Settings → Check for Updates**. Updates download lightweight `.zip` application bundles, extract via `ditto` without disk image mount locks, automatically prompt for Touch ID elevation if `/Applications` permissions require it, and restart seamlessly with clean code signatures.
 - **Direct Disk Image (`.dmg`)**:
-  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1/M2/M3/M4+).
   - Open the DMG and drag `AstraPlay.app` into `Applications`.
   - If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
+  - *Legacy Intel Mac Notice*: **v2.12.17** is the final release supporting Intel (`x86_64`) Macs. Intel users can download the final legacy binary from the [v2.12.17 Release](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17). All future releases exclusively target Apple Silicon.
 - **Homebrew Cask (Recommended for macOS — Automated Gatekeeper Bypass)**:
   Install via our official Homebrew tap. Homebrew automatically removes the quarantine attribute during installation so AstraPlay runs out-of-the-box without Gatekeeper warnings:
   ```bash
@@ -94,7 +95,7 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   brew install --cask astraplay
   ```
 - **Portable ZIP (In-App Updater Compatible)**:
-  Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
+  Download and extract `AstraPlay-macOS-arm64.zip` directly into `~/Applications`.
 
 ---
 

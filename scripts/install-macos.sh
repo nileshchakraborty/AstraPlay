@@ -64,11 +64,13 @@ case "$(uname -m)" in
         asset="AstraPlay-macOS-arm64.zip"
         fallback_asset="AstraPlay-macOS-arm64.dmg"
         arch_label="Apple Silicon (arm64)"
+        release_url="https://github.com/nileshchakraborty/AstraPlay/releases/latest/download"
         ;;
     x86_64)
         asset="AstraPlay-macOS-x86_64.zip"
         fallback_asset="AstraPlay-macOS-x86_64.dmg"
-        arch_label="Intel (x86_64)"
+        arch_label="Intel (x86_64 - Legacy Final Release v2.12.17)"
+        release_url="https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.17"
         ;;
     *)
         printf 'Error: Unsupported CPU architecture: %s\n' "$(uname -m)" >&2
@@ -113,8 +115,12 @@ else
         command -v "$cmd" >/dev/null || { printf 'Error: %s command is required but not installed\n' "$cmd" >&2; exit 1; }
     done
 
-    release_url="https://github.com/nileshchakraborty/AstraPlay/releases/latest/download"
-    printf 'Downloading latest %s from GitHub Releases...\n' "$asset"
+    release_url="${release_url:-https://github.com/nileshchakraborty/AstraPlay/releases/latest/download}"
+    if [[ "$(uname -m)" == "x86_64" ]]; then
+        printf '  Notice: v2.12.17 is the final release supporting Intel Macs.\n'
+        printf '          Newer AstraPlay releases exclusively target Apple Silicon.\n\n'
+    fi
+    printf 'Downloading %s from %s...\n' "$asset" "$release_url"
     if ! curl -fsSL --retry 3 -o "$temp_dir/$asset" "$release_url/$asset"; then
         printf 'ZIP archive not found on release, trying DMG fallback (%s)...\n' "$fallback_asset"
         asset="$fallback_asset"

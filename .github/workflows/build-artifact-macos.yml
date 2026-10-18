@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       arch:
-        description: "Target macOS architecture (universal builds use the App Store workflow)"
+        description: "Target macOS architecture (Note: x86_64 Intel is legacy, discontinued after v2.12.17)"
         required: true
         type: choice
         default: "arm64"

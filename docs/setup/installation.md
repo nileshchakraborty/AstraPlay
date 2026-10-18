@@ -104,9 +104,12 @@ AstraPlay provides native application packages, automated installers, and store 
     4. Click **Add Selected Programs**.
     5. Return to **Gaming Mode**. AstraPlay will be in your **Non-Steam** library ready to stream.
 
-=== "macOS (Apple Silicon & Intel)"
+=== "macOS (Apple Silicon & Intel Legacy)"
 
     AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.
+
+    !!! note "Intel Mac Deprecation Notice"
+        **v2.12.17 is the final release supporting Intel (`x86_64`) Macs.** All future AstraPlay releases exclusively target Apple Silicon (`arm64`). Intel Mac users should download the final supported binary from the [v2.12.17 Release](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17).
 
     ### Option 1: One-Line Terminal Installer — Recommended (Zero Gatekeeper Warnings)
 
@@ -118,13 +121,13 @@ AstraPlay provides native application packages, automated installers, and store 
 
     **Why this is recommended on macOS Sonoma & Sequoia:**
     - **Bypasses Gatekeeper without warnings**: Downloads performed via `curl` inside Terminal never inherit Apple's `com.apple.quarantine` extended attribute, completely avoiding the *"Apple could not verify..."* error.
-    - **Automatic CPU Detection**: Detects Apple Silicon (M1–M4) or Intel and downloads the matching build.
+    - **Automatic CPU Detection**: Detects Apple Silicon (M1–M4) or Intel (automatically downloads the final v2.12.17 Intel build on x86_64).
     - **Checksum Verification**: Verifies integrity against `SHA256SUMS.txt`.
     - **Instant Clean Launch**: Installs to `/Applications/AstraPlay.app`, validates ad-hoc signatures, and opens AstraPlay immediately.
 
     ### Option 2: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
 
-    1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+    1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or legacy [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17) (Intel Mac final build).
     2. Open the downloaded `.dmg` disk image.
     3. Drag **AstraPlay** into `/Applications`.
     4. **If macOS Sequoia or Sonoma displays** *"Apple could not verify AstraPlay is free of malware"*:

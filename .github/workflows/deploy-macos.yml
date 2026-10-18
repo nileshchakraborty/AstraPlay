@@ -59,13 +59,9 @@ jobs:
       matrix:
         include:
           - arch: ARM64
-            runner: macos-26
+            runner: macos-15
             brew_prefix: /opt/homebrew
             cmake_arch: arm64
-          - arch: x86_64
-            runner: macos-26-intel
-            brew_prefix: /usr/local
-            cmake_arch: x86_64
 
     steps:
       - uses: actions/checkout@v7
