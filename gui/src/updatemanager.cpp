@@ -385,6 +385,10 @@ void UpdateManager::onCheckFinished()
         if (!isZip && !isDmg)
             continue;
 
+        // Skip installer ZIPs/DMGs for the in-app updater - prefer clean application payloads
+        if (name.contains(QLatin1String("installer"), Qt::CaseInsensitive))
+            continue;
+
         bool assetIsArm = name.contains(QLatin1String("arm64"), Qt::CaseInsensitive);
         bool assetIsX86 = name.contains(QLatin1String("x86_64"), Qt::CaseInsensitive);
 
@@ -1033,6 +1037,14 @@ void UpdateManager::installAndRestart()
             out << "      mv \"$OLD_BUNDLE\" \"$APP_BUNDLE\" 2>/dev/null || true\n";
             out << "      rm -rf \"$TMP_BUNDLE\" 2>/dev/null\n";
             out << "    fi\n";
+            out << "  fi\n";
+            out << "fi\n";
+            out << "if [ \"$REPLACED\" -eq 0 ] && [ \"$APP_BUNDLE\" = \"/Applications/AstraPlay.app\" ]; then\n";
+            out << "  echo \"Attempting elevated replacement via osascript...\" >> \"$LOG\"\n";
+            out << "  CMD=\"rm -rf '$APP_BUNDLE' && cp -R '$NEWAPP' '$APP_BUNDLE' && xattr -cr '$APP_BUNDLE' && codesign --force --deep --sign - '$APP_BUNDLE' 2>/dev/null || true\"\n";
+            out << "  if osascript -e \"do shell script \\\"$CMD\\\" with administrator privileges\" >> \"$LOG\" 2>&1; then\n";
+            out << "    echo \"Elevated replacement succeeded: $APP_BUNDLE\" >> \"$LOG\"\n";
+            out << "    REPLACED=1\n";
             out << "  fi\n";
             out << "fi\n";
             out << "if [ \"$REPLACED\" -eq 0 ]; then\n";
