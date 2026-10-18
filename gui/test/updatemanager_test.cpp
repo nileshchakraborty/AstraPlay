@@ -17,6 +17,7 @@ private slots:
     void testVerifyValidPayload();
     void testPathEscaping();
     void testVersionJsonStructure();
+    void testIntelMacDeprecationLogic();
 };
 
 void UpdateManagerTest::testIsVersionNewer()
@@ -198,6 +199,30 @@ void UpdateManagerTest::testVersionJsonStructure()
     QVERIFY(foundWindows);
     QVERIFY(foundLinux);
     QVERIFY(foundMac);
+}
+
+void UpdateManagerTest::testIntelMacDeprecationLogic()
+{
+    const QString finalIntelVersion = QStringLiteral("2.12.17");
+
+    // Intel Mac on v2.12.17: cannot be upgraded further because it is the final supported Intel release
+    bool runningFinalOrNewer17 = !UpdateManager::isVersionNewer(finalIntelVersion, QStringLiteral("2.12.17"));
+    QVERIFY(runningFinalOrNewer17);
+
+    // Intel Mac on v2.12.18: cannot be upgraded further
+    bool runningFinalOrNewer18 = !UpdateManager::isVersionNewer(finalIntelVersion, QStringLiteral("2.12.18"));
+    QVERIFY(runningFinalOrNewer18);
+
+    // Intel Mac on v2.12.16 (older): should still upgrade to 2.12.17
+    bool runningOlder16 = UpdateManager::isVersionNewer(finalIntelVersion, QStringLiteral("2.12.16"));
+    QVERIFY(runningOlder16);
+
+    // Intel Mac on v2.12.15 (older): should still upgrade to 2.12.17
+    bool runningOlder15 = UpdateManager::isVersionNewer(finalIntelVersion, QStringLiteral("2.12.15"));
+    QVERIFY(runningOlder15);
+
+    // Remote v2.12.18 is newer than local v2.12.17
+    QVERIFY(UpdateManager::isVersionNewer(QStringLiteral("v2.12.18"), QStringLiteral("2.12.17")));
 }
 
 QTEST_GUILESS_MAIN(UpdateManagerTest)

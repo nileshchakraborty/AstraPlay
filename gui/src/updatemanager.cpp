@@ -397,27 +397,58 @@ void UpdateManager::onCheckFinished()
                 bestZipUrl = dlUrl;
             else if (isX86 && assetIsX86)
                 bestZipUrl = dlUrl;
-            else if (!assetIsArm && !assetIsX86 && universalZipUrl.isEmpty())
+            else if (isArm && !assetIsArm && !assetIsX86 && universalZipUrl.isEmpty())
                 universalZipUrl = dlUrl;
         } else if (isDmg) {
             if (isArm && assetIsArm)
                 bestDmgUrl = dlUrl;
             else if (isX86 && assetIsX86)
                 bestDmgUrl = dlUrl;
-            else if (!assetIsArm && !assetIsX86 && universalDmgUrl.isEmpty())
+            else if (isArm && !assetIsArm && !assetIsX86 && universalDmgUrl.isEmpty())
                 universalDmgUrl = dlUrl;
         }
     }
-    // Prefer .zip payload: extracts in sub-second via ditto with zero disk image mount/unmount overhead,
-    // avoiding "Resource busy" kernel lock conflicts and macOS Sequoia Gatekeeper DMG mount blockers.
-    if (!bestZipUrl.isEmpty())
-        m_downloadUrl = bestZipUrl;
-    else if (!universalZipUrl.isEmpty())
-        m_downloadUrl = universalZipUrl;
-    else if (!bestDmgUrl.isEmpty())
-        m_downloadUrl = bestDmgUrl;
-    else
-        m_downloadUrl = universalDmgUrl;
+
+    if (isX86) {
+        // Intel Mac (x86_64): v2.12.17 is the final release supporting Intel hardware.
+        // All subsequent releases exclusively target Apple Silicon (arm64).
+        const QString FINAL_INTEL_VERSION = QStringLiteral("2.12.17");
+        bool isRunningFinalOrNewer = !isVersionNewer(FINAL_INTEL_VERSION, currentVer);
+
+        if (isRunningFinalOrNewer) {
+            // Already running v2.12.17 (or newer). No further updates exist for Intel.
+            hasUpdate = false;
+            m_downloadUrl.clear();
+            m_statusMessage = tr("You are running the final release for Intel Macs (v%1). Future releases require Apple Silicon (arm64).").arg(currentVer);
+        } else {
+            // Running an older version (e.g. v2.12.16 or earlier) on an Intel Mac.
+            if (!bestZipUrl.isEmpty()) {
+                m_downloadUrl = bestZipUrl;
+            } else if (!bestDmgUrl.isEmpty()) {
+                m_downloadUrl = bestDmgUrl;
+            } else {
+                // If the remote latest release has no x86_64 binaries (v2.12.18+),
+                // offer upgrade to the final Intel release v2.12.17.
+                hasUpdate = true;
+                m_latestVersion = QStringLiteral("v2.12.17");
+                m_releaseUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17");
+                m_downloadUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.17/AstraPlay-macOS-x86_64.zip");
+                m_statusMessage = tr("Update available: v2.12.17 (Final supported release for Intel Macs; newer versions require Apple Silicon).");
+            }
+        }
+    } else {
+        // Apple Silicon (arm64):
+        // Prefer .zip payload: extracts in sub-second via ditto with zero disk image mount/unmount overhead,
+        // avoiding "Resource busy" kernel lock conflicts and macOS Sequoia Gatekeeper DMG mount blockers.
+        if (!bestZipUrl.isEmpty())
+            m_downloadUrl = bestZipUrl;
+        else if (!universalZipUrl.isEmpty())
+            m_downloadUrl = universalZipUrl;
+        else if (!bestDmgUrl.isEmpty())
+            m_downloadUrl = bestDmgUrl;
+        else
+            m_downloadUrl = universalDmgUrl;
+    }
 #elif defined(Q_OS_WIN)
     QString msiUrl;
     QString installerExeUrl;
@@ -456,10 +487,12 @@ void UpdateManager::onCheckFinished()
     m_updateAvailable = hasUpdate;
     emit updateAvailableChanged();
 
-    if (hasUpdate) {
-        m_statusMessage = tr("Update available: %1 (Current: %2)").arg(tagName, currentVer);
-    } else {
-        m_statusMessage = tr("You are up to date (Version %1).").arg(currentVer);
+    if (m_statusMessage.isEmpty() || m_statusMessage == tr("Checking for updates...")) {
+        if (hasUpdate) {
+            m_statusMessage = tr("Update available: %1 (Current: %2)").arg(tagName, currentVer);
+        } else {
+            m_statusMessage = tr("You are up to date (Version %1).").arg(currentVer);
+        }
     }
     emit statusMessageChanged();
 
