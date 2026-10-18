@@ -614,8 +614,12 @@ if [ "$SKIP_DMG_NOTARIZE" = "true" ]; then
 else
     echo "=== Creating DMG ==="
     rm -f "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
-    hdiutil create -srcfolder "$BUILD_OUTPUT_DIR/AstraPlay.app" "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
-    codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
+    if [ -x "$SCRIPT_DIR/package-macos-dmg.sh" ]; then
+        "$SCRIPT_DIR/package-macos-dmg.sh" "$BUILD_OUTPUT_DIR/AstraPlay.app" "$BUILD_OUTPUT_DIR/AstraPlay.dmg" "$SIGN_ID"
+    else
+        hdiutil create -srcfolder "$BUILD_OUTPUT_DIR/AstraPlay.app" -volname "AstraPlay" -ov "$BUILD_OUTPUT_DIR/AstraPlay.dmg"
+        codesign --force "${CODE_SIGN_EXTRA[@]}" --sign "$SIGN_ID" "$BUILD_OUTPUT_DIR/AstraPlay.dmg" 2>/dev/null || true
+    fi
 
     # ========== Notarize ==========
     if [ "$NOTARIZE" = "true" ]; then

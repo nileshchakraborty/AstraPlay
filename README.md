@@ -98,14 +98,23 @@ AstraPlay supports flexible installation methods across every platform, matching
 
 ### 🍏 macOS (Apple Silicon & Intel)
 
-- **Drag-and-Drop Disk Image (`.dmg`) — Recommended**:
-  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel). Open the `.dmg` and drag `AstraPlay.app` into your `Applications` folder.
+- **One-Command Terminal Installer (Recommended — Bypasses Gatekeeper Automatically)**:
+  Run our automated installer in Terminal. It automatically detects Apple Silicon or Intel, verifies SHA-256 release checksums, installs directly into `/Applications`, and clears Gatekeeper quarantine:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh | bash
+  ```
+- **Direct Disk Image (`.dmg`) & Gatekeeper Guide**:
+  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  - Open the `.dmg` and drag `AstraPlay.app` to your `Applications` folder.
+  - **If macOS Sequoia/Sonoma blocks opening** (*"Apple could not verify AstraPlay is free of malware"*):
+    1. Click **Done** on the alert.
+    2. Open **System Settings > Privacy & Security** and scroll to the **Security** section.
+    3. Click **Open Anyway** next to the AstraPlay notification, and confirm with **Open**.
+    4. *(Or double-click `Fix-Gatekeeper-and-Install.command` inside the DMG, or run `xattr -cr /Applications/AstraPlay.app` in Terminal).*
 - **Homebrew Cask**:
   ```bash
   brew install --cask astraplay
   ```
-- **Mac App Store**:
-  Install directly from the Mac App Store for automatic updates.
 - **Portable ZIP**:
   Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
 

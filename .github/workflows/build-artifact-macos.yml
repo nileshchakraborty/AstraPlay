@@ -45,7 +45,7 @@ jobs:
         working-directory: build-output
         run: |
           if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
-            hdiutil create -srcfolder "AstraPlay.app" -volname "AstraPlay" "AstraPlay.dmg"
+            bash ../scripts/package-macos-dmg.sh "AstraPlay.app" "AstraPlay.dmg" "-"
           fi
           zip -ry AstraPlay-macos-${{ inputs.arch || 'arm64' }}.zip AstraPlay.app
 

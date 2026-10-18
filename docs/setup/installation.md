@@ -112,14 +112,37 @@ AstraPlay provides native application packages, automated installers, and store 
 
     AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.
 
-    ### Option 1: Drag-and-Drop Disk Image (`.dmg`) — Recommended
+    ### Option 1: One-Line Terminal Installer — Recommended (Bypasses Gatekeeper)
 
-    1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (for Apple Silicon M1/M2/M3/M4 Macs) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (for Intel Macs).
+    The easiest and fastest way to install or update AstraPlay on macOS without encountering Gatekeeper prompts:
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh | bash
+    ```
+
+    **What this does automatically:**
+    - Detects your Mac CPU architecture (`arm64` for M1/M2/M3/M4 or `x86_64` for Intel)
+    - Downloads the latest verified release from GitHub
+    - Verifies release checksums against `SHA256SUMS.txt`
+    - Installs the app bundle cleanly to `/Applications/AstraPlay.app`
+    - Strips Gatekeeper quarantine attributes (`xattr -cr`) so the app opens immediately
+    - Re-run anytime to update to the latest release
+
+    ### Option 2: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
+
+    1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
     2. Open the downloaded `.dmg` disk image.
-    3. Drag the **AstraPlay** application icon into your **Applications** folder.
-    4. Launch **AstraPlay** from Launchpad or Spotlight.
+    3. Drag **AstraPlay** into your **Applications** folder (or double-click `Fix-Gatekeeper-and-Install.command` inside the disk image).
+    4. **If macOS Sequoia or Sonoma displays** *"Apple could not verify AstraPlay is free of malware"*:
+        - Click **Done** on the alert modal.
+        - Open **System Settings → Privacy & Security**.
+        - Scroll down to the **Security** section.
+        - You will see: *"AstraPlay was blocked to protect your Mac."*
+        - Click **Open Anyway**, enter your Mac password or Touch ID, and click **Open**.
+        - *(Or run `xattr -cr /Applications/AstraPlay.app` in Terminal).*
+        - You only need to do this once; AstraPlay will launch normally from Launchpad, Spotlight, or Dock thereafter.
 
-    ### Option 2: Homebrew Cask
+    ### Option 3: Homebrew Cask
 
     Install via Homebrew terminal:
 
@@ -131,10 +154,6 @@ AstraPlay provides native application packages, automated installers, and store 
     ```bash
     brew upgrade --cask astraplay
     ```
-
-    ### Option 3: Mac App Store
-
-    Download directly from the [Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for automatic background updates.
 
     ### Option 4: Portable App Bundle ZIP
 
