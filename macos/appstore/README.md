@@ -37,7 +37,7 @@ This folder holds **Mac App Store–only** assets. The usual **Developer ID + DM
    ./macos/build-appstore.sh
    ```
 
-   On **Apple Silicon**, the script defaults to an **arm64-only** app (same as a typical `/opt/homebrew` setup). Note: Releases after **v2.12.17** exclusively target Apple Silicon (`arm64`); Intel (`x86_64`) builds are retired legacy. For historical universal testing, `ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh` requires an x86_64 dependency stack.
+   On **Apple Silicon**, the script defaults to an **arm64-only** app (same as a typical `/opt/homebrew` setup). Note: Releases after **v2.12.18** exclusively target Apple Silicon (`arm64`); Intel (`x86_64`) builds are retired legacy. For historical universal testing, `ASTRAPLAY_MAC_APPSTORE_UNIVERSAL=1 ./macos/build-appstore.sh` requires an x86_64 dependency stack.
 
    - **Clean + rebuild from scratch** (removes `build-arm64` / `build-x86_64` / `build-universal` and `AstraPlay.app` / `AstraPlay-appstore.pkg` / `AstraPlay.dmg`; keeps `build-output/MoltenVK*` cache):
 
