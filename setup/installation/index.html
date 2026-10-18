@@ -600,10 +600,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-1-drag-and-drop-disk-image-dmg-recommended" class="md-nav__link">
+  <a href="#option-1-one-line-terminal-installer-recommended-bypasses-gatekeeper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Drag-and-Drop Disk Image (.dmg) — Recommended
+        Option 1: One-Line Terminal Installer — Recommended (Bypasses Gatekeeper)
       
     </span>
   </a>
@@ -611,10 +611,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-2-homebrew-cask" class="md-nav__link">
+  <a href="#option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Homebrew Cask
+        Option 2: Drag-and-Drop Disk Image (.dmg) &amp; Gatekeeper Handling
       
     </span>
   </a>
@@ -622,10 +622,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-3-mac-app-store" class="md-nav__link">
+  <a href="#option-3-homebrew-cask" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 3: Mac App Store
+        Option 3: Homebrew Cask
       
     </span>
   </a>
@@ -951,10 +951,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-1-drag-and-drop-disk-image-dmg-recommended" class="md-nav__link">
+  <a href="#option-1-one-line-terminal-installer-recommended-bypasses-gatekeeper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Drag-and-Drop Disk Image (.dmg) — Recommended
+        Option 1: One-Line Terminal Installer — Recommended (Bypasses Gatekeeper)
       
     </span>
   </a>
@@ -962,10 +962,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-2-homebrew-cask" class="md-nav__link">
+  <a href="#option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: Homebrew Cask
+        Option 2: Drag-and-Drop Disk Image (.dmg) &amp; Gatekeeper Handling
       
     </span>
   </a>
@@ -973,10 +973,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#option-3-mac-app-store" class="md-nav__link">
+  <a href="#option-3-homebrew-cask" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 3: Mac App Store
+        Option 3: Homebrew Cask
       
     </span>
   </a>
@@ -1166,22 +1166,40 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 </div>
 <div class="tabbed-block">
 <p>AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.</p>
-<h3 id="option-1-drag-and-drop-disk-image-dmg-recommended">Option 1: Drag-and-Drop Disk Image (<code>.dmg</code>) — Recommended<a class="headerlink" href="#option-1-drag-and-drop-disk-image-dmg-recommended" title="Permanent link">&para;</a></h3>
+<h3 id="option-1-one-line-terminal-installer-recommended-bypasses-gatekeeper">Option 1: One-Line Terminal Installer — Recommended (Bypasses Gatekeeper)<a class="headerlink" href="#option-1-one-line-terminal-installer-recommended-bypasses-gatekeeper" title="Permanent link">&para;</a></h3>
+<p>The easiest and fastest way to install or update AstraPlay on macOS without encountering Gatekeeper prompts:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</code></pre></div>
+<p><strong>What this does automatically:</strong>
+- Detects your Mac CPU architecture (<code>arm64</code> for M1/M2/M3/M4 or <code>x86_64</code> for Intel)
+- Downloads the latest verified release from GitHub
+- Verifies release checksums against <code>SHA256SUMS.txt</code>
+- Installs the app bundle cleanly to <code>/Applications/AstraPlay.app</code>
+- Strips Gatekeeper quarantine attributes (<code>xattr -cr</code>) so the app opens immediately
+- Re-run anytime to update to the latest release</p>
+<h3 id="option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling">Option 2: Drag-and-Drop Disk Image (<code>.dmg</code>) &amp; Gatekeeper Handling<a class="headerlink" href="#option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Download <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-arm64.dmg</code></a> (for Apple Silicon M1/M2/M3/M4 Macs) or <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-x86_64.dmg</code></a> (for Intel Macs).</li>
+<li>Download <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-arm64.dmg</code></a> (Apple Silicon M1–M4) or <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-x86_64.dmg</code></a> (Intel).</li>
 <li>Open the downloaded <code>.dmg</code> disk image.</li>
-<li>Drag the <strong>AstraPlay</strong> application icon into your <strong>Applications</strong> folder.</li>
-<li>Launch <strong>AstraPlay</strong> from Launchpad or Spotlight.</li>
+<li>Drag <strong>AstraPlay</strong> into your <strong>Applications</strong> folder (or double-click <code>Fix-Gatekeeper-and-Install.command</code> inside the disk image).</li>
+<li><strong>If macOS Sequoia or Sonoma displays</strong> <em>"Apple could not verify AstraPlay is free of malware"</em>:<ul>
+<li>Click <strong>Done</strong> on the alert modal.</li>
+<li>Open <strong>System Settings → Privacy &amp; Security</strong>.</li>
+<li>Scroll down to the <strong>Security</strong> section.</li>
+<li>You will see: <em>"AstraPlay was blocked to protect your Mac."</em></li>
+<li>Click <strong>Open Anyway</strong>, enter your Mac password or Touch ID, and click <strong>Open</strong>.</li>
+<li><em>(Or run <code>xattr -cr /Applications/AstraPlay.app</code> in Terminal).</em></li>
+<li>You only need to do this once; AstraPlay will launch normally from Launchpad, Spotlight, or Dock thereafter.</li>
+</ul>
+</li>
 </ol>
-<h3 id="option-2-homebrew-cask">Option 2: Homebrew Cask<a class="headerlink" href="#option-2-homebrew-cask" title="Permanent link">&para;</a></h3>
+<h3 id="option-3-homebrew-cask">Option 3: Homebrew Cask<a class="headerlink" href="#option-3-homebrew-cask" title="Permanent link">&para;</a></h3>
 <p>Install via Homebrew terminal:</p>
 <div class="highlight"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>astraplay
 </code></pre></div>
 <p>To upgrade via Homebrew:
 <div class="highlight"><pre><span></span><code>brew<span class="w"> </span>upgrade<span class="w"> </span>--cask<span class="w"> </span>astraplay
 </code></pre></div></p>
-<h3 id="option-3-mac-app-store">Option 3: Mac App Store<a class="headerlink" href="#option-3-mac-app-store" title="Permanent link">&para;</a></h3>
-<p>Download directly from the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest">Mac App Store</a> for automatic background updates.</p>
 <h3 id="option-4-portable-app-bundle-zip">Option 4: Portable App Bundle ZIP<a class="headerlink" href="#option-4-portable-app-bundle-zip" title="Permanent link">&para;</a></h3>
 <p>Download and extract <code>AstraPlay-macOS-arm64.zip</code> directly into <code>~/Applications</code>.</p>
 </div>
@@ -1246,7 +1264,7 @@ adb<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 17, 2026 02:36:41 UTC">October 17, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 18, 2026 18:37:59 UTC">October 18, 2026</span>
   </span>
 
     
