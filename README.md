@@ -83,8 +83,14 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
   - Open the DMG and drag `AstraPlay.app` into `Applications`.
   - If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
-- **Homebrew Cask**:
+- **Homebrew Cask (Recommended for macOS — Automated Gatekeeper Bypass)**:
+  Install via our official Homebrew tap. Homebrew automatically removes the quarantine attribute during installation so AstraPlay runs out-of-the-box without Gatekeeper warnings:
   ```bash
+  brew install --cask nileshchakraborty/astraplay/astraplay
+  ```
+  Or tap the repository first:
+  ```bash
+  brew tap nileshchakraborty/astraplay
   brew install --cask astraplay
   ```
 - **Portable ZIP (In-App Updater Compatible)**:

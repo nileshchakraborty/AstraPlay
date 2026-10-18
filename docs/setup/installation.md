@@ -136,11 +136,18 @@ AstraPlay provides native application packages, automated installers, and store 
         - *(Or run `xattr -cr /Applications/AstraPlay.app` in Terminal).*
         - You only need to do this once; AstraPlay will launch normally thereafter.
 
-    ### Option 3: Homebrew Cask
+    ### Option 3: Homebrew Cask (Recommended — Automated Gatekeeper Bypass)
 
-    Install via Homebrew terminal:
+    Install via our official Homebrew tap. The Homebrew Cask automatically clears the macOS quarantine flag during postflight setup, allowing AstraPlay to launch immediately without manual Gatekeeper approval:
 
     ```bash
+    brew install --cask nileshchakraborty/astraplay/astraplay
+    ```
+
+    Or tap the repository first and install:
+
+    ```bash
+    brew tap nileshchakraborty/astraplay
     brew install --cask astraplay
     ```
 
