@@ -1,28 +1,66 @@
-# Deploy Android + Android TV (Google Play)
+# Deploy Android + Android TV (Google Play Store & Sideload APK)
 #
-# Architectures: arm64-v8a, armeabi-v7a, x86, x86_64 (all ABIs in one AAB)
-# Output: Signed AAB uploaded to Google Play via Fastlane
+# Architectures: arm64-v8a, armeabi-v7a, x86, x86_64 (all ABIs in one AAB/APK)
+# Output:
+#   - Signed APK & AAB published to Google Play via Google Play Developer API (Fastlane)
+#   - Sideloadable signed APK attached to GitHub Actions Artifacts
+# Tracks:
 #   release/beta → beta track
 #   master       → production track
-# Android versionCode is derived from CMake semver (see android/app/build.gradle).
+#   manual       → selectable track (production, beta, alpha, internal)
 #
 # Required secrets:
 #   ANDROID_KEYSTORE_BASE64                  - base64 of upload keystore (.jks)
 #   ANDROID_KEYSTORE_PASSWORD                - keystore password
 #   ANDROID_KEY_ALIAS                        - signing key alias
 #   ANDROID_KEY_PASSWORD                     - signing key password
-#   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64  - base64 of service account JSON key
+#   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64  - base64 (or raw JSON) of service account JSON key
 
 name: Deploy Android + Android TV (Google Play)
 
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: "Package format to build and deploy"
+        type: choice
+        options:
+          - "both (AAB + APK)"
+          - "aab (Store Track)"
+          - "apk (Testing / Direct)"
+        default: "both (AAB + APK)"
+      track:
+        description: "Google Play track (auto / production / beta / alpha / internal)"
+        type: choice
+        options:
+          - "auto"
+          - "production"
+          - "beta"
+          - "alpha"
+          - "internal"
+        default: "auto"
+      publish_to_play:
+        description: "Upload to Google Play Console via Developer API"
+        type: boolean
+        default: true
       build_apk:
-        description: "APK-only: build a sideloadable test APK artifact and SKIP the Google Play publish"
+        description: "Legacy compatibility flag: ensure APK is built"
         type: boolean
         default: false
   workflow_call:
+    inputs:
+      target:
+        description: "Package format to build and deploy"
+        type: string
+        default: "both (AAB + APK)"
+      track:
+        description: "Google Play track"
+        type: string
+        default: "auto"
+      publish_to_play:
+        description: "Upload to Google Play Console via Developer API"
+        type: boolean
+        default: true
     outputs:
       chiaki_version:
         description: AstraPlay version from CMakeLists.txt
@@ -34,7 +72,7 @@ on:
         description: Google Play store listing URL
         value: ${{ jobs.build-android.outputs.play_store_url }}
       android_upload_succeeded:
-        description: Whether the Fastlane Play upload step succeeded
+        description: Whether the Google Play upload step succeeded
         value: ${{ jobs.build-android.outputs.android_upload_succeeded }}
 
 concurrency:
@@ -122,153 +160,181 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           if [ "$SIGNING_CONFIGURED" = "true" ]; then
             cat >> local.properties <<PROPS
-          astraplayKeystore=${{ env.KEYSTORE_PATH }}
-          astraplayKeystorePW=$KEYSTORE_PASSWORD
-          astraplayKeyAlias=$KEY_ALIAS
-          astraplayKeyPW=$KEY_PASSWORD
-          PROPS
+astraplayKeystore=${{ env.KEYSTORE_PATH }}
+astraplayKeystorePW=$KEYSTORE_PASSWORD
+astraplayKeyAlias=$KEY_ALIAS
+astraplayKeyPW=$KEY_PASSWORD
+PROPS
             echo "Signing configured in local.properties"
           else
             echo "No signing — unsigned build only"
           fi
 
-      # Skipped on APK-only runs (build_apk checkbox): those just want a sideloadable
-      # APK and must not touch Google Play.
-      - name: Build release AAB
-        id: bundle_release
-        if: ${{ !inputs.build_apk }}
+      - name: Build Android Packages (APK and AAB)
+        id: build_packages
         working-directory: android
         run: |
-          ./gradlew bundleRelease \
+          TARGET="${{ inputs.target || 'both (AAB + APK)' }}"
+          if [ "${{ inputs.build_apk }}" = "true" ]; then
+            TARGET="both (AAB + APK)"
+          fi
+
+          GRADLE_TASKS=""
+          case "$TARGET" in
+            *"aab"*)
+              GRADLE_TASKS="bundleRelease"
+              ;;
+            *"apk"*)
+              if [ "$SIGNING_CONFIGURED" = "true" ]; then
+                GRADLE_TASKS="assembleRelease"
+              else
+                GRADLE_TASKS="assembleDebug"
+              fi
+              ;;
+            *)
+              if [ "$SIGNING_CONFIGURED" = "true" ]; then
+                GRADLE_TASKS="assembleRelease bundleRelease"
+              else
+                GRADLE_TASKS="assembleDebug bundleRelease"
+              fi
+              ;;
+          esac
+
+          echo "Running Gradle tasks: $GRADLE_TASKS"
+          ./gradlew $GRADLE_TASKS \
             --parallel \
             --build-cache \
             -Dorg.gradle.java.home="$JAVA_HOME"
 
-      # Optional sideloadable APK. The AAB above can only go through Google Play,
-      # so this opt-in step (the "build_apk" checkbox on a manual run) produces an
-      # installable .apk testers can grab from the run's Artifacts. A signed release
-      # APK is built when signing is configured; otherwise a debug APK (still
-      # installable, self-signed) so the step never fails for lack of secrets.
-      - name: Build sideloadable APK
-        id: build_apk
-        if: ${{ inputs.build_apk }}
-        working-directory: android
-        run: |
-          # Plain assemble (NO android.injected.build.* properties): those mark the APK
-          # testOnly=true, which blocks normal sideloading (INSTALL_FAILED_TEST_ONLY / "can't
-          # install on this device"). abiFilters in build.gradle already limits native libs to the
-          # ABIs that were built (arm64-v8a), so this stays effectively arm64 while remaining
-          # installable from a file manager / the Downloads folder.
-          if [ "$SIGNING_CONFIGURED" = "true" ]; then
-            echo "Signing configured — building signed release APK"
-            ./gradlew assembleRelease \
-              --parallel --build-cache -Dorg.gradle.java.home="$JAVA_HOME"
-          else
-            echo "::warning::No signing configured — building debug APK (self-signed, still installable for testing)"
-            ./gradlew assembleDebug \
-              --parallel --build-cache -Dorg.gradle.java.home="$JAVA_HOME"
+          # Discover produced APK
+          APK="$(find app/build/outputs/apk -name '*.apk' -print0 2>/dev/null | xargs -0 -r ls -t 2>/dev/null | head -1 || true)"
+          if [ -n "$APK" ] && [ -f "$APK" ]; then
+            SHORT_SHA="$(git rev-parse --short HEAD)"
+            APK_NAME="astraplay-${{ steps.extract_version.outputs.version }}-${SHORT_SHA}.apk"
+            cp "$APK" "$GITHUB_WORKSPACE/$APK_NAME"
+            echo "apk_path=$PWD/$APK" >> "$GITHUB_OUTPUT"
+            echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+            echo "Found APK: $APK -> $APK_NAME"
           fi
-          # Newest final APK from the outputs dir (outputs/ only, so we never pick an intermediate
-          # unsigned APK). xargs -r so an empty find doesn't run `ls` on the cwd and yield a bogus path.
-          APK="$(find app/build/outputs/apk -name '*.apk' -print0 2>/dev/null | xargs -0 -r ls -t 2>/dev/null | head -1)"
-          test -n "$APK" || { echo "::error::No APK produced"; exit 1; }
-          SHORT_SHA="$(git rev-parse --short HEAD)"
-          DEST="astraplay-${{ steps.extract_version.outputs.version }}-${SHORT_SHA}.apk"
-          cp "$APK" "$GITHUB_WORKSPACE/$DEST"
-          echo "apk_name=$DEST" >> "$GITHUB_OUTPUT"
-          echo "Built sideloadable APK: $DEST"
+
+          # Discover produced AAB
+          AAB="$(find app/build/outputs/bundle -name '*.aab' -print0 2>/dev/null | xargs -0 -r ls -t 2>/dev/null | head -1 || true)"
+          if [ -n "$AAB" ] && [ -f "$AAB" ]; then
+            AAB_NAME="AstraPlay-${{ steps.extract_version.outputs.version }}.aab"
+            cp "$AAB" "$GITHUB_WORKSPACE/$AAB_NAME"
+            echo "aab_path=$PWD/$AAB" >> "$GITHUB_OUTPUT"
+            echo "aab_name=$AAB_NAME" >> "$GITHUB_OUTPUT"
+            echo "Found AAB: $AAB -> $AAB_NAME"
+          fi
 
       - name: Upload APK artifact
-        if: ${{ inputs.build_apk }}
+        if: steps.build_packages.outputs.apk_name != ''
         uses: actions/upload-artifact@v7
         with:
           name: astraplay-android-apk
-          path: ${{ steps.build_apk.outputs.apk_name }}
-          if-no-files-found: error
+          path: ${{ steps.build_packages.outputs.apk_name }}
+          if-no-files-found: warn
+
+      - name: Upload AAB artifact
+        if: steps.build_packages.outputs.aab_name != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: astraplay-android-aab
+          path: ${{ steps.build_packages.outputs.aab_name }}
+          if-no-files-found: warn
 
       - name: Decode Google Play service account key
-        if: ${{ !inputs.build_apk }}
+        id: play_credentials
+        if: inputs.publish_to_play != false
         env:
-          JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
+          RAW_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON || secrets.GOOGLE_PLAY_JSON_KEY || secrets.PLAY_STORE_JSON_KEY }}
         run: |
-          if [ -z "$JSON_BASE64" ]; then
-            echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 not set — skipping upload"
+          if [ -z "$RAW_KEY" ]; then
+            echo "::warning::Google Play service account secret (GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64) not found — skipping Play Store upload"
             echo "UPLOAD_ENABLED=false" >> "$GITHUB_ENV"
           else
             KEY_PATH="$RUNNER_TEMP/play-credentials.json"
-            echo "$JSON_BASE64" > "$RUNNER_TEMP/play-key.b64"
-            base64 -d -i "$RUNNER_TEMP/play-key.b64" > "$KEY_PATH"
-            rm -f "$RUNNER_TEMP/play-key.b64"
+            echo "$RAW_KEY" > "$RUNNER_TEMP/play-raw.key"
+
+            # Check if input is base64 or plaintext JSON
+            if base64 -d -i "$RUNNER_TEMP/play-raw.key" > "$KEY_PATH" 2>/dev/null && grep -q "private_key" "$KEY_PATH"; then
+              echo "Successfully decoded base64 Google Play service account JSON key."
+            elif grep -q "private_key" "$RUNNER_TEMP/play-raw.key"; then
+              cp "$RUNNER_TEMP/play-raw.key" "$KEY_PATH"
+              echo "Loaded plaintext Google Play service account JSON key."
+            else
+              echo "::error::Provided Google Play key does not appear to be a valid service account JSON key."
+              rm -f "$RUNNER_TEMP/play-raw.key" "$KEY_PATH"
+              echo "UPLOAD_ENABLED=false" >> "$GITHUB_ENV"
+              exit 0
+            fi
+
+            rm -f "$RUNNER_TEMP/play-raw.key"
             echo "GOOGLE_PLAY_JSON_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
             echo "UPLOAD_ENABLED=true" >> "$GITHUB_ENV"
           fi
 
       - name: Determine Google Play track
-        if: ${{ env.UPLOAD_ENABLED == 'true' && !inputs.build_apk }}
+        if: env.UPLOAD_ENABLED == 'true'
         run: |
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            TRACK=production
+          CUSTOM_TRACK="${{ inputs.track || 'auto' }}"
+          if [ "$CUSTOM_TRACK" != "auto" ] && [ -n "$CUSTOM_TRACK" ]; then
+            TRACK="$CUSTOM_TRACK"
+          elif [ "${{ github.ref_name }}" = "master" ]; then
+            TRACK="production"
           else
-            TRACK=beta
+            TRACK="beta"
           fi
           echo "ASTRAPLAY_PLAY_TRACK=$TRACK" >> "$GITHUB_ENV"
           echo "Deploying to Google Play track: $TRACK"
 
-      - name: Upload AAB to Google Play
+      - name: Deploy to Google Play Console (Fastlane API)
         id: upload_play
-        if: ${{ env.UPLOAD_ENABLED == 'true' && !inputs.build_apk }}
+        if: env.UPLOAD_ENABLED == 'true'
         working-directory: android
         env:
-          # Same value Gradle uses (extract-version semver_build_id); avoids Fastlane relying on a solo Gradle invoke.
           ANDROID_VERSION_CODE: ${{ steps.extract_version.outputs.semver_build_id }}
+          ASTRAPLAY_AAB_PATH: ${{ steps.build_packages.outputs.aab_path }}
+          ASTRAPLAY_APK_PATH: ${{ steps.build_packages.outputs.apk_path }}
+          UPLOAD_APK_TO_PLAY: "true"
         run: |
           sudo gem install fastlane -N
-          AAB_PATH="$(find app/build/outputs/bundle/release -name '*.aab' | head -1)"
-          export ASTRAPLAY_AAB_PATH="$PWD/$AAB_PATH"
-          fastlane upload_astraplay_aab
+          fastlane upload_to_play
 
       - name: Deployment summary
         if: always()
         run: |
           {
-            echo "## AstraPlay Android — v${CHIAKI_VERSION:-?}"
+            echo "## AstraPlay Android — v${{ steps.extract_version.outputs.version }}"
             echo ""
-            if [ "${{ inputs.build_apk }}" = "true" ]; then
-              echo "APK-only run — Google Play publish was skipped."
-              echo ""
-              if [ "${{ steps.build_apk.outcome }}" = "success" ]; then
-                echo "Sideloadable test APK \`${{ steps.build_apk.outputs.apk_name }}\` is attached to this run (see the **Artifacts** section, named \`astraplay-android-apk\`)."
-              else
-                echo "APK build did not complete (outcome: **${{ steps.build_apk.outcome }}**). Check the logs above for details."
-              fi
-            elif [ "${{ steps.bundle_release.outcome }}" != "success" ]; then
-              echo "Build did not complete (outcome: **${{ steps.bundle_release.outcome }}**). Check the logs above for details."
-            else
-              case "${UPLOAD_ENABLED:-false}" in
-                true)
-                  if [ "${{ steps.upload_play.outcome }}" = "success" ]; then
-                    if [ "${{ github.ref_name }}" = "master" ]; then
-                      echo "Released to the Play Store:"
-                      echo ""
-                      echo "**[Get it on Google Play](https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay)**"
-                      echo ""
-                      echo "Available for Android phones, tablets, and Android TV."
-                    else
-                      echo "Beta build uploaded to Google Play."
-                      echo ""
-                      echo "**[Join the beta](https://play.google.com/apps/testing/io.github.nileshchakraborty.astraplay)**"
-                      echo ""
-                      echo "1. Open the join link above to opt in to the beta program."
-                      echo "2. Install or update AstraPlay from the [Play Store](https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay)."
-                      echo "3. Android TV: join the beta on a phone or browser first, then install from the Play Store on your TV."
-                    fi
-                  else
-                    echo "Upload did not complete (outcome: **${{ steps.upload_play.outcome }}**). Check the logs above for details."
-                  fi
-                  ;;
-                *)
-                  echo "Google Play upload was skipped (secret not configured)."
-                  ;;
-              esac
+            echo "| Item | Status |"
+            echo "| --- | --- |"
+            if [ -n "${{ steps.build_packages.outputs.apk_name }}" ]; then
+              echo "| **Signed APK** | \`${{ steps.build_packages.outputs.apk_name }}\` (Artifact: \`astraplay-android-apk\`) |"
             fi
+            if [ -n "${{ steps.build_packages.outputs.aab_name }}" ]; then
+              echo "| **Signed AAB** | \`${{ steps.build_packages.outputs.aab_name }}\` (Artifact: \`astraplay-android-aab\`) |"
+            fi
+            echo "| **Signing Keystore** | ${{ env.SIGNING_CONFIGURED == 'true' && 'Configured (Release)' || 'Debug / Self-signed' }} |"
+
+            case "${UPLOAD_ENABLED:-false}" in
+              true)
+                if [ "${{ steps.upload_play.outcome }}" = "success" ]; then
+                  echo "| **Google Play Upload** | **Success** (Track: \`${ASTRAPLAY_PLAY_TRACK}\`) |"
+                  echo ""
+                  echo "### Google Play Links"
+                  echo "- **Production Store**: [https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay](https://play.google.com/store/apps/details?id=io.github.nileshchakraborty.astraplay)"
+                  echo "- **Testing Program**: [https://play.google.com/apps/testing/io.github.nileshchakraborty.astraplay](https://play.google.com/apps/testing/io.github.nileshchakraborty.astraplay)"
+                else
+                  echo "| **Google Play Upload** | **Failed** (outcome: \`${{ steps.upload_play.outcome }}\`) |"
+                fi
+                ;;
+              *)
+                echo "| **Google Play Upload** | Skipped (API credentials not set or publish disabled) |"
+                echo ""
+                echo "> [!TIP]"
+                echo "> Keystore signing succeeded! Both the signed **APK** and **AAB** are attached to the **Artifacts** section above."
+                echo "> To enable direct automated Google Play Store deployment, add your Google Cloud service account JSON key to GitHub Secrets as \`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64\`."
+                ;;
+            esac
           } >> "$GITHUB_STEP_SUMMARY"

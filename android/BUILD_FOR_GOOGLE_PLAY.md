@@ -108,27 +108,24 @@ Before each release, update the version in:
 
 The version name is automatically read from CMakeLists.txt.
 
-## GitHub Actions (CI)
+## GitHub Actions & Google Play Developer API (CI)
 
-### Job summary vs what actually failed
+AstraPlay uses Google Play Developer API integration via Fastlane to automatically deploy signed Android packages to Google Play Console:
 
-The **Deploy Android** workflow runs **`./gradlew bundleRelease` first**, then (only if that succeeds) decodes **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64`** and may run Fastlane.
+1. **Required GitHub Secrets**:
+   - `ANDROID_KEYSTORE_BASE64`: Base64-encoded release keystore (`.jks`).
+   - `ANDROID_KEYSTORE_PASSWORD`: Keystore password.
+   - `ANDROID_KEY_ALIAS`: Signing key alias.
+   - `ANDROID_KEY_PASSWORD`: Signing key password.
+   - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64`: Base64 (or plaintext) Google Cloud service account JSON key with Google Play Developer API publishing permissions.
 
-- If **`bundleRelease` fails** (Gradle, NDK, signing, etc.), **upload is never attempted**. Older summaries could still print **“Google Play upload: skipped … secret not set”** because `UPLOAD_ENABLED` was never written — that line was **misleading** when the real failure was Gradle. The workflow summary was fixed to report **build outcome first** in that case.
-- The **“upload skipped … secret not set”** line is only accurate when **`bundleRelease` succeeded** and the repository/organization secret is actually missing.
+2. **Artifact Generation & Deployment**:
+   - **Signed APK (`AstraPlay-*.apk`)**: Built via `./gradlew assembleRelease`, signed with your release keystore, uploaded as workflow artifact `astraplay-android-apk`, and eligible for direct deployment / Internal App Sharing via the Play API.
+   - **Signed AAB (`AstraPlay-*.aab`)**: Built via `./gradlew bundleRelease`, signed with your release keystore, uploaded as workflow artifact `astraplay-android-aab`, and published directly to your selected track (`production`, `beta`, `alpha`, or `internal`).
 
-### Recent CI history (reference)
-
-From the **`Deploy Android + Android TV (Google Play)`** workflow on GitHub (standalone runs, not “Release all”). This table is historical; `release/beta` is no longer the PR target:
-
-| When (UTC)        | Trigger            | Result  |
-|-------------------|--------------------|---------|
-| 2026-04-21 ~02:08 | `workflow_dispatch`| Failed  |
-| 2026-04-20 ~20:31 | `push` `release/beta` | Failed (~16 min; included a Play API rejection when **version code** had already been used) |
-
-The **Release all platforms** run on **2026-04-21** failed Android during **Gradle** (evaluating `android/app/build.gradle`, e.g. `resolveAndroidVersionCode` / project property resolution) **before** Fastlane — not because of the Play JSON secret line in the summary.
-
-For automated uploads, set organization/repo secret **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64`** (see `.github/workflows/deploy-android.yml` header comments).
+3. **Workflows**:
+   - **`Deploy Android + Android TV (Google Play)`** (`.github/workflows/deploy-android.yml`): Manual dispatch or reusable workflow for targeted Android deployments. Supports selecting target (`both`, `aab`, `apk`) and track.
+   - **`Release on Merge`** (`.github/workflows/release-on-merge.yml`): When merging to `master` or cutting a release, automatically signs and publishes to Google Play when API credentials are provided.
 
 ## Troubleshooting
 

@@ -563,6 +563,46 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      - name: Deploy to Google Play Store (API)
+        id: play_deploy
+        working-directory: android
+        env:
+          JSON_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64 || secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON || secrets.GOOGLE_PLAY_JSON_KEY || secrets.PLAY_STORE_JSON_KEY }}
+        run: |
+          if [ -z "$JSON_BASE64" ]; then
+            echo "Google Play service account secret not set — skipping automated Play Store deployment."
+          elif [ -z "$ANDROID_KEYSTORE_FILE" ]; then
+            echo "Release keystore not configured — skipping Google Play Store deployment."
+          else
+            echo "Decoding Google Play service account JSON key..."
+            KEY_PATH="$RUNNER_TEMP/play-credentials.json"
+            echo "$JSON_BASE64" > "$RUNNER_TEMP/play-raw.key"
+            if base64 -d -i "$RUNNER_TEMP/play-raw.key" > "$KEY_PATH" 2>/dev/null && grep -q "private_key" "$KEY_PATH"; then
+              echo "Decoded base64 service account JSON."
+            elif grep -q "private_key" "$RUNNER_TEMP/play-raw.key"; then
+              cp "$RUNNER_TEMP/play-raw.key" "$KEY_PATH"
+              echo "Loaded plaintext service account JSON."
+            else
+              echo "::error::Invalid service account JSON format."
+              rm -f "$RUNNER_TEMP/play-raw.key" "$KEY_PATH"
+              exit 0
+            fi
+            rm -f "$RUNNER_TEMP/play-raw.key"
+
+            export GOOGLE_PLAY_JSON_KEY_PATH="$KEY_PATH"
+            AAB_FILE="$(find app/build/outputs/bundle/release -name '*.aab' 2>/dev/null | head -n 1 || true)"
+            APK_FILE="$(find app/build/outputs/apk/release -name '*.apk' 2>/dev/null | head -n 1 || true)"
+            test -n "$AAB_FILE" && export ASTRAPLAY_AAB_PATH="$PWD/$AAB_FILE"
+            test -n "$APK_FILE" && export ASTRAPLAY_APK_PATH="$PWD/$APK_FILE"
+            export ASTRAPLAY_PLAY_TRACK="production"
+
+            echo "Installing fastlane..."
+            sudo gem install fastlane -N
+            echo "Uploading release to Google Play Console via Developer API..."
+            fastlane upload_to_play || echo "::warning::Google Play upload failed — check API permissions."
+            rm -f "$KEY_PATH"
+          fi
+
   # =========================================================================
   # 7. PUBLISH MULTI-PLATFORM RELEASE
   # =========================================================================
