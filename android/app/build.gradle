@@ -55,7 +55,7 @@ tasks.register("printAstraPlayVersionCode") {
 
 android {
     namespace "io.github.nileshchakraborty.astraplay"
-    compileSdk 35
+    compileSdk 36
     
     // Specify NDK version - r28+ required for 16KB page size alignment
     // NDK r28+ aligns ELF segments to 16KB by default for compatibility with 16KB page size devices
@@ -64,7 +64,7 @@ android {
     defaultConfig {
         applicationId "io.github.nileshchakraborty.astraplay"
         minSdk 24
-        targetSdk 35
+        targetSdk 36
         versionCode androidVersionCode
         versionName chiakiVersion
         // PSN login relay server (QR/TV flow). Each publisher sets their own host
