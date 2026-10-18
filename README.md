@@ -77,6 +77,8 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh)"
   ```
   *Why this is recommended on macOS Sonoma & Sequoia*: Files downloaded through `curl` in Terminal are never quarantined by macOS Gatekeeper, avoiding *"Apple could not verify..."* errors completely. Installs to `/Applications`, applies local ad-hoc codesigning, and launches immediately.
+- **In-App Direct Updates (v2.12.16+)**:
+  AstraPlay includes a built-in background updater in **Settings → Check for Updates**. Updates download lightweight `.zip` application bundles, extract via `ditto` without disk image mount locks, automatically prompt for Touch ID elevation if `/Applications` permissions require it, and restart seamlessly with clean code signatures.
 - **Native 1-Click Installer ZIP**:
   Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
   - Unzip and double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
@@ -101,6 +103,8 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   ```bash
   curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-appimage.sh | bash
   ```
+- **In-App Direct Updates**:
+  AppImage installations update automatically inside the app via **Settings → Check for Updates** without requiring root privileges. Flatpak installations update via Discover or `flatpak update`.
 - **Direct AppImage**:
   Download [`AstraPlay-Linux-x86_64.AppImage`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/AstraPlay-Linux-x86_64.AppImage), mark it executable, and launch:
   ```bash
@@ -129,6 +133,8 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   ```powershell
   irm https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-windows.ps1 | iex
   ```
+- **In-App Direct Updates**:
+  Installed setups update automatically via **Settings → Check for Updates** with native UAC elevation and Mark-of-the-Web unblocking.
 - **Setup Installer (`.exe`)**:
   Download and run [`astraplay-windows-installer.exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe) (or `astraplay-windows-arm64-installer.exe` for Snapdragon / Windows on ARM devices). Follow the setup wizard to customize Start Menu and Desktop shortcuts.
 - **Windows Package Manager (`winget`)**:
