@@ -23,7 +23,7 @@ Desktop and mobile releases are published on the [releases page](https://github.
 
     [:material-apple: Download DMG (Apple Silicon M1–M4)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
-    [:material-apple: Download DMG (Intel x86_64 — Final v2.12.17)](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17){ .md-button target="_blank" rel="noopener" }
+    [:material-apple: Download DMG (Intel x86_64 — Final v2.12.18)](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.18){ .md-button target="_blank" rel="noopener" }
 
     Install via Homebrew: `brew install --cask nileshchakraborty/astraplay/astraplay`
 

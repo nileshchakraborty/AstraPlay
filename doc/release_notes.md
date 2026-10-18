@@ -1,15 +1,22 @@
 # AstraPlay Release Notes
 
+## Version 2.12.18
+
+### Highlights & What's New
+- **macOS Intel (`x86_64`) Compiled Updater Guardrails & Final Intel Release**:
+  - v2.12.18 is the official **final release supporting Intel (`x86_64`) Macs**. Releases after v2.12.18 exclusively target Apple Silicon (`arm64`).
+  - Carries compiled in-app updater protections in `UpdateManager` directly in the x86_64 binary. When future Apple Silicon-only releases (v2.12.19+) are published, running Intel Macs automatically suppress update prompts and display:
+    > *"You are running the final release for Intel Macs (v2.12.18). Future releases require Apple Silicon (arm64)."*
+  - Automatically pins legacy Intel downloads in `install-macos.sh` to the verified v2.12.18 release.
+
+---
+
 ## Version 2.12.17
 
 ### Highlights & What's New
 - **Google Play Android 16 (API Level 36) Compliance**:
   - Updated `compileSdk` and `targetSdk` to 36 (Android 16) satisfying Google Play requirements.
   - Enhanced Android CI pipelines to build, sign, and publish both standard `.apk` (for direct sideloading and testing) and production `.aab` (Android App Bundle) packages using Fastlane and Google Play Developer API.
-- **macOS Intel (`x86_64`) Final Release & Retirement Notice**:
-  - v2.12.17 marks the final release providing native Intel (`x86_64`) binaries. All future releases exclusively target Apple Silicon (`arm64`).
-  - Added safety guardrails to the in-app updater (`UpdateManager`) to ensure Intel Macs never attempt to download incompatible Apple Silicon bundles and clearly report the final version status.
-  - Automated 1-line installer pins Intel Macs to the final supported v2.12.17 release.
 - **Privacy & Compliance Overhaul**:
   - Formulated a comprehensive Privacy Policy across [`PRIVACY.md`](../PRIVACY.md) and [`docs/privacy.md`](../docs/privacy.md) adhering to Google Play Data Safety standards, Apple Privacy Nutrition manifests, GDPR, CCPA, and COPPA.
   - Full transparency on zero remote telemetry, local encrypted credential vaults, and explicit Android runtime permission justifications.
@@ -143,7 +150,7 @@
 ### macOS
 - macOS 12 Monterey or newer.
 - **Apple Silicon (arm64)**: M1, M2, M3, M4 or newer.
-- **Intel (x86_64)**: Supported up to final release **v2.12.17**. Releases after v2.12.17 exclusively target Apple Silicon.
+- **Intel (x86_64)**: Supported up to final release **v2.12.18**. Releases after v2.12.18 exclusively target Apple Silicon.
 - Metal / Apple VideoToolbox hardware acceleration.
 
 ### Windows
@@ -164,7 +171,7 @@
 Release binaries, installers, and checksums are available on the [GitHub Releases Page](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
 
 - **Windows**: Inno Setup installer (`.exe`), portable `.zip`, standalone `.exe`, and Winget package.
-- **macOS**: DMG disk images and `.app.zip` bundles for Apple Silicon (`arm64`), official Homebrew tap (`brew install --cask nileshchakraborty/astraplay/astraplay`), and legacy Intel DMG ([v2.12.17 Release](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17)).
+- **macOS**: DMG disk images and `.app.zip` bundles for Apple Silicon (`arm64`), official Homebrew tap (`brew install --cask nileshchakraborty/astraplay/astraplay`), and legacy Intel DMG ([v2.12.18 Release](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.18)).
 - **Linux / Steam Deck**: Flatpak on Flathub, portable `.AppImage`, automated 1-line installer script, and Steam-ready ZIP.
 - **Android**: Google Play Store (`io.github.nileshchakraborty.astraplay`) and standalone signed release APK / AAB.
 - **iOS / iPadOS**: App Store and IPA package.

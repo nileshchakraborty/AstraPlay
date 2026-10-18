@@ -410,30 +410,30 @@ void UpdateManager::onCheckFinished()
     }
 
     if (isX86) {
-        // Intel Mac (x86_64): v2.12.17 is the final release supporting Intel hardware.
+        // Intel Mac (x86_64): v2.12.18 is the final release supporting Intel hardware.
         // All subsequent releases exclusively target Apple Silicon (arm64).
-        const QString FINAL_INTEL_VERSION = QStringLiteral("2.12.17");
+        const QString FINAL_INTEL_VERSION = QStringLiteral("2.12.18");
         bool isRunningFinalOrNewer = !isVersionNewer(FINAL_INTEL_VERSION, currentVer);
 
         if (isRunningFinalOrNewer) {
-            // Already running v2.12.17 (or newer). No further updates exist for Intel.
+            // Already running v2.12.18 (or newer). No further updates exist for Intel.
             hasUpdate = false;
             m_downloadUrl.clear();
             m_statusMessage = tr("You are running the final release for Intel Macs (v%1). Future releases require Apple Silicon (arm64).").arg(currentVer);
         } else {
-            // Running an older version (e.g. v2.12.16 or earlier) on an Intel Mac.
+            // Running an older version (e.g. v2.12.17 or earlier) on an Intel Mac.
             if (!bestZipUrl.isEmpty()) {
                 m_downloadUrl = bestZipUrl;
             } else if (!bestDmgUrl.isEmpty()) {
                 m_downloadUrl = bestDmgUrl;
             } else {
-                // If the remote latest release has no x86_64 binaries (v2.12.18+),
-                // offer upgrade to the final Intel release v2.12.17.
+                // If the remote latest release has no x86_64 binaries (v2.12.19+),
+                // offer upgrade to the final Intel release v2.12.18.
                 hasUpdate = true;
-                m_latestVersion = QStringLiteral("v2.12.17");
-                m_releaseUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17");
-                m_downloadUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.17/AstraPlay-macOS-x86_64.zip");
-                m_statusMessage = tr("Update available: v2.12.17 (Final supported release for Intel Macs; newer versions require Apple Silicon).");
+                m_latestVersion = QStringLiteral("v2.12.18");
+                m_releaseUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.18");
+                m_downloadUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/download/v2.12.18/AstraPlay-macOS-x86_64.zip");
+                m_statusMessage = tr("Update available: v2.12.18 (Final supported release for Intel Macs; newer versions require Apple Silicon).");
             }
         }
     } else {

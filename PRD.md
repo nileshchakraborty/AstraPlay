@@ -5,7 +5,7 @@
 **AstraPlay** is a free, open-source, community-maintained PS4 and PS5 Remote Play + Internet/Cloud Play client targeting Android, Android TV, iOS, iPadOS, macOS, Windows, Linux, and Steam Deck. It is forked from [chiaki-ng](https://github.com/streetpea/chiaki-ng) and extends that work with app-store distribution, mobile-first UI, and Internet Play (game catalog streaming).
 
 **License:** AGPL-3.0  
-**Current Version:** 2.12.17  
+**Current Version:** 2.12.18  
 **Organization:** nileshchakraborty
 
 ---
@@ -94,7 +94,7 @@ Builds on AstraPlay to add features, port to new platforms, or cherry-pick upstr
 |----|---------|----------|
 | F20 | Google Play (Android + Android TV) — API Level 36 (Android 16), dual AAB/APK builds & Fastlane CI | P0 |
 | F21 | Apple App Store + TestFlight (iOS / iPadOS) | P0 |
-| F22 | macOS Apple Silicon (arm64) primary release; Intel (x86_64) legacy final release v2.12.17 | P0 |
+| F22 | macOS Apple Silicon (arm64) primary release; Intel (x86_64) legacy final release v2.12.18 | P0 |
 | F22a | Official Homebrew Cask tap (`nileshchakraborty/astraplay/astraplay`) with Gatekeeper bypass | P1 |
 | F23 | Flathub (Linux x86_64 + aarch64) | P0 |
 | F24 | Windows Inno Setup installer (.exe with UAC elevation), Winget package, and portable zip (x86_64 & ARM64) | P1 |
