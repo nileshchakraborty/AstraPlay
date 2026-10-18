@@ -6,22 +6,22 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: install-macos.sh [--file PATH] [--launch] [--user-dir]
+Usage: install-macos.sh [--file PATH] [--no-launch] [--user-dir]
 
 Options:
-  --file PATH   Install an existing DMG or .app bundle instead of downloading.
-  --launch      Automatically open AstraPlay after installation completes.
-  --user-dir    Install to ~/Applications instead of /Applications.
-  -h, --help    Show this help message.
+  --file PATH    Install an existing ZIP, DMG, or .app bundle instead of downloading.
+  --no-launch    Do not automatically open AstraPlay after installation completes.
+  --user-dir     Install to ~/Applications instead of /Applications.
+  -h, --help     Show this help message.
 
 Without --file, this script downloads the latest AstraPlay release for your Mac's
 architecture (Apple Silicon arm64 or Intel x86_64), verifies the release checksum,
-installs it to /Applications, and clears the macOS Gatekeeper quarantine attribute.
+installs it to /Applications, clears macOS Gatekeeper quarantine, and launches it.
 EOF
 }
 
 source_file=""
-launch_after=0
+launch_after=1
 use_user_dir=0
 
 while (($#)); do
@@ -33,6 +33,10 @@ while (($#)); do
             ;;
         --launch)
             launch_after=1
+            shift
+            ;;
+        --no-launch)
+            launch_after=0
             shift
             ;;
         --user-dir)
@@ -57,11 +61,13 @@ fi
 
 case "$(uname -m)" in
     arm64)
-        asset="AstraPlay-macOS-arm64.dmg"
+        asset="AstraPlay-macOS-arm64.zip"
+        fallback_asset="AstraPlay-macOS-arm64.dmg"
         arch_label="Apple Silicon (arm64)"
         ;;
     x86_64)
-        asset="AstraPlay-macOS-x86_64.dmg"
+        asset="AstraPlay-macOS-x86_64.zip"
+        fallback_asset="AstraPlay-macOS-x86_64.dmg"
         arch_label="Intel (x86_64)"
         ;;
     *)
@@ -103,13 +109,17 @@ else
     printf '  Installing AstraPlay for macOS (%s)\n' "$arch_label"
     printf '========================================================\n\n'
 
-    for cmd in curl shasum awk hdiutil; do
+    for cmd in curl shasum awk ditto; do
         command -v "$cmd" >/dev/null || { printf 'Error: %s command is required but not installed\n' "$cmd" >&2; exit 1; }
     done
 
     release_url="https://github.com/nileshchakraborty/AstraPlay/releases/latest/download"
     printf 'Downloading latest %s from GitHub Releases...\n' "$asset"
-    curl -fsSL --retry 3 -o "$temp_dir/$asset" "$release_url/$asset"
+    if ! curl -fsSL --retry 3 -o "$temp_dir/$asset" "$release_url/$asset"; then
+        printf 'ZIP archive not found on release, trying DMG fallback (%s)...\n' "$fallback_asset"
+        asset="$fallback_asset"
+        curl -fsSL --retry 3 -o "$temp_dir/$asset" "$release_url/$asset"
+    fi
     curl -fsSL --retry 3 -o "$temp_dir/SHA256SUMS.txt" "$release_url/SHA256SUMS.txt" || true
     source_file="$temp_dir/$asset"
 
@@ -127,11 +137,44 @@ else
     fi
 fi
 
+# Safe removal helper if existing app is owned by root
+safe_remove_target() {
+    local target="$1"
+    if [[ -e "$target" ]]; then
+        if ! rm -rf "$target" 2>/dev/null; then
+            printf 'Requesting authorization to update existing %s...\n' "$target"
+            if command -v sudo >/dev/null 2>&1 && [ -t 0 ]; then
+                sudo rm -rf "$target"
+            elif command -v osascript >/dev/null 2>&1; then
+                osascript -e "do shell script \"rm -rf '$target'\" with administrator privileges"
+            else
+                printf 'Error: Cannot overwrite %s. Please remove it and retry.\n' "$target" >&2
+                exit 1
+            fi
+        fi
+    fi
+}
+
 # If source is already an .app directory
 if [[ -d "$source_file" && "$source_file" == *.app ]]; then
     printf 'Installing %s to %s...\n' "$source_file" "$target_app"
-    rm -rf "$target_app"
+    safe_remove_target "$target_app"
     cp -R "$source_file" "$target_dir/"
+elif [[ "$source_file" == *.zip ]]; then
+    printf 'Extracting %s...\n' "$source_file"
+    extract_dir="$temp_dir/extracted"
+    mkdir -p "$extract_dir"
+    ditto -x -k "$source_file" "$extract_dir"
+
+    found_app=$(find "$extract_dir" -maxdepth 2 -name "AstraPlay.app" | head -n 1)
+    if [[ -z "$found_app" || ! -d "$found_app" ]]; then
+        printf 'Error: Could not locate AstraPlay.app inside ZIP %s\n' "$source_file" >&2
+        exit 1
+    fi
+
+    printf 'Installing AstraPlay to %s...\n' "$target_app"
+    safe_remove_target "$target_app"
+    cp -R "$found_app" "$target_dir/"
 else
     # Mount disk image
     printf 'Mounting disk image...\n'
@@ -145,7 +188,7 @@ else
     fi
 
     printf 'Installing AstraPlay to %s...\n' "$target_app"
-    rm -rf "$target_app"
+    safe_remove_target "$target_app"
     cp -R "$found_app" "$target_dir/"
 fi
 

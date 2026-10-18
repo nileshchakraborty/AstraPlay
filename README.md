@@ -49,27 +49,54 @@ Engineered for ultra-low latency, crisp visuals, and cross-platform flexibility,
 
 AstraPlay supports flexible installation methods across every platform, matching standard application store channels and native package managers.
 
-### 🪟 Windows (10 & 11)
+### ⚡ Quick 1-Line Automated Installers (Recommended)
 
-- **Setup Installer (`.exe`) — Recommended**:
-  Download and run [`astraplay-windows-installer.exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe) (or `astraplay-windows-arm64-installer.exe` for Snapdragon / Windows on ARM devices). Follow the setup wizard to customize Start Menu and Desktop shortcuts.
-- **Windows Package Manager (`winget`)**:
-  ```powershell
-  winget install AstraPlay
+Get running immediately with one command in Terminal or PowerShell. These automated installers verify checksums, configure system shortcuts, bypass quarantine/Gatekeeper friction, and enable in-app updates:
+
+- **🍏 macOS (Apple Silicon & Intel — Zero Gatekeeper Warnings)**:
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh)"
   ```
-- **Enterprise MSI Installer**:
-  Download [`astraplay-windows-x64.msi`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for silent automated deployments:
-  ```powershell
-  msiexec /i astraplay-windows-x64.msi /quiet
+- **🐧 Linux, Steam Deck & Handhelds (Bazzite / SteamOS / Ubuntu / Fedora)**:
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-appimage.sh | bash
   ```
-- **Portable ZIP**:
-  Download and extract [`astraplay-windows-x64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest), then launch `AstraPlay.exe` directly without administrative privileges.
+- **🪟 Windows (10 & 11 — PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-windows.ps1 | iex
+  ```
+
+---
+
+## Detailed Platform Installation
+
+### 🍏 macOS (Apple Silicon & Intel)
+
+- **1-Line Terminal Installer (Recommended — Zero Gatekeeper Warnings)**:
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh)"
+  ```
+  *Why this is recommended on macOS Sonoma & Sequoia*: Files downloaded through `curl` in Terminal are never quarantined by macOS Gatekeeper, avoiding *"Apple could not verify..."* errors completely. Installs to `/Applications`, applies local ad-hoc codesigning, and launches immediately.
+- **Native 1-Click Installer ZIP**:
+  Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  - Unzip and double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
+  - Authorize when prompted via **Touch ID** or your password. AstraPlay installs into `/Applications`.
+- **Direct Disk Image (`.dmg`)**:
+  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
+  - Double-click `Install AstraPlay.app` inside the disk image, or drag `AstraPlay.app` to `Applications`.
+  - If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
+- **Homebrew Cask**:
+  ```bash
+  brew install --cask astraplay
+  ```
+- **Portable ZIP (In-App Updater Compatible)**:
+  Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
 
 ---
 
 ### 🐧 Linux, Steam Deck & Handhelds (Bazzite / ROG Xbox Ally X / Legion Go / Claw)
 
-- **One-Command User Installer (Recommended for Handhelds)**:
+- **1-Command User Installer (Recommended for Handhelds & Desktop)**:
   Run our verified installer script in terminal / Konsole. It automatically detects your CPU architecture (`x86_64` or `aarch64`), verifies release SHA-256 checksums, installs desktop menu shortcuts with high-resolution icons, and enables clean in-app updates:
   ```bash
   curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-appimage.sh | bash
@@ -96,27 +123,25 @@ AstraPlay supports flexible installation methods across every platform, matching
 
 ---
 
-### 🍏 macOS (Apple Silicon & Intel)
+### 🪟 Windows (10 & 11)
 
-- **Native 1-Click Installer ZIP (Recommended)**:
-  Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-  - Unzip and double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
-  - When prompted by macOS, authorize with **Touch ID** or your password. AstraPlay installs into `/Applications` with verified code signatures and zero Gatekeeper friction.
-- **One-Command Terminal Installer**:
-  Run our automated installer in Terminal. It automatically detects Apple Silicon or Intel, verifies SHA-256 release checksums, installs directly into `/Applications`, and clears Gatekeeper quarantine:
-  ```bash
-  curl -fsSL https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh | bash
+- **1-Line PowerShell Installer (Recommended)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-windows.ps1 | iex
   ```
-- **Direct Disk Image (`.dmg`)**:
-  Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-  - Double-click `Install AstraPlay.app` or `Install AstraPlay.command` inside the disk image.
-  - Or drag `AstraPlay.app` to `Applications`. If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
-- **Homebrew Cask**:
-  ```bash
-  brew install --cask astraplay
+- **Setup Installer (`.exe`)**:
+  Download and run [`astraplay-windows-installer.exe`](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe) (or `astraplay-windows-arm64-installer.exe` for Snapdragon / Windows on ARM devices). Follow the setup wizard to customize Start Menu and Desktop shortcuts.
+- **Windows Package Manager (`winget`)**:
+  ```powershell
+  winget install AstraPlay
   ```
-- **Portable ZIP (In-App Updater Compatible)**:
-  Download and extract `AstraPlay-macOS-arm64.zip` or `AstraPlay-macOS-x86_64.zip` directly into `~/Applications`.
+- **Enterprise MSI Installer**:
+  Download [`astraplay-windows-x64.msi`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for silent automated deployments:
+  ```powershell
+  msiexec /i astraplay-windows-x64.msi /quiet
+  ```
+- **Portable ZIP**:
+  Download and extract [`astraplay-windows-x64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest), then launch `AstraPlay.exe` directly without administrative privileges.
 
 ---
 
