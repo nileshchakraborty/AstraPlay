@@ -38,19 +38,7 @@ AstraPlay provides native application packages, automated installers, and store 
     winget upgrade AstraPlay
     ```
 
-    ### Option 4: Enterprise MSI Package
-
-    For IT administrators or automated enterprise deployments:
-
-    ```powershell
-    msiexec /i astraplay-windows-x64.msi /quiet
-    ```
-
-    Options:
-    - `CREATE_START_MENU_SHORTCUT=0` to skip Start Menu entry
-    - `CREATE_DESKTOP_SHORTCUT=1` to add desktop icon
-
-    ### Option 5: Portable ZIP
+    ### Option 4: Portable ZIP
 
     Zero-installation runtime for USB drives or standard user accounts:
 
@@ -134,19 +122,11 @@ AstraPlay provides native application packages, automated installers, and store 
     - **Checksum Verification**: Verifies integrity against `SHA256SUMS.txt`.
     - **Instant Clean Launch**: Installs to `/Applications/AstraPlay.app`, validates ad-hoc signatures, and opens AstraPlay immediately.
 
-    ### Option 2: Native 1-Click Installer ZIP
-
-    1. Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-    2. Double-click to extract the ZIP archive.
-    3. Double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
-    4. Click **Install** and authenticate when prompted via **Touch ID** or your Mac password.
-    5. AstraPlay is automatically installed into `/Applications/AstraPlay.app` with proper code signatures.
-
-    ### Option 3: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
+    ### Option 2: Drag-and-Drop Disk Image (`.dmg`) & Gatekeeper Handling
 
     1. Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
     2. Open the downloaded `.dmg` disk image.
-    3. Double-click `Install AstraPlay.app` inside the disk image, or drag **AstraPlay** into `/Applications`.
+    3. Drag **AstraPlay** into `/Applications`.
     4. **If macOS Sequoia or Sonoma displays** *"Apple could not verify AstraPlay is free of malware"*:
         - Click **Done** on the alert modal.
         - Open **System Settings → Privacy & Security**.
@@ -156,7 +136,7 @@ AstraPlay provides native application packages, automated installers, and store 
         - *(Or run `xattr -cr /Applications/AstraPlay.app` in Terminal).*
         - You only need to do this once; AstraPlay will launch normally thereafter.
 
-    ### Option 4: Homebrew Cask
+    ### Option 3: Homebrew Cask
 
     Install via Homebrew terminal:
 
@@ -169,7 +149,7 @@ AstraPlay provides native application packages, automated installers, and store 
     brew upgrade --cask astraplay
     ```
 
-    ### Option 5: Portable App Bundle ZIP
+    ### Option 4: Portable App Bundle ZIP
 
     Download and extract `AstraPlay-macOS-arm64.zip` directly into `~/Applications`.
 

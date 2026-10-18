@@ -320,12 +320,10 @@ jobs:
           if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
             bash ../scripts/package-macos-dmg.sh "AstraPlay.app" "AstraPlay.dmg" "-"
           fi
-          bash ../scripts/package-macos-installer-zip.sh "AstraPlay.app" "AstraPlay-macOS-arm64-installer.zip" "arm64"
           zip -ry AstraPlay-macOS.zip AstraPlay.app
           mkdir -p macos_staging
           cp AstraPlay.dmg macos_staging/AstraPlay-macOS-arm64.dmg
           cp AstraPlay.dmg macos_staging/AstraPlay-macOS.dmg
-          cp AstraPlay-macOS-arm64-installer.zip macos_staging/
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS-arm64.zip
           cp AstraPlay-macOS.zip macos_staging/AstraPlay-macOS.zip
 
@@ -359,11 +357,9 @@ jobs:
           if [ ! -f "AstraPlay.dmg" ] && [ -d "AstraPlay.app" ]; then
             bash ../scripts/package-macos-dmg.sh "AstraPlay.app" "AstraPlay.dmg" "-"
           fi
-          bash ../scripts/package-macos-installer-zip.sh "AstraPlay.app" "AstraPlay-macOS-x86_64-installer.zip" "x86_64"
           zip -ry AstraPlay-macOS-x86_64.zip AstraPlay.app
           mkdir -p macos_intel_staging
           cp AstraPlay.dmg macos_intel_staging/AstraPlay-macOS-x86_64.dmg
-          cp AstraPlay-macOS-x86_64-installer.zip macos_intel_staging/
           cp AstraPlay-macOS-x86_64.zip macos_intel_staging/
 
       - name: Upload macOS Intel Artifacts
@@ -568,120 +564,7 @@ jobs:
           if-no-files-found: warn
 
   # =========================================================================
-  # 7. IOS BUILD (Unsigned Sideloadable IPA)
-  # =========================================================================
-  build-ios:
-    name: Build iOS Unsigned IPA
-    runs-on: macos-latest
-    continue-on-error: true
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-
-      - name: Extract version
-        id: extract_version
-        uses: ./.github/actions/extract-version
-
-      - name: Install build dependencies
-        run: |
-          retry() {
-            local attempts="$1"
-            shift
-            local n=1
-            until "$@"; do
-              if [ "$n" -ge "$attempts" ]; then
-                echo "Command failed after $n attempts: $*"
-                return 1
-              fi
-              local sleep_s=$((n * 15))
-              echo "Attempt $n failed; retrying in ${sleep_s}s: $*"
-              sleep "$sleep_s"
-              n=$((n + 1))
-            done
-          }
-          retry 4 brew install cmake ninja protobuf@29 python-setuptools
-          pip3 install --user --break-system-packages 'protobuf>=5,<6' 2>/dev/null || pip3 install 'protobuf>=5,<6'
-          echo "$(brew --prefix)/opt/protobuf@29/bin" >> "$GITHUB_PATH"
-
-      - name: Download iOS toolchain
-        working-directory: ios
-        run: |
-          if [ ! -f ios.toolchain.cmake ]; then
-            curl -sL -o ios.toolchain.cmake \
-              https://raw.githubusercontent.com/leetal/ios-cmake/master/ios.toolchain.cmake
-          fi
-
-      - name: Build chiaki-lib
-        working-directory: ios
-        run: |
-          cmake -S . -B build-iphoneos -G Ninja \
-            -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake \
-            -DPLATFORM=OS64 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_LIBIDN2=OFF \
-            -DCURL_USE_LIBPSL=OFF \
-            -DUSE_NGHTTP2=OFF \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-          cmake --build build-iphoneos --config Release --target chiaki-lib
-
-      - name: Create combined static library
-        working-directory: ios
-        run: |
-          find build-iphoneos -name "*.a" -print0 | \
-            xargs -0 libtool -static -o build-iphoneos/libchiaki_complete.a
-
-      - name: Set iOS marketing + build numbers
-        run: |
-          echo "IOS_MARKETING_VERSION=${{ steps.extract_version.outputs.version }}" >> "$GITHUB_ENV"
-          echo "IOS_CURRENT_PROJECT_VERSION=${{ steps.extract_version.outputs.semver_build_id }}" >> "$GITHUB_ENV"
-
-      - name: Archive (unsigned)
-        working-directory: ios
-        run: |
-          xcodebuild -project AstraPlay.xcodeproj \
-            -scheme AstraPlay \
-            -sdk iphoneos \
-            -configuration Release \
-            archive \
-            -destination 'generic/platform=iOS' \
-            -archivePath build-derived/AstraPlay.xcarchive \
-            -derivedDataPath build-derived \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
-            CURRENT_PROJECT_VERSION="${IOS_CURRENT_PROJECT_VERSION}"
-
-      - name: Package unsigned .ipa
-        working-directory: ios
-        run: |
-          APP=$(find build-derived/AstraPlay.xcarchive/Products/Applications \
-            -maxdepth 1 -name "*.app" | head -1)
-          if [ -z "$APP" ] || [ ! -d "$APP" ]; then
-            echo "::error::No .app found in archive — cannot build .ipa"
-            exit 1
-          fi
-          rm -rf payload-staging && mkdir -p payload-staging/Payload
-          cp -R "$APP" payload-staging/Payload/
-          ( cd payload-staging && zip -ry "../AstraPlay-unsigned.ipa" Payload )
-
-      - name: Stage iOS Artifact
-        run: |
-          mkdir -p ios_staging
-          cp ios/AstraPlay-unsigned.ipa ios_staging/AstraPlay-iOS.ipa
-
-      - name: Upload iOS Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: astraplay-ios-build
-          path: ios_staging/
-          retention-days: 7
-          if-no-files-found: warn
-
-  # =========================================================================
-  # 8. PUBLISH MULTI-PLATFORM RELEASE
+  # 7. PUBLISH MULTI-PLATFORM RELEASE
   # =========================================================================
   release:
     name: Create Release Tag and Publish Binaries
@@ -695,7 +578,6 @@ jobs:
       - build-linux-x64
       - build-linux-arm64
       - build-android
-      - build-ios
     if: always() && !cancelled() && (needs.build-windows-x64.result == 'success' || needs.build-macos-arm64.result == 'success' || needs.build-linux-x64.result == 'success')
     steps:
       - name: Checkout repository
@@ -739,11 +621,6 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
 
-      - name: Install Windows MSI builder
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wixl msitools
-
       - name: Package all release assets
         run: |
           mkdir -p dist
@@ -783,27 +660,12 @@ jobs:
             fi
           fi
 
-          # 3. Build the MSI from the complete portable archive, including Qt runtime files.
-          # Bundle as zip so legacy clients (<= 2.12.14) whose updater prioritized raw .msi
-          # over .exe installer don't hit silent msiexec /qn elevation failures.
-          if [ -f dist/astraplay-windows-x64.zip ]; then
-            python3 scripts/build-windows-msi.py \
-              dist/astraplay-windows-x64.zip \
-              "${{ steps.versioning.outputs.version }}" \
-              dist/astraplay-windows-x64.msi
-            (cd dist && zip -q astraplay-windows-x64-msi.zip astraplay-windows-x64.msi && rm -f astraplay-windows-x64.msi)
-          fi
-
-          # 4. macOS Apple Silicon assets
+          # 3. macOS Apple Silicon assets
           if [ -d artifacts/astraplay-macos-arm64-build ]; then
             MAC_ARM_DMG=$(find artifacts/astraplay-macos-arm64-build -name "*arm64.dmg" -o -name "*.dmg" | head -n 1)
             if [ -n "$MAC_ARM_DMG" ]; then
               cp "$MAC_ARM_DMG" dist/AstraPlay-macOS-arm64.dmg
               cp "$MAC_ARM_DMG" dist/AstraPlay-macOS.dmg
-            fi
-            MAC_ARM_INSTALLER=$(find artifacts/astraplay-macos-arm64-build -name "*installer.zip" -o -name "*Installer.zip" | head -n 1)
-            if [ -n "$MAC_ARM_INSTALLER" ]; then
-              cp "$MAC_ARM_INSTALLER" dist/AstraPlay-macOS-arm64-installer.zip
             fi
             MAC_ARM_ZIP=$(find artifacts/astraplay-macos-arm64-build -name "*arm64.zip" -o -name "*.zip" | head -n 1)
             if [ -n "$MAC_ARM_ZIP" ]; then
@@ -812,15 +674,11 @@ jobs:
             fi
           fi
 
-          # 5. macOS Intel assets
+          # 4. macOS Intel assets
           if [ -d artifacts/astraplay-macos-intel-build ]; then
             MAC_INTEL_DMG=$(find artifacts/astraplay-macos-intel-build -name "*x86_64.dmg" | head -n 1)
             if [ -n "$MAC_INTEL_DMG" ]; then
               cp "$MAC_INTEL_DMG" dist/AstraPlay-macOS-x86_64.dmg
-            fi
-            MAC_INTEL_INSTALLER=$(find artifacts/astraplay-macos-intel-build -name "*installer.zip" -o -name "*Installer.zip" | head -n 1)
-            if [ -n "$MAC_INTEL_INSTALLER" ]; then
-              cp "$MAC_INTEL_INSTALLER" dist/AstraPlay-macOS-x86_64-installer.zip
             fi
             MAC_INTEL_ZIP=$(find artifacts/astraplay-macos-intel-build -name "*x86_64.zip" | head -n 1)
             if [ -n "$MAC_INTEL_ZIP" ]; then
@@ -828,7 +686,7 @@ jobs:
             fi
           fi
 
-          # 6a. Linux x86_64 assets
+          # 5. Linux x86_64 assets
           if [ -d artifacts/astraplay-linux-build ]; then
             LIN_AI=$(find artifacts/astraplay-linux-build -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_AI" ]; then
@@ -840,7 +698,7 @@ jobs:
             fi
           fi
 
-          # 6b. Linux ARM64 assets
+          # 6. Linux ARM64 assets
           if [ -d artifacts/astraplay-linux-arm64-build ]; then
             LIN_ARM_AI=$(find artifacts/astraplay-linux-arm64-build -name "*.AppImage" | head -n 1)
             if [ -n "$LIN_ARM_AI" ]; then
@@ -865,15 +723,7 @@ jobs:
             fi
           fi
 
-          # 8. iOS assets
-          if [ -d artifacts/astraplay-ios-build ]; then
-            IOS_IPA=$(find artifacts/astraplay-ios-build -name "*.ipa" | head -n 1)
-            if [ -n "$IOS_IPA" ]; then
-              cp "$IOS_IPA" dist/AstraPlay-iOS.ipa
-            fi
-          fi
-
-          # 9. Generate version.json for CDN / Fastly rate-limit bypass
+          # 8. Generate version.json for CDN / Fastly rate-limit bypass
           python3 scripts/generate_version_json.py dist "${{ steps.versioning.outputs.tag }}" "$GITHUB_REPOSITORY" dist/version.json
           cp dist/version.json ./version.json
 

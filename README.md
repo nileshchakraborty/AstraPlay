@@ -79,13 +79,9 @@ Get running immediately with one command in Terminal or PowerShell. These automa
   *Why this is recommended on macOS Sonoma & Sequoia*: Files downloaded through `curl` in Terminal are never quarantined by macOS Gatekeeper, avoiding *"Apple could not verify..."* errors completely. Installs to `/Applications`, applies local ad-hoc codesigning, and launches immediately.
 - **In-App Direct Updates (v2.12.16+)**:
   AstraPlay includes a built-in background updater in **Settings → Check for Updates**. Updates download lightweight `.zip` application bundles, extract via `ditto` without disk image mount locks, automatically prompt for Touch ID elevation if `/Applications` permissions require it, and restart seamlessly with clean code signatures.
-- **Native 1-Click Installer ZIP**:
-  Download [`AstraPlay-macOS-arm64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon M1–M4) or [`AstraPlay-macOS-x86_64-installer.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-  - Unzip and double-click **`Install AstraPlay.app`** (or `Install AstraPlay.command`).
-  - Authorize when prompted via **Touch ID** or your password. AstraPlay installs into `/Applications`.
 - **Direct Disk Image (`.dmg`)**:
   Download [`AstraPlay-macOS-arm64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Apple Silicon) or [`AstraPlay-macOS-x86_64.dmg`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) (Intel).
-  - Double-click `Install AstraPlay.app` inside the disk image, or drag `AstraPlay.app` to `Applications`.
+  - Open the DMG and drag `AstraPlay.app` into `Applications`.
   - If macOS displays *"Apple could not verify..."*, open **System Settings > Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
 - **Homebrew Cask**:
   ```bash
@@ -140,11 +136,6 @@ Get running immediately with one command in Terminal or PowerShell. These automa
 - **Windows Package Manager (`winget`)**:
   ```powershell
   winget install AstraPlay
-  ```
-- **Enterprise MSI Installer**:
-  Download [`astraplay-windows-x64.msi`](https://github.com/nileshchakraborty/AstraPlay/releases/latest) for silent automated deployments:
-  ```powershell
-  msiexec /i astraplay-windows-x64.msi /quiet
   ```
 - **Portable ZIP**:
   Download and extract [`astraplay-windows-x64.zip`](https://github.com/nileshchakraborty/AstraPlay/releases/latest), then launch `AstraPlay.exe` directly without administrative privileges.
