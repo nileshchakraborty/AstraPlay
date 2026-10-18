@@ -780,11 +780,14 @@ jobs:
           fi
 
           # 3. Build the MSI from the complete portable archive, including Qt runtime files.
+          # Bundle as zip so legacy clients (<= 2.12.14) whose updater prioritized raw .msi
+          # over .exe installer don't hit silent msiexec /qn elevation failures.
           if [ -f dist/astraplay-windows-x64.zip ]; then
             python3 scripts/build-windows-msi.py \
               dist/astraplay-windows-x64.zip \
               "${{ steps.versioning.outputs.version }}" \
               dist/astraplay-windows-x64.msi
+            (cd dist && zip -q astraplay-windows-x64-msi.zip astraplay-windows-x64.msi && rm -f astraplay-windows-x64.msi)
           fi
 
           # 4. macOS Apple Silicon assets

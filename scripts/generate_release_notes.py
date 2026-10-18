@@ -11,7 +11,7 @@ def generate_release_notes(notes_path: str, tag: str, ver: str, changes: str = "
         "### Platform Binaries & Packages",
         "",
         "#### Windows (x86_64 — Desktop & ROG Xbox Ally X)",
-        "- **`astraplay-windows-x64.msi`** — Windows 64-bit installer with bundled runtime files",
+        "- **`astraplay-windows-x64-msi.zip`** — Windows 64-bit MSI installer archive with bundled runtime files",
         "- **`astraplay-windows-installer.exe`** — Complete Inno Setup installer package",
         "- **`astraplay-windows-x64.exe`** — Standalone 64-bit executable (in-app updater compatible)",
         "- **`astraplay.exe`** — Standalone executable alias",

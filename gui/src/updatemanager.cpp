@@ -370,12 +370,14 @@ void UpdateManager::onCheckFinished()
             portableExeUrl = dlUrl;
         }
     }
-    if (!msiUrl.isEmpty())
-        m_downloadUrl = msiUrl;
-    else if (!installerExeUrl.isEmpty())
+    // Prefer InnoSetup installer: supports UAC elevation, handles clean in-place upgrades,
+    // updates shortcuts/registry, and does not fail silently under unelevated execution like msiexec /qn.
+    if (!installerExeUrl.isEmpty())
         m_downloadUrl = installerExeUrl;
-    else
+    else if (!portableExeUrl.isEmpty())
         m_downloadUrl = portableExeUrl;
+    else
+        m_downloadUrl = msiUrl;
 #endif
 
     m_updateAvailable = hasUpdate;
@@ -681,7 +683,10 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "msiexec /i \"" << nativePath << "\" /qn /norestart ALLUSERS=1\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Process msiexec.exe -ArgumentList '/i \\\"" << nativePath << "\\\" /passive /norestart ALLUSERS=1' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
+            out << "    msiexec /i \"" << nativePath << "\" /passive /norestart ALLUSERS=1\r\n";
+            out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
             out << "start \"\" \"" << appExePath << "\"\r\n";
@@ -694,7 +699,7 @@ void UpdateManager::installAndRestart()
     } else if (nativePath.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive) &&
                (nativePath.contains(QLatin1String("installer"), Qt::CaseInsensitive) ||
                 nativePath.contains(QLatin1String("setup"), Qt::CaseInsensitive))) {
-        // Run setup executable in fully silent mode (/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS), purging .bak and .old files
+        // Run setup executable with UAC elevation via PowerShell Start-Process -Verb RunAs, purging .bak and .old files
         QString scriptPath = QDir::toNativeSeparators(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/astraplay_run_installer.bat"));
         QFile batFile(scriptPath);
         if (batFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -708,7 +713,10 @@ void UpdateManager::installAndRestart()
             out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
-            out << "start /wait \"\" \"" << nativePath << "\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\"" << appDir << "\"\r\n";
+            out << "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Start-Process '" << nativePath << "' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\\\"" << appDir << "\\\"' -Verb RunAs -Wait\" 2>nul\r\n";
+            out << "if \"%ERRORLEVEL%\" neq \"0\" (\r\n";
+            out << "    start /wait \"\" \"" << nativePath << "\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /DIR=\"" << appDir << "\"\r\n";
+            out << ")\r\n";
             out << "del /f /q \"" << appDir << "\\*.bak\" 2>nul\r\n";
             out << "del /f /q \"" << appDir << "\\*.old\" 2>nul\r\n";
             out << "start \"\" \"" << appExePath << "\"\r\n";
