@@ -1085,7 +1085,7 @@
 <h1 id="installing-astraplay">Installing AstraPlay<a class="headerlink" href="#installing-astraplay" title="Permanent link">&para;</a></h1>
 <p>AstraPlay provides native application packages, automated installers, and store distribution options for all major operating systems and handheld gaming devices.</p>
 <hr />
-<div class="tabbed-set tabbed-alternate" data-tabs="1:5"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Windows (10 &amp; 11)</label><label for="__tabbed_1_2">Linux &amp; Handhelds (Steam Deck / Bazzite / ROG Ally)</label><label for="__tabbed_1_3">macOS (Apple Silicon &amp; Intel)</label><label for="__tabbed_1_4">Android &amp; Android TV</label><label for="__tabbed_1_5">iOS &amp; iPadOS</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:5"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Windows (10 &amp; 11)</label><label for="__tabbed_1_2">Linux &amp; Handhelds (Steam Deck / Bazzite / ROG Ally)</label><label for="__tabbed_1_3">macOS (Apple Silicon &amp; Intel Legacy)</label><label for="__tabbed_1_4">Android &amp; Android TV</label><label for="__tabbed_1_5">iOS &amp; iPadOS</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>AstraPlay supports all modern 64-bit Windows installations on both <strong>x86_64</strong> (Intel/AMD) and <strong>ARM64</strong> (Qualcomm Snapdragon X Elite / Windows on ARM).</p>
@@ -1163,18 +1163,22 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 </div>
 <div class="tabbed-block">
 <p>AstraPlay runs natively on macOS Sonoma and Sequoia with Metal hardware acceleration, low-latency CoreAudio, and DualSense controller support.</p>
+<div class="admonition note">
+<p class="admonition-title">Intel Mac Deprecation Notice</p>
+<p><strong>v2.12.17 is the final release supporting Intel (<code>x86_64</code>) Macs.</strong> All future AstraPlay releases exclusively target Apple Silicon (<code>arm64</code>). Intel Mac users should download the final supported binary from the <a href="https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17">v2.12.17 Release</a>.</p>
+</div>
 <h3 id="option-1-one-line-terminal-installer-recommended-zero-gatekeeper-warnings">Option 1: One-Line Terminal Installer — Recommended (Zero Gatekeeper Warnings)<a class="headerlink" href="#option-1-one-line-terminal-installer-recommended-zero-gatekeeper-warnings" title="Permanent link">&para;</a></h3>
 <p>The fastest and most reliable way to install AstraPlay on modern macOS systems:</p>
 <div class="highlight"><pre><span></span><code>/bin/bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/install-macos.sh<span class="k">)</span><span class="s2">"</span>
 </code></pre></div>
 <p><strong>Why this is recommended on macOS Sonoma &amp; Sequoia:</strong>
 - <strong>Bypasses Gatekeeper without warnings</strong>: Downloads performed via <code>curl</code> inside Terminal never inherit Apple's <code>com.apple.quarantine</code> extended attribute, completely avoiding the <em>"Apple could not verify..."</em> error.
-- <strong>Automatic CPU Detection</strong>: Detects Apple Silicon (M1–M4) or Intel and downloads the matching build.
+- <strong>Automatic CPU Detection</strong>: Detects Apple Silicon (M1–M4) or Intel (automatically downloads the final v2.12.17 Intel build on x86_64).
 - <strong>Checksum Verification</strong>: Verifies integrity against <code>SHA256SUMS.txt</code>.
 - <strong>Instant Clean Launch</strong>: Installs to <code>/Applications/AstraPlay.app</code>, validates ad-hoc signatures, and opens AstraPlay immediately.</p>
 <h3 id="option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling">Option 2: Drag-and-Drop Disk Image (<code>.dmg</code>) &amp; Gatekeeper Handling<a class="headerlink" href="#option-2-drag-and-drop-disk-image-dmg-gatekeeper-handling" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Download <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-arm64.dmg</code></a> (Apple Silicon M1–M4) or <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-x86_64.dmg</code></a> (Intel).</li>
+<li>Download <a href="https://github.com/nileshchakraborty/AstraPlay/releases/latest"><code>AstraPlay-macOS-arm64.dmg</code></a> (Apple Silicon M1–M4) or legacy <a href="https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17"><code>AstraPlay-macOS-x86_64.dmg</code></a> (Intel Mac final build).</li>
 <li>Open the downloaded <code>.dmg</code> disk image.</li>
 <li>Drag <strong>AstraPlay</strong> into <code>/Applications</code>.</li>
 <li><strong>If macOS Sequoia or Sonoma displays</strong> <em>"Apple could not verify AstraPlay is free of malware"</em>:<ul>
@@ -1263,7 +1267,7 @@ adb<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 18, 2026 19:47:16 UTC">October 18, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 18, 2026 22:11:09 UTC">October 18, 2026</span>
   </span>
 
     
