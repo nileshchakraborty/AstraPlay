@@ -21,16 +21,18 @@ Desktop and mobile releases are published on the [releases page](https://github.
 === "macOS"
     [:simple-apple: Download on the Mac App Store](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
-    [:material-apple: Download DMG (Apple Silicon)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+    [:material-apple: Download DMG (Apple Silicon M1–M4)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
 
-    [:material-apple: Download DMG (Intel x86_64)](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+    [:material-apple: Download DMG (Intel x86_64 — Final v2.12.17)](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17){ .md-button target="_blank" rel="noopener" }
+
+    Install via Homebrew: `brew install --cask nileshchakraborty/astraplay/astraplay`
 
 === "Windows"
     [:material-download: Download Windows Installer (.exe)](https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/astraplay-windows-installer.exe){ .md-button .md-button--primary target="_blank" rel="noopener" }
 
-    [:material-package-variant: Download MSI Package](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
-
     [:material-folder-zip-outline: Download Portable ZIP](https://github.com/nileshchakraborty/AstraPlay/releases/latest){ .md-button target="_blank" rel="noopener" }
+
+    Install via Winget: `winget install AstraPlay`
 
 === "Linux & Handhelds"
     [:material-lightning-bolt: One-Line Installer Script](setup/installation.md#option-1-one-line-user-installer-recommended-for-handhelds){ .md-button .md-button--primary }

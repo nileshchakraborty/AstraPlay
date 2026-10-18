@@ -152,12 +152,15 @@ const char *cc_stable_key(const char *title_id);
 
 ---
 
-## 6. Privacy
+## 6. Privacy & Regulatory Compliance
 
-- **No telemetry or analytics** — AstraPlay does not send usage data to any AstraPlay server or endpoint.
-- **No user tracking** — No device IDs, no fingerprinting.
-- **PSN data** — All PSN API calls go directly to Sony. AstraPlay does not proxy or log PSN API responses except in debug log files on the local device.
-- **Log files** — May contain IP addresses, console IDs, and timing data. Users should not share logs publicly without redacting sensitive fields.
+- **Official Privacy Policy**: See [`PRIVACY.md`](PRIVACY.md) and [`docs/privacy.md`](docs/privacy.md) for full legal text, permission disclosures, and compliance matrices.
+- **Google Play Data Safety**: Zero data collected, zero data shared with third parties. All sensitive data (credentials, host configurations) is encrypted on-device.
+- **Apple Privacy Nutrition Label**: No data linked to user; no data tracked.
+- **No telemetry or analytics** — AstraPlay does not send usage data, metrics, or diagnostics to any developer-owned or third-party server.
+- **No user tracking** — No advertising IDs, device fingerprinting, or tracking SDKs.
+- **PSN communication** — All PSN authentication and streaming requests occur directly between the client and Sony/PlayStation servers or the user's local console. AstraPlay does not proxy, intercept, or inspect session traffic.
+- **Debug logs** — Stored locally on the user's filesystem only. IP addresses and session logs are never uploaded automatically.
 
 ---
 

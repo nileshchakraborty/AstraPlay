@@ -1,5 +1,48 @@
 # AstraPlay Release Notes
 
+## Version 2.12.17
+
+### Highlights & What's New
+- **Google Play Android 16 (API Level 36) Compliance**:
+  - Updated `compileSdk` and `targetSdk` to 36 (Android 16) satisfying Google Play requirements.
+  - Enhanced Android CI pipelines to build, sign, and publish both standard `.apk` (for direct sideloading and testing) and production `.aab` (Android App Bundle) packages using Fastlane and Google Play Developer API.
+- **macOS Intel (`x86_64`) Final Release & Retirement Notice**:
+  - v2.12.17 marks the final release providing native Intel (`x86_64`) binaries. All future releases exclusively target Apple Silicon (`arm64`).
+  - Added safety guardrails to the in-app updater (`UpdateManager`) to ensure Intel Macs never attempt to download incompatible Apple Silicon bundles and clearly report the final version status.
+  - Automated 1-line installer pins Intel Macs to the final supported v2.12.17 release.
+- **Privacy & Compliance Overhaul**:
+  - Formulated a comprehensive Privacy Policy across [`PRIVACY.md`](../PRIVACY.md) and [`docs/privacy.md`](../docs/privacy.md) adhering to Google Play Data Safety standards, Apple Privacy Nutrition manifests, GDPR, CCPA, and COPPA.
+  - Full transparency on zero remote telemetry, local encrypted credential vaults, and explicit Android runtime permission justifications.
+
+---
+
+## Version 2.12.16
+
+### Highlights & What's New
+- **In-App Direct Auto-Updater (macOS, Windows, Linux)**:
+  - Background update downloader and installer built into **Settings → Check for Updates**.
+  - On macOS, extracts lightweight application `.zip` bundles using `ditto` without disk image mount locks, clears Gatekeeper quarantine, re-signs ad-hoc, and automatically prompts for Touch ID or administrator elevation when installed in root-owned `/Applications`.
+  - On Windows, executes Inno Setup installers with UAC elevation, seamlessly replacing running binaries without file-locking crashes.
+  - On Linux and SteamOS / Bazzite, stages and atomically replaces running `.AppImage` binaries without disrupting desktop shortcuts or non-Steam game entries.
+- **One-Line Automated Installers**:
+  - **macOS**: Automated `install-macos.sh` script via `curl | bash` that detects architecture and bypasses Gatekeeper quarantine automatically.
+  - **Windows**: Automated `install-windows.ps1` PowerShell script that configures desktop and start menu shortcuts.
+  - **Linux / Handhelds**: Automated `install-appimage.sh` script that verifies SHA-256 checksums, configures `.local/bin` launchers, and sets up high-resolution desktop icons.
+- **Official Homebrew Tap**:
+  - Published official Homebrew Cask tap at `nileshchakraborty/astraplay/astraplay` with automated postflight quarantine removal (`xattr -d com.apple.quarantine`).
+
+---
+
+## Version 2.12.14
+
+### Highlights & What's New
+- **Cloud Streaming Performance Polish**:
+  - Enhanced adaptive dynamic bitrate scaling and congestion control in `libchiaki`.
+  - Lowered input and audio latency buffers on Steam Deck, ROG Xbox Ally X, and macOS.
+  - Added in-stream aspect ratio presets (Fit, Fill / 16:10, 20:9, Zoom, Stretch) and Contrast Adaptive Sharpening (CAS) toggles.
+
+---
+
 ## Version 2.12.3
 
 ### Highlights & What's New
@@ -98,7 +141,9 @@
 - Flathub release or portable AppImage.
 
 ### macOS
-- macOS 12 Monterey or newer (Universal binary supporting Apple Silicon M1–M4 and Intel x86_64).
+- macOS 12 Monterey or newer.
+- **Apple Silicon (arm64)**: M1, M2, M3, M4 or newer.
+- **Intel (x86_64)**: Supported up to final release **v2.12.17**. Releases after v2.12.17 exclusively target Apple Silicon.
 - Metal / Apple VideoToolbox hardware acceleration.
 
 ### Windows
@@ -106,7 +151,7 @@
 - D3D11VA, D3D12, or Vulkan video decoders.
 
 ### Android
-- Android 8.0 (Oreo) or higher.
+- Android 8.0 (Oreo) or higher (targets Android 16 / API Level 36).
 - ARM64-v8a or x86_64 processor recommended.
 
 ### iOS / iPadOS
@@ -118,8 +163,8 @@
 
 Release binaries, installers, and checksums are available on the [GitHub Releases Page](https://github.com/nileshchakraborty/AstraPlay/releases/latest).
 
-- **Windows**: Inno Setup installer (`.exe`), WiX MSI (`.msi`), portable `.zip`, standalone `.exe`.
-- **macOS**: DMG disk images and `.app.zip` bundles for Apple Silicon and Intel.
-- **Linux / Steam Deck**: Flatpak on Flathub, portable `.AppImage`, and Steam-ready ZIP.
-- **Android**: Google Play Store (`io.github.nileshchakraborty.astraplay`) and standalone release APK.
+- **Windows**: Inno Setup installer (`.exe`), portable `.zip`, standalone `.exe`, and Winget package.
+- **macOS**: DMG disk images and `.app.zip` bundles for Apple Silicon (`arm64`), official Homebrew tap (`brew install --cask nileshchakraborty/astraplay/astraplay`), and legacy Intel DMG ([v2.12.17 Release](https://github.com/nileshchakraborty/AstraPlay/releases/tag/v2.12.17)).
+- **Linux / Steam Deck**: Flatpak on Flathub, portable `.AppImage`, automated 1-line installer script, and Steam-ready ZIP.
+- **Android**: Google Play Store (`io.github.nileshchakraborty.astraplay`) and standalone signed release APK / AAB.
 - **iOS / iPadOS**: App Store and IPA package.

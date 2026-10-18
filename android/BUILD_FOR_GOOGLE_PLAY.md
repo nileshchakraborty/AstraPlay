@@ -62,17 +62,23 @@ Never commit a personal LAN hostname; each publisher sets their own host via the
 `~/.gradle/gradle.properties`:
 
 ```properties
-AstraPlayRelayUrl=https://relay.example.com:8080
+AstraPlayRelayUrl=https://relay.example.com:25525
 ```
 
 or directly on the Gradle command line:
 
 ```bash
-./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:8080
+./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:25525
 ```
 
 Without it, the login screen reports that no relay is configured. See
-`../../psstream-server/README.md` for how to self-host the relay.
+`../../psstream-server/README.md` for how to self-host the relay (default port 25525).
+
+### Android 16 (API Level 36) & Compliance Requirements
+
+- **Target SDK**: AstraPlay targets **API level 36** (`targetSdk 36`, `compileSdk 36`) complying with Google Play's latest requirements.
+- **Package Name**: `io.github.nileshchakraborty.astraplay`
+- **Data Safety**: All credentials (PSN Account ID, NPSSO tokens) are stored locally in the Android Keystore / encrypted SharedPreferences. Zero data is shared or transmitted to third parties. Refer to [`PRIVACY.md`](../PRIVACY.md) and [`docs/privacy.md`](../docs/privacy.md) for the exact Data Safety responses required in Google Play Console.
 
 ## Build Options
 

@@ -75,8 +75,9 @@ The heart of AstraPlay. Must be the single source of truth for all protocol beha
 | `src/cloudcatalogbackend.cpp` | Game catalog for QML |
 | `src/cloudstreamingbackend.cpp` | Internet Play session for QML |
 | `src/psntoken.cpp`, `psnaccountid.cpp` | PSN auth flows |
+| `src/updatemanager.cpp`, `include/updatemanager.h` | In-app auto-updater (ZIP/AppImage/InnoSetup, elevation, Intel retirement logic, CDN fallback) |
 | `src/steamworks/` | Steamworks overlay (optional, `CHIAKI_ENABLE_STEAMWORKS`) |
-| `src/qml/` | QML UI (settings, stream, launcher, dialogs) |
+| `src/qml/` | QML UI (settings, stream, launcher, dialogs, update dialog) |
 | `include/steamworks/` | `SteamworksWrapper` header |
 
 ### 2.3 `android/` — Android Shell
@@ -86,7 +87,8 @@ The heart of AstraPlay. Must be the single source of truth for all protocol beha
 | `app/src/main/java/…` | Kotlin/Java Activity, Fragment, ViewModels |
 | `app/src/main/cpp/` | JNI glue to `lib/` |
 | `app/src/main/res/` | Layouts, strings, drawables |
-| Gradle + CMake | Build system (AAB, ABI splits: arm64-v8a, x86_64, armeabi-v7a, x86) |
+| `fastlane/Fastfile` | Google Play Developer API automation (`upload_to_play`, internal sharing) |
+| Gradle + CMake | Build system (targetSdk 36 / Android 16, dual AAB/APK signing, ABI splits: arm64-v8a, x86_64, armeabi-v7a, x86) |
 
 ### 2.4 `ios/` — iOS Shell
 
@@ -240,7 +242,7 @@ Single source of truth in `CMakeLists.txt`:
 ```cmake
 set(CHIAKI_VERSION_MAJOR 2)
 set(CHIAKI_VERSION_MINOR 12)
-set(CHIAKI_VERSION_PATCH 0)
+set(CHIAKI_VERSION_PATCH 17)
 ```
 
 CI injects these into iOS `MARKETING_VERSION`, Android `versionName`, and macOS bundle.
