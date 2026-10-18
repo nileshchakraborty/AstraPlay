@@ -928,7 +928,8 @@ void UpdateManager::installAndRestart()
             out << "UPDATE_FILE=" << escapeSh(m_downloadedFilePath) << "\n";
             out << "while kill -0 " << currentPid << " 2>/dev/null; do sleep 0.2; done\n";
             out << "WORKDIR=$(mktemp -d /tmp/astraplay-upd.XXXXXX) || exit 1\n";
-            out << "cleanup() { hdiutil detach \"$WORKDIR/mnt\" >/dev/null 2>&1; rm -rf \"$WORKDIR\"; }\n";
+            out << "cleanup() { hdiutil detach -force \"$WORKDIR/mnt\" >/dev/null 2>&1; rm -rf \"$WORKDIR\"; }\n";
+            out << "trap cleanup EXIT INT TERM\n";
             if (isDmg) {
                 out << "mkdir -p \"$WORKDIR/mnt\"\n";
                 out << "if ! hdiutil attach -nobrowse -mountpoint \"$WORKDIR/mnt\" \"$UPDATE_FILE\" >/dev/null 2>&1; then\n";

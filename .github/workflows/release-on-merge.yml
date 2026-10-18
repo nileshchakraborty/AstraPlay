@@ -870,6 +870,27 @@ jobs:
           sha256sum * > SHA256SUMS.txt
           cd ..
 
+          # 11. Pre-flight asset verification
+          REQUIRED_ASSETS=(
+            "astraplay-windows-installer.exe"
+            "astraplay-windows-arm64-installer.exe"
+            "astraplay-windows-x64.zip"
+            "AstraPlay-Linux-x86_64.AppImage"
+            "AstraPlay-Linux-aarch64.AppImage"
+            "AstraPlay-macOS-arm64.dmg"
+            "AstraPlay-macOS-x86_64.dmg"
+            "AstraPlay-Android.apk"
+            "version.json"
+            "SHA256SUMS.txt"
+          )
+          for asset in "${REQUIRED_ASSETS[@]}"; do
+            if [ ! -s "dist/$asset" ]; then
+              echo "ERROR: Mandatory release asset dist/$asset is missing or empty!" >&2
+              exit 1
+            fi
+          done
+          echo "All mandatory release assets verified."
+
           echo "Final release assets prepared:"
           ls -lh dist/
 
