@@ -256,6 +256,9 @@ void UpdateManager::checkForUpdates(bool userInitiated)
     QNetworkRequest request{QUrl(REPO_RELEASES_API)};
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
     request.setRawHeader("Accept", "application/vnd.github.v3+json");
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    request.setTransferTimeout(15000);
+#endif
 
     if (m_checkReply) {
         m_checkReply->abort();
@@ -285,6 +288,9 @@ void UpdateManager::onCheckFinished()
 
         QNetworkRequest fallbackRequest{QUrl(REPO_VERSION_FALLBACK_URL)};
         fallbackRequest.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        fallbackRequest.setTransferTimeout(15000);
+#endif
         m_checkReply = m_nam->get(fallbackRequest);
         connect(m_checkReply, &QNetworkReply::finished, this, &UpdateManager::onCheckFinished);
         return;
@@ -557,6 +563,23 @@ void UpdateManager::startDownload()
     QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     m_downloadedFilePath = QDir(tempDir).filePath(filename);
 
+    QString existingVerifyErr;
+    if (QFile::exists(m_downloadedFilePath) && verifyDownloadedPayload(m_downloadedFilePath, existingVerifyErr)) {
+        qInfo() << "[UpdateManager] Existing payload already fully downloaded and verified:" << m_downloadedFilePath;
+        m_downloading = false;
+        m_failed = false;
+        m_downloadProgress = 1.0;
+        m_readyToInstall = true;
+        m_statusMessage = tr("Update already downloaded and verified. Ready to install.");
+        emit downloadingChanged();
+        emit failedChanged();
+        emit downloadProgressChanged();
+        emit readyToInstallChanged();
+        emit statusMessageChanged();
+        emit downloadFinished(m_downloadedFilePath);
+        return;
+    }
+
     if (m_downloadFile) {
         if (m_downloadFile->isOpen())
             m_downloadFile->close();
@@ -585,6 +608,9 @@ void UpdateManager::startDownload()
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    request.setTransferTimeout(30000);
+#endif
 
     if (m_downloadReply) {
         m_downloadReply->abort();
@@ -687,7 +713,16 @@ void UpdateManager::onDownloadFinished()
             emit statusMessageChanged();
         } else {
             m_failed = true;
-            m_lastError = m_downloadReply->errorString();
+            QNetworkReply::NetworkError netErr = m_downloadReply->error();
+            if (netErr == QNetworkReply::TimeoutError) {
+                m_lastError = tr("Download timed out. Please check your network connection and retry.");
+            } else if (netErr == QNetworkReply::HostNotFoundError || netErr == QNetworkReply::ConnectionRefusedError) {
+                m_lastError = tr("Cannot connect to server. Please check your internet connection.");
+            } else if (netErr == QNetworkReply::TemporaryNetworkFailureError || netErr == QNetworkReply::NetworkSessionFailedError) {
+                m_lastError = tr("Network connection was interrupted. Please retry.");
+            } else {
+                m_lastError = m_downloadReply->errorString();
+            }
             emit failedChanged();
             emit lastErrorChanged();
             qWarning() << "[UpdateManager] Download error:" << m_lastError;
@@ -906,7 +941,19 @@ void UpdateManager::installAndRestart()
             out << "  fi\n";
             out << "  sleep 0.1\n";
             out << "done\n";
-            out << "echo \"Process exited or timeout reached.\" >> \"$LOG\"\n";
+            out << "if kill -0 " << currentPid << " 2>/dev/null; then\n";
+            out << "  echo \"Process still running after 10s, sending SIGTERM...\" >> \"$LOG\"\n";
+            out << "  kill -15 " << currentPid << " 2>/dev/null || true\n";
+            out << "  for i in $(seq 1 30); do\n";
+            out << "    if ! kill -0 " << currentPid << " 2>/dev/null; then break; fi\n";
+            out << "    sleep 0.1\n";
+            out << "  done\n";
+            out << "fi\n";
+            out << "if kill -0 " << currentPid << " 2>/dev/null; then\n";
+            out << "  echo \"Force-killing PID " << currentPid << "\" >> \"$LOG\"\n";
+            out << "  kill -9 " << currentPid << " 2>/dev/null || true\n";
+            out << "fi\n";
+            out << "echo \"Process exited or cleaned up.\" >> \"$LOG\"\n";
             out << "if [ ! -f \"$UPDATE\" ]; then\n";
             out << "  echo \"Update file $UPDATE missing!\" >> \"$LOG\"\n";
             out << "  if [ -n \"$TARGET\" ] && [ -x \"$TARGET\" ]; then\n";
@@ -921,12 +968,15 @@ void UpdateManager::installAndRestart()
             out << "if [ -n \"$TARGET\" ]; then\n";
             out << "  TARGET_DIR=\"$(dirname \"$TARGET\")\"\n";
             out << "  mkdir -p \"$TARGET_DIR\" >> \"$LOG\" 2>&1\n";
+            out << "  rm -f \"${TARGET_DIR}/$(basename \"$TARGET\").new.\"* 2>/dev/null\n";
             out << "  TMP_TARGET=\"${TARGET}.new.$$\"\n";
             out << "  echo \"Staging update to $TMP_TARGET\" >> \"$LOG\"\n";
             out << "  if cp -f \"$UPDATE\" \"$TMP_TARGET\" >> \"$LOG\" 2>&1; then\n";
             out << "    chmod +x \"$TMP_TARGET\" >> \"$LOG\" 2>&1\n";
+            out << "    sync \"$TMP_TARGET\" 2>/dev/null || true\n";
             out << "    if mv -f \"$TMP_TARGET\" \"$TARGET\" >> \"$LOG\" 2>&1; then\n";
             out << "      echo \"Atomic replacement succeeded: $TARGET\" >> \"$LOG\"\n";
+            out << "      sync \"$TARGET\" 2>/dev/null || true\n";
             out << "      REPLACED=1\n";
             out << "      rm -f \"$UPDATE\" 2>/dev/null\n";
             out << "      rm -f \"$0\" 2>/dev/null\n";
@@ -942,13 +992,17 @@ void UpdateManager::installAndRestart()
             out << "fi\n";
             out << "if [ \"$REPLACED\" -eq 0 ]; then\n";
             out << "  FALLBACK_TARGET=\"$HOME/.local/opt/astraplay/AstraPlay.AppImage\"\n";
+            out << "  FALLBACK_DIR=\"$HOME/.local/opt/astraplay\"\n";
             out << "  if [ \"$TARGET\" != \"$FALLBACK_TARGET\" ]; then\n";
             out << "    echo \"Attempting fallback staging to $FALLBACK_TARGET\" >> \"$LOG\"\n";
-            out << "    mkdir -p \"$HOME/.local/opt/astraplay\" >> \"$LOG\" 2>&1\n";
+            out << "    mkdir -p \"$FALLBACK_DIR\" >> \"$LOG\" 2>&1\n";
+            out << "    rm -f \"${FALLBACK_DIR}/$(basename \"$FALLBACK_TARGET\").new.\"* 2>/dev/null\n";
             out << "    if cp -f \"$UPDATE\" \"${FALLBACK_TARGET}.new.$$\" >> \"$LOG\" 2>&1; then\n";
             out << "      chmod +x \"${FALLBACK_TARGET}.new.$$\" >> \"$LOG\" 2>&1\n";
+            out << "      sync \"${FALLBACK_TARGET}.new.$$\" 2>/dev/null || true\n";
             out << "      if mv -f \"${FALLBACK_TARGET}.new.$$\" \"$FALLBACK_TARGET\" >> \"$LOG\" 2>&1; then\n";
             out << "        echo \"Fallback replacement succeeded: $FALLBACK_TARGET\" >> \"$LOG\"\n";
+            out << "        sync \"$FALLBACK_TARGET\" 2>/dev/null || true\n";
             out << "        rm -f \"$UPDATE\" 2>/dev/null\n";
             out << "        rm -f \"$0\" 2>/dev/null\n";
             out << "        exec \"$FALLBACK_TARGET\"\n";
