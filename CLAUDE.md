@@ -16,11 +16,17 @@ AstraPlay is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (
 - **DON'T** make sweeping edits to upstream-owned Qt files; prefer new files so chiaki-ng
   fixes stay cherry-pickable.
 
-## Workflow
+## Workflow & Releases
 - Create feature, fix, and documentation branches from `dev`; their PRs target **`dev`**.
   Release PRs go from **`dev` to `master`**. Merging a release PR triggers the
-  `release-on-merge.yml` build and GitHub Release workflow. Do not push directly to
-  `dev` or `master`.
+  `release-on-merge.yml` build and GitHub Release workflow.
+- **Releases:** Versions are defined in root `CMakeLists.txt` (`CHIAKI_VERSION_*`) and drive
+  the Android `versionCode` (`MAJOR*10000 + MINOR*100 + PATCH`). CI only generates tags and
+  releases when `CMakeLists.txt` is bumped. Use `./scripts/prepare-release.sh [patch|minor|major] [--push]`
+  to automate version bumping, changelog validation (Google Play max 500 chars), and branch syncing.
+- **In-App Updater:** `gui/src/updatemanager.cpp` manages multi-platform self-updates. In its
+  destructor `~UpdateManager()`, never delete the payload if `m_readyToInstall == true`. Socket
+  transfers must use explicit timeouts (`setTransferTimeout(30000)`) to survive network drops.
 
 ## Data handling: title IDs, product IDs, entitlements
 - **DON'T** infer prefix/regex patterns from the ID samples you happen to see. PSN IDs are

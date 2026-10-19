@@ -75,7 +75,7 @@ The heart of AstraPlay. Must be the single source of truth for all protocol beha
 | `src/cloudcatalogbackend.cpp` | Game catalog for QML |
 | `src/cloudstreamingbackend.cpp` | Internet Play session for QML |
 | `src/psntoken.cpp`, `psnaccountid.cpp` | PSN auth flows |
-| `src/updatemanager.cpp`, `include/updatemanager.h` | In-app auto-updater (ZIP/AppImage/InnoSetup, elevation, Intel retirement logic, CDN fallback) |
+| `src/updatemanager.cpp`, `include/updatemanager.h` | In-app auto-updater (ZIP/AppImage/InnoSetup, atomic replacement scripts, transfer timeouts, payload verification, elevation, Intel retirement logic, CDN fallback) |
 | `src/steamworks/` | Steamworks overlay (optional, `CHIAKI_ENABLE_STEAMWORKS`) |
 | `src/qml/` | QML UI (settings, stream, launcher, dialogs, update dialog) |
 | `include/steamworks/` | `SteamworksWrapper` header |

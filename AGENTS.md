@@ -59,6 +59,12 @@ third-party/    nanopb, Jerasure, etc.
 ### 2.6 Deletion Safety Rule
 **Never run broad/recursive deletions** (`rm -rf *`) without providing a list of affected files and getting explicit confirmation. Prefer surgical deletes.
 
+### 2.7 Release, Versioning & In-App Updater Rules
+- **Version Source of Truth:** Defined exclusively in root `CMakeLists.txt` via `CHIAKI_VERSION_MAJOR`, `MINOR`, and `PATCH`. Android `versionCode` is computed automatically as `MAJOR*10000 + MINOR*100 + PATCH`.
+- **Release CI Trigger:** GitHub Actions (`release-on-merge.yml`) reads `CMakeLists.txt` and publishes only if `v${MAJOR}.${MINOR}.${PATCH}` does NOT yet exist on GitHub. If the version is not bumped, CI will not create a new release tag.
+- **Google Play 500-Character Rule:** Release notes in `android/fastlane/metadata/android/en-US/changelogs/` must never exceed **500 characters**. Fastlane enforces an automated truncation safeguard, but source changelogs must be kept concise.
+- **In-App Updater Lifecycle Guard:** When the updater downloads a payload to `/tmp`, `UpdateManager` destructor (`~UpdateManager()`) must **never** call `cancelDownload()` or delete the payload when `m_readyToInstall == true`. Network requests must set `setTransferTimeout(30000)` to prevent hangs on socket stalls.
+
 ---
 
 ## 3. Build Commands (Read Script Headers First)
@@ -98,6 +104,15 @@ pwsh android/build.ps1       # Windows
 cmake -B build -DCHIAKI_ENABLE_TESTS=ON
 cmake --build build -t chiaki-unit-tests
 ./build/test/chiaki-unit-tests
+```
+
+### Release Preparation & Publishing
+```bash
+./scripts/prepare-release.sh [patch|minor|major|X.Y.Z] [--push]
+# Examples:
+#   ./scripts/prepare-release.sh              # test bump patch locally
+#   ./scripts/prepare-release.sh --push       # bump patch, sync dev/master, push to trigger CI release
+#   ./scripts/prepare-release.sh minor --push # bump minor, sync dev/master, push
 ```
 
 ---
