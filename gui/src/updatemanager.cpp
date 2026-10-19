@@ -139,7 +139,9 @@ UpdateManager::UpdateManager(Settings *settings, QObject *parent)
 
 UpdateManager::~UpdateManager()
 {
-    cancelDownload();
+    if (m_downloading) {
+        cancelDownload();
+    }
     if (m_checkReply) {
         m_checkReply->abort();
         m_checkReply->deleteLater();
@@ -747,7 +749,9 @@ void UpdateManager::cancelDownload()
         m_downloading = false;
         emit downloadingChanged();
     }
-    QFile::remove(m_downloadedFilePath);
+    if (!m_readyToInstall) {
+        QFile::remove(m_downloadedFilePath);
+    }
     m_speedLastTime = 0;
     m_speedLastBytes = 0;
     m_downloadSpeed.clear();
