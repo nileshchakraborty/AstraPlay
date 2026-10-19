@@ -39,6 +39,16 @@ platform :android do
       end
     end
 
+    # Google Play limits release notes to a maximum of 500 characters per language
+    Dir.glob(File.join(changelog_dir, "*.txt")).each do |f|
+      content = File.read(f)
+      if content.length > 500
+        UI.important("Changelog #{File.basename(f)} length (#{content.length}) exceeds 500 characters, truncating...")
+        truncated = content[0...497] + "..."
+        File.write(f, truncated)
+      end
+    end
+
     supply_args = {
       json_key: json_key,
       package_name: "io.github.nileshchakraborty.astraplay",

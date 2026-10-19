@@ -1,6 +1,6 @@
-• Target Android 16 (API level 36) for enhanced security, performance, and modern Android runtime compatibility.
-• Full 16 KB memory page size alignment for the latest Android devices and silicon.
-• Improved restricted scene (blocked display) touch overlay handling and instant tap responsiveness.
-• Enhanced low-latency video streaming pipeline and dynamic bitrate congestion recovery.
-• Upgraded DualSense and controller vibration and tactile touch feedback.
+• Target Android 16 (API 36) for modern runtime compatibility.
+• Full 16 KB memory page size alignment for modern Android devices.
+• Improved restricted scene touch overlay and responsiveness.
+• Enhanced low-latency streaming pipeline and congestion recovery.
+• Upgraded DualSense and controller tactile feedback.
 • General stability and network discovery improvements.
