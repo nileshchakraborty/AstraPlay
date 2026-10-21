@@ -2003,6 +2003,7 @@ void StreamSession::Event(ChiakiEvent *event)
 		case CHIAKI_EVENT_CONNECTED:
 			connect_timer.invalidate();
 			connected = true;
+			mid_stream_reconnect_attempts = 0;
 			emit ConnectedChanged();
 			break;
 		case CHIAKI_EVENT_PS_CHORD:
@@ -2021,6 +2022,21 @@ void StreamSession::Event(ChiakiEvent *event)
 					&& connect_timer.elapsed() < SESSION_RETRY_SECONDS * 1000)
 			{
 				QTimer::singleShot(1000, this, &StreamSession::Start);
+				return;
+			}
+			// Mid-stream network drop / roaming auto-reconnect:
+			if(connected && chiaki_quit_reason_is_error(event->quit.reason)
+					&& (event->quit.reason == CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT
+						|| event->quit.reason == CHIAKI_QUIT_REASON_CTRL_UNKNOWN
+						|| event->quit.reason == CHIAKI_QUIT_REASON_STREAM_CONNECTION_UNKNOWN)
+					&& mid_stream_reconnect_attempts < 3)
+			{
+				mid_stream_reconnect_attempts++;
+				CHIAKI_LOGI(GetChiakiLog(), "Mid-stream connection lost (%s). Auto-reconnecting attempt %d/3...",
+						chiaki_quit_reason_string(event->quit.reason), mid_stream_reconnect_attempts);
+				connected = false;
+				emit ConnectedChanged();
+				QTimer::singleShot(1500, this, &StreamSession::Start);
 				return;
 			}
 			connected = false;

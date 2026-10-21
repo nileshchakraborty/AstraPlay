@@ -91,6 +91,8 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 
 	/** [SystemClock.elapsedRealtime] when this session entered [StreamStateConnected]; 0 if not connected. */
 	private var connectedAtElapsedRealtime: Long = 0L
+	private var midStreamReconnectAttempts: Int = 0
+	private val maxMidStreamReconnectAttempts: Int = 3
 
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
@@ -740,6 +742,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		{
 			StreamStateConnected ->
 			{
+				midStreamReconnectAttempts = 0
 				if (connectedAtElapsedRealtime == 0L)
 					connectedAtElapsedRealtime = SystemClock.elapsedRealtime()
 			}
@@ -755,7 +758,23 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 
 			is StreamStateQuit ->
 			{
+				val wasConnected = connectedAtElapsedRealtime > 0L
 				flushStreamTimeSegment()
+				if(state.reason.isError && wasConnected && midStreamReconnectAttempts < maxMidStreamReconnectAttempts)
+				{
+					midStreamReconnectAttempts++
+					android.widget.Toast.makeText(
+						this,
+						"Connection interrupted. Auto-reconnecting ($midStreamReconnectAttempts/$maxMidStreamReconnectAttempts)...",
+						android.widget.Toast.LENGTH_SHORT
+					).show()
+					binding.root.postDelayed({
+						if (!isFinishing && !isDestroyed) {
+							reconnect()
+						}
+					}, 1500)
+					return
+				}
 				if(dialogContents != StreamQuitDialog)
 				{
 					if(state.reason.isError)

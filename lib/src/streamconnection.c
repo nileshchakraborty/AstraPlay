@@ -35,6 +35,17 @@
 
 #define HEARTBEAT_INTERVAL_MS 1000
 
+#define STREAM_INBOUND_PACKET_TIMEOUT_MS 5000
+#define MAX_CONSECUTIVE_HEARTBEAT_FAILS 4
+
+#if defined(__GNUC__) || defined(__clang__)
+#define STREAM_SET_LAST_RECV(sc, val) __atomic_store_n(&(sc)->last_packet_recv_time_ms, (val), __ATOMIC_RELAXED)
+#define STREAM_GET_LAST_RECV(sc) __atomic_load_n(&(sc)->last_packet_recv_time_ms, __ATOMIC_RELAXED)
+#else
+#define STREAM_SET_LAST_RECV(sc, val) ((sc)->last_packet_recv_time_ms = (val))
+#define STREAM_GET_LAST_RECV(sc) ((sc)->last_packet_recv_time_ms)
+#endif
+
 // Smoothing factor for the live stats-overlay metrics (RTT and FPS). The server
 // reports CONNECTIONQUALITY roughly once per second, and the raw per-second RTT
 // sample is very jittery (seen swinging ~10..256 ms second-to-second), so the
@@ -129,8 +140,11 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_stream_connection_init(ChiakiStreamConnecti
 	stream_connection->state_finished = false;
 	stream_connection->state_failed = false;
 	stream_connection->should_stop = false;
+	stream_connection->timed_out = false;
 	stream_connection->remote_disconnected = false;
 	stream_connection->remote_disconnect_reason = NULL;
+	stream_connection->last_packet_recv_time_ms = 0;
+	stream_connection->consecutive_heartbeat_fails = 0;
 
 	return CHIAKI_ERR_SUCCESS;
 
@@ -166,7 +180,7 @@ CHIAKI_EXPORT void chiaki_stream_connection_fini(ChiakiStreamConnection *stream_
 static bool state_finished_cond_check(void *user)
 {
 	ChiakiStreamConnection *stream_connection = user;
-	return stream_connection->state_finished || stream_connection->should_stop || stream_connection->remote_disconnected;
+	return stream_connection->state_finished || stream_connection->should_stop || stream_connection->remote_disconnected || stream_connection->timed_out;
 }
 
 CHIAKI_EXPORT ChiakiErrorCode chiaki_stream_connection_run(ChiakiStreamConnection *stream_connection, chiaki_socket_t *socket)
@@ -353,6 +367,9 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_stream_connection_run(ChiakiStreamConnectio
 	stream_connection->state = STATE_IDLE;
 	stream_connection->state_finished = false;
 	stream_connection->state_failed = false;
+	stream_connection->timed_out = false;
+	stream_connection->consecutive_heartbeat_fails = 0;
+	STREAM_SET_LAST_RECV(stream_connection, chiaki_time_now_monotonic_ms());
 
 	ChiakiEvent event = { 0 };
 	event.type = CHIAKI_EVENT_CONNECTED;
@@ -367,11 +384,32 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_stream_connection_run(ChiakiStreamConnectio
 		if(err != CHIAKI_ERR_TIMEOUT)
 			break;
 
+		uint64_t now_ms = chiaki_time_now_monotonic_ms();
+		uint64_t last_recv_ms = STREAM_GET_LAST_RECV(stream_connection);
+		if(last_recv_ms > 0 && now_ms > last_recv_ms && (now_ms - last_recv_ms) >= STREAM_INBOUND_PACKET_TIMEOUT_MS)
+		{
+			CHIAKI_LOGE(stream_connection->log, "StreamConnection packet reception timed out (no packets received for %llu ms, network likely dropped or roaming)", (unsigned long long)(now_ms - last_recv_ms));
+			stream_connection->timed_out = true;
+			break;
+		}
+
 		err = stream_connection_send_heartbeat(stream_connection);
 		if(err != CHIAKI_ERR_SUCCESS)
+		{
 			CHIAKI_LOGE(stream_connection->log, "StreamConnection failed to send heartbeat");
+			stream_connection->consecutive_heartbeat_fails++;
+			if(stream_connection->consecutive_heartbeat_fails >= MAX_CONSECUTIVE_HEARTBEAT_FAILS)
+			{
+				CHIAKI_LOGE(stream_connection->log, "StreamConnection exceeded max consecutive heartbeat failures (%u), network unreachable", stream_connection->consecutive_heartbeat_fails);
+				stream_connection->timed_out = true;
+				break;
+			}
+		}
 		else
+		{
+			stream_connection->consecutive_heartbeat_fails = 0;
 			CHIAKI_LOGV(stream_connection->log, "StreamConnection sent heartbeat");
+		}
 	}
 
 	err = chiaki_mutex_lock(&stream_connection->feedback_sender_mutex);
@@ -400,6 +438,11 @@ disconnect:
 	{
 		CHIAKI_LOGI(stream_connection->log, "StreamConnection closing after Remote disconnected");
 		err = CHIAKI_ERR_DISCONNECTED;
+	}
+	else if(stream_connection->timed_out)
+	{
+		CHIAKI_LOGI(stream_connection->log, "StreamConnection closing after packet reception timeout");
+		err = CHIAKI_ERR_TIMEOUT;
 	}
 
 err_congestion_control:
@@ -475,6 +518,7 @@ CHIAKI_EXPORT uint64_t chiaki_stream_connection_video_frames_lost(ChiakiStreamCo
 static void stream_connection_takion_cb(ChiakiTakionEvent *event, void *user)
 {
 	ChiakiStreamConnection *stream_connection = user;
+	STREAM_SET_LAST_RECV(stream_connection, chiaki_time_now_monotonic_ms());
 	switch(event->type)
 	{
 		case CHIAKI_TAKION_EVENT_TYPE_CONNECTED:

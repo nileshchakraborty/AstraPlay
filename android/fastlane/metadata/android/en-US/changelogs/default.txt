@@ -1,6 +1,4 @@
-• Target Android 16 (API 36) for modern runtime compatibility.
-• Full 16 KB memory page size alignment for modern Android devices.
-• Improved restricted scene touch overlay and responsiveness.
-• Enhanced low-latency streaming pipeline and congestion recovery.
-• Upgraded DualSense and controller tactile feedback.
-• General stability and network discovery improvements.
+• Fixed launcher adaptive icon and TV banner branding to match store listing.
+• Added network roaming watchdog with auto-reconnect on Wi-Fi handover.
+• Improved stream resilience and packet recovery.
+• General stability enhancements.

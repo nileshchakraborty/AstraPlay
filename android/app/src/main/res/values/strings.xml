@@ -44,7 +44,7 @@
     <string name="regist_option_ps4_ge_8">Gen 4 ≥ 8.0</string>
     <string name="regist_option_ps5">Gen 5</string>
     <string name="regist_psn_account_id_help">About obtaining your Account ID, see</string>
-    <string name="regist_psn_account_id_help_url">https://git.sr.ht/~thestr4ng3r/chiaki/tree/master/item/README.md#obtaining-your-psn-accountid</string>
+    <string name="regist_psn_account_id_help_url">https://github.com/nileshchakraborty/AstraPlay#obtaining-your-psn-accountid</string>
     <string name="action_sign_in_psn_autofill">Sign in to PlayStation to Auto-Fill</string>
     <string name="psn_account_id_autofilled">Account ID auto-filled from PlayStation login</string>
     <string name="hint_regist_psn_online_id">Online ID (username, case-sensitive)</string>

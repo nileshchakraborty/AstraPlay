@@ -1,0 +1,4 @@
+• Fixed launcher adaptive icon and TV banner branding to match store listing.
+• Added network roaming watchdog with auto-reconnect on Wi-Fi handover.
+• Improved stream resilience and packet recovery.
+• General stability enhancements.

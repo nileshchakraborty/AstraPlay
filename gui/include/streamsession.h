@@ -178,6 +178,7 @@ class StreamSession : public QObject
 		ChiakiOpusDecoder opus_decoder;
 		ChiakiOpusEncoder opus_encoder;
 		bool connected;
+		int mid_stream_reconnect_attempts = 0;
 		bool muted;
 		bool mic_connected;
 #ifdef Q_OS_MACOS

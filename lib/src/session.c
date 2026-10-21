@@ -163,6 +163,8 @@ CHIAKI_EXPORT const char *chiaki_quit_reason_string(ChiakiQuitReason reason)
 			return "Remote has disconnected from Stream Connection";
 		case CHIAKI_QUIT_REASON_STREAM_CONNECTION_REMOTE_SHUTDOWN:
 			return "Remote has disconnected from Stream Connection the because Server shut down";
+		case CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT:
+			return "Stream Connection timed out (network lost or changed)";
 		case CHIAKI_QUIT_REASON_PSN_REGIST_FAILED:
 			return "The Console Registration using PSN has failed";
 		case CHIAKI_QUIT_REASON_NONE:
@@ -922,6 +924,18 @@ ctrl_failed:
 		else
 			session->quit_reason = CHIAKI_QUIT_REASON_STREAM_CONNECTION_REMOTE_DISCONNECTED;
 		session->quit_reason_str = strdup(session->stream_connection.remote_disconnect_reason);
+	}
+	else if(err == CHIAKI_ERR_TIMEOUT)
+	{
+		CHIAKI_LOGE(session->log, "StreamConnection timed out due to network drop or roaming");
+		session->quit_reason = CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT;
+		session->quit_reason_str = strdup("Network connection lost (no response from console)");
+	}
+	else if(session->ctrl_failed)
+	{
+		CHIAKI_LOGE(session->log, "Ctrl failed during streaming");
+		if(session->quit_reason == CHIAKI_QUIT_REASON_NONE)
+			session->quit_reason = CHIAKI_QUIT_REASON_CTRL_UNKNOWN;
 	}
 	else if(err != CHIAKI_ERR_SUCCESS && err != CHIAKI_ERR_CANCELED)
 	{

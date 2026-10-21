@@ -74,8 +74,11 @@ typedef struct chiaki_stream_connection_t
 	bool state_finished;
 	bool state_failed;
 	bool should_stop;
+	bool timed_out;
 	bool remote_disconnected;
 	char *remote_disconnect_reason;
+	uint64_t last_packet_recv_time_ms;
+	uint32_t consecutive_heartbeat_fails;
 
 	double measured_bitrate;
 

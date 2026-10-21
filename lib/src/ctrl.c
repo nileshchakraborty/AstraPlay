@@ -313,10 +313,12 @@ static void ctrl_failed(ChiakiCtrl *ctrl, ChiakiQuitReason reason)
 {
 	ChiakiErrorCode mutex_err = chiaki_mutex_lock(&ctrl->session->state_mutex);
 	assert(mutex_err == CHIAKI_ERR_SUCCESS);
-	ctrl->session->quit_reason = reason;
+	if(ctrl->session->quit_reason == CHIAKI_QUIT_REASON_NONE)
+		ctrl->session->quit_reason = reason;
 	ctrl->session->ctrl_failed = true;
 	chiaki_mutex_unlock(&ctrl->session->state_mutex);
 	chiaki_cond_signal(&ctrl->session->state_cond);
+	chiaki_stream_connection_stop(&ctrl->session->stream_connection);
 }
 
 static void *ctrl_thread_func(void *user)
