@@ -387,7 +387,7 @@ DialogView {
             }
 
             Label {
-                text: qsTr("Redirect URL from Web Browser")
+                text: qsTr("Redirect URL (Legacy Sign-In)")
             }
 
             TextField {
@@ -489,7 +489,7 @@ DialogView {
             Label {
                 Layout.columnSpan: 2
                 Layout.topMargin: 5
-                text: qsTr("Required for cloud game streaming. Sign in first, then copy the full token from the page.")
+                text: qsTr("Required for cloud streaming. Sign into PlayStation first, then tap 'Get My Code' to copy and paste your 64-character account code.")
                 wrapMode: Text.Wrap
                 font.pixelSize: 11
                 opacity: 0.8

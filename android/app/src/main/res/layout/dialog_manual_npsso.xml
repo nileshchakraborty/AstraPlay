@@ -60,6 +60,8 @@
                     android:layout_height="44dp"
                     android:text="@string/psn_login_step1_button"
                     android:textSize="13sp"
+                    android:focusable="true"
+                    android:nextFocusDown="@+id/btnOpenNpssoPage"
                     app:cornerRadius="8dp"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
             </LinearLayout>
@@ -105,6 +107,9 @@
                     android:layout_height="44dp"
                     android:text="@string/psn_login_step2_button"
                     android:textSize="13sp"
+                    android:focusable="true"
+                    android:nextFocusUp="@+id/btnOpenPlayStationLogin"
+                    android:nextFocusDown="@+id/npssoTokenInput"
                     app:cornerRadius="8dp"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
             </LinearLayout>
@@ -161,7 +166,10 @@
                         android:layout_height="wrap_content"
                         android:inputType="textMultiLine|textNoSuggestions"
                         android:maxLines="3"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:focusable="true"
+                        android:nextFocusUp="@+id/btnOpenNpssoPage"
+                        android:nextFocusDown="@+id/btnPasteClipboard" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -172,6 +180,8 @@
                     android:layout_marginTop="6dp"
                     android:text="@string/psn_login_paste_clipboard"
                     android:textSize="12sp"
+                    android:focusable="true"
+                    android:nextFocusUp="@+id/npssoTokenInput"
                     style="@style/Widget.MaterialComponents.Button.TextButton" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

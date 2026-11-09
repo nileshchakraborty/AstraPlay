@@ -298,6 +298,25 @@ The server provides a local web UI on port `25525` to log in to PSN, capture aut
 
 ---
 
+## Obtaining your PSN AccountID
+
+When registering a PlayStation 4 (firmware >= 7.0) or PlayStation 5 console for Remote Play, you need your 8-byte PSN Account ID (base64-encoded).
+
+AstraPlay makes this effortless:
+
+### Method 1: Automatic 1-Tap Sign-In (Recommended)
+1. In AstraPlay, tap **"Sign in to PlayStation to Auto-Fill"** on the Register Console screen.
+2. Sign in with your PlayStation account.
+3. AstraPlay automatically retrieves your Account ID and fills it in for you.
+
+### Method 2: 3-Step Browser Sign-In
+If you prefer not to use in-app webviews:
+1. **Step 1**: Open [PlayStation Sign-In](https://my.playstation.com) in your browser and log in with your Sony email and password.
+2. **Step 2**: Open [Sony Account Code](https://ca.account.sony.com/api/v1/ssocookie) to view your code (`{"npsso":"<64_character_code>"}`).
+3. **Step 3**: Copy the code (or copy the entire page) and paste it into AstraPlay. AstraPlay automatically extracts the code and auto-fills your Account ID.
+
+---
+
 ## Responsible Use
 
 AstraPlay is intended for use with games and hardware you legally own and are licensed to access. It does not circumvent digital rights management (DRM), distribute proprietary firmware, or facilitate piracy.

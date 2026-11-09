@@ -42,6 +42,9 @@ struct RegistrationView: View {
     @State private var registSuccess = false
     @State private var registService: AstraPlayRegistService?
     @State private var showingLoginSheet = false
+    @State private var showingManualNpssoSheet = false
+    @State private var manualNpssoInput = ""
+    @State private var manualNpssoError: String?
 
     var body: some View {
         ScrollView {
@@ -101,12 +104,23 @@ struct RegistrationView: View {
                         .buttonStyle(.bordered)
                         .tint(Color(red: 0.96, green: 0.62, blue: 0.04))
 
+                        Button {
+                            showingManualNpssoSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "safari")
+                                Text("Trouble signing in? Use 3-Step Browser Sign-In")
+                            }
+                            .font(.caption)
+                        }
+                        .foregroundColor(.accentColor)
+
                         VStack(spacing: 2) {
                             Text("Or enter your 8-byte Account ID manually")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Link("How to obtain manually",
-                                 destination: URL(string: "https://git.sr.ht/~thestr4ng3r/chiaki/tree/master/item/README.md#obtaining-your-psn-accountid")!)
+                            Link("About obtaining your Account ID",
+                                 destination: URL(string: "https://github.com/nileshchakraborty/AstraPlay#obtaining-your-psn-accountid")!)
                                 .font(.caption2)
                         }
                     }
@@ -222,6 +236,166 @@ struct RegistrationView: View {
                             }
                         }
                     }
+                }
+            }
+        }
+        .sheet(isPresented: $showingManualNpssoSheet) {
+            manualNpssoSheet
+        }
+    }
+
+    private var manualNpssoSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Follow these 3 quick steps in your web browser:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                } header: {
+                    Text("How to Connect")
+                }
+
+                Section {
+                    Text("Tap below to log into your PlayStation account in Safari. Once signed in, switch back to this app.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                    Button {
+                        if let url = URL(string: "https://ca.account.sony.com/api/authz/v3/oauth/authorize?client_id=ba495a24-818c-472b-b12d-ff231c1b5745&redirect_uri=https://remoteplay.dl.playstation.net/remoteplay/redirect&response_type=code&scope=psn:clientapp") {
+                            UIApplication.shared.open(url)
+                        } else if let fallback = URL(string: "https://my.playstation.com") {
+                            UIApplication.shared.open(fallback)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.crop.circle.badge.checkmark")
+                            Text("1. Open PlayStation Sign-In")
+                                .fontWeight(.medium)
+                        }
+                    }
+                } header: {
+                    Text("Step 1: Sign in to PlayStation")
+                }
+
+                Section {
+                    Text("After signing in, tap below to view your account code. Safari will show a page with: {\"npsso\":\"...\"}. Copy that code (or select and copy everything on the page)!")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                    Button {
+                        if let url = URL(string: "https://ca.account.sony.com/api/v1/ssocookie") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "key.fill")
+                            Text("2. Get My Code")
+                                .fontWeight(.medium)
+                        }
+                    }
+                } header: {
+                    Text("Step 2: Get Your Code")
+                }
+
+                Section {
+                    Text("Paste what you copied into the box below. We will automatically find and verify your code.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+
+                    TextField("Paste code or {\"npsso\":\"...\"} here", text: $manualNpssoInput, axis: .vertical)
+                        .lineLimit(2...4)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    Button {
+                        if let clip = UIPasteboard.general.string {
+                            manualNpssoInput = clip
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.on.clipboard")
+                            Text("Paste from Clipboard")
+                                .font(.footnote)
+                        }
+                    }
+
+                    if let err = manualNpssoError {
+                        Text(err)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+
+                    Button {
+                        submitManualNpsso()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Connect & Auto-Fill Account ID")
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(manualNpssoInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } header: {
+                    Text("Step 3: Paste Your Code")
+                } footer: {
+                    let cleaned = sanitizeNpsso(manualNpssoInput)
+                    if !cleaned.isEmpty {
+                        Text(cleaned.count == 64 ? "✓ Valid 64-character code detected!" : "Code detected: \(cleaned.count)/64 characters")
+                            .font(.caption)
+                            .foregroundColor(cleaned.count == 64 ? .green : .orange)
+                    }
+                }
+            }
+            .navigationTitle("Connect PlayStation Account")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showingManualNpssoSheet = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func sanitizeNpsso(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let range = trimmed.range(of: #"[a-zA-Z0-9_-]{64}"#, options: .regularExpression) {
+            return String(trimmed[range])
+        }
+        if let range = trimmed.range(of: #""npsso"\s*:\s*"([^"]+)""#, options: .regularExpression) {
+            let match = String(trimmed[range])
+            let parts = match.components(separatedBy: "\"")
+            if parts.count >= 4 {
+                return parts[3]
+            }
+        }
+        return trimmed.trimmingCharacters(in: CharacterSet(charactersIn: " \"'{}"))
+    }
+
+    private func submitManualNpsso() {
+        let token = sanitizeNpsso(manualNpssoInput)
+        guard !token.isEmpty else {
+            manualNpssoError = "Please enter or paste your code."
+            return
+        }
+        guard token.count == 64 else {
+            manualNpssoError = "We found \(token.count) characters, but PlayStation codes must be 64 characters. Make sure you completed Step 1 (Sign-In) and copied the code from Step 2."
+            return
+        }
+        manualNpssoError = nil
+        showingManualNpssoSheet = false
+        Task.detached {
+            let success = PsnTokenManager.shared.exchangeNpssoForTokens(token)
+            await MainActor.run {
+                if success {
+                    let savedId = SecureStore.shared.accountId
+                    if !savedId.isEmpty {
+                        psnId = savedId
+                    }
+                } else {
+                    resultMessage = "PSN login error: Failed to retrieve account ID"
                 }
             }
         }

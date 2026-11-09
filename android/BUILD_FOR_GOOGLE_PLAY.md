@@ -81,7 +81,7 @@ To bake a default relay host into the build, set the `AstraPlayRelayUrl` propert
 
 #### Runtime Configuration (In-App)
 If no relay is configured at build time (or when testing self-hosted setups):
-- **In-App Prompt**: Opening the login screen presents options to **"Configure Relay Server"** (enter your self-hosted URL on the spot) or **"Enter NPSSO Manually"** (paste your Sony session token directly).
+- **In-App Prompt**: Opening the login screen presents options to **"Configure Relay Server"** (enter your self-hosted URL on the spot) or **"Sign in with Browser / Code"** (follow 3 quick steps in your browser with direct links and automatic code extraction).
 - **Settings**: Users can set or update the relay URL anytime under **Settings → Account → PSN Login Relay URL**.
 
 See `../../psstream-server/README.md` for how to self-host the relay (default port 25525).
