@@ -177,7 +177,7 @@ jobs:
         uses: ./.github/actions/extract-version
 
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
+        uses: Minionguyjpro/Inno-Setup-Action@v1.3.0
         with:
           path: "scripts/astraplay.iss"
           options: /O+
