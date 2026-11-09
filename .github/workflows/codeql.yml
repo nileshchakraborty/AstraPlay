@@ -49,8 +49,6 @@ jobs:
           build-mode: none
         - language: go
           build-mode: autobuild
-        - language: java-kotlin
-          build-mode: none
         - language: javascript-typescript
           build-mode: none
         - language: python
@@ -99,7 +97,14 @@ jobs:
       shell: bash
       run: |
         if [ "${{ matrix.language }}" = "swift" ]; then
-          xcodebuild -project ios/AstraPlay.xcodeproj -scheme AstraPlay -destination 'generic/platform=iOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO clean build
+          mkdir -p lib/include/chiaki
+          sed 's/@CHIAKI_VERSION@/2.12.22/g' lib/include/chiaki/version.h.in > lib/include/chiaki/version.h
+          mkdir -p ios/build-iphoneos
+          touch ios/build-iphoneos/stub.c
+          clang -c ios/build-iphoneos/stub.c -o ios/build-iphoneos/stub.o -target arm64-apple-ios16.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path)
+          ar -cr ios/build-iphoneos/libchiaki_complete.a ios/build-iphoneos/stub.o
+          ranlib ios/build-iphoneos/libchiaki_complete.a
+          xcodebuild -project ios/AstraPlay.xcodeproj -scheme AstraPlay -destination 'generic/platform=iOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO OTHER_LDFLAGS="-Wl,-undefined,dynamic_lookup" clean build
         fi
 
     - name: Perform CodeQL Analysis

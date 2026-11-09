@@ -3,6 +3,7 @@ updates:
   # Maintain GitHub Actions dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
@@ -13,6 +14,7 @@ updates:
   # Maintain Python dependencies for docs
   - package-ecosystem: "pip"
     directory: "/docs"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -23,6 +25,7 @@ updates:
   # Maintain Android Gradle dependencies
   - package-ecosystem: "gradle"
     directory: "/android"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -33,6 +36,7 @@ updates:
   # Maintain Node.js dependencies for psstream-server
   - package-ecosystem: "npm"
     directory: "/psstream-server"
+    target-branch: "dev"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
