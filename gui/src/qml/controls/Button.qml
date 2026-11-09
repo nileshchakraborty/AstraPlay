@@ -80,7 +80,9 @@ Button {
             }
             break;
         case Qt.Key_Return:
-            if (visualFocus) {
+        case Qt.Key_Enter:
+        case Qt.Key_Space:
+            if (activeFocus || visualFocus) {
                 clicked();
             }
             event.accepted = true;

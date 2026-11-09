@@ -296,7 +296,7 @@ Item {
 
     function showPSNTokenDialog(psnurl, expired) {
         // Show QR login dialog first, then fallback to token dialog if needed
-        stack.push("QRLoginDialog.qml", {callback: (id) => {
+        stack.push(qrLoginDialogComponent, {callback: (id) => {
             // If QR login succeeds with an account ID, we're done
             if (id) {
                 console.log("QR login successful, account ID:", id);
@@ -659,6 +659,11 @@ Item {
     Component {
         id: psnTokenDialogComponent
         PSNTokenDialog { }
+    }
+
+    Component {
+        id: qrLoginDialogComponent
+        QRLoginDialog { }
     }
 
 

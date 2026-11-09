@@ -143,7 +143,7 @@ DialogView {
                             return;
                         }
                         // Use the same pattern as showPSNTokenDialog for consistent behavior
-                        stack.push("QRLoginDialog.qml", {callback: (id) => {
+                        stack.push(qrLoginDialogComponent, {callback: (id) => {
                             // If QR login succeeds with an account ID, use it
                             if (id) {
                                 accountId.text = id;
@@ -350,6 +350,11 @@ DialogView {
         Component {
             id: psnTokenDialogComponent
             PSNTokenDialog { }
+        }
+
+        Component {
+            id: qrLoginDialogComponent
+            QRLoginDialog { }
         }
     }
 }

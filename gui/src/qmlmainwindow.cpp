@@ -1022,6 +1022,44 @@ void QmlMainWindow::render()
         av_frame_free(&frame);
     }
 
+    if (session && has_video) {
+        float target_peak = settings->GetDisplayTargetPeak() ? settings->GetDisplayTargetPeak() : 0;
+        int target_contrast = settings->GetDisplayTargetContrast() ? settings->GetDisplayTargetContrast() : 0;
+        int target_prim = settings->GetDisplayTargetPrim() ? settings->GetDisplayTargetPrim() : 0;
+        int target_trc = settings->GetDisplayTargetTrc() ? settings->GetDisplayTargetTrc() : 0;
+        struct pl_color_space hint = current_frame.color;
+
+        if (target_trc)
+            hint.transfer = static_cast<pl_color_transfer>(target_trc);
+
+        if (target_prim) {
+            hint.primaries = static_cast<pl_color_primaries>(target_prim);
+            hint.hdr.prim = *pl_raw_primaries_get(hint.primaries);
+        }
+
+        if (target_peak)
+            hint.hdr.max_luma = target_peak;
+
+        switch (target_contrast) {
+            case -1:
+                hint.hdr.min_luma = 1e-7;
+                break;
+            case 0:
+                break;
+            default: {
+                struct pl_nominal_luma_params hint_params = {};
+                hint_params.color = &hint;
+                hint_params.metadata = PL_HDR_METADATA_HDR10;
+                hint_params.scaling = PL_HDR_NITS;
+                hint_params.out_max = &hint.hdr.max_luma;
+                pl_color_space_nominal_luma_ex(&hint_params);
+                hint.hdr.min_luma = hint.hdr.max_luma / (float)target_contrast;
+                break;
+            }
+        }
+        pl_swapchain_colorspace_hint(placebo_swapchain, &hint);
+    }
+
     struct pl_swapchain_frame sw_frame = {};
     if (!pl_swapchain_start_frame(placebo_swapchain, &sw_frame)) {
         qCWarning(chiakiGui) << "Failed to start Placebo frame!";
@@ -1038,40 +1076,6 @@ void QmlMainWindow::render()
     int target_contrast = settings->GetDisplayTargetContrast() && session ? settings->GetDisplayTargetContrast(): 0;
     int target_prim = settings->GetDisplayTargetPrim() && session ? settings->GetDisplayTargetPrim(): 0;
     int target_trc = settings->GetDisplayTargetTrc() && session ? settings->GetDisplayTargetTrc(): 0;
-    struct pl_color_space hint = current_frame.color;
-
-    if(target_trc)
-        hint.transfer = static_cast<pl_color_transfer>(target_trc);
-
-    if(target_prim)
-    {
-        hint.primaries = static_cast<pl_color_primaries>(target_prim);
-        hint.hdr.prim = *pl_raw_primaries_get(hint.primaries);
-    }
-
-    if(target_peak)
-        hint.hdr.max_luma = target_peak;
-
-    switch(target_contrast)
-    {
-        case -1:
-            hint.hdr.min_luma = 1e-7;
-            break;
-        case 0:
-            hint.hdr.min_luma = target_csp.hdr.min_luma;
-            break;
-        default:
-            // Infer max_luma for current pl_color_space
-            struct pl_nominal_luma_params hint_params = {};
-            hint_params.color = &hint;
-            hint_params.metadata = PL_HDR_METADATA_HDR10;
-            hint_params.scaling = PL_HDR_NITS;
-            hint_params.out_max = &hint.hdr.max_luma;
-            pl_color_space_nominal_luma_ex(&hint_params);
-            hint.hdr.min_luma = hint.hdr.max_luma / (float)target_contrast;
-            break;
-    }
-    pl_swapchain_colorspace_hint(placebo_swapchain, &hint);
 
     struct pl_frame target_frame = {};
     pl_frame_from_swapchain(&target_frame, &sw_frame);

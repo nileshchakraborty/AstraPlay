@@ -379,7 +379,7 @@ DialogView {
                             Material.background: Material.accent
                             onClicked: {
                                 root.closeDialog();
-                                stack.push("QRLoginDialog.qml", {callback: dialog.callback});
+                                root.showPSNTokenDialog("", false);
                             }
                         }
                     }

@@ -112,7 +112,10 @@ DialogView {
                             if (ok) {
                                 console.log("astraplay login completed successfully!");
                                 statusLabel.visible = false;
-                                dialog.accept();
+                                if (callback) {
+                                    callback(AstraPlay.settings.psnAccountId);
+                                }
+                                dialog.close();
                             } else {
                                 console.error("astraplay login failed:", msg);
                                 isProcessing = false;
@@ -163,7 +166,10 @@ DialogView {
                     AstraPlay.initPsnAuthV3(npssoToken, function(msg, ok, done) {
                         if (done && ok) {
                             statusLabel.visible = false;
-                            dialog.accept();
+                            if (callback) {
+                                callback(AstraPlay.settings.psnAccountId);
+                            }
+                            dialog.close();
                         } else if (done && !ok) {
                             isProcessing = false;
                             statusLabel.visible = false;
@@ -175,17 +181,17 @@ DialogView {
         });
     }
 
-    Timer {
-        id: autoPollTimer
-        interval: 2500
-        repeat: true
-        running: dialog.visible && !isProcessing && qrCode.length > 0
-        onTriggered: pollStatusSilently()
-    }
-
     // Main content with proper layout
     Item {
         anchors.fill: parent
+
+        Timer {
+            id: autoPollTimer
+            interval: 2500
+            repeat: true
+            running: dialog.visible && !isProcessing && qrCode.length > 0
+            onTriggered: pollStatusSilently()
+        }
 
         Keys.onPressed: (event) => {
             if (event.key === Qt.Key_Y || event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
@@ -505,43 +511,42 @@ DialogView {
             }
         }
 
-    }
-
-    // Status label for showing progress to user
-    Rectangle {
-        id: statusContainer
-        anchors {
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-            bottomMargin: 20
-        }
-        visible: statusLabel.visible
-        width: statusLabel.implicitWidth + 40
-        height: statusLabel.implicitHeight + 20
-        color: Material.color(Material.Grey, Material.Shade800)
-        radius: 8
-        border.color: Material.accent
-        border.width: 1
-
-        RowLayout {
-            anchors.centerIn: parent
-            spacing: 10
-
-            BusyIndicator {
-                running: statusLabel.visible
-                width: 16
-                height: 16
-                Layout.alignment: Qt.AlignVCenter
+        // Status label for showing progress to user
+        Rectangle {
+            id: statusContainer
+            anchors {
+                bottom: parent.bottom
+                horizontalCenter: parent.horizontalCenter
+                bottomMargin: 20
             }
+            visible: statusLabel.visible
+            width: statusLabel.implicitWidth + 40
+            height: statusLabel.implicitHeight + 20
+            color: Material.color(Material.Grey, Material.Shade800)
+            radius: 8
+            border.color: Material.accent
+            border.width: 1
 
-            Label {
-                id: statusLabel
-                text: ""
-                visible: false
-                font.pointSize: 12
-                color: Material.accent
-                Material.theme: Material.Dark
-                Layout.alignment: Qt.AlignVCenter
+            RowLayout {
+                anchors.centerIn: parent
+                spacing: 10
+
+                BusyIndicator {
+                    running: statusLabel.visible
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Label {
+                    id: statusLabel
+                    text: ""
+                    visible: false
+                    font.pointSize: 12
+                    color: Material.accent
+                    Material.theme: Material.Dark
+                    Layout.alignment: Qt.AlignVCenter
+                }
             }
         }
     }
