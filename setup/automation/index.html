@@ -642,7 +642,7 @@
 <p>Get your registered PlayStation's IP Address</p>
 <ol>
 <li>
-<p>Launch Chiaki via your desktop or via:</p>
+<p>Launch AstraPlay via your desktop or via:</p>
 <div class="highlight"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakraborty.AstraPlay
 </code></pre></div>
 </li>
@@ -659,7 +659,7 @@
 </ol>
 </li>
 <li>
-<p>Create script for waking PlayStation and launching Chiaki</p>
+<p>Create script for waking PlayStation and launching AstraPlay</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Automated Instructions (Recommended)</label><label for="__tabbed_1_2">Manual Instructions (For People who like to do things by hand)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -895,7 +895,7 @@ ______<span class="w"> </span>___________<span class="p">|</span>__<span class="
 <ol>
 <li>
 <p>Run the following command in your console</p>
-<div class="highlight"><pre><span></span><code>cat<span class="w"> </span>~/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki.conf<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>regist_key<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">'('</span><span class="w"> </span>-f2<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">'\'</span><span class="w"> </span>-f1
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span>~/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/astraplay.conf<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>regist_key<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">'('</span><span class="w"> </span>-f2<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="w"> </span><span class="s1">'\'</span><span class="w"> </span>-f1
 </code></pre></div>
 <details class="example" open="open">
 <summary>Example Output</summary>
@@ -903,8 +903,8 @@ ______<span class="w"> </span>___________<span class="p">|</span>__<span class="
 </code></pre></div>
 </details>
 <div class="admonition note">
-<p class="admonition-title">Chiaki Configuration File</p>
-<p>This command is printing the Chiaki configuration file generated when you ran AstraPlay for the first time. This is where the flatpak version of Chiaki saves your settings and details. In fact, all flatpaks store their details with the ~/.var/app/app_id pattern. If you want to look at the file itself and get the value you can open the file at <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki.conf</code> and look for the remote play registration key [<code>rp_regist_key</code>].</p>
+<p class="admonition-title">AstraPlay Configuration File</p>
+<p>This command is printing the AstraPlay configuration file generated when you ran AstraPlay for the first time. This is where the flatpak version of AstraPlay saves your settings and details. In fact, all flatpaks store their details with the ~/.var/app/app_id pattern. If you want to look at the file itself and get the value you can open the file at <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/astraplay.conf</code> and look for the remote play registration key [<code>rp_regist_key</code>].</p>
 </div>
 </li>
 </ol>
@@ -931,12 +931,12 @@ ______<span class="w"> </span>___________<span class="p">|</span>__<span class="
 <p>Get your 4 digit PlayStation login passcode (if applicable). You will know your PlayStation login passcode if you have one because you have to enter it every time you log onto your PlayStation console. If you don't have to do this, you don't have a PlayStation login passcode and will leave that field blank.</p>
 </li>
 <li>
-<p>Create a new blank file located in the folder <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki</code> named  <code>Chiaki-launcher.sh</code></p>
-<div class="highlight"><pre><span></span><code>touch<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"</span>
+<p>Create a new blank file located in the folder <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay</code> named <code>AstraPlay-launcher.sh</code></p>
+<div class="highlight"><pre><span></span><code>touch<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"</span>
 </code></pre></div>
 </li>
 <li>
-<p>Open the <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh</code> file in your favorite editor and save the following output.</p>
+<p>Open the <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh</code> file in your favorite editor and save the following output.</p>
 <div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env bash</span>
 
 connect_error_loc<span class="o">()</span>
@@ -1154,7 +1154,7 @@ timeout_error<span class="o">()</span>
 <span class="w">    </span><span class="nv">ps_status</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakraborty.AstraPlay<span class="w"> </span>discover<span class="w"> </span>-h<span class="w"> </span><span class="si">${</span><span class="nv">addr</span><span class="si">}</span><span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="k">)</span><span class="s2">"</span>
 <span class="k">done</span>
 
-<span class="c1"># Begin playing PlayStation remote play via Chiaki on your Steam Deck :)</span>
+<span class="c1"># Begin playing PlayStation remote play via AstraPlay on your Steam Deck :)</span>
 flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakraborty.AstraPlay<span class="w"> </span>--passcode<span class="w"> </span>--zoom<span class="w"> </span>stream<span class="w"> </span><span class="s1">'PS5-012'</span><span class="w"> </span><span class="si">${</span><span class="nv">addr</span><span class="si">}</span>
 </code></pre></div>
 <div class="admonition note">
@@ -1165,7 +1165,7 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 </li>
 <li>
 <p>Make the script executable:</p>
-<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"</span>
+<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"</span>
 </code></pre></div>
 </li>
 </ol>
@@ -1175,14 +1175,14 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 </li>
 <li>
 <p>Test your newly created script (if you haven't already) by running:</p>
-<div class="highlight"><pre><span></span><code><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"</span>
+<div class="highlight"><pre><span></span><code><span class="s2">"</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"</span>
 </code></pre></div>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Your script worked!</label><label for="__tabbed_3_2">Your script didn't work...</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="admonition success">
 <p class="admonition-title">We have liftoff! <img alt="🚀" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/1f680.svg" title=":rocket:" /></p>
-<p>Chiaki launched in your desired screen mode on your client device [i.e., Steam Deck]! Congratulations!</p>
+<p>AstraPlay launched in your desired screen mode on your client device [i.e., Steam Deck]! Congratulations!</p>
 </div>
 </div>
 <div class="tabbed-block">
@@ -1200,7 +1200,7 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 <p>Double check the values you entered in the script to make sure they are correct.</p>
 </li>
 <li>
-<p>Open your script at: <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh</code> and try to run each command individually to see what's causing your problem.</p>
+<p>Open your script at: <code>/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh</code> and try to run each command individually to see what's causing your problem.</p>
 </li>
 <li>
 <p>If issues persist with this and AstraPlay launches fine regularly via the application link, just not the automation, feel free to reach out. If you think the documentation itself needs to be updated click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c.67 0 1.32.12 1.94.33L13 9.35l-4 5zM16.5 3C19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35l-1-7 4.5-5-2.65-5.08C13.87 3.47 15.17 3 16.5 3"/></svg></span> underneath "Was this page helpful?" and open the feedback form for this page. If you just need help, you can reach me via <a href="https://github.com/nileshchakraborty/AstraPlay/discussions" rel="noopener" target="_blank">Reddit</a> or <a href="mailto:contact@nileshchakraborty.com">email</a></p>
@@ -1208,7 +1208,7 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
 </ol>
 </div>
 <div class="tabbed-block">
-<p>Close AstraPlay gracefully by closing any open dialog boxes and then using <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-q">Q</kbd></span> on the stream window. If AstraPlay doesn't close gracefully, move your mouse to the top left corner of the stream window and a blue circle should highlight the corner of the screen. Click on it to see all of your windows and select the <code>konsole</code> window. Then, close the <code>konsole</code> window itself (click its <code>x</code> icon in the top right corner). Next, you can relaunch the script again to make sure it wasn't a one-time snafu. Note: Chiaki seems to perform better (audio/visual quality) in <code>Game Mode</code> vs. <code>Desktop Mode</code> for me. If issues persist, feel free to reach out via <a href="https://github.com/nileshchakraborty/AstraPlay/discussions" rel="noopener" target="_blank">Reddit</a> or <a href="mailto:contact@nileshchakraborty.com">email</a>. If you think the documentation itself needs to be updated click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c.67 0 1.32.12 1.94.33L13 9.35l-4 5zM16.5 3C19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35l-1-7 4.5-5-2.65-5.08C13.87 3.47 15.17 3 16.5 3"/></svg></span> underneath "Was this page helpful?" and open the feedback form for this page.</p>
+<p>Close AstraPlay gracefully by closing any open dialog boxes and then using <span class="keys"><kbd class="key-control">Ctrl</kbd><span>+</span><kbd class="key-q">Q</kbd></span> on the stream window. If AstraPlay doesn't close gracefully, move your mouse to the top left corner of the stream window and a blue circle should highlight the corner of the screen. Click on it to see all of your windows and select the <code>konsole</code> window. Then, close the <code>konsole</code> window itself (click its <code>x</code> icon in the top right corner). Next, you can relaunch the script again to make sure it wasn't a one-time snafu. Note: AstraPlay seems to perform better (audio/visual quality) in <code>Game Mode</code> vs. <code>Desktop Mode</code> for me. If issues persist, feel free to reach out via <a href="https://github.com/nileshchakraborty/AstraPlay/discussions" rel="noopener" target="_blank">Reddit</a> or <a href="mailto:contact@nileshchakraborty.com">email</a>. If you think the documentation itself needs to be updated click the <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c.67 0 1.32.12 1.94.33L13 9.35l-4 5zM16.5 3C19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.53L12 21.35l-1-7 4.5-5-2.65-5.08C13.87 3.47 15.17 3 16.5 3"/></svg></span> underneath "Was this page helpful?" and open the feedback form for this page.</p>
 </div>
 </div>
 </div>
@@ -1240,7 +1240,7 @@ flatpak<span class="w"> </span>run<span class="w"> </span>io.github.nileshchakra
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 12, 2026 21:00:16 UTC">October 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 9, 2026 23:18:45 UTC">November 9, 2026</span>
   </span>
 
     
