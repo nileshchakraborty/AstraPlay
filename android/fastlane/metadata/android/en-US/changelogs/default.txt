@@ -1,5 +1,5 @@
-• Fixed PSN login relay configuration issue on fresh installs.
-• Added in-app PSN relay server URL configuration and custom server support.
-• Added direct NPSSO authentication fallback for streamlined login without a relay.
-• Improved Android TV D-pad navigation and remote control focus.
-• Performance and connection stability enhancements.
+• Simplified PlayStation sign-in with 3 clear steps and direct Sony links.
+• Smart auto-extraction for 64-character account codes from clipboard or webpage.
+• Enhanced Android TV and Fire TV D-pad remote navigation.
+• In-app PSN relay configuration and offline account connection options.
+• Performance, UI responsiveness, and streaming stability improvements.
