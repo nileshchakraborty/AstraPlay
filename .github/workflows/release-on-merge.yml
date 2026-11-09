@@ -143,7 +143,7 @@ jobs:
           zip -r astraplay.zip astraplay
 
       - name: Compile Inno Setup Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
+        uses: Minionguyjpro/Inno-Setup-Action@v1.3.0
         with:
           path: "scripts/astraplay.iss"
           options: /O+
@@ -277,7 +277,7 @@ jobs:
 
       - name: Compile Inno Setup ARM64 Installer
         continue-on-error: true
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
+        uses: Minionguyjpro/Inno-Setup-Action@v1.3.0
         with:
           path: "scripts/astraplay.iss"
           options: /O+
