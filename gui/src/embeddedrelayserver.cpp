@@ -84,6 +84,9 @@ QString EmbeddedRelayServer::serverUrl() const
             QHostAddress addr = entry.ip();
             if (addr.protocol() == QAbstractSocket::IPv4Protocol && !addr.isLoopback()) {
                 QString ipStr = addr.toString();
+                // Skip QEMU / emulator NAT addresses
+                if (ipStr.startsWith("10.0.2."))
+                    continue;
                 // Standard private LAN subnets: 192.168.x.x, 10.x.x.x, 172.16-31.x.x
                 if (ipStr.startsWith("192.168.") || ipStr.startsWith("10.") || ipStr.startsWith("172.")) {
                     return QStringLiteral("http://%1:%2").arg(ipStr).arg(m_port);

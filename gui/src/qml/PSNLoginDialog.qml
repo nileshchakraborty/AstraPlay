@@ -349,6 +349,42 @@ DialogView {
                 rowSpacing: 10
                 columnSpacing: 20
 
+                // Passkey Banner & QR Switcher
+                Rectangle {
+                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    height: passkeyNoticeText.implicitHeight + 24
+                    radius: 8
+                    color: Qt.rgba(56/255, 189/255, 248/255, 0.12)
+                    border.color: Qt.rgba(56/255, 189/255, 248/255, 0.3)
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 10
+                        spacing: 12
+
+                        Text {
+                            id: passkeyNoticeText
+                            Layout.fillWidth: true
+                            text: qsTr("Passkey Notice: If your account uses a Passkey (Face ID / Fingerprint), use Phone QR Login.")
+                            color: "#7dd3fc"
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+
+                        C.Button {
+                            text: qsTr("Login via Phone (QR)")
+                            font.pixelSize: 12
+                            highlighted: true
+                            Material.background: Material.accent
+                            onClicked: {
+                                root.closeDialog();
+                                stack.push("QRLoginDialog.qml", {callback: dialog.callback});
+                            }
+                        }
+                    }
+                }
+
             Label {
                 id: errorHeader
                 visible: false

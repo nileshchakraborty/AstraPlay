@@ -15,6 +15,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
+import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
@@ -102,6 +104,23 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun relayBaseUrl(): String = preferences.getEffectiveRelayUrl()
 
+	private fun isHandheldOrTv(): Boolean {
+		if (isOnTv) return true
+		try {
+			for (id in InputDevice.getDeviceIds()) {
+				val dev = InputDevice.getDevice(id) ?: continue
+				val sources = dev.sources
+				if ((sources and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
+					(sources and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+					if (!dev.isVirtual) return true
+				}
+			}
+		} catch (_: Exception) {}
+
+		val model = android.os.Build.MODEL.lowercase()
+		return model.contains("odin") || model.contains("retroid") || model.contains("gcloud") || model.contains("abxylute")
+	}
+
 	@SuppressLint("SetJavaScriptEnabled")
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
@@ -130,7 +149,7 @@ class PsnLoginActivity : AppCompatActivity()
 		// Prepare the relay code so both direct and QR flows are ready immediately
 		prepareRelayCode()
 
-		if (isOnTv) {
+		if (isHandheldOrTv()) {
 			showPhoneRelayView()
 		} else {
 			showWebView()
@@ -252,6 +271,12 @@ class PsnLoginActivity : AppCompatActivity()
 				}
 			}
 		}
+
+		val focusHighlight = createFocusHighlight()
+		btnSwitchToPhoneRelay.onFocusChangeListener = focusHighlight
+		btnOpenBrowserFromWebView.onFocusChangeListener = focusHighlight
+		btnManualTokenFromWebView.onFocusChangeListener = focusHighlight
+		btnCancelWebView.onFocusChangeListener = focusHighlight
 
 		btnSwitchToPhoneRelay.setOnClickListener {
 			showPhoneRelayView()
@@ -465,22 +490,24 @@ class PsnLoginActivity : AppCompatActivity()
 			finish()
 		}
 
-		if (isOnTv) {
-			val tvFocusHighlight = View.OnFocusChangeListener { v, hasFocus ->
-				v.foreground = if (hasFocus)
-					android.graphics.drawable.GradientDrawable().apply {
-						shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-						cornerRadius = 24f
-						setColor(0x33FFD700.toInt())
-						setStroke(3, 0xCCFFD700.toInt())
-					}
-				else null
-			}
-			checkStatusButton.onFocusChangeListener = tvFocusHighlight
-			openBrowserButton.onFocusChangeListener = tvFocusHighlight
-			manualTokenButton.onFocusChangeListener = tvFocusHighlight
-			configureRelayButton.onFocusChangeListener = tvFocusHighlight
-			cancelButton.onFocusChangeListener = tvFocusHighlight
+		val focusHighlight = createFocusHighlight()
+		checkStatusButton.onFocusChangeListener = focusHighlight
+		openBrowserButton.onFocusChangeListener = focusHighlight
+		manualTokenButton.onFocusChangeListener = focusHighlight
+		configureRelayButton.onFocusChangeListener = focusHighlight
+		cancelButton.onFocusChangeListener = focusHighlight
+	}
+
+	private fun createFocusHighlight(): View.OnFocusChangeListener {
+		return View.OnFocusChangeListener { v, hasFocus ->
+			v.foreground = if (hasFocus)
+				android.graphics.drawable.GradientDrawable().apply {
+					shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+					cornerRadius = 24f
+					setColor(0x33FFD700.toInt())
+					setStroke(3, 0xCCFFD700.toInt())
+				}
+			else null
 		}
 	}
 
@@ -830,6 +857,26 @@ class PsnLoginActivity : AppCompatActivity()
 			setResult(RESULT_LOGIN_CANCELLED)
 			super.onBackPressed()
 		}
+	}
+
+	override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean
+	{
+		when (keyCode) {
+			KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1 -> {
+				if (layoutWebView.visibility == View.VISIBLE) {
+					showPhoneRelayView()
+				} else {
+					showWebView()
+				}
+				return true
+			}
+			KeyEvent.KEYCODE_BUTTON_B -> {
+				setResult(RESULT_LOGIN_CANCELLED)
+				finish()
+				return true
+			}
+		}
+		return super.onKeyDown(keyCode, event)
 	}
 
 	override fun onDestroy()

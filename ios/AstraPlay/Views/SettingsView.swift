@@ -1161,10 +1161,13 @@ struct AccountView: View {
         }
         .sheet(isPresented: $showWebView) {
             if let url = loginService.buildOAuthURL() {
-                LoginWebViewContainer(url: url) { npsso in
+                LoginWebViewContainer(url: url, onNpsso: { npsso in
                     showWebView = false
                     handleNpsso(npsso)
-                }
+                }, onSwitchToCodeLogin: {
+                    showWebView = false
+                    showManualLogin = true
+                })
             }
         }
         .sheet(isPresented: $showManualLogin, onDismiss: {
@@ -1495,8 +1498,26 @@ struct AccountView: View {
                 if success {
                     self.codeReady = true
                     self.loginStatus = "Code ready — tap 'Open Browser' to continue"
+                    self.startAutoPolling()
                 } else {
                     self.loginStatus = "Failed to connect to relay server. Check your relay URL."
+                }
+            }
+        }
+    }
+
+    private func startAutoPolling() {
+        Task {
+            while showManualLogin && !loginCode.isEmpty {
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
+                if !showManualLogin || loginCode.isEmpty { break }
+                if let npsso = await self.loginService.checkTokenStatus(self.loginCode) {
+                    await MainActor.run {
+                        self.loginStatus = "Login successful!"
+                        self.showManualLogin = false
+                        self.handleNpsso(npsso)
+                    }
+                    break
                 }
             }
         }

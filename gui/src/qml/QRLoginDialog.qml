@@ -144,9 +144,55 @@ DialogView {
         });
     }
 
+    function pollStatusSilently() {
+        if (isProcessing || isCheckingStatus || !dialog.visible || qrCode.length === 0) return;
+        
+        isCheckingStatus = true;
+        AstraPlay.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
+            isCheckingStatus = false;
+            if (success && npssoToken && npssoToken.length > 0) {
+                console.log("[QRLoginDialog] Auto-detected login token!");
+                isProcessing = true;
+                autoPollTimer.stop();
+                statusLabel.text = qsTr("Processing login tokens...");
+                statusLabel.visible = true;
+                
+                if (npssoToken.startsWith("https://remoteplay.dl.playstation.net/remoteplay/redirect")) {
+                    AstraPlay.handlePsnLoginRedirect(npssoToken);
+                } else {
+                    AstraPlay.initPsnAuthV3(npssoToken, function(msg, ok, done) {
+                        if (done && ok) {
+                            statusLabel.visible = false;
+                            dialog.accept();
+                        } else if (done && !ok) {
+                            isProcessing = false;
+                            statusLabel.visible = false;
+                            autoPollTimer.start();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    Timer {
+        id: autoPollTimer
+        interval: 2500
+        repeat: true
+        running: dialog.visible && !isProcessing && qrCode.length > 0
+        onTriggered: pollStatusSilently()
+    }
+
     // Main content with proper layout
     Item {
         anchors.fill: parent
+
+        Keys.onPressed: (event) => {
+            if (event.key === Qt.Key_Y || event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
+                fallbackToWebLogin();
+                event.accepted = true;
+            }
+        }
 
         // Signal connections to handle PSN login success/error
         Connections {
@@ -390,9 +436,11 @@ DialogView {
                             spacing: 15
 
                             Label {
-                                text: qsTr("Don't have a mobile device handy?")
-                                font.pointSize: 12
-                                Layout.alignment: Qt.AlignHCenter
+                                text: qsTr("Passkey Notice: If your account uses a Passkey (Face ID / Fingerprint), please scan the QR code with your phone.\n\nDon't have a mobile device handy?")
+                                font.pixelSize: 12
+                                Layout.fillWidth: true
+                                wrapMode: Text.WordWrap
+                                horizontalAlignment: Text.AlignHCenter
                                 color: Material.color(Material.Grey, Material.Shade300)
                             }
 

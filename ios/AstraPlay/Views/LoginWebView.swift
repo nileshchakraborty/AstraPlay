@@ -12,10 +12,11 @@ private let webViewLog = OSLog(subsystem: "com.astraplay.stream", category: "Log
 struct LoginWebView: UIViewRepresentable {
     let url: URL
     let onNpsso: (String) -> Void
+    var onPasskeyUnsupported: (() -> Void)? = nil
     let onCancel: () -> Void
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(onNpsso: onNpsso, onCancel: onCancel)
+        Coordinator(onNpsso: onNpsso, onPasskeyUnsupported: onPasskeyUnsupported, onCancel: onCancel)
     }
     
     func makeUIView(context: Context) -> WKWebView {
@@ -58,11 +59,13 @@ struct LoginWebView: UIViewRepresentable {
     
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         let onNpsso: (String) -> Void
+        let onPasskeyUnsupported: (() -> Void)?
         let onCancel: () -> Void
         private var hasExtractedNpsso = false
         
-        init(onNpsso: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
+        init(onNpsso: @escaping (String) -> Void, onPasskeyUnsupported: (() -> Void)?, onCancel: @escaping () -> Void) {
             self.onNpsso = onNpsso
+            self.onPasskeyUnsupported = onPasskeyUnsupported
             self.onCancel = onCancel
         }
         
@@ -97,7 +100,12 @@ struct LoginWebView: UIViewRepresentable {
                 decisionHandler(.allow)
                 return
             }
-            
+            if url.absoluteString.contains("passkey_unsupported") {
+                os_log(.default, log: webViewLog, "Passkey unsupported detected: %{public}s", url.absoluteString)
+                DispatchQueue.main.async {
+                    self.onPasskeyUnsupported?()
+                }
+            }
             os_log(.default, log: webViewLog, "Navigation to: %{public}s", url.absoluteString)
             decisionHandler(.allow)
         }
@@ -157,11 +165,15 @@ struct LoginWebView: UIViewRepresentable {
 struct LoginWebViewContainer: View {
     let url: URL
     let onNpsso: (String) -> Void
+    var onSwitchToCodeLogin: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
+    @State private var showPasskeyAlert = false
     
     var body: some View {
         NavigationStack {
-            LoginWebView(url: url, onNpsso: onNpsso) {
+            LoginWebView(url: url, onNpsso: onNpsso, onPasskeyUnsupported: {
+                showPasskeyAlert = true
+            }) {
                 dismiss()
             }
             .navigationTitle("Sign In")
@@ -172,6 +184,17 @@ struct LoginWebViewContainer: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Passkey Sign-in Notice", isPresented: $showPasskeyAlert) {
+                if let onSwitchToCodeLogin = onSwitchToCodeLogin {
+                    Button("Login with Code") {
+                        dismiss()
+                        onSwitchToCodeLogin()
+                    }
+                }
+                Button("Dismiss", role: .cancel) {}
+            } message: {
+                Text("Your PlayStation account uses a Passkey. If you cannot sign in inside this view, please use 'Login with Code' from a device where your passkey is stored.")
             }
         }
     }
