@@ -5,8 +5,23 @@ set -Eeo pipefail
 
 # Allow users to override preset variables on command line via exports 
 #(i.e. export config_path=${HOME}/my_fav_path) before running script
-config_path=${config_path:-"${HOME}/.config/Chiaki"}
-config_file=${config_file:-"${config_path}/Chiaki.conf"}
+if [ -z "${config_path}" ]; then
+    if [ -d "${HOME}/.config/AstraPlay" ]; then
+        config_path="${HOME}/.config/AstraPlay"
+    else
+        config_path="${HOME}/.config/Chiaki"
+    fi
+fi
+if [ -z "${config_file}" ]; then
+    if [ -f "${config_path}/astraplay.conf" ]; then
+        config_file="${config_path}/astraplay.conf"
+    elif [ -f "${config_path}/AstraPlay.conf" ]; then
+        config_file="${config_path}/AstraPlay.conf"
+    else
+        config_file="${config_path}/Chiaki.conf"
+    fi
+fi
+launcher_file="${config_path}/AstraPlay-launcher.sh"
 appimage_path=${appimage_path:-""}
 if ! [ -f "${config_file}" ]
 then
@@ -118,7 +133,7 @@ select_addr()
 
 append_discover_wakeup()
 {
-    cat <<-EOF >> "$config_path/Chiaki-launcher.sh"
+    cat <<-EOF >> "$launcher_file"
 	SECONDS=0
 	# Wait for console to be in sleep/rest mode or on (otherwise console isn't available)
 	ps_status="\$(${appimage_path} discover -h \${addr} 2>/dev/null)"
@@ -279,7 +294,7 @@ do
 done
 
 # Create script
-cat <<EOF > "$config_path/Chiaki-launcher.sh"
+cat <<EOF > "$launcher_file"
 #!/usr/bin/env bash
 
 connect_error_loc()
@@ -317,7 +332,7 @@ if [ -n "${away_addr}" ]
 then
 	if [ ${ps_console} -eq 5 ]
 	then
-		cat <<-EOF >> "$config_path/Chiaki-launcher.sh"
+		cat <<-EOF >> "$launcher_file"
 		if [ "\$(iwgetid -r)" == "${home_ssid}" ]
 		then
 		    addr="${home_addr}"
@@ -332,7 +347,7 @@ then
     # Discover doesn't work on remote network for PS4 so just sleep for a bit and hope for the best when connecting to PS4 remotely
 	# Worst case: it didn't wait long enough and you can simply re-run the script to connect
 	else
-		cat <<-EOF >> "$config_path/Chiaki-launcher.sh"
+		cat <<-EOF >> "$launcher_file"
 		if [ "\$(iwgetid -r)" == "${home_ssid}" ]
 		then
 		    addr="${home_addr}"
@@ -343,7 +358,12 @@ then
 		    do
 		        if [ \${SECONDS} -gt ${wait_timeout} ]
 		        then
-		            connect_error_loc
+		            if [ "\${local}" = true ]
+		            then
+		                connect_error_loc
+		            else
+		                connect_error_ext
+		            fi
 		        fi
 	            sleep 1
 	            ps_status="\$(${appimage_path} discover -h \${addr} 2>/dev/null)"
@@ -380,7 +400,7 @@ then
 		EOF
 	fi
 else
-	cat <<-EOF >> "$config_path/Chiaki-launcher.sh"
+	cat <<-EOF >> "$launcher_file"
 	addr="${home_addr}"
 	local=true
 
@@ -388,13 +408,15 @@ else
 	append_discover_wakeup
 fi
 
-cat <<EOF >> "$config_path/Chiaki-launcher.sh"
-# Begin playing PlayStation remote play via Chiaki on your Steam Deck :)
+cat <<EOF >> "$launcher_file"
+# Begin playing PlayStation remote play via AstraPlay on your Steam Deck :)
 "${appimage_path}" --passcode "${login_passcode}" --${mode} stream $(printf %q "${server_nickname}") \${addr}
 EOF
 
 # Make script executable
-chmod +x "$config_path/Chiaki-launcher.sh"
+chmod +x "$launcher_file"
+# Compatibility symlink for existing setups
+ln -sf "AstraPlay-launcher.sh" "$config_path/Chiaki-launcher.sh" 2>/dev/null || true
 
 # Test script
 while true
@@ -404,26 +426,20 @@ do
     case "${response}" in 
         [yY] ) 
             echo -e "\nsounds good, launching script now..."
-            "$config_path/Chiaki-launcher.sh"
+            "$launcher_file"
             break;;
         [nN] ) 
-            echo -e "\nok, try it later with: \n$config_path/Chiaki-launcher.sh\n";
+            echo -e "\nok, try it later with: \n$launcher_file\n";
             break;;
         * ) 
             echo -e "\nInvalid response, please enter y or n\n";;
     esac
 done
 
-printf '       .__    .__        __   .__   _____     .___             __    
-  ____ |  |__ |__|____  |  | _|__| /  |  |  __| _/____   ____ |  | __
-_/ ___\|  |  \|  \__  \ |  |/ /  |/   |  |_/ __ |/ __ \_/ ___\|  |/ /
-\  \___|   Y  \  |/ __ \|    <|  /    ^   / /_/ \  ___/\  \___|    < 
- \___  >___|  /__(____  /__|_ \__\____   |\____ |\___  >\___  >__|_ \
-     \/     \/        \/     \/       |__|     \/    \/     \/     \/
-                    .__        __             .___._.
-  ______ ___________|__|______/  |_  ____   __| _/| |
- /  ___// ___\_  __ \  \____ \   __\/ __ \ / __ | | |
- \___ \\  \___|  | \/  |  |_> >  | \  ___// /_/ |  \|
-/____  >\___  >__|  |__|   __/|__|  \___  >____ |  __
-     \/     \/         |__|             \/     \/  \/
+printf '   _____         __               __________.__                
+  /  _  \   ____/  |_____________ \______   \  | _____  ___.__.
+ /  /_\  \ /  ___/  __\_  __ \__  \ |     ___/  | \__  \<   |  |
+/    |    \\___ \ |  |  |  | \// __ \|    |   |  |__/ __ \\___  |
+\____|__  /____  >|__|  |__|  (____  /____|   |____(____  / ____|
+        \/     \/                  \/                   \/\/     
 '

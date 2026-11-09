@@ -174,27 +174,10 @@ static QString ConfigFileForName(const QString &base, const QString &conf)
 		: (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QString("/%1-%2.conf").arg(base, conf));
 }
 
-// Canonical config file is astraplay.conf; legacy pylux.conf and Chiaki.conf are imported if present.
+// Canonical config file is astraplay.conf
 static QString ResolveConfigFile(const QString &conf)
 {
-	QString astraplayFile = ConfigFileForName("astraplay", conf);
-	if(QFile::exists(astraplayFile))
-		return astraplayFile;
-
-	QString pyluxFile = ConfigFileForName("pylux", conf);
-	if(QFile::exists(pyluxFile))
-	{
-		QFile::copy(pyluxFile, astraplayFile);
-		return astraplayFile;
-	}
-
-	QString legacyChiaki = ConfigFileForName("Chiaki", conf);
-	if(QFile::exists(legacyChiaki))
-	{
-		QFile::copy(legacyChiaki, astraplayFile);
-		return astraplayFile;
-	}
-	return astraplayFile;
+	return ConfigFileForName("astraplay", conf);
 }
 
 Settings::Settings(const QString &conf, QObject *parent) : QObject(parent),

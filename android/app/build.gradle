@@ -19,7 +19,7 @@ def chiakiVersionMajor = grepVersionComponent(rootCMakeListsContent, "CHIAKI_VER
 def chiakiVersionMinor = grepVersionComponent(rootCMakeListsContent, "CHIAKI_VERSION_MINOR")
 def chiakiVersionPatch = grepVersionComponent(rootCMakeListsContent, "CHIAKI_VERSION_PATCH")
 def chiakiVersion = "$chiakiVersionMajor.$chiakiVersionMinor.$chiakiVersionPatch"
-println("Determined Chiaki Version: $chiakiVersion")
+println("Determined AstraPlay Version: $chiakiVersion")
 
 // versionName + default versionCode are read from repo root CMakeLists.txt (CHIAKI_VERSION_*), not duplicated here.
 // Google Play: versionCode must increase on each upload. Default = encoded AstraPlay semver

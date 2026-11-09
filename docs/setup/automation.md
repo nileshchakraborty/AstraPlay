@@ -14,7 +14,7 @@
 
     1. Get your registered PlayStation's IP Address
 
-        1. Launch Chiaki via your desktop or via:
+        1. Launch AstraPlay via your desktop or via:
             
             ``` bash
             flatpak run io.github.nileshchakraborty.AstraPlay
@@ -28,7 +28,7 @@
 
                 In order to prevent your IP from changing (which would make the script stop working) if you ever disconnect your PlayStation console from your network and reconnect it (especially if other devices are added to the network in the meantime), you should go into your router settings and reserve an IP address for your PlayStation (DHCP IP reservation / "static" IP) or create a hostname for it. For a TP-Link, Netgear, Asus or Linskys router, follow [these instructions](https://www.coolblue.nl/en/advice/assign-fixed-ip-address-router.html){target="_blank" rel="noopener"}. If you have a different router, you can search (using a search engine such as DuckDuckGo or Google) for instructions for that specific router using the formula "dhcp reservation myroutername router" such as "dhcp reservation netgear router" and follow the instructions to reserve an IP for your PlayStation console so that it won't change. Alternatively, if your router has an option to set hostnames for your devices, you can set a hostname for your PlayStation console and use your hostname in the automation instead of a static IP address. 
 
-3. Create script for waking PlayStation and launching Chiaki
+3. Create script for waking PlayStation and launching AstraPlay
 
     === "Automated Instructions (Recommended)"
 
@@ -264,7 +264,7 @@
             1. Run the following command in your console
 
                 ``` bash
-                cat ~/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki.conf | grep regist_key | cut -d '(' -f2 | cut -d '\' -f1
+                cat ~/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/astraplay.conf | grep regist_key | cut -d '(' -f2 | cut -d '\' -f1
                 ```
 
                 ???+ example "Example Output"
@@ -273,9 +273,9 @@
                     2ebf539d
                     ```
 
-                !!! Note "Chiaki Configuration File"
+                !!! Note "AstraPlay Configuration File"
 
-                    This command is printing the Chiaki configuration file generated when you ran AstraPlay for the first time. This is where the flatpak version of Chiaki saves your settings and details. In fact, all flatpaks store their details with the ~/.var/app/app_id pattern. If you want to look at the file itself and get the value you can open the file at `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki.conf` and look for the remote play registration key [`rp_regist_key`].
+                    This command is printing the AstraPlay configuration file generated when you ran AstraPlay for the first time. This is where the flatpak version of AstraPlay saves your settings and details. In fact, all flatpaks store their details with the ~/.var/app/app_id pattern. If you want to look at the file itself and get the value you can open the file at `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/astraplay.conf` and look for the remote play registration key [`rp_regist_key`].
 
 
         3. Choose your [default launch option](../updates/done.md#3-view-modes-for-non-standard-screen-sizes){target="_blank" rel="noopener"} (fullscreen, zoom, or stretch)
@@ -292,13 +292,13 @@
 
         4. Get your 4 digit PlayStation login passcode (if applicable). You will know your PlayStation login passcode if you have one because you have to enter it every time you log onto your PlayStation console. If you don't have to do this, you don't have a PlayStation login passcode and will leave that field blank.
 
-        5. Create a new blank file located in the folder `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki` named  `Chiaki-launcher.sh`
+        5. Create a new blank file located in the folder `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay` named `AstraPlay-launcher.sh`
 
             ```bash
-            touch "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"
+            touch "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"
             ```
         
-        6. Open the `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh` file in your favorite editor and save the following output.
+        6. Open the `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh` file in your favorite editor and save the following output.
 
             ``` bash
             #!/usr/bin/env bash
@@ -509,7 +509,7 @@
                     ps_status="$(flatpak run io.github.nileshchakraborty.AstraPlay discover -h ${addr} 2>/dev/null)"
                 done
 
-                # Begin playing PlayStation remote play via Chiaki on your Steam Deck :)
+                # Begin playing PlayStation remote play via AstraPlay on your Steam Deck :)
                 flatpak run io.github.nileshchakraborty.AstraPlay --passcode --zoom stream 'PS5-012' ${addr}
                 ```
 
@@ -520,20 +520,20 @@
         8. Make the script executable:
 
             ```bash
-            chmod +x "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"
+            chmod +x "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"
             ```
 
 4. Test your newly created script (if you haven't already) by running:
         
     ```bash
-    "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh"
+    "${HOME}/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh"
     ```
 
     === "Your script worked!"
     
         !!! success "We have liftoff! :rocket:"
 
-            Chiaki launched in your desired screen mode on your client device [i.e., Steam Deck]! Congratulations!
+            AstraPlay launched in your desired screen mode on your client device [i.e., Steam Deck]! Congratulations!
 
     === "Your script didn't work..."
 
@@ -547,10 +547,10 @@
                 
                 2. Double check the values you entered in the script to make sure they are correct.
                 
-                3. Open your script at: `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki/Chiaki-launcher.sh` and try to run each command individually to see what's causing your problem.
+                3. Open your script at: `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay/AstraPlay-launcher.sh` and try to run each command individually to see what's causing your problem.
                 
                 4. If issues persist with this and AstraPlay launches fine regularly via the application link, just not the automation, feel free to reach out. If you think the documentation itself needs to be updated click the :material-heart-broken: underneath "Was this page helpful?" and open the feedback form for this page. If you just need help, you can reach me via [Reddit](https://github.com/nileshchakraborty/AstraPlay/discussions){target="_blank" rel="noopener"} or [email](mailto:contact@nileshchakraborty.com)
 
             === "Error in stream window"
  
-                Close AstraPlay gracefully by closing any open dialog boxes and then using ++ctrl+q++ on the stream window. If AstraPlay doesn't close gracefully, move your mouse to the top left corner of the stream window and a blue circle should highlight the corner of the screen. Click on it to see all of your windows and select the `konsole` window. Then, close the `konsole` window itself (click its `x` icon in the top right corner). Next, you can relaunch the script again to make sure it wasn't a one-time snafu. Note: Chiaki seems to perform better (audio/visual quality) in `Game Mode` vs. `Desktop Mode` for me. If issues persist, feel free to reach out via [Reddit](https://github.com/nileshchakraborty/AstraPlay/discussions){target="_blank" rel="noopener"} or [email](mailto:contact@nileshchakraborty.com). If you think the documentation itself needs to be updated click the :material-heart-broken: underneath "Was this page helpful?" and open the feedback form for this page.
+                Close AstraPlay gracefully by closing any open dialog boxes and then using ++ctrl+q++ on the stream window. If AstraPlay doesn't close gracefully, move your mouse to the top left corner of the stream window and a blue circle should highlight the corner of the screen. Click on it to see all of your windows and select the `konsole` window. Then, close the `konsole` window itself (click its `x` icon in the top right corner). Next, you can relaunch the script again to make sure it wasn't a one-time snafu. Note: AstraPlay seems to perform better (audio/visual quality) in `Game Mode` vs. `Desktop Mode` for me. If issues persist, feel free to reach out via [Reddit](https://github.com/nileshchakraborty/AstraPlay/discussions){target="_blank" rel="noopener"} or [email](mailto:contact@nileshchakraborty.com). If you think the documentation itself needs to be updated click the :material-heart-broken: underneath "Was this page helpful?" and open the feedback form for this page.

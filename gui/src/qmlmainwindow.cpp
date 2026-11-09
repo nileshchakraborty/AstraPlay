@@ -1368,7 +1368,7 @@ void QmlMainWindow::startCloudStreaming(const QString &serviceType, const QStrin
     }
     
     // StreamView will be shown automatically by Component.onCompleted in Main.qml
-    // which checks for Chiaki.window.directStream (set to true in constructor)
+    // which checks for AstraPlay.window.directStream (set to true in constructor)
     
     qInfo() << "Calling cloudBackend->startCompleteCloudSession...";
     // Start the cloud streaming session

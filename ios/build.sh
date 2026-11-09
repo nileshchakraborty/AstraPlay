@@ -472,7 +472,7 @@ create_xcframework() {
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key><string>chiaki</string>
-    <key>CFBundleIdentifier</key><string>org.chiaki.chiaki</string>
+    <key>CFBundleIdentifier</key><string>io.github.nileshchakraborty.astraplay.chiaki</string>
     <key>CFBundleName</key><string>chiaki</string>
     <key>CFBundlePackageType</key><string>FMWK</string>
 </dict>

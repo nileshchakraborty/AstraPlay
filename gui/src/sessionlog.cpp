@@ -39,7 +39,7 @@ SessionLog::SessionLog(StreamSession *session, uint32_t level_mask, const QStrin
 		}
 	}
 
-	CHIAKI_LOGI(&log, "Chiaki Version " CHIAKI_VERSION);
+	CHIAKI_LOGI(&log, "AstraPlay Version " CHIAKI_VERSION);
 }
 
 SessionLog::~SessionLog()
@@ -97,15 +97,16 @@ QString GetLogBaseDir()
 QString CreateLogFilename()
 {
 	static const QString date_format = "yyyy-MM-dd_HH-mm-ss-zzzzzz";
-	static const QString session_log_wildcard = "chiaki_session_*.log";
-	static const QRegularExpression session_log_regex("chiaki_session_(.*).log");
+	static const QString session_log_wildcard = "astraplay_session_*.log";
+	static const QString legacy_log_wildcard = "chiaki_session_*.log";
+	static const QRegularExpression session_log_regex("(?:astraplay|chiaki)_session_(.*)\\.log");
 
 	QString dir_str = GetLogBaseDir();
 	if(dir_str.isEmpty())
 		return QString();
 	QDir dir = QDir(dir_str);
 
-	dir.setNameFilters({ session_log_wildcard });
+	dir.setNameFilters({ session_log_wildcard, legacy_log_wildcard });
 	auto existing_files = dir.entryList();
 	QVector<QPair<QString, QDateTime>> existing_files_date;
 	existing_files_date.resize(existing_files.count());
@@ -128,6 +129,6 @@ QString CreateLogFilename()
 		dir.remove(pair.first);
 	}
 
-	QString filename = "chiaki_session_" + QDateTime::currentDateTime().toString(date_format) + ".log";
+	QString filename = "astraplay_session_" + QDateTime::currentDateTime().toString(date_format) + ".log";
 	return dir.absoluteFilePath(filename);
 }

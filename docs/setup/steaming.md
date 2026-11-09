@@ -59,17 +59,17 @@
 
         ![Show Hidden Files](images/ShowHiddenFiles.png)
 
-    4. Choose `Chiaki-launcher.sh` as your game
+    4. Choose `AstraPlay-launcher.sh` as your game
 
-        !!! Tip "If You're missing `Chiaki-launcher.sh`, You Skipped the Automation Section"
+        !!! Tip "If You're missing `AstraPlay-launcher.sh`, You Skipped the Automation Section"
 
-            `Chiaki-launcher.sh` is a script to launch Chiaki without the main gui, resulting in a much better experience on the Steam Deck ([click for details](../updates/done.md#enabled-automated-launch-and-auto-connect){target="_blank" rel="noopener"}) and makes it [easier to use the 3 games modes](../updates/done.md#3-view-modes-for-non-standard-screen-sizes){target="_blank" rel="noopener"}. If `Chiaki-launcher.sh` is missing, you almost certainly skipped the automation section. Don't worry, the fix is easy! :relaxed: Please complete the [Automation section](automation.md){target="_blank" rel="noopener"} now and come back here afterward. It should take you ~ 5 minutes. Luckily, :four_leaf_clover: there is a helper script that does most of the work for you! You simply answer a few questions I walk you through.
+            `AstraPlay-launcher.sh` is a script to launch AstraPlay without the main gui, resulting in a much better experience on the Steam Deck ([click for details](../updates/done.md#enabled-automated-launch-and-auto-connect){target="_blank" rel="noopener"}) and makes it [easier to use the 3 games modes](../updates/done.md#3-view-modes-for-non-standard-screen-sizes){target="_blank" rel="noopener"}. If `AstraPlay-launcher.sh` is missing, you almost certainly skipped the automation section. Don't worry, the fix is easy! :relaxed: Please complete the [Automation section](automation.md){target="_blank" rel="noopener"} now and come back here afterward. It should take you ~ 5 minutes. Luckily, :four_leaf_clover: there is a helper script that does most of the work for you! You simply answer a few questions I walk you through.
 
         1. Choose `File type: All Files` at the bottom of the screen
 
-        2. Choose `/home/deck` from the dropdown at the top of the screen and then navigate by clicking on each folder to the folder `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/Chiaki`
+        2. Choose `/home/deck` from the dropdown at the top of the screen and then navigate by clicking on each folder to the folder `/home/deck/.var/app/io.github.nileshchakraborty.AstraPlay/config/AstraPlay`
 
-        3. Click on the `Chiaki-launcher.sh` file in that directory
+        3. Click on the `AstraPlay-launcher.sh` file in that directory
 
         4. Click `OPEN` on the bottom right 
 
@@ -108,11 +108,11 @@
 
     2. If it is not already open, launch Steam and go to your game `Library`.
 
-    3. Right-click on `Chiaki-launcher.sh` in your `Games` on the left-hand side and select `Properties`
+    3. Right-click on `AstraPlay-launcher.sh` in your `Games` on the left-hand side and select `Properties`
 
         ![Launcher Properties](images/ChiakiLauncherProperties.png)
 
-    4. In the properties window that comes up rename `Chiaki-launcher.sh` and add the icon image
+    4. In the properties window that comes up rename `AstraPlay-launcher.sh` and add the icon image
 
         1. Rename it AstraPlay
 

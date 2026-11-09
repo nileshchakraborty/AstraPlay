@@ -560,21 +560,14 @@ QString SteamCloudSync::extractProfileName(const QString &filename) const
     QFileInfo fileInfo(filename);
     QString basename = fileInfo.fileName();
     
-    // astraplay.conf or pylux.conf -> "default"
-    if (basename == "astraplay.conf" || basename == "pylux.conf") {
+    // astraplay.conf -> "default"
+    if (basename == "astraplay.conf") {
         return "default";
     }
     
     // astraplay-2333.conf -> "2333"
     if (basename.startsWith("astraplay-") && basename.endsWith(".conf")) {
         QString profile = basename.mid(10); // Remove "astraplay-"
-        profile = profile.left(profile.length() - 5); // Remove ".conf"
-        return profile;
-    }
-
-    // legacy pylux-2333.conf -> "2333"
-    if (basename.startsWith("pylux-") && basename.endsWith(".conf")) {
-        QString profile = basename.mid(6); // Remove "pylux-"
         profile = profile.left(profile.length() - 5); // Remove ".conf"
         return profile;
     }
@@ -634,9 +627,9 @@ QStringList SteamCloudSync::getLocalConfigFiles() const
         return QStringList();
     }
 
-    // Find astraplay.conf, astraplay-*.conf and legacy pylux files
+    // Find astraplay.conf and astraplay-*.conf files
     QStringList filters;
-    filters << "astraplay.conf" << "astraplay-*.conf" << "pylux.conf" << "pylux-*.conf";
+    filters << "astraplay.conf" << "astraplay-*.conf";
     
     QFileInfoList files = configDir.entryInfoList(filters, QDir::Files);
     QStringList paths;
@@ -664,8 +657,8 @@ QStringList SteamCloudSync::getCloudConfigFiles() const
         const char *filename = remoteStorage->GetFileNameAndSize(i, &fileSize);
         
         QString name = QString::fromUtf8(filename);
-        // Only include astraplay and pylux config files
-        if ((name.startsWith("astraplay") || name.startsWith("pylux")) && name.endsWith(".conf")) {
+        // Only include astraplay config files
+        if (name.startsWith("astraplay") && name.endsWith(".conf")) {
             cloudFiles.append(name);
         }
     }
