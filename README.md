@@ -317,6 +317,22 @@ If you prefer not to use in-app webviews:
 
 ---
 
+## Privacy, Permissions & Zero Data Collection Guarantee
+
+> **FYI: AstraPlay does not collect user data.**
+
+- **Zero Remote Tracking**: We operate zero telemetry servers, zero analytics trackers, and zero advertising SDKs.
+- **Strictly Local & Peer-to-Peer**: Video, audio, and controller commands travel directly between your client device and your PlayStation console over your local network. Authentication tokens (NPSSO) are exchanged exclusively with official Sony PlayStation servers over encrypted TLS.
+- **Why Permissions Are Needed**:
+  - **Network & Local Wi-Fi (`INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_MULTICAST_STATE`, `NSLocalNetworkUsageDescription`)**: Used solely for local network console discovery (UDP broadcasts), low-latency streaming, adapting bitrate during network handoffs, and displaying your device's local IP on the embedded relay pairing screen.
+  - **Microphone (`RECORD_AUDIO`, `NSMicrophoneUsageDescription`, `device.audio-input`)**: Transmits voice chat to your PlayStation party only when you explicitly un-mute the in-stream mic toggle. Voice data is never recorded or stored.
+  - **Sensors & Haptics (`VIBRATE`, `HIGH_SAMPLING_RATE_SENSORS`, `device.usb`, `device.bluetooth`)**: Delivers rumble/haptic feedback on DualSense / DualShock gamepads and reads gyroscope data for low-latency motion aiming.
+  - **Open File Storage (`files.user-selected.read-write`)**: Allows importing/exporting settings or saving diagnostic logs only when you explicitly choose a file in a system picker.
+
+Read our full [Privacy Policy](PRIVACY.md) or online at [nileshchakraborty.github.io/AstraPlay/privacy](https://nileshchakraborty.github.io/AstraPlay/privacy/).
+
+---
+
 ## Responsible Use
 
 AstraPlay is intended for use with games and hardware you legally own and are licensed to access. It does not circumvent digital rights management (DRM), distribute proprietary firmware, or facilitate piracy.

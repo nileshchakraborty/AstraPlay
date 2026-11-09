@@ -2862,6 +2862,17 @@ DialogView {
                         Material.roundedScale: Material.SmallScale
                     }
 
+                    C.Button {
+                        id: privacyPolicyButton
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: 400
+                        Layout.preferredHeight: 50
+                        text: qsTr("Privacy Policy & Zero Data Guarantee")
+                        onClicked: Qt.openUrlExternally("https://nileshchakraborty.github.io/AstraPlay/privacy")
+                        Material.roundedScale: Material.SmallScale
+                    }
+
                     C.CheckBox {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 15
@@ -3440,6 +3451,21 @@ DialogView {
                         wrapMode: Text.Wrap
                         font.pixelSize: 12
                         text: qsTr("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.")
+                        Layout.bottomMargin: 10
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: qsTr("Privacy & Permissions")
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        font.pixelSize: 12
+                        text: qsTr("Zero Data Collection: AstraPlay does NOT collect, track, store, or sell any personal data or usage metrics. All permissions requested on your device are strictly used for local console discovery, low-latency streaming, controller input, and direct communication with official PlayStation servers.")
                         Layout.bottomMargin: 10
                     }
 

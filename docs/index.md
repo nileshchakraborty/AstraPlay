@@ -66,6 +66,18 @@ Head to the [Setup section](setup/index.md) to get AstraPlay running on your dev
 - **App-store installs** — available on Google Play, App Store, and Mac App Store
 - **Open source** — AGPL-3.0 licensed, community-maintained
 
+## Privacy & Zero Data Guarantee
+
+!!! info "FYI: We Do Not Collect User Data"
+    AstraPlay operates entirely on a zero-data-collection principle:
+    
+    * **Zero Telemetry**: No analytics, trackers, or advertising SDKs.
+    * **Direct Peer-to-Peer**: All game streaming and controller input runs directly between your device and your console over your home network.
+    * **Direct Authentication**: PSN login is conducted directly with official Sony PlayStation servers over encrypted HTTPS (TLS).
+    * **Minimal Permissions**: Every permission requested on Android, iOS, macOS, and Windows is strictly used on-device for local console discovery, low-latency streaming, and controller haptics.
+    
+    See our comprehensive [Privacy Policy](privacy.md) for detailed permission rationales.
+
 ## Contributing
 
 Fork the repo, create a branch off `dev`, and open a pull request targeting `dev`. Release PRs go from `dev` to `master`; merging one triggers the release build. See [CONTRIBUTING.md](https://github.com/nileshchakraborty/AstraPlay/blob/master/CONTRIBUTING.md){ target="_blank" rel="noopener" } for the full workflow.

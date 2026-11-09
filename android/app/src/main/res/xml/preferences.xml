@@ -409,7 +409,7 @@
             app:icon="@drawable/ic_export"/>
         <Preference
             app:key="view_privacy_policy"
-            app:summary="https://nileshchakraborty.github.io/AstraPlay/privacy"
+            app:summary="@string/preferences_privacy_policy_summary"
             app:title="@string/preferences_privacy_policy_title"
             app:icon="@drawable/ic_export"/>
         <Preference
