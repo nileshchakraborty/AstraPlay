@@ -344,6 +344,7 @@ class Preferences(context: Context)
 
 	/**
 	 * Get the active relay URL, checking user preferences first, then falling back to
+	 * the local in-app EmbeddedRelayServer (mirroring desktop behavior), and finally
 	 * BuildConfig.ASTRAPLAY_RELAY_URL baked into the APK.
 	 */
 	fun getEffectiveRelayUrl(): String
@@ -353,7 +354,17 @@ class Preferences(context: Context)
 		{
 			return userUrl
 		}
-		return BuildConfig.ASTRAPLAY_RELAY_URL.trim().trimEnd('/')
+		val embedded = com.metallic.chiaki.cloudplay.EmbeddedRelayServer.getInstance()
+		if (embedded != null && embedded.isRunning)
+		{
+			return embedded.serverUrl()
+		}
+		val buildUrl = BuildConfig.ASTRAPLAY_RELAY_URL.trim().trimEnd('/')
+		if (buildUrl.isNotEmpty())
+		{
+			return buildUrl
+		}
+		return ""
 	}
 
 	// ==========================================================================

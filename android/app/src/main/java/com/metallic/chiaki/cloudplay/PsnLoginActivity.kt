@@ -2,35 +2,34 @@
 
 package com.metallic.chiaki.cloudplay
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.UiModeManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.text.InputType
 import android.util.Log
 import android.view.View
-import android.text.InputType
-import android.widget.Button
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.webkit.CookieManager
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
-import com.google.android.material.appbar.MaterialToolbar
 import io.github.nileshchakraborty.astraplay.BuildConfig
 import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.SecureTokenManager
@@ -40,12 +39,14 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.random.Random
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * PSN Login Activity using astraplay relay code flow
- * Mirrors desktop app's QR login flow from gui/src/qmlbackend.cpp
- * Reference: gui/src/qmlbackend.cpp lines 3363-3525
+ * PSN Login Activity supporting:
+ * 1. Direct In-App WebView login (default for Phones and Tablets) with automatic redirect & NPSSO capture.
+ * 2. Cross-device Phone Relay via QR code (default for Android TV 10-foot UI, and accessible as alternate view).
+ * Mirrors desktop Qt and iOS hybrid login flows.
  */
 class PsnLoginActivity : AppCompatActivity()
 {
@@ -56,85 +57,415 @@ class PsnLoginActivity : AppCompatActivity()
 		const val RESULT_LOGIN_SUCCESS = Activity.RESULT_OK
 		const val RESULT_LOGIN_CANCELLED = Activity.RESULT_CANCELED
 		const val RESULT_LOGIN_FAILED = 3
+
+		private const val SONY_USER_AGENT =
+			"Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 	}
-	
-	// Phone UI
+
+	// Mode Containers
+	private lateinit var layoutWebView: View
+	private lateinit var layoutPhoneRelay: View
+
+	// WebView UI components
+	private lateinit var loginWebView: WebView
+	private lateinit var webViewProgressBar: ProgressBar
+	private lateinit var webViewLoadingOverlay: LinearLayout
+	private lateinit var webViewStatusText: TextView
+	private lateinit var btnSwitchToPhoneRelay: MaterialButton
+	private lateinit var btnOpenBrowserFromWebView: MaterialButton
+	private lateinit var btnManualTokenFromWebView: MaterialButton
+	private lateinit var btnCancelWebView: MaterialButton
+
+	// Phone Relay UI components
 	private lateinit var codeTextView: TextView
 	private lateinit var statusTextView: TextView
 	private lateinit var progressBar: ProgressBar
-	private lateinit var openBrowserButton: Button
-	private lateinit var checkStatusButton: Button
-	private lateinit var configureRelayButton: Button
-	private lateinit var manualTokenButton: Button
-	private lateinit var cancelButton: Button
-
-	// TV UI
-	private lateinit var tvCodeTextView: TextView
-	private lateinit var tvStatusTextView: TextView
-	private lateinit var tvProgressBar: ProgressBar
-	private lateinit var tvCheckStatusButton: Button
-	private lateinit var tvConfigureRelayButton: Button
-	private lateinit var tvManualTokenButton: Button
-	private lateinit var tvCancelButton: Button
+	private lateinit var openBrowserButton: MaterialButton
+	private lateinit var checkStatusButton: MaterialButton
+	private lateinit var configureRelayButton: MaterialButton
+	private lateinit var manualTokenButton: MaterialButton
+	private lateinit var cancelButton: MaterialButton
 	private lateinit var qrCodeImage: ImageView
+
+	private lateinit var toolbar: MaterialToolbar
 
 	private lateinit var tokenManager: SecureTokenManager
 	private lateinit var preferences: Preferences
+	private var embeddedRelayServer: EmbeddedRelayServer? = null
 	private var isOnTv: Boolean = false
-	
+
 	private var loginCode: String = ""
 	private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+	private var autoPollJob: Job? = null
+	private val isLoginHandled = AtomicBoolean(false)
+	private val isPasskeyDialogShown = AtomicBoolean(false)
 
-	// PSN login relay host resolved from user preferences (if set) or baked into build via -PAstraPlayRelayUrl.
-	// Empty when neither is configured: user is prompted to configure a relay or paste NPSSO manually.
 	private fun relayBaseUrl(): String = preferences.getEffectiveRelayUrl()
-	
 
+	@SuppressLint("SetJavaScriptEnabled")
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_psn_login)
-		
+
 		tokenManager = SecureTokenManager(this)
 		preferences = Preferences(this)
 		isOnTv = (getSystemService(UI_MODE_SERVICE) as UiModeManager).currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
 
-		// Setup toolbar
-		val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-		setSupportActionBar(toolbar)
-		supportActionBar?.apply {
-			setDisplayHomeAsUpEnabled(true)
-			setDisplayShowHomeEnabled(true)
-			title = getString(R.string.psn_login_title)
+		// Start local embedded relay server if no remote relay is explicitly configured
+		if (preferences.psnRelayUrl.isEmpty()) {
+			try {
+				embeddedRelayServer = EmbeddedRelayServer.start(this)
+				Log.i(TAG, "Embedded relay server started at ${embeddedRelayServer?.serverUrl()}")
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to start EmbeddedRelayServer", e)
+			}
 		}
+
+		bindViews()
+		setupToolbar()
+		setupWebView()
+		setupRelayActions()
+
+		// Prepare the relay code so both direct and QR flows are ready immediately
+		prepareRelayCode()
+
+		if (isOnTv) {
+			showPhoneRelayView()
+		} else {
+			showWebView()
+		}
+	}
+
+	private fun bindViews()
+	{
+		toolbar = findViewById(R.id.toolbar)
+
+		layoutWebView = findViewById(R.id.layoutWebView)
+		layoutPhoneRelay = findViewById(R.id.layoutPhoneRelay)
+
+		// WebView components
+		loginWebView = findViewById(R.id.loginWebView)
+		webViewProgressBar = findViewById(R.id.webViewProgressBar)
+		webViewLoadingOverlay = findViewById(R.id.webViewLoadingOverlay)
+		webViewStatusText = findViewById(R.id.webViewStatusText)
+		btnSwitchToPhoneRelay = findViewById(R.id.btnSwitchToPhoneRelay)
+		btnOpenBrowserFromWebView = findViewById(R.id.btnOpenBrowserFromWebView)
+		btnManualTokenFromWebView = findViewById(R.id.btnManualTokenFromWebView)
+		btnCancelWebView = findViewById(R.id.btnCancelWebView)
+
+		// Relay components
+		codeTextView = findViewById(R.id.loginCodeText)
+		statusTextView = findViewById(R.id.statusText)
+		progressBar = findViewById(R.id.progressBar)
+		openBrowserButton = findViewById(R.id.openBrowserButton)
+		checkStatusButton = findViewById(R.id.checkStatusButton)
+		configureRelayButton = findViewById(R.id.configureRelayButton)
+		manualTokenButton = findViewById(R.id.manualTokenButton)
+		cancelButton = findViewById(R.id.cancelButton)
+		qrCodeImage = findViewById(R.id.qrCodeImage)
+	}
+
+	private fun setupToolbar()
+	{
 		toolbar.setNavigationOnClickListener {
+			setResult(RESULT_LOGIN_CANCELLED)
+			finish()
+		}
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
+	private fun setupWebView()
+	{
+		loginWebView.settings.apply {
+			javaScriptEnabled = true
+			domStorageEnabled = true
+			databaseEnabled = true
+			useWideViewPort = true
+			loadWithOverviewMode = true
+			setSupportZoom(false)
+			builtInZoomControls = false
+			userAgentString = SONY_USER_AGENT
+		}
+
+		val cookieManager = CookieManager.getInstance()
+		cookieManager.setAcceptCookie(true)
+		cookieManager.setAcceptThirdPartyCookies(loginWebView, true)
+
+		loginWebView.webChromeClient = object : WebChromeClient() {
+			override fun onProgressChanged(view: WebView?, newProgress: Int) {
+				if (newProgress in 1..99) {
+					webViewProgressBar.visibility = View.VISIBLE
+					webViewProgressBar.progress = newProgress
+				} else {
+					webViewProgressBar.visibility = View.GONE
+				}
+			}
+
+			override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+				val msg = consoleMessage?.message() ?: return false
+				if (msg.contains("passkey_unsupported") || (msg.contains("CORS") && msg.contains("authz/v3/oauth/token"))) {
+					Log.w(TAG, "WebView console detected passkey/CORS issue: $msg")
+					showPasskeyFallbackDialog()
+				}
+				return super.onConsoleMessage(consoleMessage)
+			}
+		}
+
+		loginWebView.webViewClient = object : WebViewClient() {
+			override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+				val url = request?.url?.toString() ?: return false
+				return handlePotentialLoginRedirect(url, view)
+			}
+
+			@Deprecated("Deprecated in Java")
+			override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+				if (url == null) return false
+				return handlePotentialLoginRedirect(url, view)
+			}
+
+			override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+				super.onPageStarted(view, url, favicon)
+				if (url != null) {
+					handlePotentialLoginRedirect(url, view)
+				}
+			}
+
+			override fun onPageFinished(view: WebView?, url: String?) {
+				super.onPageFinished(view, url)
+				if (url == null || isLoginHandled.get()) return
+
+				// 1. Check cookies for NPSSO
+				checkCookiesForNpsso()
+
+				// 2. If at ssocookie endpoint, extract text from JSON body
+				if (url.contains("ca.account.sony.com/api/v1/ssocookie")) {
+					view?.evaluateJavascript("(function() { return document.body.innerText; })();") { text ->
+						if (text != null && !isLoginHandled.get()) {
+							val npsso = sanitizeNpsso(text)
+							if (npsso.length == 64) {
+								Log.i(TAG, "Extracted NPSSO from ssocookie page content")
+								onLoginSuccess(npsso)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		btnSwitchToPhoneRelay.setOnClickListener {
+			showPhoneRelayView()
+		}
+
+		btnOpenBrowserFromWebView.setOnClickListener {
+			openAstraPlayInBrowser()
+		}
+
+		btnManualTokenFromWebView.setOnClickListener {
+			showManualTokenDialog()
+		}
+
+		btnCancelWebView.setOnClickListener {
+			setResult(RESULT_LOGIN_CANCELLED)
+			finish()
+		}
+	}
+
+	private fun handlePotentialLoginRedirect(url: String, view: WebView?): Boolean
+	{
+		if (isLoginHandled.get()) return true
+
+		if (url.contains("passkey_unsupported")) {
+			Log.w(TAG, "Passkey unsupported page detected in WebView: $url")
+			showPasskeyFallbackDialog()
+			return false
+		}
+
+		if (url.startsWith(PsnAuthConstants.REDIRECT_URI)) {
+			Log.i(TAG, "OAuth redirect captured: $url")
+			showWebViewOverlay(getString(R.string.psn_login_authenticating))
+
+			// Check if NPSSO is already in CookieManager
+			val cookieNpsso = getNpssoFromCookieManager()
+			if (cookieNpsso != null) {
+				Log.i(TAG, "NPSSO found directly in cookies on redirect")
+				onLoginSuccess(cookieNpsso)
+				return true
+			}
+
+			// Navigate webView to ssocookie endpoint to populate cookie and body
+			Log.i(TAG, "Navigating to ssocookie endpoint to obtain token...")
+			view?.loadUrl(PsnAuthConstants.SSOCOOKIE_ENDPOINT)
+
+			// Fast parallel background HTTP fetch using existing session cookies
+			scope.launch(Dispatchers.IO) {
+				val token = fetchNpssoViaHttp()
+				if (token != null && !isLoginHandled.get()) {
+					withContext(Dispatchers.Main) {
+						onLoginSuccess(token)
+					}
+				}
+			}
+			return true
+		}
+		return false
+	}
+
+	private fun checkCookiesForNpsso()
+	{
+		if (isLoginHandled.get()) return
+		val npsso = getNpssoFromCookieManager()
+		if (npsso != null) {
+			Log.i(TAG, "NPSSO detected in CookieManager during page load")
+			onLoginSuccess(npsso)
+		}
+	}
+
+	private fun getNpssoFromCookieManager(): String?
+	{
+		try {
+			val cookies = CookieManager.getInstance().getCookie(PsnAuthConstants.ACCOUNT_BASE) ?: return null
+			val match = Regex("npsso=([a-zA-Z0-9_-]{64})").find(cookies)
+			return match?.groupValues?.get(1)
+		} catch (e: Exception) {
+			Log.d(TAG, "Failed reading CookieManager cookies: ${e.message}")
+			return null
+		}
+	}
+
+	private fun fetchNpssoViaHttp(): String?
+	{
+		try {
+			val cookies = CookieManager.getInstance().getCookie(PsnAuthConstants.ACCOUNT_BASE) ?: ""
+			val url = URL(PsnAuthConstants.SSOCOOKIE_ENDPOINT)
+			val conn = url.openConnection() as HttpURLConnection
+			conn.connectTimeout = 6000
+			conn.readTimeout = 6000
+			conn.requestMethod = "GET"
+			conn.setRequestProperty("User-Agent", SONY_USER_AGENT)
+			if (cookies.isNotEmpty()) {
+				conn.setRequestProperty("Cookie", cookies)
+			}
+
+			val responseCode = conn.responseCode
+			if (responseCode == HttpURLConnection.HTTP_OK) {
+				val body = conn.inputStream.bufferedReader().use { it.readText() }
+				val npsso = sanitizeNpsso(body)
+				if (npsso.length == 64) {
+					Log.i(TAG, "Fetched NPSSO successfully via HTTP background request")
+					return npsso
+				}
+			}
+		} catch (e: Exception) {
+			Log.d(TAG, "HTTP fetch for ssocookie failed: ${e.message}")
+		}
+		return null
+	}
+
+	private fun buildSonyOAuthUrl(): String
+	{
+		var duid = preferences.psnDuid
+		if (duid.isEmpty()) {
+			duid = DuidUtil.generateDuid()
+			preferences.psnDuid = duid
+		}
+		val cid = UUID.randomUUID().toString()
+
+		return buildString {
+			append(PsnAuthConstants.AUTHORIZE_ENDPOINT_V3)
+			append("?client_id=").append(PsnAuthConstants.CLIENT_ID)
+			append("&redirect_uri=").append(Uri.encode(PsnAuthConstants.REDIRECT_URI))
+			append("&scope=").append(Uri.encode(PsnAuthConstants.SCOPES))
+			append("&response_type=code")
+			append("&service_entity=urn:service-entity:psn")
+			append("&access_type=offline")
+			append("&smcid=remoteplay")
+			append("&layout_type=popup")
+			append("&PlatformPrivacyWs1=minimal")
+			append("&no_captcha=true")
+			append("&duid=").append(Uri.encode(duid))
+			append("&cid=").append(Uri.encode(cid))
+		}
+	}
+
+	private fun showWebView()
+	{
+		isPasskeyDialogShown.set(false)
+		layoutWebView.visibility = View.VISIBLE
+		layoutPhoneRelay.visibility = View.GONE
+		toolbar.title = getString(R.string.psn_login_direct_title)
+
+		if (loginWebView.url.isNullOrEmpty()) {
+			val url = buildSonyOAuthUrl()
+			Log.i(TAG, "Loading Sony OAuth URL in WebView: $url")
+			loginWebView.loadUrl(url)
+		}
+	}
+
+	private fun showPhoneRelayView()
+	{
+		layoutWebView.visibility = View.GONE
+		layoutPhoneRelay.visibility = View.VISIBLE
+		toolbar.title = getString(R.string.psn_login_title)
+
+		if (isOnTv) {
+			checkStatusButton.requestFocus()
+		}
+	}
+
+	private fun openAstraPlayInBrowser()
+	{
+		try
+		{
+			val baseUrl = embeddedRelayServer?.localUrl() ?: relayBaseUrl()
+			val relayUrl = "$baseUrl/psstream/?psstream_code=$loginCode"
+			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(relayUrl))
+			startActivity(intent)
+			Log.i(TAG, "Opened relay URL in browser: $relayUrl")
+			Toast.makeText(this, "Complete sign-in in browser, then return here", Toast.LENGTH_LONG).show()
+		}
+		catch (e: Exception)
+		{
+			Log.e(TAG, "Failed to open browser", e)
+			Toast.makeText(this, getString(R.string.psn_login_external_browser_error), Toast.LENGTH_SHORT).show()
+		}
+	}
+
+	private fun showPasskeyFallbackDialog()
+	{
+		if (isPasskeyDialogShown.compareAndSet(false, true) && !isLoginHandled.get()) {
+			runOnUiThread {
+				MaterialAlertDialogBuilder(this)
+					.setTitle("Passkey Sign-in Detected")
+					.setMessage("Your PSN account uses a Passkey (Face ID / Fingerprint). Embedded web views on this device cannot authenticate hardware passkeys.\n\nPlease switch to 'Login via Phone' to scan the QR code with your phone where your passkey is stored.")
+					.setPositiveButton("Switch to Phone (QR Code)") { _, _ ->
+						showPhoneRelayView()
+					}
+					.setNegativeButton(R.string.action_cancel, null)
+					.show()
+			}
+		}
+	}
+
+	private fun showWebViewOverlay(message: String)
+	{
+		webViewStatusText.text = message
+		webViewLoadingOverlay.visibility = View.VISIBLE
+	}
+
+	private fun setupRelayActions()
+	{
+		// openBrowserButton now flips to WebView mode
+		openBrowserButton.setOnClickListener { showWebView() }
+		checkStatusButton.setOnClickListener { checkTokenStatus(manual = true) }
+		configureRelayButton.setOnClickListener { showConfigureRelayDialog() }
+		manualTokenButton.setOnClickListener { showManualTokenDialog() }
+		cancelButton.setOnClickListener {
 			setResult(RESULT_LOGIN_CANCELLED)
 			finish()
 		}
 
 		if (isOnTv) {
-			// Show TV layout, hide phone layout
-			findViewById<View>(R.id.phoneModeLayout).visibility = View.GONE
-			findViewById<View>(R.id.tvModeLayout).visibility = View.VISIBLE
-
-			tvCodeTextView = findViewById(R.id.tvLoginCodeText)
-			tvStatusTextView = findViewById(R.id.tvStatusText)
-			tvProgressBar = findViewById(R.id.tvProgressBar)
-			tvCheckStatusButton = findViewById(R.id.tvCheckStatusButton)
-			tvConfigureRelayButton = findViewById(R.id.tvConfigureRelayButton)
-			tvManualTokenButton = findViewById(R.id.tvManualTokenButton)
-			tvCancelButton = findViewById(R.id.tvCancelButton)
-			qrCodeImage = findViewById(R.id.qrCodeImage)
-
-			tvCheckStatusButton.setOnClickListener { checkTokenStatus() }
-			tvConfigureRelayButton.setOnClickListener { showConfigureRelayDialog() }
-			tvManualTokenButton.setOnClickListener { showManualTokenDialog() }
-			tvCancelButton.setOnClickListener {
-				setResult(RESULT_LOGIN_CANCELLED)
-				finish()
-			}
-
-			// Yellow focus highlights for TV D-pad navigation
 			val tvFocusHighlight = View.OnFocusChangeListener { v, hasFocus ->
 				v.foreground = if (hasFocus)
 					android.graphics.drawable.GradientDrawable().apply {
@@ -145,112 +476,90 @@ class PsnLoginActivity : AppCompatActivity()
 					}
 				else null
 			}
-			tvCheckStatusButton.onFocusChangeListener = tvFocusHighlight
-			tvConfigureRelayButton.onFocusChangeListener = tvFocusHighlight
-			tvManualTokenButton.onFocusChangeListener = tvFocusHighlight
-			tvCancelButton.onFocusChangeListener = tvFocusHighlight
-
-			tvCancelButton.requestFocusFromTouch()
-		} else {
-			// Phone layout
-			codeTextView = findViewById(R.id.loginCodeText)
-			statusTextView = findViewById(R.id.statusText)
-			progressBar = findViewById(R.id.progress_bar)
-			openBrowserButton = findViewById(R.id.openBrowserButton)
-			checkStatusButton = findViewById(R.id.checkStatusButton)
-			configureRelayButton = findViewById(R.id.configureRelayButton)
-			manualTokenButton = findViewById(R.id.manualTokenButton)
-			cancelButton = findViewById(R.id.cancelButton)
-
-			openBrowserButton.setOnClickListener { openAstraPlayInBrowser() }
-			checkStatusButton.setOnClickListener { checkTokenStatus() }
-			configureRelayButton.setOnClickListener { showConfigureRelayDialog() }
-			manualTokenButton.setOnClickListener { showManualTokenDialog() }
-			cancelButton.setOnClickListener {
-				setResult(RESULT_LOGIN_CANCELLED)
-				finish()
-			}
+			checkStatusButton.onFocusChangeListener = tvFocusHighlight
+			openBrowserButton.onFocusChangeListener = tvFocusHighlight
+			manualTokenButton.onFocusChangeListener = tvFocusHighlight
+			configureRelayButton.onFocusChangeListener = tvFocusHighlight
+			cancelButton.onFocusChangeListener = tvFocusHighlight
 		}
-		
-		// Start login flow
-		startLogin()
 	}
-	
-	private fun startLogin()
-	{
-		if (relayBaseUrl().isEmpty()) {
-			val msg = getString(R.string.psn_login_relay_unconfigured_prompt)
-			Log.w(TAG, "No relay server URL configured; showing configuration options")
-			if (isOnTv) {
-				tvStatusTextView.text = msg
-				tvProgressBar.visibility = View.GONE
-				tvCheckStatusButton.visibility = View.GONE
-				qrCodeImage.visibility = View.GONE
-				tvCodeTextView.text = "------"
-				tvConfigureRelayButton.requestFocusFromTouch()
-			} else {
-				statusTextView.text = msg
-				progressBar.visibility = View.GONE
-				openBrowserButton.visibility = View.GONE
-				checkStatusButton.visibility = View.GONE
-				codeTextView.text = "------"
-				configureRelayButton.requestFocus()
-			}
-			return
-		}
 
-		if (isOnTv) {
-			tvCheckStatusButton.visibility = View.VISIBLE
-			qrCodeImage.visibility = View.VISIBLE
-			tvProgressBar.visibility = View.VISIBLE
-			tvStatusTextView.text = getString(R.string.psn_login_connecting)
-		} else {
-			openBrowserButton.visibility = View.VISIBLE
-			checkStatusButton.visibility = View.VISIBLE
-			progressBar.visibility = View.VISIBLE
-			statusTextView.text = getString(R.string.psn_login_connecting)
+	private fun prepareRelayCode()
+	{
+		autoPollJob?.cancel()
+
+		val effectiveRelay = relayBaseUrl()
+		if (effectiveRelay.isEmpty()) {
+			statusTextView.text = getString(R.string.psn_login_relay_unconfigured_prompt)
+			progressBar.visibility = View.GONE
+			qrCodeImage.visibility = View.GONE
+			codeTextView.text = "------"
+			return
 		}
 
 		val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 		loginCode = (1..6).map { chars.random() }.joinToString("")
+		codeTextView.text = loginCode
 
-		if (isOnTv) {
-			tvCodeTextView.text = loginCode
-			loadQrCode(loginCode)
-		} else {
-			codeTextView.text = loginCode
-		}
-
-		Log.i(TAG, "Generated login code: $loginCode for relay: ${relayBaseUrl()}")
+		loadQrCode(loginCode)
+		embeddedRelayServer?.createCode(loginCode)
 
 		scope.launch {
 			val success = createAstraPlayCode(loginCode)
-			if (success) {
-				if (isOnTv) {
-					tvStatusTextView.text = getString(R.string.psn_login_code_ready)
-					tvProgressBar.visibility = View.GONE
-					tvCheckStatusButton.isEnabled = true
-					tvCheckStatusButton.requestFocusFromTouch()
-				} else {
-					statusTextView.text = getString(R.string.psn_login_code_ready)
-					progressBar.visibility = View.GONE
-					openBrowserButton.isEnabled = true
-					checkStatusButton.isEnabled = true
-				}
+			if (success || embeddedRelayServer != null) {
+				statusTextView.text = getString(R.string.psn_login_waiting_phone)
+				progressBar.visibility = View.VISIBLE
+				checkStatusButton.isEnabled = true
+				openBrowserButton.isEnabled = true
+				startAutoPolling()
 			} else {
 				val errorMsg = getString(R.string.psn_login_server_error)
-				if (isOnTv) {
-					tvStatusTextView.text = "$errorMsg (${relayBaseUrl()})"
-					tvProgressBar.visibility = View.GONE
-					tvConfigureRelayButton.requestFocusFromTouch()
-				} else {
-					statusTextView.text = "$errorMsg (${relayBaseUrl()})"
-					progressBar.visibility = View.GONE
-					openBrowserButton.isEnabled = false
-					configureRelayButton.requestFocus()
+				statusTextView.text = "$errorMsg ($effectiveRelay)"
+				progressBar.visibility = View.GONE
+				openBrowserButton.isEnabled = false
+			}
+		}
+	}
+
+	private fun startAutoPolling()
+	{
+		autoPollJob?.cancel()
+		autoPollJob = scope.launch {
+			while (isActive && !isLoginHandled.get()) {
+				delay(2500)
+				val token = checkAstraPlayStatus(loginCode)
+				if (token != null) {
+					Log.i(TAG, "Auto-poller detected NPSSO token")
+					onLoginSuccess(token)
+					break
 				}
 			}
 		}
+	}
+
+	private fun loadQrCode(code: String)
+	{
+		val loginUrl = "${relayBaseUrl()}/psstream/?psstream_code=$code"
+		try {
+			val bitmap = generateQrCode(loginUrl, 440)
+			qrCodeImage.setImageBitmap(bitmap)
+			qrCodeImage.visibility = View.VISIBLE
+		} catch (e: Exception) {
+			Log.e(TAG, "Failed to render QR code bitmap", e)
+		}
+	}
+
+	private fun generateQrCode(content: String, size: Int): Bitmap
+	{
+		val hints = mapOf(EncodeHintType.MARGIN to 1)
+		val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size, hints)
+		val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+		for (x in 0 until size) {
+			for (y in 0 until size) {
+				bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+			}
+		}
+		return bitmap
 	}
 
 	private fun showConfigureRelayDialog()
@@ -279,7 +588,7 @@ class PsnLoginActivity : AppCompatActivity()
 				}
 				preferences.psnRelayUrl = url
 				Toast.makeText(this, "Relay URL saved", Toast.LENGTH_SHORT).show()
-				startLogin()
+				prepareRelayCode()
 			}
 			.setNegativeButton(R.string.action_cancel, null)
 			.show()
@@ -293,7 +602,7 @@ class PsnLoginActivity : AppCompatActivity()
 		val btnNpsso = dialogView.findViewById<Button>(R.id.btnOpenNpssoPage)
 		val btnPaste = dialogView.findViewById<Button>(R.id.btnPasteClipboard)
 
-		val psnLoginUrl = "https://ca.account.sony.com/api/authz/v3/oauth/authorize?client_id=${PsnAuthConstants.CLIENT_ID}&redirect_uri=${Uri.encode(PsnAuthConstants.REDIRECT_URI)}&response_type=code&scope=${Uri.encode(PsnAuthConstants.SCOPES)}"
+		val psnLoginUrl = buildSonyOAuthUrl()
 
 		btnLogin.setOnClickListener {
 			try {
@@ -364,287 +673,172 @@ class PsnLoginActivity : AppCompatActivity()
 		return trimmed.removeSurrounding("\"").trim()
 	}
 
-	private fun loadQrCode(code: String)
-	{
-		val loginUrl = "${relayBaseUrl()}/psstream/?psstream_code=$code"
-		qrCodeImage.setImageBitmap(generateQrCode(loginUrl, 440))
-	}
-
-	private fun generateQrCode(content: String, size: Int): Bitmap
-	{
-		val hints = mapOf(EncodeHintType.MARGIN to 1)
-		val bitMatrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size, hints)
-		val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-		for (x in 0 until size) {
-			for (y in 0 until size) {
-				bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-			}
-		}
-		return bitmap
-	}
-	
-	/**
-	 * Create code on relay server
-	 * Reference: gui/src/qmlbackend.cpp lines 3363-3440
-	 */
 	private suspend fun createAstraPlayCode(code: String): Boolean = withContext(Dispatchers.IO)
 	{
+		if (embeddedRelayServer != null && preferences.psnRelayUrl.isEmpty()) {
+			return@withContext embeddedRelayServer!!.createCode(code)
+		}
+
 		try
 		{
 			val url = URL("${relayBaseUrl()}/psstream/create-code")
 			val connection = url.openConnection() as HttpURLConnection
+			connection.connectTimeout = 5000
+			connection.readTimeout = 5000
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
 			connection.doOutput = true
-			
-			// Send JSON payload: {"code": "123456"}
+
 			val jsonPayload = JSONObject().apply {
 				put("code", code)
 			}.toString()
-			
+
 			connection.outputStream.use { it.write(jsonPayload.toByteArray()) }
-			
+
 			val responseCode = connection.responseCode
 			if (responseCode == HttpURLConnection.HTTP_OK)
 			{
 				val response = connection.inputStream.bufferedReader().use { it.readText() }
 				val jsonResponse = JSONObject(response)
-				
-				if (jsonResponse.optString("result") == "success")
-				{
-					Log.i(TAG, "astraplay code created successfully")
-					return@withContext true
-				}
-				else
-				{
-					val error = jsonResponse.optString("error", "Unknown error")
-					Log.e(TAG, "astraplay server error: $error")
-					return@withContext false
-				}
+				return@withContext jsonResponse.optString("result") == "success"
 			}
-			else
-			{
-				Log.e(TAG, "HTTP error creating code: $responseCode")
-				return@withContext false
-			}
+			return@withContext false
 		}
 		catch (e: Exception)
 		{
-			Log.e(TAG, "Exception creating astraplay code", e)
+			Log.w(TAG, "Exception creating astraplay code on remote relay", e)
 			return@withContext false
 		}
 	}
-	
-	/**
-	 * Check token status when user clicks the button
-	 */
-	private fun checkTokenStatus()
+
+	private fun checkTokenStatus(manual: Boolean = false)
 	{
-		if (isOnTv) {
-			tvCheckStatusButton.isEnabled = false
-			tvProgressBar.visibility = View.VISIBLE
-			tvStatusTextView.text = getString(R.string.psn_login_checking_status)
-		} else {
-			checkStatusButton.isEnabled = false
-			progressBar.visibility = View.VISIBLE
-			statusTextView.text = getString(R.string.psn_login_checking_status)
-		}
+		checkStatusButton.isEnabled = false
+		progressBar.visibility = View.VISIBLE
+		statusTextView.text = getString(R.string.psn_login_checking_status)
 
 		scope.launch {
 			val token = checkAstraPlayStatus(loginCode)
-
-			if (isOnTv) {
-				tvProgressBar.visibility = View.GONE
-				tvCheckStatusButton.isEnabled = true
-				tvCheckStatusButton.requestFocusFromTouch()
-			} else {
-				progressBar.visibility = View.GONE
-				checkStatusButton.isEnabled = true
-			}
+			progressBar.visibility = View.GONE
+			checkStatusButton.isEnabled = true
 
 			if (token != null) {
 				Log.i(TAG, "NPSSO token received from relay server")
 				onLoginSuccess(token)
 			} else {
 				val msg = getString(R.string.psn_login_not_complete)
-				if (isOnTv) {
-					tvStatusTextView.text = msg
-				} else {
-					statusTextView.text = msg
+				statusTextView.text = msg
+				if (manual) {
+					Toast.makeText(this@PsnLoginActivity, R.string.psn_login_not_complete_toast, Toast.LENGTH_SHORT).show()
 				}
-				Toast.makeText(this@PsnLoginActivity, R.string.psn_login_not_complete_toast, Toast.LENGTH_SHORT).show()
 			}
 		}
 	}
-	
-	/**
-	 * Check relay server for token status
-	 * Reference: gui/src/qmlbackend.cpp lines 3442-3525
-	 */
+
 	private suspend fun checkAstraPlayStatus(code: String): String? = withContext(Dispatchers.IO)
 	{
+		embeddedRelayServer?.getToken(code)?.let { return@withContext it }
+
 		try
 		{
 			val url = URL("${relayBaseUrl()}/psstream/get-tokens")
 			val connection = url.openConnection() as HttpURLConnection
+			connection.connectTimeout = 4000
+			connection.readTimeout = 4000
 			connection.requestMethod = "POST"
 			connection.setRequestProperty("Content-Type", "application/json")
 			connection.doOutput = true
-			
-			// Send JSON payload: {"code": "ABC123"}
+
 			val jsonPayload = JSONObject().apply {
 				put("code", code)
 			}.toString()
-			
-			Log.d(TAG, "Checking token status for code: $code")
+
 			connection.outputStream.use { it.write(jsonPayload.toByteArray()) }
-			
+
 			val responseCode = connection.responseCode
-			Log.d(TAG, "Response code: $responseCode")
-			
 			if (responseCode == HttpURLConnection.HTTP_OK)
 			{
 				val response = connection.inputStream.bufferedReader().use { it.readText() }
-				Log.d(TAG, "Response body: $response")
 				val jsonResponse = JSONObject(response)
-				
 				val result = jsonResponse.optString("result")
-				Log.d(TAG, "Result field: $result")
-				
-				when (result)
-				{
-					"success" -> {
-						// Token is ready
-						val npsso = jsonResponse.optString("npsso")
-						if (npsso.isNotEmpty())
-						{
-							Log.i(TAG, "Received NPSSO token (length: ${npsso.length})")
-							return@withContext npsso
-						}
-						else
-						{
-							Log.w(TAG, "Success result but empty npsso field")
-						}
-					}
-					"pending", "" -> {
-						// Still waiting for user to complete login or code not found yet
-						Log.d(TAG, "Token status: pending or not found")
-						return@withContext null
-					}
-					"error" -> {
-						val error = jsonResponse.optString("error", "Unknown error")
-						Log.e(TAG, "astraplay error: $error")
-						return@withContext null
-					}
-					else -> {
-						Log.w(TAG, "Unknown result value: $result")
-					}
+				if (result == "success") {
+					val npsso = jsonResponse.optString("npsso")
+					if (npsso.isNotEmpty()) return@withContext npsso
 				}
 			}
-			else
-			{
-				Log.w(TAG, "HTTP response code: $responseCode")
-				// Try to read error response
-				try {
-					val errorResponse = connection.errorStream?.bufferedReader()?.use { it.readText() }
-					if (errorResponse != null) {
-						Log.w(TAG, "Error response: $errorResponse")
-					}
-				} catch (e: Exception) {
-					Log.w(TAG, "Could not read error stream", e)
-				}
-			}
-			
 			return@withContext null
 		}
 		catch (e: Exception)
 		{
-			Log.e(TAG, "Exception checking astraplay status", e)
+			Log.d(TAG, "Exception checking token status: ${e.message}")
 			return@withContext null
 		}
 	}
-	
-	/**
-	 * Open relay URL with the login code in browser
-	 * Reference: gui/src/qml/QRLoginDialog.qml line 225
-	 */
-	private fun openAstraPlayInBrowser()
-	{
-		try
-		{
-			val relayUrl = "${relayBaseUrl()}/psstream/?psstream_code=$loginCode"
-			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(relayUrl))
-			startActivity(intent)
-			Log.i(TAG, "Opened relay URL in browser: $relayUrl")
-			statusTextView.text = getString(R.string.psn_login_browser_opened)
-			
-			// Highlight the Check Status button by changing it to filled style
-			checkStatusButton.apply {
-				setBackgroundColor(getColor(com.google.android.material.R.color.design_default_color_primary))
-				setTextColor(getColor(android.R.color.white))
-				elevation = 8f
-			}
-			
-			// Dim the open browser button since it's already been used
-			openBrowserButton.alpha = 0.6f
-		}
-		catch (e: Exception)
-		{
-			Log.e(TAG, "Failed to open browser", e)
-			Toast.makeText(this, getString(R.string.psn_login_external_browser_error), Toast.LENGTH_SHORT).show()
-		}
-	}
-	
+
 	private fun onLoginSuccess(token: String)
 	{
-		// Save NPSSO token securely. If the secure store is unavailable the token would be
-		// forgotten by the next screen — reporting success anyway put the user in a silent
-		// login loop (log in, see "success", land back on the login screen). Surface it.
-		if(!tokenManager.saveNpssoToken(token))
-		{
-			Log.e(TAG, "PSN login: token could not be stored; not reporting success")
-			Toast.makeText(this, getString(R.string.psn_login_token_store_error), Toast.LENGTH_LONG).show()
+		if (!isLoginHandled.compareAndSet(false, true)) {
+			Log.d(TAG, "onLoginSuccess already handled; ignoring duplicate call")
 			return
 		}
 
-		// Show progress and exchange for Remote Play tokens on background thread (matches Qt app flow)
-		Toast.makeText(this, "Setting up PSN (Cloud + Remote Play)...", Toast.LENGTH_SHORT).show()
-		
+		autoPollJob?.cancel()
+
+		// Show feedback in both views
+		showWebViewOverlay("Validating PlayStation account...")
+		progressBar.visibility = View.VISIBLE
+		statusTextView.text = getString(R.string.psn_login_connecting)
+		Toast.makeText(this, "Validating token with PlayStation Network...", Toast.LENGTH_SHORT).show()
+
 		Thread {
-			val preferences = Preferences(this)
-			val psnTokenManager = PsnTokenManager(preferences)
+			val prefs = Preferences(this)
+			val psnTokenManager = PsnTokenManager(prefs)
 			val exchangeSuccess = psnTokenManager.exchangeNpssoForTokens(token)
-			
+
 			runOnUiThread {
-				if(exchangeSuccess)
-				{
+				progressBar.visibility = View.GONE
+				if (exchangeSuccess) {
 					Log.i(TAG, "PSN login complete: NPSSO + Remote Play tokens saved")
+					tokenManager.saveNpssoToken(token)
+
+					val resultIntent = Intent().apply {
+						putExtra(EXTRA_NPSSO_TOKEN, token)
+					}
+					setResult(RESULT_LOGIN_SUCCESS, resultIntent)
+					Toast.makeText(this, getString(R.string.psn_login_success), Toast.LENGTH_SHORT).show()
+					finish()
+				} else {
+					Log.w(TAG, "PSN login: Remote Play token exchange failed for token")
+					isLoginHandled.set(false)
+					tokenManager.clearNpssoToken()
+					webViewLoadingOverlay.visibility = View.GONE
+					statusTextView.text = "Token exchange failed. Token may be expired or invalid. Please try again."
+					Toast.makeText(this, "Token exchange failed. Please sign in again to get a fresh token.", Toast.LENGTH_LONG).show()
+					checkStatusButton.isEnabled = true
+					openBrowserButton.isEnabled = true
+					manualTokenButton.isEnabled = true
 				}
-				else
-				{
-					Log.w(TAG, "PSN login: NPSSO saved, but Remote Play token exchange failed")
-				}
-				
-				// Return success (NPSSO is saved; RP tokens saved if exchange succeeded)
-				val resultIntent = Intent().apply {
-					putExtra(EXTRA_NPSSO_TOKEN, token)
-				}
-				setResult(RESULT_LOGIN_SUCCESS, resultIntent)
-				Toast.makeText(this, getString(R.string.psn_login_success), Toast.LENGTH_SHORT).show()
-				finish()
 			}
 		}.start()
 	}
-	
+
+	override fun onBackPressed()
+	{
+		if (layoutWebView.visibility == View.VISIBLE && loginWebView.canGoBack()) {
+			loginWebView.goBack()
+		} else {
+			setResult(RESULT_LOGIN_CANCELLED)
+			super.onBackPressed()
+		}
+	}
+
 	override fun onDestroy()
 	{
 		super.onDestroy()
+		autoPollJob?.cancel()
 		scope.cancel()
-	}
-	
-	override fun onBackPressed()
-	{
-		setResult(RESULT_LOGIN_CANCELLED)
-		super.onBackPressed()
+		loginWebView.stopLoading()
+		loginWebView.destroy()
+		EmbeddedRelayServer.stop()
 	}
 }

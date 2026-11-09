@@ -196,6 +196,12 @@
     <string name="psn_login_external_browser_error">Failed to open external browser</string>
     <string name="psn_login_instructions">Use this code on the website to login</string>
     <string name="psn_login_code_label">Your Login Code:</string>
+    <string name="psn_login_scan_phone">Scan with your phone camera</string>
+    <string name="psn_login_scan_phone_subtitle">Point your phone camera to sign in quickly</string>
+    <string name="psn_login_same_wifi_hint">Connect phone to the same Wi-Fi</string>
+    <string name="psn_login_same_wifi_desc">Both devices must be on the same Wi-Fi network (not mobile data/5G)</string>
+    <string name="psn_login_waiting_phone">Waiting for sign-in on phone…</string>
+    <string name="psn_login_sign_in_this_device">Sign In on This Device</string>
     <string name="psn_login_open_browser">Open Login Website</string>
     <string name="psn_login_check_status">Check Status</string>
     <string name="psn_login_connecting">Connecting to server…</string>
@@ -205,6 +211,13 @@
     <string name="psn_login_not_complete">Login not complete yet. Complete the login in your browser first.</string>
     <string name="psn_login_not_complete_toast">Please complete the login in your browser first</string>
     <string name="psn_login_server_error">Failed to connect to login server</string>
+    <string name="psn_login_switch_to_phone">Login via Phone (QR Code)</string>
+    <string name="psn_login_switch_to_direct">Sign In Directly on This Device</string>
+    <string name="psn_login_direct_title">Sign in to PlayStation Network</string>
+    <string name="psn_login_authenticating">Authenticating with PlayStation…</string>
+    <string name="psn_login_manual_option">Enter Token Manually</string>
+    <string name="psn_login_passkey_notice">If your account uses a Passkey, tap \"Login via Phone\" below (Android WebViews cannot access hardware passkeys).</string>
+    <string name="psn_login_open_in_browser">Open in Browser</string>
     <string name="psn_login_relay_not_configured">Sign in with your browser or configure a relay server to connect your PlayStation account.</string>
     <string name="psn_login_relay_unconfigured_prompt">Scan the QR code with your phone or tap below to sign in using your web browser in 3 quick steps.</string>
     

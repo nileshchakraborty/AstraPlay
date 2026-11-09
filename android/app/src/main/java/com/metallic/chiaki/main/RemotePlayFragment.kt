@@ -76,6 +76,11 @@ class RemotePlayFragment : Fragment()
 	{
 		super.onResume()
 		updateRefreshButtonText()
+		val prefs = Preferences(requireContext())
+		if (prefs.hasPsnRemotePlayTokens && (viewModel.displayHosts.value.isNullOrEmpty()))
+		{
+			viewModel.refreshPsnHosts()
+		}
 	}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
@@ -84,7 +89,8 @@ class RemotePlayFragment : Fragment()
 		if (requestCode == REQUEST_PSN_LOGIN && resultCode == android.app.Activity.RESULT_OK)
 		{
 			updateRefreshButtonText()
-			Toast.makeText(requireContext(), "PSN login successful", Toast.LENGTH_SHORT).show()
+			viewModel.refreshPsnHosts()
+			Toast.makeText(requireContext(), "PSN login successful. Discovering consoles...", Toast.LENGTH_SHORT).show()
 		}
 	}
 

@@ -253,13 +253,19 @@ class PsnTokenManager(private val preferences: Preferences)
 			connection.instanceFollowRedirects = false // We need to capture the redirect
 
 			val responseCode = connection.responseCode
-			Log.d(TAG, "Auth response code: $responseCode")
+			val location = connection.getHeaderField("Location") ?: ""
+			Log.d(TAG, "Auth response code: $responseCode, location: $location")
 
 			// Check for redirect (302)
 			if(responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM)
 			{
-				val location = connection.getHeaderField("Location") ?: ""
-				return extractCodeFromUrl(location)
+				val code = extractCodeFromUrl(location)
+				if (code != null) return code
+
+				if (location.contains("error=")) {
+					Log.e(TAG, "Sony auth redirect contained error: $location")
+				}
+				return null
 			}
 
 			// Some servers return 200 with the redirect in the URL

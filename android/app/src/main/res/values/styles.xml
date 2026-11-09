@@ -147,4 +147,16 @@
         <item name="colorAccent">@color/accent</item>
     </style>
 
+    <style name="PsnLoginDialogTheme" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:windowBackground">#CC000000</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:statusBarColor">#CC000000</item>
+        <item name="android:navigationBarColor">#CC000000</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.7</item>
+    </style>
+
 </resources>
