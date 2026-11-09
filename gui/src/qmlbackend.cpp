@@ -3511,10 +3511,24 @@ QString QmlBackend::getQRCodeDataUrl(const QString &data, int size)
 
 QString QmlBackend::getAstraPlayURL()
 {
-    // Check environment variable override first
+    // Check user-configured setting first
+    if (settings) {
+        QString configuredUrl = settings->GetPsnRelayUrl().trimmed();
+        if (!configuredUrl.isEmpty()) {
+            while (configuredUrl.endsWith('/')) {
+                configuredUrl.chop(1);
+            }
+            return configuredUrl;
+        }
+    }
+    // Check environment variable override second
     QByteArray envUrl = qgetenv("ASTRAPLAY_RELAY_URL");
     if (!envUrl.isEmpty()) {
-        return QString::fromUtf8(envUrl);
+        QString url = QString::fromUtf8(envUrl).trimmed();
+        while (url.endsWith('/')) {
+            url.chop(1);
+        }
+        return url;
     }
     // Use standalone embedded relay server
     if (embedded_relay_server && embedded_relay_server->isRunning()) {
@@ -3527,8 +3541,10 @@ void QmlBackend::createAstraPlayCode(const QString &code, const QJSValue &callba
 {
     QJSValue cb = callback;
 
-    // Fast path: if running embedded relay server locally, create code directly in-memory!
-    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+    bool hasCustomRelay = (settings && !settings->GetPsnRelayUrl().trimmed().isEmpty()) || !qgetenv("ASTRAPLAY_RELAY_URL").isEmpty();
+
+    // Fast path: if running embedded relay server locally and no custom relay is configured, create code directly in-memory!
+    if (!hasCustomRelay && embedded_relay_server && embedded_relay_server->isRunning()) {
         if (embedded_relay_server->createCode(code)) {
             if (cb.isCallable()) {
                 cb.call({true, QString("")});
@@ -3616,8 +3632,10 @@ void QmlBackend::checkAstraPlayStatus(const QString &code, const QJSValue &callb
 {
     QJSValue cb = callback;
 
-    // Fast path: if running embedded relay server locally, check tokens in-memory!
-    if (embedded_relay_server && embedded_relay_server->isRunning()) {
+    bool hasCustomRelay = (settings && !settings->GetPsnRelayUrl().trimmed().isEmpty()) || !qgetenv("ASTRAPLAY_RELAY_URL").isEmpty();
+
+    // Fast path: if running embedded relay server locally and no custom relay is configured, check tokens in-memory!
+    if (!hasCustomRelay && embedded_relay_server && embedded_relay_server->isRunning()) {
         QString npsso;
         if (embedded_relay_server->getTokens(code, npsso)) {
             if (cb.isCallable()) {

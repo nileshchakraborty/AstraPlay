@@ -74,6 +74,7 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 		preferences.dpadTouchShortcut2Key -> preferences.dpadTouchShortcut2.toString()
 		preferences.dpadTouchShortcut3Key -> preferences.dpadTouchShortcut3.toString()
 		preferences.dpadTouchShortcut4Key -> preferences.dpadTouchShortcut4.toString()
+		preferences.psnRelayUrlKey -> preferences.psnRelayUrl
 		else -> defValue
 	}
 
@@ -116,6 +117,7 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 			preferences.dpadTouchShortcut2Key -> preferences.dpadTouchShortcut2 = value?.toIntOrNull() ?: Preferences.DPAD_TOUCH_SHORTCUT2_DEFAULT
 			preferences.dpadTouchShortcut3Key -> preferences.dpadTouchShortcut3 = value?.toIntOrNull() ?: Preferences.DPAD_TOUCH_SHORTCUT3_DEFAULT
 			preferences.dpadTouchShortcut4Key -> preferences.dpadTouchShortcut4 = value?.toIntOrNull() ?: Preferences.DPAD_TOUCH_SHORTCUT4_DEFAULT
+			preferences.psnRelayUrlKey -> preferences.psnRelayUrl = value ?: ""
 		}
 	}
 
@@ -259,6 +261,24 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 				launchPsnLogin()
 			}
 			true
+		}
+
+		val relayUrlPreference = preferenceScreen.findPreference<EditTextPreference>(getString(R.string.preferences_psn_relay_url_key))
+		val relayUrlSummaryProvider = Preference.SummaryProvider<EditTextPreference> {
+			val effective = preferences.getEffectiveRelayUrl()
+			if (effective.isNotEmpty()) {
+				if (preferences.psnRelayUrl.isNotEmpty()) effective else "$effective (Built-in)"
+			} else {
+				getString(R.string.preferences_psn_relay_url_summary_empty)
+			}
+		}
+		relayUrlPreference?.let { pref ->
+			pref.summaryProvider = relayUrlSummaryProvider
+			pref.setOnBindEditTextListener { editText ->
+				editText.hint = "https://relay.example.com:25525"
+				editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+				editText.setText(preferences.psnRelayUrl)
+			}
 		}
 	}
 

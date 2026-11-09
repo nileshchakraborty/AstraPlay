@@ -9,7 +9,8 @@ param(
     [switch]$Install = $false,
     [switch]$Launch = $false,
     [switch]$AppOnly = $false,
-    [switch]$Bundle = $false
+    [switch]$Bundle = $false,
+    [string]$RelayUrl = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -397,6 +398,11 @@ if ($Abi) {
     # In quick mode, default to arm64-v8a only (most common)
     $gradleArgs += "-Pandroid.injected.build.abi=arm64-v8a"
     Write-Host "[QUICK] Building only arm64-v8a (add -abi <abi> to override)" -ForegroundColor Yellow
+}
+
+if ($RelayUrl) {
+    $gradleArgs += "-PAstraPlayRelayUrl=$RelayUrl"
+    Write-Host "[RELAY] Configured relay server: $RelayUrl" -ForegroundColor Green
 }
 
 # Skip tests and linting in quick mode

@@ -64,6 +64,8 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
+        env:
+          ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
           ./gradlew assembleDebug \
             --parallel \

@@ -13,6 +13,13 @@
             app:summary="@string/preferences_psn_login_summary"
             app:icon="@drawable/ic_console_simple"/>
 
+        <EditTextPreference
+            app:key="@string/preferences_psn_relay_url_key"
+            app:title="@string/preferences_psn_relay_url_title"
+            app:dialogTitle="@string/preferences_psn_relay_url_dialog_title"
+            app:dialogMessage="@string/preferences_psn_relay_url_dialog_message"
+            app:icon="@drawable/ic_console_simple"/>
+
         <Preference
             app:key="registered_hosts"
             tools:summary="@string/preferences_registered_hosts_summary"

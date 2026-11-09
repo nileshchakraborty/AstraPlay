@@ -2738,6 +2738,23 @@ DialogView {
                         }
                     }
 
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: qsTr("PSN Login Relay URL")
+                        font.bold: true
+                    }
+
+                    C.TextField {
+                        id: psnRelayUrlField
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: 400
+                        placeholderText: qsTr("Default (Embedded: 127.0.0.1:25525)")
+                        text: AstraPlay.settings.psnRelayUrl
+                        onEditingFinished: {
+                            AstraPlay.settings.psnRelayUrl = text.trim();
+                        }
+                    }
+
                     C.Button {
                         id: openPsnLogin
                         Layout.alignment: Qt.AlignHCenter

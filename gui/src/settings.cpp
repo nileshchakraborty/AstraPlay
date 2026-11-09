@@ -1006,6 +1006,16 @@ void Settings::SetNpssoToken(QString npsso_token)
 	emit NpssoTokenChanged();
 }
 
+QString Settings::GetPsnRelayUrl() const
+{
+	return settings.value("settings/psn_relay_url").toString();
+}
+
+void Settings::SetPsnRelayUrl(QString relay_url)
+{
+	settings.setValue("settings/psn_relay_url", relay_url.trimmed());
+}
+
 bool Settings::GetAccountAttributesCheckPassed() const
 {
 	return settings.value("settings/account_attributes_check_passed", false).toBool();

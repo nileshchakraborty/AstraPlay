@@ -433,6 +433,9 @@ class Settings : public QObject
 		QString GetNpssoToken() const;
 		void SetNpssoToken(QString npsso_token);
 
+		QString GetPsnRelayUrl() const;
+		void SetPsnRelayUrl(QString relay_url);
+
 		bool GetAccountAttributesCheckPassed() const;
 		void SetAccountAttributesCheckPassed(bool passed);
 

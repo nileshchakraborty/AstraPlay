@@ -91,6 +91,7 @@ class QmlSettings : public QObject
     Q_PROPERTY(QString psnAuthToken READ psnAuthToken WRITE setPsnAuthToken NOTIFY psnAuthTokenChanged)
     Q_PROPERTY(QString psnAuthTokenExpiry READ psnAuthTokenExpiry WRITE setPsnAuthTokenExpiry NOTIFY psnAuthTokenExpiryChanged)
     Q_PROPERTY(QString psnNpssoToken READ psnNpssoToken WRITE setPsnNpssoToken NOTIFY psnNpssoTokenChanged)
+    Q_PROPERTY(QString psnRelayUrl READ psnRelayUrl WRITE setPsnRelayUrl NOTIFY psnRelayUrlChanged)
     Q_PROPERTY(bool accountAttributesCheckPassed READ accountAttributesCheckPassed WRITE setAccountAttributesCheckPassed NOTIFY accountAttributesCheckPassedChanged)
     Q_PROPERTY(QString psnAccountId READ psnAccountId WRITE setPsnAccountId NOTIFY psnAccountIdChanged)
     Q_PROPERTY(bool psnGamesSyncEnabled READ psnGamesSyncEnabled WRITE setPsnGamesSyncEnabled NOTIFY psnGamesSyncEnabledChanged)
@@ -564,6 +565,9 @@ public:
     QString psnNpssoToken() const;
     void setPsnNpssoToken(const QString &npsso_token);
 
+    QString psnRelayUrl() const;
+    void setPsnRelayUrl(const QString &relay_url);
+
     bool accountAttributesCheckPassed() const;
     void setAccountAttributesCheckPassed(bool passed);
 
@@ -745,6 +749,7 @@ signals:
     void psnRefreshTokenChanged();
     void psnAuthTokenExpiryChanged();
     void psnNpssoTokenChanged();
+    void psnRelayUrlChanged();
     void autoUpdateEnabledChanged();
     void autoDownloadUpdatesChanged();
     void skippedUpdateVersionChanged();

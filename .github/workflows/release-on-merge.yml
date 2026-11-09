@@ -533,6 +533,8 @@ jobs:
 
       - name: Build Android Packages (APK and AAB)
         working-directory: android
+        env:
+          ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_FILE" ] && [ -f "$ANDROID_KEYSTORE_FILE" ]; then
             ./gradlew assembleRelease bundleRelease \

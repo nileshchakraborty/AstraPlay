@@ -1115,6 +1115,15 @@ struct AccountView: View {
     @State private var codeReady: Bool = false
     @State private var browserOpened: Bool = false
     
+    // Relay configuration state
+    @State private var showRelayUrlPrompt: Bool = false
+    @State private var customRelayUrlInput: String = ""
+    
+    // Manual NPSSO state
+    @State private var showManualNpssoSheet: Bool = false
+    @State private var manualNpssoInput: String = ""
+    @State private var manualNpssoError: String?
+    
     private let loginService = AstraPlayLoginService.shared
 
     var body: some View {
@@ -1132,6 +1141,23 @@ struct AccountView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("You will need to sign in again to use online features and auto-registration.")
+        }
+        .alert("PSN Login Relay URL", isPresented: $showRelayUrlPrompt) {
+            TextField("https://relay.example.com", text: $customRelayUrlInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Save") {
+                SecureStore.shared.relayServerUrl = customRelayUrlInput
+            }
+            if !SecureStore.shared.relayServerUrl.isEmpty {
+                Button("Clear", role: .destructive) {
+                    SecureStore.shared.relayServerUrl = ""
+                    customRelayUrlInput = ""
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enter the URL of your AstraPlay login relay server (e.g. https://relay.example.com). Used to bridge 6-character code logins.")
         }
         .sheet(isPresented: $showWebView) {
             if let url = loginService.buildOAuthURL() {
@@ -1154,6 +1180,9 @@ struct AccountView: View {
                         startManualLogin()
                     }
                 }
+        }
+        .sheet(isPresented: $showManualNpssoSheet) {
+            manualNpssoSheet
         }
     }
 
@@ -1200,6 +1229,8 @@ struct AccountView: View {
             } footer: {
                 Text("Signing out removes your account tokens from this device. Your registered consoles will remain.")
             }
+            
+            relayServerSection
         }
     }
 
@@ -1238,7 +1269,23 @@ struct AccountView: View {
                     HStack {
                         Spacer()
                         Image(systemName: "keyboard")
-                        Text("Manual Login")
+                        Text("Relay Code Login")
+                        Spacer()
+                    }
+                }
+                .disabled(isLoggingIn)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                
+                Button {
+                    manualNpssoInput = ""
+                    manualNpssoError = nil
+                    showManualNpssoSheet = true
+                } label: {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "key.fill")
+                        Text("Enter NPSSO Manually")
                         Spacer()
                     }
                 }
@@ -1264,11 +1311,13 @@ struct AccountView: View {
                     Text(error)
                         .foregroundColor(.red)
                 } else {
-                    Text("Login opens a browser to sign in. If that doesn't work, try Manual Login.")
+                    Text("Login opens a web browser to sign in. Alternatively, use Relay Code or enter your NPSSO token directly.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
+            
+            relayServerSection
         }
     }
 
@@ -1299,74 +1348,124 @@ struct AccountView: View {
     private var manualLoginSheet: some View {
         NavigationStack {
             Form {
-                Section {
-                    if codeReady {
-                        HStack {
-                            Spacer()
-                            Text(loginCode)
-                                .font(.system(size: 36, weight: .bold, design: .monospaced))
-                                .tracking(4)
-                                .foregroundColor(.accentColor)
-                            Spacer()
+                if !loginService.isRelayConfigured {
+                    Section {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                Text("Relay Server Required")
+                                    .font(.headline)
+                            }
+                            Text("A relay server is required to bridge the 6-character code login. Enter your relay server URL below, or enter your NPSSO token directly.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("https://psstream.example.com", text: $customRelayUrlInput)
+                                .textFieldStyle(.roundedBorder)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .keyboardType(.URL)
+                            
+                            Button("Save & Generate Code") {
+                                SecureStore.shared.relayServerUrl = customRelayUrlInput
+                                startManualLogin()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(customRelayUrlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
-                        .padding(.vertical, 8)
-                    } else {
-                        HStack {
-                            Spacer()
-                            ProgressView()
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 4)
+                    } header: {
+                        Text("Relay Server")
                     }
-                } header: {
-                    Text("Login Code")
-                } footer: {
-                    Text("Enter this code on the website to link your account.")
-                        .font(.caption)
-                }
-                
-                Section {
-                    Text(loginStatus)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                } header: {
-                    Text("Status")
+                } else {
+                    Section {
+                        if codeReady {
+                            HStack {
+                                Spacer()
+                                Text(loginCode)
+                                    .font(.system(size: 36, weight: .bold, design: .monospaced))
+                                    .tracking(4)
+                                    .foregroundColor(.accentColor)
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                        } else {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    } header: {
+                        Text("Login Code")
+                    } footer: {
+                        Text("Enter this code on the website to link your account.")
+                            .font(.caption)
+                    }
+                    
+                    Section {
+                        Text(loginStatus)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    } header: {
+                        Text("Status")
+                    }
+                    
+                    Section {
+                        Button {
+                            openBrowser()
+                        } label: {
+                            HStack {
+                                Image(systemName: "safari")
+                                Text("Open Browser")
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .disabled(!codeReady)
+                        .buttonStyle(.borderedProminent)
+                        
+                        if browserOpened {
+                            Button {
+                                checkStatus()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "checkmark.circle")
+                                    Text("Check Status")
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                    } header: {
+                        Text("Actions")
+                    } footer: {
+                        Text("1. Tap 'Open Browser' to visit the login page\n2. Sign in and enter the code shown above\n3. Return here and tap 'Check Status'")
+                            .font(.caption)
+                    }
                 }
                 
                 Section {
                     Button {
-                        openBrowser()
+                        showManualLogin = false
+                        manualNpssoInput = ""
+                        manualNpssoError = nil
+                        showManualNpssoSheet = true
                     } label: {
                         HStack {
-                            Image(systemName: "safari")
-                            Text("Open Browser")
+                            Image(systemName: "key.fill")
+                            Text("Bypass Relay: Enter NPSSO Manually")
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .disabled(!codeReady)
-                    .buttonStyle(.borderedProminent)
-                    
-                    if browserOpened {
-                        Button {
-                            checkStatus()
-                        } label: {
-                            HStack {
-                                Image(systemName: "checkmark.circle")
-                                Text("Check Status")
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                    }
-                } header: {
-                    Text("Actions")
                 } footer: {
-                    Text("1. Tap 'Open Browser' to visit the login page\n2. Sign in and enter the code shown above\n3. Return here and tap 'Check Status'")
+                    Text("If you don't have a relay server, sign into PlayStation Network in your browser and paste the NPSSO token directly.")
                         .font(.caption)
                 }
             }
-            .navigationTitle("Manual Login")
+            .navigationTitle("Relay Code Login")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -1379,8 +1478,15 @@ struct AccountView: View {
     }
     
     private func startManualLogin() {
+        guard loginService.isRelayConfigured else {
+            customRelayUrlInput = SecureStore.shared.relayServerUrl
+            loginStatus = "Relay server is not configured."
+            codeReady = false
+            return
+        }
+        
         loginCode = loginService.generateLoginCode()
-        loginStatus = "Generating code..."
+        loginStatus = "Generating code on relay..."
         
         Task.detached {
             let success = await self.loginService.createCode(self.loginCode)
@@ -1390,7 +1496,7 @@ struct AccountView: View {
                     self.codeReady = true
                     self.loginStatus = "Code ready — tap 'Open Browser' to continue"
                 } else {
-                    self.loginStatus = "Failed to generate code. Please try again."
+                    self.loginStatus = "Failed to connect to relay server. Check your relay URL."
                 }
             }
         }
@@ -1423,6 +1529,153 @@ struct AccountView: View {
                 }
             }
         }
+    }
+
+    private var relayServerSection: some View {
+        Section {
+            Button {
+                customRelayUrlInput = SecureStore.shared.relayServerUrl
+                showRelayUrlPrompt = true
+            } label: {
+                HStack {
+                    Text("PSN Login Relay URL")
+                        .foregroundColor(.primary)
+                    Spacer()
+                    Text(relayUrlSummary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        } header: {
+            Text("Relay Configuration")
+        } footer: {
+            Text("Required for 6-character code login. The relay server facilitates token exchange without exposing credentials.")
+        }
+    }
+
+    private var relayUrlSummary: String {
+        let custom = SecureStore.shared.relayServerUrl
+        if !custom.isEmpty { return custom }
+        let env = ProcessInfo.processInfo.environment["ASTRAPLAY_RELAY_URL"] ?? ""
+        if !env.isEmpty { return "Env (\(env))" }
+        return "Not Configured"
+    }
+    
+    // MARK: - Manual NPSSO Login Sheet
+    
+    private var manualNpssoSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("An NPSSO token is a 64-character token created when you sign into your PlayStation Network account in a web browser.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                } header: {
+                    Text("What is NPSSO?")
+                }
+                
+                Section {
+                    Button {
+                        if let url = URL(string: "https://ca.account.sony.com/api/v1/ssocookie") {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "safari")
+                            Text("1. Open Sony NPSSO Page")
+                        }
+                    }
+                } header: {
+                    Text("Step 1: Get Token")
+                } footer: {
+                    Text("Sign in with your PlayStation account. Once signed in, the page displays a JSON response with {\"npsso\":\"<token>\"}.")
+                        .font(.caption)
+                }
+                
+                Section {
+                    TextField("Paste 64-character NPSSO or JSON here", text: $manualNpssoInput, axis: .vertical)
+                        .lineLimit(3...6)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    
+                    if let err = manualNpssoError {
+                        Text(err)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button {
+                        submitManualNpsso()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Log In with NPSSO")
+                                .fontWeight(.semibold)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(manualNpssoInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } header: {
+                    Text("Step 2: Paste Token")
+                } footer: {
+                    let cleaned = sanitizeNpsso(manualNpssoInput)
+                    if !cleaned.isEmpty {
+                        Text("Detected token length: \(cleaned.count) characters (expected: 64)")
+                            .font(.caption)
+                            .foregroundColor(cleaned.count == 64 ? .green : .orange)
+                    }
+                }
+            }
+            .navigationTitle("Manual NPSSO Login")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showManualNpssoSheet = false
+                    }
+                }
+            }
+        }
+    }
+    
+    private func sanitizeNpsso(_ raw: String) -> String {
+        var trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.contains("npsso") {
+            if let data = trimmed.data(using: .utf8),
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let val = json["npsso"] as? String {
+                trimmed = val
+            } else if let range = trimmed.range(of: #""npsso"\s*:\s*"([^"]+)""#, options: .regularExpression) {
+                let match = String(trimmed[range])
+                let parts = match.components(separatedBy: "\"")
+                if parts.count >= 4 {
+                    trimmed = parts[3]
+                }
+            }
+        }
+        return trimmed.trimmingCharacters(in: CharacterSet(charactersIn: " \"'{}"))
+    }
+    
+    private func submitManualNpsso() {
+        let token = sanitizeNpsso(manualNpssoInput)
+        guard !token.isEmpty else {
+            manualNpssoError = "Please enter an NPSSO token."
+            return
+        }
+        guard token.count >= 60 else {
+            manualNpssoError = "Token is too short (\(token.count) chars, expected 64). Please copy the full token."
+            return
+        }
+        manualNpssoError = nil
+        showManualNpssoSheet = false
+        handleNpsso(token)
     }
 
     private func signOut() {

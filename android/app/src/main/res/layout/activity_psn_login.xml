@@ -81,7 +81,27 @@
             android:textSize="14sp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:enabled="false"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="12dp"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/configureRelayButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/psn_login_configure_relay"
+            android:textSize="14sp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="8dp"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/manualTokenButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/psn_login_paste_npsso"
+            android:textSize="14sp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginBottom="16dp"
             app:cornerRadius="12dp" />
 
         <ProgressBar
@@ -225,7 +245,33 @@
                 android:textSize="14sp"
                 android:textColor="?android:textColorSecondary"
                 android:textAlignment="center"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tvConfigureRelayButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/psn_login_configure_relay"
+                android:textSize="14sp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:paddingHorizontal="24dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tvManualTokenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/psn_login_paste_npsso"
+                android:textSize="14sp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:paddingHorizontal="24dp"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_marginBottom="16dp"
+                app:cornerRadius="12dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tvCancelButton"

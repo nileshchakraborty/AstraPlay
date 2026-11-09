@@ -172,6 +172,8 @@ jobs:
       - name: Build Android Packages (APK and AAB)
         id: build_packages
         working-directory: android
+        env:
+          ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
           TARGET="${{ inputs.target || 'both (AAB + APK)' }}"
           if [ "${{ inputs.build_apk }}" = "true" ]; then
