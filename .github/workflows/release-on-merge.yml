@@ -92,11 +92,7 @@ jobs:
 
       - name: Setup ffmpeg
         run: |
-          curl -LO https://github.com/streetpea/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-win64-gpl-shared-7.1.zip
-          unzip ffmpeg-n7.1-latest-win64-gpl-shared-7.1.zip
-          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/bin/." /mingw64/bin
-          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/include/." /mingw64/include
-          cp -a "ffmpeg-n7.1-latest-win64-gpl-shared-7.1/lib/." /mingw64/lib
+          scripts/fetch-ffmpeg-windows.sh x64 /mingw64
 
       - name: Add QmlWebEngine Import
         run: |
@@ -237,11 +233,7 @@ jobs:
 
       - name: Setup ffmpeg for ARM64
         run: |
-          curl -LO https://github.com/streetpea/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1.zip
-          unzip ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1.zip
-          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/bin/." /clangarm64/bin
-          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/include/." /clangarm64/include
-          cp -a "ffmpeg-n7.1-latest-winarm64-gpl-shared-7.1/lib/." /clangarm64/lib
+          scripts/fetch-ffmpeg-windows.sh arm64 /clangarm64
 
       - name: Add QmlWebEngine Import
         run: |
@@ -537,16 +529,26 @@ jobs:
         env:
           ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
+          BUILD_CMD="./gradlew assembleDebug --parallel --build-cache -Dorg.gradle.java.home=$JAVA_HOME"
           if [ -n "$ANDROID_KEYSTORE_FILE" ] && [ -f "$ANDROID_KEYSTORE_FILE" ]; then
-            ./gradlew assembleRelease bundleRelease \
-              --parallel \
-              --build-cache \
-              -Dorg.gradle.java.home="$JAVA_HOME"
-          else
-            ./gradlew assembleDebug \
-              --parallel \
-              --build-cache \
-              -Dorg.gradle.java.home="$JAVA_HOME"
+            BUILD_CMD="./gradlew assembleRelease bundleRelease --parallel --build-cache -Dorg.gradle.java.home=$JAVA_HOME"
+          fi
+
+          echo "Executing Android build: $BUILD_CMD"
+          SUCCESS=false
+          for attempt in 1 2 3; do
+            echo "Build attempt $attempt..."
+            if $BUILD_CMD; then
+              SUCCESS=true
+              break
+            fi
+            echo "Attempt $attempt failed (likely network timeout downloading Gradle wrapper or dependencies). Retrying in 10s..."
+            sleep 10
+          done
+
+          if [ "$SUCCESS" != true ]; then
+            echo "ERROR: Android build failed after 3 attempts." >&2
+            exit 1
           fi
 
       - name: Stage Android Artifact

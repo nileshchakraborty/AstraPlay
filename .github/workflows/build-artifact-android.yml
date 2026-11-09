@@ -67,10 +67,20 @@ jobs:
         env:
           ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
-          ./gradlew assembleDebug \
-            --parallel \
-            --build-cache \
-            -Dorg.gradle.java.home="$JAVA_HOME"
+          SUCCESS=false
+          for attempt in 1 2 3; do
+            echo "Gradle build attempt $attempt..."
+            if ./gradlew assembleDebug --parallel --build-cache -Dorg.gradle.java.home="$JAVA_HOME"; then
+              SUCCESS=true
+              break
+            fi
+            echo "Attempt $attempt failed (likely network timeout). Retrying in 10s..."
+            sleep 10
+          done
+          if [ "$SUCCESS" != true ]; then
+            echo "ERROR: Gradle build failed after 3 attempts." >&2
+            exit 1
+          fi
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
