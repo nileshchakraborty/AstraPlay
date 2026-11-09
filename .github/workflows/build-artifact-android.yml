@@ -39,23 +39,23 @@ jobs:
         run: |
           DIST_DIR="$HOME/.gradle/wrapper/dists/gradle-8.7-bin/bhs2wmbdwecv87pi65oeuq5iu"
           mkdir -p "$DIST_DIR"
-          if [ ! -f "$DIST_DIR/gradle-8.7-bin.zip.ok" ]; then
+          if [ ! -d "$DIST_DIR/gradle-8.7" ] || [ ! -f "$DIST_DIR/gradle-8.7-bin.zip.ok" ]; then
             echo "Pre-fetching Gradle 8.7 distribution..."
             DOWNLOAD_OK=false
             for attempt in 1 2 3 4 5; do
-              rm -f "$DIST_DIR/gradle-8.7-bin.zip"
+              rm -rf "$DIST_DIR"/*
               if curl -fSL --retry 5 --retry-delay 5 --connect-timeout 20 --max-time 300 \
                 "https://services.gradle.org/distributions/gradle-8.7-bin.zip" \
                 -o "$DIST_DIR/gradle-8.7-bin.zip" && \
                 [ $(wc -c < "$DIST_DIR/gradle-8.7-bin.zip") -gt 50000000 ] && \
-                unzip -t "$DIST_DIR/gradle-8.7-bin.zip" >/dev/null 2>&1; then
+                unzip -q "$DIST_DIR/gradle-8.7-bin.zip" -d "$DIST_DIR"; then
                 touch "$DIST_DIR/gradle-8.7-bin.zip.ok"
-                echo "Gradle 8.7 wrapper distribution cached successfully."
+                echo "Gradle 8.7 wrapper distribution cached and unpacked successfully."
                 DOWNLOAD_OK=true
                 break
               fi
-              echo "Attempt $attempt to download Gradle 8.7 failed. Retrying in $((attempt * 5))s..."
-              rm -f "$DIST_DIR/gradle-8.7-bin.zip"
+              echo "Attempt $attempt to download/unpack Gradle 8.7 failed. Retrying in $((attempt * 5))s..."
+              rm -rf "$DIST_DIR"/*
               sleep $((attempt * 5))
             done
             if [ "$DOWNLOAD_OK" != true ]; then
