@@ -35,10 +35,33 @@ build_appimage/test/chiaki-unit
 DESTDIR="${appdir}" ninja -C build_appimage install
 cd appimage
 
-curl -L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-chmod +x linuxdeploy-x86_64.AppImage
-curl -L -O https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+fetch_tool() {
+    local url="$1"
+    local dest="$2"
+    local min_size="${3:-200000}"
+    if [ -x "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+        return 0
+    fi
+    for attempt in 1 2 3 4 5; do
+        echo "Downloading $dest (attempt $attempt/5)..."
+        rm -f "$dest"
+        if curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 180 "$url" -o "$dest"; then
+            if [ -f "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+                chmod +x "$dest"
+                echo "$dest downloaded and verified successfully."
+                return 0
+            fi
+        fi
+        echo "Download of $dest failed or file smaller than $min_size bytes. Retrying in $((attempt * 5))s..."
+        rm -f "$dest"
+        sleep $((attempt * 5))
+    done
+    echo "ERROR: Failed to download $dest from $url" >&2
+    return 1
+}
+
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" "linuxdeploy-x86_64.AppImage" 500000
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" "linuxdeploy-plugin-qt-x86_64.AppImage" 500000
 set +e
 source /opt/qt515/bin/qt515-env.sh
 set -e

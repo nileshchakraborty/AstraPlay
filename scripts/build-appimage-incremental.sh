@@ -75,15 +75,38 @@ export LINUXDEPLOY_PLUGIN_QT_BLACKLIST=".*libqsqlmimer.so"
 # Proactively remove the plugin so the qt plugin doesn't try to deploy it
 rm -f "${QT_DIR}/${GCC_STRING}/plugins/sqldrivers/libqsqlmimer.so" || true
 
-[ -x "linuxdeploy-${ARCH}.AppImage" ] || curl -L -O "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage"
-chmod +x "linuxdeploy-${ARCH}.AppImage"
-[ -x "linuxdeploy-plugin-qt-${ARCH}.AppImage" ] || curl -L -O "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${ARCH}.AppImage"
-chmod +x "linuxdeploy-plugin-qt-${ARCH}.AppImage"
+fetch_tool() {
+  local url="$1"
+  local dest="$2"
+  local min_size="${3:-200000}"
+  if [ -x "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+    return 0
+  fi
+  for attempt in 1 2 3 4 5; do
+    echo "Downloading $dest (attempt $attempt/5)..."
+    rm -f "$dest"
+    if curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 180 "$url" -o "$dest"; then
+      if [ -f "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+        chmod +x "$dest"
+        echo "$dest downloaded and verified successfully."
+        return 0
+      fi
+    fi
+    echo "Download of $dest failed or file smaller than $min_size bytes. Retrying in $((attempt * 5))s..."
+    rm -f "$dest"
+    sleep $((attempt * 5))
+  done
+  echo "ERROR: Failed to download $dest from $url" >&2
+  return 1
+}
+
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage" "linuxdeploy-${ARCH}.AppImage" 500000
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${ARCH}.AppImage" "linuxdeploy-plugin-qt-${ARCH}.AppImage" 500000
 
 # Cache AppImage runtime to avoid repeated downloads by appimagetool
 export APPIMAGETOOL_RUNTIME="$(pwd)/runtime-${ARCH}"
-if [ ! -f "${APPIMAGETOOL_RUNTIME}" ]; then
-  curl -L -o "${APPIMAGETOOL_RUNTIME}" "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-${ARCH}" || true
+if [ ! -f "${APPIMAGETOOL_RUNTIME}" ] || [ $(wc -c < "${APPIMAGETOOL_RUNTIME}") -lt 20000 ]; then
+  curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 -o "${APPIMAGETOOL_RUNTIME}" "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-${ARCH}" || true
 fi
 
 timeout 300 ./linuxdeploy-${ARCH}.AppImage \
@@ -98,10 +121,7 @@ timeout 300 ./linuxdeploy-${ARCH}.AppImage \
 if [ "${SKIP_APPIMAGE:-0}" != "1" ]; then
   # Build AppImage ourselves with cached appimagetool/runtime
   APPIMAGETOOL="appimagetool-${ARCH}.AppImage"
-  if [ ! -x "${APPIMAGETOOL}" ]; then
-    curl -L -o "${APPIMAGETOOL}" "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage"
-    chmod +x "${APPIMAGETOOL}"
-  fi
+  fetch_tool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage" "${APPIMAGETOOL}" 500000
 
   APPIMAGE_OUT="astraplay-${ARCH}.AppImage"
   env APPIMAGE_EXTRACT_AND_RUN=1 \

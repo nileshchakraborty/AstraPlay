@@ -35,6 +35,32 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Pre-fetch Gradle 8.7 Wrapper Distribution
+        run: |
+          DIST_DIR="$HOME/.gradle/wrapper/dists/gradle-8.7-bin/bhs2wmbdwecv87pi65oeuq5iu"
+          mkdir -p "$DIST_DIR"
+          if [ ! -f "$DIST_DIR/gradle-8.7-bin.zip.ok" ]; then
+            echo "Pre-fetching Gradle 8.7 distribution..."
+            for attempt in 1 2 3 4 5; do
+              if curl -fSL --retry 5 --retry-delay 5 --connect-timeout 20 --max-time 300 \
+                "https://services.gradle.org/distributions/gradle-8.7-bin.zip" \
+                -o "$DIST_DIR/gradle-8.7-bin.zip" && \
+                unzip -t "$DIST_DIR/gradle-8.7-bin.zip" >/dev/null 2>&1; then
+                touch "$DIST_DIR/gradle-8.7-bin.zip.ok"
+                echo "Gradle 8.7 wrapper distribution cached successfully."
+                break
+              fi
+              echo "Attempt $attempt to download Gradle 8.7 failed. Retrying in $((attempt * 5))s..."
+              rm -f "$DIST_DIR/gradle-8.7-bin.zip"
+              sleep $((attempt * 5))
+            done
+          fi
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:

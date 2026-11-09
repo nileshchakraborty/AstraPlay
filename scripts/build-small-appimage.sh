@@ -39,11 +39,34 @@ build_appimage/test/chiaki-unit
 DESTDIR="${appdir}" ninja -C build_appimage install
 cd appimage
 
+fetch_tool() {
+    local url="$1"
+    local dest="$2"
+    local min_size="${3:-200000}"
+    if [ -x "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+        return 0
+    fi
+    for attempt in 1 2 3 4 5; do
+        echo "Downloading $dest (attempt $attempt/5)..."
+        rm -f "$dest"
+        if curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 180 "$url" -o "$dest"; then
+            if [ -f "$dest" ] && [ $(wc -c < "$dest") -gt "$min_size" ]; then
+                chmod +x "$dest"
+                echo "$dest downloaded and verified successfully."
+                return 0
+            fi
+        fi
+        echo "Download of $dest failed or file smaller than $min_size bytes. Retrying in $((attempt * 5))s..."
+        rm -f "$dest"
+        sleep $((attempt * 5))
+    done
+    echo "ERROR: Failed to download $dest from $url" >&2
+    return 1
+}
+
 export ARCH="$(uname -m)"
-curl -L -O https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
-chmod +x linuxdeploy-${ARCH}.AppImage
-curl -L -O https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${ARCH}.AppImage
-chmod +x linuxdeploy-plugin-qt-${ARCH}.AppImage
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage" "linuxdeploy-${ARCH}.AppImage" 500000
+fetch_tool "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${ARCH}.AppImage" "linuxdeploy-plugin-qt-${ARCH}.AppImage" 500000
 
 export LD_LIBRARY_PATH="${QT_PATH}/${QT_VERSION}/${GCC_STRING}/lib:$(pwd)/../build_appimage/third-party/cpp-steam-tools:$LD_LIBRARY_PATH"
 if [ "${STEAMWORKS}" = "ON" ]; then
@@ -52,10 +75,8 @@ fi
 export QML_SOURCES_PATHS="$(pwd)/../gui/src/qml"
 if [ "$(uname -m)" = "aarch64" ]
 then
-    curl -LO https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static
-    chmod +x qemu-aarch64-static
-    curl -LO https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
-    chmod +x appimagetool-aarch64.AppImage
+    fetch_tool "https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static" "qemu-aarch64-static" 500000
+    fetch_tool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage" "appimagetool-aarch64.AppImage" 500000
     ./qemu-aarch64-static ./linuxdeploy-${ARCH}.AppImage \
         --appdir="${appdir}" \
         -e "${appdir}/usr/bin/astraplay" \

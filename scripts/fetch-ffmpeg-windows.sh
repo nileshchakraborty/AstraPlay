@@ -19,14 +19,26 @@ echo "Downloading pre-built FFmpeg ($ARCH) to $TARGET_DIR..."
 DOWNLOADED=false
 for attempt in 1 2 3 4 5; do
   echo "Attempt $attempt: downloading from $FFMPEG_URL..."
-  if curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 180 "$FFMPEG_URL" -o ffmpeg.zip && unzip -t ffmpeg.zip >/dev/null 2>&1; then
+  rm -f ffmpeg.zip
+  if curl -fSL --retry 5 --retry-delay 5 --connect-timeout 20 --max-time 300 "$FFMPEG_URL" -o ffmpeg.zip && unzip -t ffmpeg.zip >/dev/null 2>&1; then
     echo "FFmpeg archive downloaded and integrity verified!"
     DOWNLOADED=true
     break
   fi
-  echo "Attempt $attempt failed or archive was incomplete. Retrying in 5 seconds..."
+  # Fallback to BtbN for x64 if streetpea fails
+  if [ "$ARCH" != "arm64" ] && [ "$ARCH" != "winarm64" ]; then
+    BTBN_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-win64-gpl-shared-7.1.zip"
+    echo "Attempting fallback download from BtbN/FFmpeg-Builds..."
+    rm -f ffmpeg.zip
+    if curl -fSL --retry 5 --retry-delay 5 --connect-timeout 20 --max-time 300 "$BTBN_URL" -o ffmpeg.zip && unzip -t ffmpeg.zip >/dev/null 2>&1; then
+      echo "FFmpeg archive downloaded from fallback mirror and integrity verified!"
+      DOWNLOADED=true
+      break
+    fi
+  fi
+  echo "Attempt $attempt failed or archive was incomplete. Retrying in $((attempt * 5)) seconds..."
   rm -f ffmpeg.zip
-  sleep 5
+  sleep $((attempt * 5))
 done
 
 if [ "$DOWNLOADED" != true ]; then

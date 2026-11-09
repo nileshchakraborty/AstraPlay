@@ -11,9 +11,28 @@ URL=https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VER}/SDL2-
 FILE=SDL2-${SDL_VER}.tar.gz
 DIR=SDL2-${SDL_VER}
 
-if [ ! -d "$DIR" ]; then
-	curl -L "$URL" -O
-	tar -xf "$FILE"
+if [ ! -d "$DIR" ] || [ ! -f "$DIR/CMakeLists.txt" ]; then
+	rm -rf "$DIR"
+	DOWNLOAD_OK=0
+	for attempt in 1 2 3 4 5; do
+		echo "Downloading SDL2 ${SDL_VER} (attempt $attempt/5)..."
+		rm -f "$FILE"
+		if curl -fSL --retry 3 --retry-delay 3 --connect-timeout 15 --max-time 180 "$URL" -o "$FILE"; then
+			if [ -f "$FILE" ] && [ $(wc -c < "$FILE") -gt 1000000 ] && tar -tzf "$FILE" >/dev/null 2>&1; then
+				echo "SDL2 archive verified successfully."
+				tar -xf "$FILE"
+				DOWNLOAD_OK=1
+				break
+			fi
+		fi
+		echo "Attempt $attempt failed or archive corrupt. Retrying in $((attempt * 5))s..."
+		rm -f "$FILE"
+		sleep $((attempt * 5))
+	done
+	if [ "$DOWNLOAD_OK" -ne 1 ]; then
+		echo "ERROR: Failed to download valid SDL2 ${SDL_VER} archive after 5 attempts." >&2
+		exit 1
+	fi
 fi
 
 cd "$DIR" || exit 1
