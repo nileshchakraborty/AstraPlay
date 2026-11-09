@@ -27,7 +27,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     permissions:
       # required for all workflows
       security-events: write
@@ -53,8 +53,6 @@ jobs:
           build-mode: none
         - language: python
           build-mode: none
-        - language: swift
-          build-mode: manual
         # CodeQL supports the following values keywords for 'language': 'actions', 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'rust', 'swift'
         # Use `c-cpp` to analyze code written in C, C++ or both
         # Use 'java-kotlin' to analyze code written in Java, Kotlin or both
@@ -85,27 +83,6 @@ jobs:
 
         # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
-
-    # If the analyze step fails for one of the languages you are analyzing with
-    # "We were unable to automatically build your code", modify the matrix above
-    # to set the build mode to "manual" for that language. Then modify this step
-    # to build your code.
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-    - name: Run manual build steps
-      if: matrix.build-mode == 'manual'
-      shell: bash
-      run: |
-        if [ "${{ matrix.language }}" = "swift" ]; then
-          mkdir -p lib/include/chiaki
-          sed 's/@CHIAKI_VERSION@/2.12.22/g' lib/include/chiaki/version.h.in > lib/include/chiaki/version.h
-          mkdir -p ios/build-iphoneos
-          touch ios/build-iphoneos/stub.c
-          clang -c ios/build-iphoneos/stub.c -o ios/build-iphoneos/stub.o -target arm64-apple-ios16.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path)
-          ar -cr ios/build-iphoneos/libchiaki_complete.a ios/build-iphoneos/stub.o
-          ranlib ios/build-iphoneos/libchiaki_complete.a
-          xcodebuild -project ios/AstraPlay.xcodeproj -scheme AstraPlay -destination 'generic/platform=iOS' CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO OTHER_LDFLAGS="-Wl,-undefined,dynamic_lookup" clean build
-        fi
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
