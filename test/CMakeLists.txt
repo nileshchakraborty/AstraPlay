@@ -2,7 +2,7 @@
 add_library(munit "${CMAKE_CURRENT_SOURCE_DIR}/munit/munit.c")
 target_include_directories(munit PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/munit")
 
-add_executable(chiaki-unit
+add_executable(astraplay-unit
 		main.c
 		http.c
 		rpcrypt.c
@@ -23,9 +23,10 @@ add_executable(chiaki-unit
 		congestioncontrol_test.c
 		controller_test.c)
 
-target_link_libraries(chiaki-unit chiaki-lib munit)
+target_link_libraries(astraplay-unit chiaki-lib munit)
 if(TARGET PkgConfig::json-c)
-	target_link_libraries(chiaki-unit PkgConfig::json-c)
+	target_link_libraries(astraplay-unit PkgConfig::json-c)
 endif()
 
-add_test(unit chiaki-unit)
+add_test(unit astraplay-unit)
+add_custom_target(chiaki-unit DEPENDS astraplay-unit)

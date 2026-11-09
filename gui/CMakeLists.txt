@@ -246,24 +246,26 @@ install(FILES astraplay-512.png DESTINATION share/icons/hicolor/512x512/apps
 install(FILES io.github.nileshchakraborty.AstraPlay.metainfo.xml DESTINATION share/metainfo)
 # [ASTRAPLAY END]
 
-if(CHIAKI_ENABLE_TESTS)
+if(CHIAKI_ENABLE_TESTS OR ASTRAPLAY_ENABLE_TESTS)
 	enable_testing()
 	find_package(Qt6 REQUIRED COMPONENTS Test)
-	add_executable(chiaki-qt-test
+	add_executable(astraplay-qt-test
 		test/embeddedrelayserver_bdd.cpp
 		include/embeddedrelayserver.h
 		src/embeddedrelayserver.cpp
 	)
-	target_include_directories(chiaki-qt-test PRIVATE include)
-	target_link_libraries(chiaki-qt-test PRIVATE Qt::Core Qt::Network Qt::Test)
-	add_test(NAME qt-embedded-relay-bdd COMMAND chiaki-qt-test)
+	target_include_directories(astraplay-qt-test PRIVATE include)
+	target_link_libraries(astraplay-qt-test PRIVATE Qt::Core Qt::Network Qt::Test)
+	add_test(NAME qt-embedded-relay-bdd COMMAND astraplay-qt-test)
+	add_custom_target(chiaki-qt-test DEPENDS astraplay-qt-test)
 
-	add_executable(chiaki-updater-test
+	add_executable(astraplay-updater-test
 		test/updatemanager_test.cpp
 		include/updatemanager.h
 		src/updatemanager.cpp
 	)
-	target_include_directories(chiaki-updater-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include ${CMAKE_BINARY_DIR}/lib/include)
-	target_link_libraries(chiaki-updater-test PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Test)
-	add_test(NAME qt-updater-test COMMAND chiaki-updater-test)
+	target_include_directories(astraplay-updater-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include ${CMAKE_BINARY_DIR}/lib/include)
+	target_link_libraries(astraplay-updater-test PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Test)
+	add_test(NAME qt-updater-test COMMAND astraplay-updater-test)
+	add_custom_target(chiaki-updater-test DEPENDS astraplay-updater-test)
 endif()

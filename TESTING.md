@@ -33,14 +33,14 @@ The `test/` directory contains C unit tests using the [munit](https://nemequ.git
 
 ```bash
 # Build with tests enabled (default)
-cmake -B build -DCHIAKI_ENABLE_TESTS=ON
-cmake --build build -t chiaki-unit
+cmake -B build -DASTRAPLAY_ENABLE_TESTS=ON
+cmake --build build -t astraplay-unit
 
 # Run
-./build/test/chiaki-unit
+./build/test/astraplay-unit
 
 # Run with verbose output
-./build/test/chiaki-unit --log-visible debug
+./build/test/astraplay-unit --log-visible debug
 ```
 
 ### 3.2 Existing test modules
@@ -159,7 +159,7 @@ The iOS build can be run with `./ios/build.sh dev`; it does not provide BDD cove
 ### 5.3 Desktop Qt
 
 ```bash
-cmake --build build -t chiaki-qt-test
+cmake --build build -t astraplay-qt-test
 ctest --test-dir build -R qt-embedded-relay-bdd --output-on-failure
 ```
 
@@ -204,8 +204,8 @@ For PRs targeting `dev`, run the applicable checks below. The current Windows MS
 
 | Gate | Platform | Tool |
 |------|----------|------|
-| C unit tests | Local / CI build | munit (`chiaki-unit`) |
-| Qt embedded relay BDD | Qt build with tests enabled | Qt Test (`chiaki-qt-test`) |
+| C unit tests | Local / CI build | munit (`astraplay-unit` / `chiaki-unit`) |
+| Qt embedded relay BDD | Qt build with tests enabled | Qt Test (`astraplay-qt-test` / `chiaki-qt-test`) |
 | PSStream relay BDD | Node 22+ | Node test runner, 100% module coverage threshold |
 | Android build | Ubuntu (GitHub Actions) | Gradle |
 | iOS build | macOS (GitHub Actions) | `ios/build.sh dev` |
