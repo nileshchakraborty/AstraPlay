@@ -87,6 +87,8 @@ jobs:
       # Archive with code signing fully disabled — no cert/profile/secrets needed.
       - name: Archive (unsigned)
         working-directory: ios
+        env:
+          ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
           xcodebuild -project AstraPlay.xcodeproj \
             -scheme AstraPlay \

@@ -56,6 +56,14 @@ tasks.register("printAstraPlayVersionCode") {
 android {
     namespace "io.github.nileshchakraborty.astraplay"
     compileSdk 36
+
+    Properties properties = new Properties()
+    def propertiesFile = file("../local.properties")
+    if (propertiesFile.exists()) {
+        properties.load(propertiesFile.newDataInputStream())
+    }
+
+
     
     // Specify NDK version - r28+ required for 16KB page size alignment
     // NDK r28+ aligns ELF segments to 16KB by default for compatibility with 16KB page size devices
@@ -67,10 +75,15 @@ android {
         targetSdk 36
         versionCode androidVersionCode
         versionName chiakiVersion
-        // PSN login relay server (QR/TV flow). Each publisher sets their own host
-        // via -PAstraPlayRelayUrl=https://your-relay-host:8080 and must never commit
-        // a personal LAN hostname here. Empty means relay login is disabled.
-        def relayUrl = project.findProperty("AstraPlayRelayUrl") ?: ""
+        // PSN login relay server (QR/TV flow).
+        // Resolution order:
+        // 1. Gradle project property (-PAstraPlayRelayUrl=https://...)
+        // 2. android/local.properties (AstraPlayRelayUrl=https://...)
+        // 3. Environment variable (ASTRAPLAY_RELAY_URL=https://...)
+        // Empty means the user or tester can configure their relay at runtime in the app.
+        def relayUrl = project.findProperty("AstraPlayRelayUrl") ?:
+                       properties.getProperty("AstraPlayRelayUrl") ?:
+                       System.getenv("ASTRAPLAY_RELAY_URL") ?: ""
         buildConfigField("String", "ASTRAPLAY_RELAY_URL", "\"${relayUrl}\"")
         ndk {
             // For local development: arm64-v8a only
@@ -144,11 +157,7 @@ android {
     }
 
 
-    Properties properties = new Properties()
-    def propertiesFile = file("../local.properties")
-    if (propertiesFile.exists()) {
-        properties.load(propertiesFile.newDataInputStream())
-    }
+
 
     def envKeystore = System.getenv("ANDROID_KEYSTORE_FILE")
     def envKeystorePw = System.getenv("ANDROID_KEYSTORE_PASSWORD")

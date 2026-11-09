@@ -1,4 +1,5 @@
-• Fixed launcher adaptive icon and TV banner branding to match store listing.
-• Added network roaming watchdog with auto-reconnect on Wi-Fi handover.
-• Improved stream resilience and packet recovery.
-• General stability enhancements.
+• Fixed PSN login relay configuration issue on fresh installs.
+• Added in-app PSN relay server URL configuration and custom server support.
+• Added direct NPSSO authentication fallback for streamlined login without a relay.
+• Improved Android TV D-pad navigation and remote control focus.
+• Performance and connection stability enhancements.

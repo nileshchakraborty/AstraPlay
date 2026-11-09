@@ -14,12 +14,16 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.text.InputType
 import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
@@ -57,6 +61,8 @@ class PsnLoginActivity : AppCompatActivity()
 	private lateinit var progressBar: ProgressBar
 	private lateinit var openBrowserButton: Button
 	private lateinit var checkStatusButton: Button
+	private lateinit var configureRelayButton: Button
+	private lateinit var manualTokenButton: Button
 	private lateinit var cancelButton: Button
 
 	// TV UI
@@ -64,18 +70,21 @@ class PsnLoginActivity : AppCompatActivity()
 	private lateinit var tvStatusTextView: TextView
 	private lateinit var tvProgressBar: ProgressBar
 	private lateinit var tvCheckStatusButton: Button
+	private lateinit var tvConfigureRelayButton: Button
+	private lateinit var tvManualTokenButton: Button
 	private lateinit var tvCancelButton: Button
 	private lateinit var qrCodeImage: ImageView
 
 	private lateinit var tokenManager: SecureTokenManager
+	private lateinit var preferences: Preferences
 	private var isOnTv: Boolean = false
 	
 	private var loginCode: String = ""
 	private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-	// PSN login relay host baked in at build time via -PAstraPlayRelayUrl.
-	// Empty when the publisher did not configure one: relay login is disabled.
-	private fun relayBaseUrl(): String = BuildConfig.ASTRAPLAY_RELAY_URL.trim().trimEnd('/')
+	// PSN login relay host resolved from user preferences (if set) or baked into build via -PAstraPlayRelayUrl.
+	// Empty when neither is configured: user is prompted to configure a relay or paste NPSSO manually.
+	private fun relayBaseUrl(): String = preferences.getEffectiveRelayUrl()
 	
 
 	override fun onCreate(savedInstanceState: Bundle?)
@@ -84,6 +93,7 @@ class PsnLoginActivity : AppCompatActivity()
 		setContentView(R.layout.activity_psn_login)
 		
 		tokenManager = SecureTokenManager(this)
+		preferences = Preferences(this)
 		isOnTv = (getSystemService(UI_MODE_SERVICE) as UiModeManager).currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
 
 		// Setup toolbar
@@ -108,10 +118,14 @@ class PsnLoginActivity : AppCompatActivity()
 			tvStatusTextView = findViewById(R.id.tvStatusText)
 			tvProgressBar = findViewById(R.id.tvProgressBar)
 			tvCheckStatusButton = findViewById(R.id.tvCheckStatusButton)
+			tvConfigureRelayButton = findViewById(R.id.tvConfigureRelayButton)
+			tvManualTokenButton = findViewById(R.id.tvManualTokenButton)
 			tvCancelButton = findViewById(R.id.tvCancelButton)
 			qrCodeImage = findViewById(R.id.qrCodeImage)
 
 			tvCheckStatusButton.setOnClickListener { checkTokenStatus() }
+			tvConfigureRelayButton.setOnClickListener { showConfigureRelayDialog() }
+			tvManualTokenButton.setOnClickListener { showManualTokenDialog() }
 			tvCancelButton.setOnClickListener {
 				setResult(RESULT_LOGIN_CANCELLED)
 				finish()
@@ -129,6 +143,8 @@ class PsnLoginActivity : AppCompatActivity()
 				else null
 			}
 			tvCheckStatusButton.onFocusChangeListener = tvFocusHighlight
+			tvConfigureRelayButton.onFocusChangeListener = tvFocusHighlight
+			tvManualTokenButton.onFocusChangeListener = tvFocusHighlight
 			tvCancelButton.onFocusChangeListener = tvFocusHighlight
 
 			tvCancelButton.requestFocusFromTouch()
@@ -139,10 +155,14 @@ class PsnLoginActivity : AppCompatActivity()
 			progressBar = findViewById(R.id.progress_bar)
 			openBrowserButton = findViewById(R.id.openBrowserButton)
 			checkStatusButton = findViewById(R.id.checkStatusButton)
+			configureRelayButton = findViewById(R.id.configureRelayButton)
+			manualTokenButton = findViewById(R.id.manualTokenButton)
 			cancelButton = findViewById(R.id.cancelButton)
 
 			openBrowserButton.setOnClickListener { openAstraPlayInBrowser() }
 			checkStatusButton.setOnClickListener { checkTokenStatus() }
+			configureRelayButton.setOnClickListener { showConfigureRelayDialog() }
+			manualTokenButton.setOnClickListener { showManualTokenDialog() }
 			cancelButton.setOnClickListener {
 				setResult(RESULT_LOGIN_CANCELLED)
 				finish()
@@ -156,16 +176,36 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun startLogin()
 	{
 		if (relayBaseUrl().isEmpty()) {
-			val msg = getString(R.string.psn_login_relay_not_configured)
-			Log.w(TAG, msg)
+			val msg = getString(R.string.psn_login_relay_unconfigured_prompt)
+			Log.w(TAG, "No relay server URL configured; showing configuration options")
 			if (isOnTv) {
 				tvStatusTextView.text = msg
 				tvProgressBar.visibility = View.GONE
+				tvCheckStatusButton.visibility = View.GONE
+				qrCodeImage.visibility = View.GONE
+				tvCodeTextView.text = "------"
+				tvConfigureRelayButton.requestFocusFromTouch()
 			} else {
 				statusTextView.text = msg
 				progressBar.visibility = View.GONE
+				openBrowserButton.visibility = View.GONE
+				checkStatusButton.visibility = View.GONE
+				codeTextView.text = "------"
+				configureRelayButton.requestFocus()
 			}
 			return
+		}
+
+		if (isOnTv) {
+			tvCheckStatusButton.visibility = View.VISIBLE
+			qrCodeImage.visibility = View.VISIBLE
+			tvProgressBar.visibility = View.VISIBLE
+			tvStatusTextView.text = getString(R.string.psn_login_connecting)
+		} else {
+			openBrowserButton.visibility = View.VISIBLE
+			checkStatusButton.visibility = View.VISIBLE
+			progressBar.visibility = View.VISIBLE
+			statusTextView.text = getString(R.string.psn_login_connecting)
 		}
 
 		val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -178,7 +218,7 @@ class PsnLoginActivity : AppCompatActivity()
 			codeTextView.text = loginCode
 		}
 
-		Log.i(TAG, "Generated login code: $loginCode")
+		Log.i(TAG, "Generated login code: $loginCode for relay: ${relayBaseUrl()}")
 
 		scope.launch {
 			val success = createAstraPlayCode(loginCode)
@@ -190,20 +230,107 @@ class PsnLoginActivity : AppCompatActivity()
 					tvCheckStatusButton.requestFocusFromTouch()
 				} else {
 					statusTextView.text = getString(R.string.psn_login_code_ready)
+					progressBar.visibility = View.GONE
 					openBrowserButton.isEnabled = true
 					checkStatusButton.isEnabled = true
 				}
 			} else {
 				val errorMsg = getString(R.string.psn_login_server_error)
 				if (isOnTv) {
-					tvStatusTextView.text = errorMsg
+					tvStatusTextView.text = "$errorMsg (${relayBaseUrl()})"
 					tvProgressBar.visibility = View.GONE
+					tvConfigureRelayButton.requestFocusFromTouch()
 				} else {
-					statusTextView.text = errorMsg
+					statusTextView.text = "$errorMsg (${relayBaseUrl()})"
+					progressBar.visibility = View.GONE
 					openBrowserButton.isEnabled = false
+					configureRelayButton.requestFocus()
 				}
 			}
 		}
+	}
+
+	private fun showConfigureRelayDialog()
+	{
+		val input = EditText(this).apply {
+			hint = getString(R.string.psn_login_relay_dialog_hint)
+			inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+			setText(preferences.psnRelayUrl.ifEmpty { BuildConfig.ASTRAPLAY_RELAY_URL })
+			setSelectAllOnFocus(true)
+		}
+		val container = FrameLayout(this).apply {
+			val padding = (20 * resources.displayMetrics.density).toInt()
+			setPadding(padding, padding / 2, padding, 0)
+			addView(input)
+		}
+
+		MaterialAlertDialogBuilder(this)
+			.setTitle(R.string.psn_login_relay_dialog_title)
+			.setMessage(R.string.preferences_psn_relay_url_dialog_message)
+			.setView(container)
+			.setPositiveButton(R.string.action_ok) { _, _ ->
+				val url = input.text.toString().trim()
+				if (url.isNotEmpty() && !url.startsWith("http://") && !url.startsWith("https://")) {
+					Toast.makeText(this, R.string.psn_login_invalid_url, Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+				preferences.psnRelayUrl = url
+				Toast.makeText(this, "Relay URL saved", Toast.LENGTH_SHORT).show()
+				startLogin()
+			}
+			.setNegativeButton(R.string.action_cancel, null)
+			.show()
+	}
+
+	private fun showManualTokenDialog()
+	{
+		val input = EditText(this).apply {
+			hint = getString(R.string.psn_login_npsso_dialog_hint)
+			inputType = InputType.TYPE_CLASS_TEXT
+		}
+		val container = FrameLayout(this).apply {
+			val padding = (20 * resources.displayMetrics.density).toInt()
+			setPadding(padding, padding / 2, padding, 0)
+			addView(input)
+		}
+
+		MaterialAlertDialogBuilder(this)
+			.setTitle(R.string.psn_login_npsso_dialog_title)
+			.setMessage(R.string.psn_login_npsso_dialog_message)
+			.setView(container)
+			.setNeutralButton(R.string.psn_login_open_npsso_page) { _, _ ->
+				try {
+					val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PsnAuthConstants.SSOCOOKIE_ENDPOINT))
+					startActivity(intent)
+				} catch (e: Exception) {
+					Log.e(TAG, "Failed to open SSO cookie endpoint", e)
+					Toast.makeText(this, R.string.psn_login_external_browser_error, Toast.LENGTH_SHORT).show()
+				}
+			}
+			.setPositiveButton(R.string.action_ok) { _, _ ->
+				val rawToken = input.text.toString().trim()
+				val token = sanitizeNpsso(rawToken)
+				if (token.length != 64) {
+					Toast.makeText(this, R.string.psn_login_invalid_npsso, Toast.LENGTH_SHORT).show()
+					return@setPositiveButton
+				}
+				onLoginSuccess(token)
+			}
+			.setNegativeButton(R.string.action_cancel, null)
+			.show()
+	}
+
+	private fun sanitizeNpsso(input: String): String
+	{
+		val trimmed = input.trim()
+		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+			try {
+				val json = JSONObject(trimmed)
+				val token = json.optString("npsso")
+				if (token.isNotEmpty()) return token.trim()
+			} catch (_: Exception) {}
+		}
+		return trimmed.removeSurrounding("\"").trim()
 	}
 
 	private fun loadQrCode(code: String)

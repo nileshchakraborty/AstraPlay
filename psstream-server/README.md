@@ -70,11 +70,11 @@ personal hostnames out of version control.
   ```bash
   export ASTRAPLAY_RELAY_URL="https://relay.example.com:25525"
   ```
-- **Android:** bake the URL in at build time (it cannot be changed at runtime):
+- **Android:** configure your relay URL directly in **Settings → Account → PSN Login Relay URL**, enter it on the login screen prompt, or bake it in at build time via `local.properties` or Gradle:
   ```bash
   ./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:25525
   ```
-  Without this flag the QR/TV login flow reports that no relay is configured.
+  Users can also paste their NPSSO token manually without running a relay server.
   See `android/BUILD_FOR_GOOGLE_PLAY.md`.
 - **iOS:** set `ASTRAPLAY_RELAY_URL` in your Xcode scheme's environment (or CI
   environment). Without it, relay login calls fail gracefully and the UI

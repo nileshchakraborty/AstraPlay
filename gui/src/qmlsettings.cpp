@@ -827,6 +827,17 @@ void QmlSettings::setPsnNpssoToken(const QString &npsso_token)
 	emit psnNpssoTokenChanged();
 }
 
+QString QmlSettings::psnRelayUrl() const
+{
+	return settings->GetPsnRelayUrl();
+}
+
+void QmlSettings::setPsnRelayUrl(const QString &relay_url)
+{
+	settings->SetPsnRelayUrl(relay_url);
+	emit psnRelayUrlChanged();
+}
+
 bool QmlSettings::accountAttributesCheckPassed() const
 {
 	return settings->GetAccountAttributesCheckPassed();

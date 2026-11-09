@@ -18,6 +18,7 @@
 #   ./android/build-local.sh --full       # clean + rebuild all native ABIs (after lib/ changes)
 #   ./android/build-local.sh --install    # install + launch APK on connected device after build
 #   ./android/build-local.sh --skip-deps  # skip SDK/JDK dependency installs
+#   ./android/build-local.sh --relay-url <url> # bake in a specific relay URL (e.g. http://10.0.2.2:25525)
 # Logs:
 #   ./android/build-local.sh --logs-dump  # ONE-SHOT dump of app-tagged logcat to stdout + exit (use this)
 #   ./android/build-local.sh --logs       # also start a continuous background capture (pair with --install)
@@ -43,6 +44,7 @@ STOP_LOGS=false
 LOGS_DUMP=false
 LOG_DIR="$REPO_ROOT/tmp/android-debug"
 LOG_MINUTES=20
+RELAY_URL=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,6 +52,10 @@ while [[ $# -gt 0 ]]; do
     --full) FULL_REBUILD=true; QUICK=false; shift ;;
     --install) INSTALL_APK=true; shift ;;
     --skip-deps) SKIP_DEPS=true; shift ;;
+    --relay-url)
+      RELAY_URL="$2"
+      shift 2
+      ;;
     --logs) CAPTURE_LOGS=true; shift ;;
     --stop-logs) STOP_LOGS=true; shift ;;
     --logs-dump) LOGS_DUMP=true; shift ;;
@@ -236,8 +242,18 @@ write_local_properties() {
   local sdk_root="$1"
   local props_file="$ANDROID_DIR/local.properties"
 
+  local existing_relay=""
+  if [[ -f "$props_file" ]]; then
+    existing_relay="$(grep '^AstraPlayRelayUrl=' "$props_file" | cut -d= -f2- || true)"
+  fi
+
   {
     printf 'sdk.dir=%s\n' "$sdk_root"
+    if [[ -n "$RELAY_URL" ]]; then
+      printf 'AstraPlayRelayUrl=%s\n' "$RELAY_URL"
+    elif [[ -n "$existing_relay" ]]; then
+      printf 'AstraPlayRelayUrl=%s\n' "$existing_relay"
+    fi
   } > "$props_file"
 
   local keystore=""
@@ -302,12 +318,17 @@ find_aab() {
 run_gradle() {
   local gradle_task="$1"
   shift
+  local extra_args=()
+  if [[ -n "$RELAY_URL" ]]; then
+    extra_args+=("-PAstraPlayRelayUrl=$RELAY_URL")
+  fi
   (
     cd "$ANDROID_DIR"
     ./gradlew "$gradle_task" \
       --parallel \
       --no-build-cache \
       -Dorg.gradle.java.home="$JAVA_HOME" \
+      ${extra_args[@]+"${extra_args[@]}"} \
       "$@"
   )
 }

@@ -56,23 +56,35 @@ This file is ready to upload to Google Play Console!
 
 ### PSN Login Relay URL
 
-The QR / Android TV login flow needs a relay server URL baked in at build time.
-Never commit a personal LAN hostname; each publisher sets their own host via the
-`AstraPlayRelayUrl` Gradle property — either in your (uncommitted)
-`~/.gradle/gradle.properties`:
+The QR / Android TV login flow uses a token relay server (`psstream-server`).
+Publishers can configure a default relay URL at build time, and end users/testers can also configure their own relay server or sign in with an NPSSO token directly inside the app at runtime.
 
-```properties
-AstraPlayRelayUrl=https://relay.example.com:25525
-```
+#### Build-Time Configuration (Optional)
+To bake a default relay host into the build, set the `AstraPlayRelayUrl` property via any of the following:
 
-or directly on the Gradle command line:
+1. **`android/local.properties`** (git-ignored, recommended for local dev):
+   ```properties
+   AstraPlayRelayUrl=https://relay.example.com:25525
+   ```
+2. **Environment Variable**:
+   ```bash
+   export ASTRAPLAY_RELAY_URL="https://relay.example.com:25525"
+   ```
+3. **Gradle Command Line**:
+   ```bash
+   ./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:25525
+   ```
+4. **Local build script**:
+   ```bash
+   ./build-local.sh --quick --relay-url http://10.0.2.2:25525
+   ```
 
-```bash
-./gradlew :app:assembleRelease -PAstraPlayRelayUrl=https://relay.example.com:25525
-```
+#### Runtime Configuration (In-App)
+If no relay is configured at build time (or when testing self-hosted setups):
+- **In-App Prompt**: Opening the login screen presents options to **"Configure Relay Server"** (enter your self-hosted URL on the spot) or **"Enter NPSSO Manually"** (paste your Sony session token directly).
+- **Settings**: Users can set or update the relay URL anytime under **Settings → Account → PSN Login Relay URL**.
 
-Without it, the login screen reports that no relay is configured. See
-`../../psstream-server/README.md` for how to self-host the relay (default port 25525).
+See `../../psstream-server/README.md` for how to self-host the relay (default port 25525).
 
 ### Android 16 (API Level 36) & Compliance Requirements
 

@@ -140,6 +140,7 @@ final class SecureStore {
     private let kAccountId     = "astraplay.psnAccountId"
     private let kOnlineId      = "astraplay.psnOnlineId"
     private let kDuid          = "astraplay.psnDuid"
+    private let kRelayServerUrl = "astraplay.relayServerUrl"
 
     // Hosts
     private let kRegisteredHosts = "astraplay.registeredHosts"
@@ -221,6 +222,18 @@ final class SecureStore {
     var duid: String {
         get { KC.readString(kDuid) ?? "" }
         set { newValue.isEmpty ? KC.delete(kDuid) : KC.writeString(kDuid, newValue) }
+    }
+
+    // MARK: - Relay Server
+
+    /// Custom PSN login relay URL (e.g. "https://relay.example.com" or "http://192.168.1.50:25525").
+    /// Backed by Keychain.
+    var relayServerUrl: String {
+        get { KC.readString(kRelayServerUrl) ?? "" }
+        set {
+            let trimmed = newValue.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+            trimmed.isEmpty ? KC.delete(kRelayServerUrl) : KC.writeString(kRelayServerUrl, trimmed)
+        }
     }
 
     // MARK: - Hosts

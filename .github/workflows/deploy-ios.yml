@@ -181,6 +181,8 @@ jobs:
 
       - name: Archive
         working-directory: ios
+        env:
+          ASTRAPLAY_RELAY_URL: ${{ secrets.ASTRAPLAY_RELAY_URL }}
         run: |
           xcodebuild -project AstraPlay.xcodeproj \
             -scheme AstraPlay \

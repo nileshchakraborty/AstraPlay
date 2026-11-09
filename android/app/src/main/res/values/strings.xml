@@ -205,7 +205,26 @@
     <string name="psn_login_not_complete">Login not complete yet. Complete the login in your browser first.</string>
     <string name="psn_login_not_complete_toast">Please complete the login in your browser first</string>
     <string name="psn_login_server_error">Failed to connect to login server</string>
-    <string name="psn_login_relay_not_configured">Login relay is not configured in this build. The publisher must set a relay server URL (see BUILD_FOR_GOOGLE_PLAY.md).</string>
+    <string name="psn_login_relay_not_configured">Login relay is not configured in this build. Configure your relay server URL or sign in with an NPSSO token manually.</string>
+    <string name="psn_login_relay_unconfigured_prompt">A relay server is required for QR / browser sign-in. You can configure your relay server URL or paste an NPSSO token directly.</string>
+    
+    <!-- PSN Relay URL Configuration & Manual Login -->
+    <string name="preferences_psn_relay_url_key" translatable="false">preferences_psn_relay_url</string>
+    <string name="preferences_psn_relay_url_title">PSN Login Relay URL</string>
+    <string name="preferences_psn_relay_url_summary_empty">Not configured (tap to set custom relay server)</string>
+    <string name="preferences_psn_relay_url_dialog_title">Login Relay Server URL</string>
+    <string name="preferences_psn_relay_url_dialog_message">Enter your self-hosted psstream-server URL (e.g. https://relay.example.com:25525 or http://10.0.2.2:25525). Leave empty for build default.</string>
+    
+    <string name="psn_login_configure_relay">Configure Relay Server</string>
+    <string name="psn_login_paste_npsso">Enter NPSSO Manually</string>
+    <string name="psn_login_relay_dialog_title">Configure Relay URL</string>
+    <string name="psn_login_relay_dialog_hint">https://relay.example.com:25525</string>
+    <string name="psn_login_npsso_dialog_title">Enter NPSSO Token</string>
+    <string name="psn_login_npsso_dialog_hint">Paste 64-character NPSSO token</string>
+    <string name="psn_login_npsso_dialog_message">Sign into PlayStation Network, then copy the 64-character token from the ssocookie page.</string>
+    <string name="psn_login_open_npsso_page">Open Sony Page</string>
+    <string name="psn_login_invalid_url">Please enter a valid URL starting with http:// or https://</string>
+    <string name="psn_login_invalid_npsso">NPSSO token is invalid (must be a 64-character token)</string>
     
     <!-- D-pad touch combo buttons (indices match Qt SettingsDialog model) -->
     <string-array name="dpad_touch_button_entries">

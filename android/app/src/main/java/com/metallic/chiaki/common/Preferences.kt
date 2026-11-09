@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceManager
+import io.github.nileshchakraborty.astraplay.BuildConfig
 import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.cloudplay.repository.CloudGameRepository
 import com.metallic.chiaki.lib.Codec
@@ -332,6 +333,27 @@ class Preferences(context: Context)
 	fun clearNpssoToken()
 	{
 		tokenManager.clearNpssoToken()
+	}
+
+	val psnRelayUrlKey get() = resources.getString(R.string.preferences_psn_relay_url_key)
+
+	/** User-specified custom login relay server URL (e.g. https://relay.example.com:25525 or http://10.0.2.2:25525) */
+	var psnRelayUrl: String
+		get() = sharedPreferences.getString(psnRelayUrlKey, "")?.trim() ?: ""
+		set(value) { sharedPreferences.edit().putString(psnRelayUrlKey, value.trim()).apply() }
+
+	/**
+	 * Get the active relay URL, checking user preferences first, then falling back to
+	 * BuildConfig.ASTRAPLAY_RELAY_URL baked into the APK.
+	 */
+	fun getEffectiveRelayUrl(): String
+	{
+		val userUrl = psnRelayUrl.trimEnd('/')
+		if (userUrl.isNotEmpty())
+		{
+			return userUrl
+		}
+		return BuildConfig.ASTRAPLAY_RELAY_URL.trim().trimEnd('/')
 	}
 
 	// ==========================================================================

@@ -10,11 +10,20 @@ private let loginLog = OSLog(subsystem: "com.astraplay.stream", category: "Astra
 class AstraPlayLoginService {
     static let shared = AstraPlayLoginService()
     
-    // Relay host for PSN login. Set ASTRAPLAY_RELAY_URL in the Xcode scheme
-    // (or your CI environment); empty means relay login is disabled.
-    // Never commit a personal LAN hostname here.
-    private var astraplayURL: String {
-        ProcessInfo.processInfo.environment["ASTRAPLAY_RELAY_URL"] ?? ""
+    /// Effective relay server URL for PSN login.
+    /// Priority order:
+    /// 1. User-configured custom relay URL in SecureStore (Keychain)
+    /// 2. ASTRAPLAY_RELAY_URL environment variable
+    var astraplayURL: String {
+        let custom = SecureStore.shared.relayServerUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+        if !custom.isEmpty { return custom }
+        return (ProcessInfo.processInfo.environment["ASTRAPLAY_RELAY_URL"] ?? "")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+    }
+    
+    /// Check whether a relay URL is configured (either in SecureStore or environment)
+    var isRelayConfigured: Bool {
+        return !astraplayURL.isEmpty
     }
     
     /// Generate UUID v4 for OAuth cid parameter
@@ -57,8 +66,12 @@ class AstraPlayLoginService {
     /// Create code on the relay server
     /// Reference: gui/src/qmlbackend.cpp lines 3363-3440
     func createCode(_ code: String) async -> Bool {
+        guard isRelayConfigured else {
+            os_log(.error, log: loginLog, "Relay login failed: No relay server URL configured")
+            return false
+        }
         guard let url = URL(string: "\(astraplayURL)/psstream/create-code") else {
-            os_log(.error, log: loginLog, "Invalid create-code URL")
+            os_log(.error, log: loginLog, "Invalid create-code URL: %{public}s", astraplayURL)
             return false
         }
         
@@ -106,8 +119,12 @@ class AstraPlayLoginService {
     /// Check token status on the relay server
     /// Reference: gui/src/qmlbackend.cpp lines 3442-3525
     func checkTokenStatus(_ code: String) async -> String? {
+        guard isRelayConfigured else {
+            os_log(.error, log: loginLog, "Check tokens failed: No relay server URL configured")
+            return nil
+        }
         guard let url = URL(string: "\(astraplayURL)/psstream/get-tokens") else {
-            os_log(.error, log: loginLog, "Invalid get-tokens URL")
+            os_log(.error, log: loginLog, "Invalid get-tokens URL: %{public}s", astraplayURL)
             return nil
         }
         
@@ -173,6 +190,7 @@ class AstraPlayLoginService {
     
     /// Get the browser URL for user login
     func getLoginURL(code: String) -> URL? {
+        guard isRelayConfigured else { return nil }
         return URL(string: "\(astraplayURL)/psstream/?psstream_code=\(code)")
     }
 }
