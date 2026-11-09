@@ -1572,36 +1572,74 @@ struct AccountView: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("An NPSSO token is a 64-character token created when you sign into your PlayStation Network account in a web browser.")
+                    Text("Follow these 3 quick steps in your web browser:")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 } header: {
-                    Text("What is NPSSO?")
+                    Text("How to Connect")
                 }
                 
                 Section {
+                    Text("Tap below to log into your PlayStation account in Safari. Once signed in, switch back to this app.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                    Button {
+                        if let url = URL(string: "https://ca.account.sony.com/api/authz/v3/oauth/authorize?client_id=ba495a24-818c-472b-b12d-ff231c1b5745&redirect_uri=https://remoteplay.dl.playstation.net/remoteplay/redirect&response_type=code&scope=psn:clientapp") {
+                            UIApplication.shared.open(url)
+                        } else if let fallback = URL(string: "https://my.playstation.com") {
+                            UIApplication.shared.open(fallback)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.crop.circle.badge.checkmark")
+                            Text("1. Open PlayStation Sign-In")
+                                .fontWeight(.medium)
+                        }
+                    }
+                } header: {
+                    Text("Step 1: Sign in to PlayStation")
+                }
+                
+                Section {
+                    Text("After signing in, tap below to view your account code. Safari will show a page with: {\"npsso\":\"...\"}. Copy that code (or select and copy everything on the page)!")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                     Button {
                         if let url = URL(string: "https://ca.account.sony.com/api/v1/ssocookie") {
                             UIApplication.shared.open(url)
                         }
                     } label: {
                         HStack {
-                            Image(systemName: "safari")
-                            Text("1. Open Sony NPSSO Page")
+                            Image(systemName: "key.fill")
+                            Text("2. Get My Code")
+                                .fontWeight(.medium)
                         }
                     }
                 } header: {
-                    Text("Step 1: Get Token")
-                } footer: {
-                    Text("Sign in with your PlayStation account. Once signed in, the page displays a JSON response with {\"npsso\":\"<token>\"}.")
-                        .font(.caption)
+                    Text("Step 2: Get Your Code")
                 }
                 
                 Section {
-                    TextField("Paste 64-character NPSSO or JSON here", text: $manualNpssoInput, axis: .vertical)
-                        .lineLimit(3...6)
+                    Text("Paste what you copied into the box below. We will automatically find and verify your code.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Paste code or {\"npsso\":\"...\"} here", text: $manualNpssoInput, axis: .vertical)
+                        .lineLimit(2...4)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                    
+                    Button {
+                        if let clip = UIPasteboard.general.string {
+                            manualNpssoInput = clip
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.on.clipboard")
+                            Text("Paste from Clipboard")
+                                .font(.footnote)
+                        }
+                    }
                     
                     if let err = manualNpssoError {
                         Text(err)
@@ -1615,7 +1653,7 @@ struct AccountView: View {
                         HStack {
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
-                            Text("Log In with NPSSO")
+                            Text("Connect Account")
                                 .fontWeight(.semibold)
                             Spacer()
                         }
@@ -1623,17 +1661,17 @@ struct AccountView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(manualNpssoInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 } header: {
-                    Text("Step 2: Paste Token")
+                    Text("Step 3: Paste Your Code")
                 } footer: {
                     let cleaned = sanitizeNpsso(manualNpssoInput)
                     if !cleaned.isEmpty {
-                        Text("Detected token length: \(cleaned.count) characters (expected: 64)")
+                        Text(cleaned.count == 64 ? "✓ Valid 64-character code detected!" : "Code detected: \(cleaned.count)/64 characters")
                             .font(.caption)
                             .foregroundColor(cleaned.count == 64 ? .green : .orange)
                     }
                 }
             }
-            .navigationTitle("Manual NPSSO Login")
+            .navigationTitle("Connect PlayStation Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -1646,18 +1684,15 @@ struct AccountView: View {
     }
     
     private func sanitizeNpsso(_ raw: String) -> String {
-        var trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.contains("npsso") {
-            if let data = trimmed.data(using: .utf8),
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let val = json["npsso"] as? String {
-                trimmed = val
-            } else if let range = trimmed.range(of: #""npsso"\s*:\s*"([^"]+)""#, options: .regularExpression) {
-                let match = String(trimmed[range])
-                let parts = match.components(separatedBy: "\"")
-                if parts.count >= 4 {
-                    trimmed = parts[3]
-                }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let range = trimmed.range(of: #"[a-zA-Z0-9_-]{64}"#, options: .regularExpression) {
+            return String(trimmed[range])
+        }
+        if let range = trimmed.range(of: #""npsso"\s*:\s*"([^"]+)""#, options: .regularExpression) {
+            let match = String(trimmed[range])
+            let parts = match.components(separatedBy: "\"")
+            if parts.count >= 4 {
+                return parts[3]
             }
         }
         return trimmed.trimmingCharacters(in: CharacterSet(charactersIn: " \"'{}"))
@@ -1666,11 +1701,11 @@ struct AccountView: View {
     private func submitManualNpsso() {
         let token = sanitizeNpsso(manualNpssoInput)
         guard !token.isEmpty else {
-            manualNpssoError = "Please enter an NPSSO token."
+            manualNpssoError = "Please enter or paste your code."
             return
         }
-        guard token.count >= 60 else {
-            manualNpssoError = "Token is too short (\(token.count) chars, expected 64). Please copy the full token."
+        guard token.count == 64 else {
+            manualNpssoError = "We found \(token.count) characters, but PlayStation codes must be 64 characters. Make sure you completed Step 1 (Sign-In) and copied the code from Step 2."
             return
         }
         manualNpssoError = nil

@@ -4,6 +4,8 @@ package com.metallic.chiaki.cloudplay
 
 import android.app.Activity
 import android.app.UiModeManager
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -24,6 +26,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
@@ -284,34 +287,57 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun showManualTokenDialog()
 	{
-		val input = EditText(this).apply {
-			hint = getString(R.string.psn_login_npsso_dialog_hint)
-			inputType = InputType.TYPE_CLASS_TEXT
+		val dialogView = layoutInflater.inflate(R.layout.dialog_manual_npsso, null)
+		val tokenInput = dialogView.findViewById<TextInputEditText>(R.id.npssoTokenInput)
+		val btnLogin = dialogView.findViewById<Button>(R.id.btnOpenPlayStationLogin)
+		val btnNpsso = dialogView.findViewById<Button>(R.id.btnOpenNpssoPage)
+		val btnPaste = dialogView.findViewById<Button>(R.id.btnPasteClipboard)
+
+		val psnLoginUrl = "https://ca.account.sony.com/api/authz/v3/oauth/authorize?client_id=${PsnAuthConstants.CLIENT_ID}&redirect_uri=${Uri.encode(PsnAuthConstants.REDIRECT_URI)}&response_type=code&scope=${Uri.encode(PsnAuthConstants.SCOPES)}"
+
+		btnLogin.setOnClickListener {
+			try {
+				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(psnLoginUrl))
+				startActivity(intent)
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to open PSN login URL", e)
+				try {
+					startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://my.playstation.com")))
+				} catch (_: Exception) {
+					Toast.makeText(this, R.string.psn_login_external_browser_error, Toast.LENGTH_SHORT).show()
+				}
+			}
 		}
-		val container = FrameLayout(this).apply {
-			val padding = (20 * resources.displayMetrics.density).toInt()
-			setPadding(padding, padding / 2, padding, 0)
-			addView(input)
+
+		btnNpsso.setOnClickListener {
+			try {
+				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PsnAuthConstants.SSOCOOKIE_ENDPOINT))
+				startActivity(intent)
+			} catch (e: Exception) {
+				Log.e(TAG, "Failed to open SSO cookie endpoint", e)
+				Toast.makeText(this, R.string.psn_login_external_browser_error, Toast.LENGTH_SHORT).show()
+			}
+		}
+
+		btnPaste.setOnClickListener {
+			val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+			val clip = clipboard?.primaryClip?.getItemAt(0)?.text?.toString()?.trim()
+			if (!clip.isNullOrEmpty()) {
+				tokenInput.setText(clip)
+				tokenInput.setSelection(tokenInput.text?.length ?: 0)
+			} else {
+				Toast.makeText(this, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+			}
 		}
 
 		MaterialAlertDialogBuilder(this)
 			.setTitle(R.string.psn_login_npsso_dialog_title)
-			.setMessage(R.string.psn_login_npsso_dialog_message)
-			.setView(container)
-			.setNeutralButton(R.string.psn_login_open_npsso_page) { _, _ ->
-				try {
-					val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PsnAuthConstants.SSOCOOKIE_ENDPOINT))
-					startActivity(intent)
-				} catch (e: Exception) {
-					Log.e(TAG, "Failed to open SSO cookie endpoint", e)
-					Toast.makeText(this, R.string.psn_login_external_browser_error, Toast.LENGTH_SHORT).show()
-				}
-			}
-			.setPositiveButton(R.string.action_ok) { _, _ ->
-				val rawToken = input.text.toString().trim()
+			.setView(dialogView)
+			.setPositiveButton(R.string.psn_login_connect_button) { _, _ ->
+				val rawToken = tokenInput.text?.toString()?.trim() ?: ""
 				val token = sanitizeNpsso(rawToken)
 				if (token.length != 64) {
-					Toast.makeText(this, R.string.psn_login_invalid_npsso, Toast.LENGTH_SHORT).show()
+					Toast.makeText(this, R.string.psn_login_invalid_npsso, Toast.LENGTH_LONG).show()
 					return@setPositiveButton
 				}
 				onLoginSuccess(token)
@@ -323,6 +349,11 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun sanitizeNpsso(input: String): String
 	{
 		val trimmed = input.trim()
+		val tokenRegex = Regex("[a-zA-Z0-9_-]{64}")
+		val match = tokenRegex.find(trimmed)
+		if (match != null) {
+			return match.value
+		}
 		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
 			try {
 				val json = JSONObject(trimmed)

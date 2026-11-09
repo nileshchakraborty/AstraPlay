@@ -475,7 +475,7 @@ DialogView {
                             spacing: 14
 
                             Label {
-                                text: qsTr("Step 1: Open Login Page")
+                                text: qsTr("Step 1: Sign in to PlayStation")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
                                 color: "#F59E0B"
@@ -484,7 +484,7 @@ DialogView {
                             }
 
                             Label {
-                                text: qsTr("Click the button below to open the login page in your external browser.")
+                                text: qsTr("Click below to open the PlayStation sign-in page in your web browser. Log in with your normal PlayStation account, then return here.")
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true
                                 font.pixelSize: 19
@@ -504,7 +504,7 @@ DialogView {
 
                             C.Button {
                                 id: step1Button
-                                text: qsTr("Open Login Page")
+                                text: qsTr("1. Open PlayStation Sign-In")
                                 onClicked: {
                                     let loginUrl = AstraPlay.psnLoginUrl();
                                     if (loginUrl) {
@@ -556,7 +556,7 @@ DialogView {
                             spacing: 14
 
                             Label {
-                                text: qsTr("Step 2: Open NPSSO Page")
+                                text: qsTr("Step 2: Get Your Code")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
                                 color: "#F59E0B"
@@ -565,7 +565,7 @@ DialogView {
                             }
 
                             Label {
-                                text: qsTr("After logging in, click below to open the NPSSO page. Once redirected, copy the npsso value shown on that page.")
+                                text: qsTr("After logging in, click below. A webpage will open showing: {\"npsso\":\"...\"}. Copy that code (or select and copy everything on the page)!")
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true
                                 font.pixelSize: 19
@@ -580,7 +580,7 @@ DialogView {
 
                             C.Button {
                                 id: openNpssoPageButton
-                                text: qsTr("Open NPSSO Page")
+                                text: qsTr("2. Get My Code")
                                 onClicked: {
                                     AstraPlay.openNpssoPage()
                                 }
@@ -615,7 +615,7 @@ DialogView {
                             spacing: 14
 
                             Label {
-                                text: qsTr("Step 3: Paste NPSSO Token")
+                                text: qsTr("Step 3: Paste Your Code")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
                                 color: "#F59E0B"
@@ -624,7 +624,7 @@ DialogView {
                             }
 
                             Label {
-                                text: qsTr("Copy the npsso token from the NPSSO page and paste it below.")
+                                text: qsTr("Paste what you copied into the box below. We will automatically find and verify your code.")
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true
                                 font.pixelSize: 19

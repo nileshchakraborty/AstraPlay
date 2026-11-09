@@ -431,7 +431,7 @@ DialogView {
             }
 
             Label {
-                text: qsTr("NPSSO Token (Cloud Play Only, Optional)")
+                text: qsTr("PlayStation Account Code (Cloud Play Only, Optional)")
                 Layout.topMargin: 15
             }
 
@@ -439,15 +439,16 @@ DialogView {
                 id: npssoToken
                 echoMode: AstraPlay.settings.streamerMode ? TextInput.Password : TextInput.Normal
                 text: AstraPlay.settings.psnNpssoToken
+                placeholderText: qsTr("Paste 64-character code or {\"npsso\":\"...\"}")
                 Layout.fillWidth: true
                 Layout.maximumWidth: 400
                 onTextChanged: {
-                    // Parse input: extract token from JSON format or use as-is
                     let inputText = text.trim();
                     let token = inputText;
-                    
-                    // Try to parse as JSON
-                    if (inputText.startsWith("{") && inputText.includes("npsso")) {
+                    let tokenMatch = inputText.match(/[a-zA-Z0-9_-]{64}/);
+                    if (tokenMatch) {
+                        token = tokenMatch[0];
+                    } else if (inputText.startsWith("{") && inputText.includes("npsso")) {
                         try {
                             let json = JSON.parse(inputText);
                             if (json.npsso) {
@@ -465,7 +466,7 @@ DialogView {
                 KeyNavigation.down: openNpssoButton
                 C.Button {
                     id: openNpssoButton
-                    text: qsTr("Open NPSSO Page")
+                    text: qsTr("Get My Code")
                     anchors {
                         left: parent.right
                         verticalCenter: parent.verticalCenter
