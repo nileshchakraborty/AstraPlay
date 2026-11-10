@@ -7,7 +7,7 @@
 #include <QGuiApplication>
 #include <QLoggingCategory>
 
-Q_LOGGING_CATEGORY(chiakiAppReview, "astraplay.appreview")
+Q_LOGGING_CATEGORY(chiakiAppReview, "chiaki.appreview")
 
 // Defined in appreviewbridge.mm — keeps StoreKit confined to one Obj-C++ TU.
 extern void AstraPlayAppReview_RequestReview();

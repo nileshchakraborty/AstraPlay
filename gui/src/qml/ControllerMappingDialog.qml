@@ -339,7 +339,7 @@ DialogView {
                     dialog.close();
             }
 
-            function onControllerMappingButtonSelected(pressedButton, astraplay_button_value, astraplay_button_name)
+            function onControllerMappingButtonSelected(pressedButton, chiaki_button_value, chiaki_button_name)
             {
                 AstraPlay.updateButton(buttonDialog.buttonValue, pressedButton, buttonDialog.buttonIndex);
                 quitButtonMapping = false;
