@@ -313,9 +313,18 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 	// "changed" matters too: a Bluetooth reconnect often announces the device
 	// before its touchpad source is fully populated.
 	private val touchpadCaptureDeviceListener = object: android.hardware.input.InputManager.InputDeviceListener {
-		override fun onInputDeviceAdded(deviceId: Int) { updatePhysicalTouchpadCapture() }
-		override fun onInputDeviceRemoved(deviceId: Int) { updatePhysicalTouchpadCapture() }
-		override fun onInputDeviceChanged(deviceId: Int) { updatePhysicalTouchpadCapture() }
+		override fun onInputDeviceAdded(deviceId: Int) {
+			Log.i("StreamActivity", "Input device added (id=$deviceId), updating physical touchpad capture")
+			updatePhysicalTouchpadCapture()
+		}
+		override fun onInputDeviceRemoved(deviceId: Int) {
+			Log.i("StreamActivity", "Input device removed (id=$deviceId), updating physical touchpad capture")
+			updatePhysicalTouchpadCapture()
+		}
+		override fun onInputDeviceChanged(deviceId: Int) {
+			Log.i("StreamActivity", "Input device changed (id=$deviceId), updating physical touchpad capture")
+			updatePhysicalTouchpadCapture()
+		}
 	}
 
 	override fun onResume()
@@ -330,6 +339,7 @@ class StreamActivity : AppCompatActivity(), View.OnSystemUiVisibilityChangeListe
 		updateStatsVisibility()
 		val inputManager = getSystemService(INPUT_SERVICE) as android.hardware.input.InputManager
 		inputManager.registerInputDeviceListener(touchpadCaptureDeviceListener, Handler(Looper.getMainLooper()))
+		viewModel.input.logConnectedInputDevices("StreamActivity onResume")
 	}
 
 	override fun onPause()

@@ -184,10 +184,16 @@ class StreamInput {
 
     @objc private func controllerDidConnect(_ notification: Notification) {
         guard let controller = notification.object as? GCController else { return }
+        NSLog("[StreamInput] Notification: GCControllerDidConnect for '%@' (category: %@)",
+              controller.vendorName ?? "Unknown", controller.productCategory)
         attachController(controller)
     }
 
     @objc private func controllerDidDisconnect(_ notification: Notification) {
+        if let controller = notification.object as? GCController {
+            NSLog("[StreamInput] Notification: GCControllerDidDisconnect for '%@' (category: %@)",
+                  controller.vendorName ?? "Unknown", controller.productCategory)
+        }
         if notification.object as? GCController === attachedController {
             attachedController = nil
         }
@@ -197,6 +203,17 @@ class StreamInput {
 
     private func attachController(_ controller: GCController) {
         attachedController = controller
+        let vendor = controller.vendorName ?? "Unknown"
+        let category = controller.productCategory
+        let isBackbone = vendor.localizedCaseInsensitiveContains("Backbone") || category.localizedCaseInsensitiveContains("Backbone")
+        let isDualSense = controller.extendedGamepad is GCDualSenseGamepad
+        NSLog("[StreamInput] Attached controller: '%@' (category: %@, isBackbone: %@, isDualSense: %@, haptics: %@)",
+              vendor, category, String(isBackbone), String(isDualSense), String(controller.haptics != nil))
+
+        if isBackbone {
+            NSLog("[StreamInput] Backbone One detected on iOS. Suppressing system capture gestures so Options/Home/Menu reach PlayStation.")
+        }
+
         // By default iOS binds the Create/Share button to the system capture
         // gestures (press = screenshot, long-press = recording) and swallows the
         // presses, so the OPTIONS+SHARE menu chord could never fire from a
