@@ -475,7 +475,7 @@ DialogView {
                             spacing: 14
 
                             Label {
-                                text: qsTr("Step 1: Sign in to PlayStation")
+                                text: qsTr("Step 1: Sign in to PS")
                                 font.pixelSize: 26
                                 font.weight: Font.Bold
                                 color: "#F59E0B"
@@ -484,7 +484,7 @@ DialogView {
                             }
 
                             Label {
-                                text: qsTr("Click below to open the PlayStation sign-in page in your web browser. Log in with your normal PlayStation account, then return here.")
+                                text: qsTr("Click below to open the PS sign-in page in your web browser. Log in with your normal account, then return here.")
                                 wrapMode: Text.Wrap
                                 Layout.fillWidth: true
                                 font.pixelSize: 19
@@ -504,7 +504,7 @@ DialogView {
 
                             C.Button {
                                 id: step1Button
-                                text: qsTr("1. Open PlayStation Sign-In")
+                                text: qsTr("1. Open PS Sign-In")
                                 onClicked: {
                                     let loginUrl = AstraPlay.psnLoginUrl();
                                     if (loginUrl) {

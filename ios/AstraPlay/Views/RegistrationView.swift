@@ -94,7 +94,7 @@ struct RegistrationView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "person.crop.circle.badge.checkmark")
-                                Text(psnId.isEmpty ? "Sign in to PlayStation to Auto-Fill" : "Signed in to PlayStation (Auto-Filled)")
+                                Text(psnId.isEmpty ? "Sign in to PS to Auto-Fill" : "Signed in to PS (Auto-Filled)")
                             }
                             .font(.subheadline)
                             .fontWeight(.medium)
@@ -268,12 +268,12 @@ struct RegistrationView: View {
                     } label: {
                         HStack {
                             Image(systemName: "person.crop.circle.badge.checkmark")
-                            Text("1. Open PlayStation Sign-In")
+                            Text("1. Open PS Sign-In")
                                 .fontWeight(.medium)
                         }
                     }
                 } header: {
-                    Text("Step 1: Sign in to PlayStation")
+                    Text("Step 1: Sign in to PS")
                 }
 
                 Section {

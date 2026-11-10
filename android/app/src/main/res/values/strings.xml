@@ -45,8 +45,8 @@
     <string name="regist_option_ps5">Gen 5</string>
     <string name="regist_psn_account_id_help">About obtaining your Account ID, see</string>
     <string name="regist_psn_account_id_help_url">https://github.com/nileshchakraborty/AstraPlay#obtaining-your-psn-accountid</string>
-    <string name="action_sign_in_psn_autofill">Sign in to PlayStation to Auto-Fill</string>
-    <string name="psn_account_id_autofilled">Account ID auto-filled from PlayStation login</string>
+    <string name="action_sign_in_psn_autofill">Sign in to PS to Auto-Fill</string>
+    <string name="psn_account_id_autofilled">Account ID auto-filled from PS login</string>
     <string name="hint_regist_psn_online_id">Online ID (username, case-sensitive)</string>
     <string name="hint_regist_psn_account_id">Account ID (8 bytes, base64)</string>
     <string name="hint_regist_pin">PIN</string>
@@ -239,10 +239,10 @@
     <string name="psn_login_relay_dialog_title">Configure Relay URL</string>
     <string name="psn_login_relay_dialog_hint">https://relay.example.com:25525</string>
     
-    <string name="psn_login_npsso_dialog_title">Connect PlayStation Account</string>
-    <string name="psn_login_step1_title">Step 1: Sign in to PlayStation</string>
-    <string name="psn_login_step1_desc">Tap the button below to log in with your PlayStation email and password. Once signed in, switch back here.</string>
-    <string name="psn_login_step1_button">1. Open PlayStation Sign-In</string>
+    <string name="psn_login_npsso_dialog_title">Connect PS Account</string>
+    <string name="psn_login_step1_title">Step 1: Sign in to PS</string>
+    <string name="psn_login_step1_desc">Tap the button below to log in with your PS account email and password. Once signed in, switch back here.</string>
+    <string name="psn_login_step1_button">1. Open PS Sign-In</string>
     <string name="psn_login_step2_title">Step 2: Get Your Code</string>
     <string name="psn_login_step2_desc">After signing in, tap below to view your code. The webpage will show: {\"npsso\":\"...\"}. Copy that code (or copy the entire page)!</string>
     <string name="psn_login_step2_button">2. Get My Code</string>
@@ -251,10 +251,10 @@
     <string name="psn_login_paste_clipboard">Paste from Clipboard</string>
     <string name="psn_login_connect_button">Connect Account</string>
     <string name="psn_login_npsso_dialog_hint">Paste code or {\"npsso\":\"...\"} here</string>
-    <string name="psn_login_npsso_dialog_message">Sign into PlayStation Network, then copy the 64-character token from the ssocookie page.</string>
+    <string name="psn_login_npsso_dialog_message">Sign into PSN, then copy the 64-character token from the ssocookie page.</string>
     <string name="psn_login_open_npsso_page">Open Account Page</string>
     <string name="psn_login_invalid_url">Please enter a valid URL starting with http:// or https://</string>
-    <string name="psn_login_invalid_npsso">We couldn\'t find a valid 64-character PlayStation code. Make sure you completed Step 1 (Sign in) and copied the code from Step 2.</string>
+    <string name="psn_login_invalid_npsso">We couldn\'t find a valid 64-character PS account code. Make sure you completed Step 1 (Sign in) and copied the code from Step 2.</string>
     
     <!-- D-pad touch combo buttons (indices match Qt SettingsDialog model) -->
     <string-array name="dpad_touch_button_entries">
