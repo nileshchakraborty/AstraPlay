@@ -374,7 +374,11 @@ class AstraPlayAuth {
   }
 
   completeAuthentication() {
-    this.authDetails.innerHTML = `<strong>Device Code:</strong> ${this.qrCode}`;
+    this.authDetails.textContent = "";
+    const strong = document.createElement("strong");
+    strong.textContent = "Device Code: ";
+    this.authDetails.appendChild(strong);
+    this.authDetails.appendChild(document.createTextNode(this.qrCode || ""));
     this.goToStep(5);
   }
 

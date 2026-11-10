@@ -46,25 +46,25 @@ This audit documents pending items, enhancement opportunities, and technical tas
 
 ---
 
-## Issue 4: [Core / Network] Non-blocking Asynchronous DNS Resolution in Discovery
-- **Type**: Bug / Performance
+## Issue 4: [Core / Network] Non-blocking Asynchronous DNS Resolution in Discovery (Resolved in v2.12.2)
+- **Type**: Bug / Performance (Resolved)
 - **Priority**: Low
-- **Components**: `lib/src/discovery.c` (line 446)
+- **Components**: `lib/src/discovery.c` (line 446), `lib/src/utils.h`
 - **Description**:
-  `getaddrinfo(host, NULL, &hints, &addrinfos)` currently blocks synchronously during host address resolution in `lib/src/discovery.c`.
-- **Task**:
-  Refactor hostname resolution to be non-blocking or dispatch to a background worker thread to ensure the UI event loop and UDP discovery loop never stall during network lookup.
+  `getaddrinfo(host, NULL, &hints, &addrinfos)` previously blocked synchronously during host address resolution.
+- **Resolution**:
+  Resolved via `chiaki_resolve_host_async` with a configurable 3000ms deadline, preventing UI event loop and UDP discovery stalls.
 
 ---
 
-## Issue 5: [Streaming Engine] Shared Timeout for Remote Play Holepunch Notifications
-- **Type**: Bug / Reliability
+## Issue 5: [Streaming Engine] Shared Timeout for Remote Play Holepunch Notifications (Resolved in v2.12.3)
+- **Type**: Bug / Reliability (Resolved)
 - **Priority**: Low
 - **Components**: `lib/src/remote/holepunch.c` (lines 1075 & 1223)
 - **Description**:
-  Holepunching currently uses separate timeouts for consecutive notification packets instead of a unified deadline timer.
-- **Task**:
-  Implement a shared monotonic deadline for holepunch notification rounds to prevent indefinite or prolonged delays when one endpoint is unresponsive.
+  Holepunching previously used separate timeouts for consecutive notification packets instead of a unified deadline timer.
+- **Resolution**:
+  Implemented shared monotonic deadline timers (`deadline_ms = chiaki_time_now_monotonic_ms() + timeout`) across notification rounds.
 
 ---
 
@@ -81,14 +81,14 @@ This audit documents pending items, enhancement opportunities, and technical tas
 
 ---
 
-## Issue 7: [CLI] Add Explicit Target and Verbose Flags to CLI Arguments
-- **Type**: Enhancement
+## Issue 7: [CLI] Add Explicit Target and Verbose Flags to CLI Arguments (Resolved in v2.12.26)
+- **Type**: Enhancement (Resolved)
 - **Priority**: Low
-- **Components**: `gui/src/main.cpp` (lines 411, 499)
+- **Components**: `gui/src/main.cpp` (lines 214-248, 377-385, 462-469)
 - **Description**:
-  The command-line launcher currently lacks explicit options to select console target generation directly (`--target=ps4|ps5`) and verbose diagnostic logging (`-v / --verbose`).
-- **Task**:
-  Add CLI parser options in `gui/src/main.cpp` for `--target` and `--verbose`.
+  The command-line launcher lacked explicit options to select console target generation directly (`--target=ps4|ps5`) and verbose diagnostic logging (`-v / --verbose`).
+- **Resolution**:
+  Added CLI parser options in `gui/src/main.cpp` for `--target` and `-v / --verbose` with input validation.
 
 ---
 
@@ -111,3 +111,47 @@ This audit documents pending items, enhancement opportunities, and technical tas
   Port 8080 caused binding conflicts with local development web servers and developer environments.
 - **Resolution**:
   Migrated embedded server and standalone `psstream-server` defaults to dedicated port `25525`.
+
+---
+
+## Issue 10: [Security / Transport] Enforce TLS and CA Verification on Push Notifications (Resolved in v2.12.26)
+- **Type**: Bug / Security (Resolved)
+- **Priority**: Critical
+- **Components**: `lib/src/remote/holepunch.c`, `switch/src/discoverymanager.cpp`
+- **Description**:
+  Push notification WebSocket connections previously disabled verification (`CURLOPT_SSL_VERIFYPEER, 0L; CURLOPT_SSL_VERIFYHOST, 0L`), violating `SECURITY.md` §3.1.
+- **Resolution**:
+  Restored strict TLS certificate and hostname verification (`CURLOPT_SSL_VERIFYPEER, 1L; CURLOPT_SSL_VERIFYHOST, 2L`) using system trust stores.
+
+---
+
+## Issue 11: [Security / Updater] Cryptographic Digest Verification in Auto-Updater (Resolved in v2.12.26)
+- **Type**: Bug / Security (Resolved)
+- **Priority**: High
+- **Components**: `gui/include/updatemanager.h`, `gui/src/updatemanager.cpp`, `gui/test/updatemanager_test.cpp`
+- **Description**:
+  Downloaded release binaries were verified only by file size and magic headers, without cryptographic checksum validation against release digests.
+- **Resolution**:
+  Implemented SHA-256 checksum verification against release `SHA256SUMS.txt` before permitting payload execution or elevated replacement across Windows, macOS, and Linux.
+
+---
+
+## Issue 12: [Security / Storage] Hardware-Bound AES-256 Credential Vault for Desktop (Resolved in v2.12.26)
+- **Type**: Enhancement / Security (Resolved)
+- **Priority**: High
+- **Components**: `gui/include/credentialvault.h`, `gui/src/credentialvault.cpp`, `gui/test/credentialvault_test.cpp`, `gui/src/settings.cpp`, `gui/src/host.cpp`
+- **Description**:
+  Desktop platforms stored PSN NPSSO tokens, OAuth access/refresh tokens, and console registration keys in plaintext `QSettings` storage.
+- **Resolution**:
+  Implemented `CredentialVault` providing AES-256-CBC encryption derived from machine UUID and current user identity via PBKDF2 with automatic legacy migration and plaintext purging.
+
+---
+
+## Issue 13: [Security / Relay] Rate Limiting, TCP Stream Framing, and Memory Bounding (Resolved in v2.12.26)
+- **Type**: Enhancement / Security (Resolved)
+- **Priority**: Medium
+- **Components**: `gui/include/embeddedrelayserver.h`, `gui/src/embeddedrelayserver.cpp`, `gui/test/embeddedrelayserver_bdd.cpp`, `psstream-server/server.js`, `psstream-server/test/relay.feature.test.js`
+- **Description**:
+  Desktop embedded relay dropped fragmented HTTP POST payloads, lacked active code capacity bounds, and omitted per-IP rate limiting specified in `SECURITY.md`.
+- **Resolution**:
+  Added `Content-Length` stream reassembly, a 500-code active capacity limit (HTTP 429), and per-IP rate limiting middleware across both embedded and standalone relay servers.

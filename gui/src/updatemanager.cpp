@@ -18,6 +18,9 @@
 #include <QRegularExpression>
 #include <QSysInfo>
 #include <QDateTime>
+#include <QCryptographicHash>
+#include <QEventLoop>
+#include <QTimer>
 #include <QDebug>
 
 static QString formatByteSize(qint64 bytes)
@@ -47,7 +50,7 @@ static QString escapePs(const QString &str)
 }
 #endif
 
-bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &errorMsg)
+bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &errorMsg, const QString &expectedSha256)
 {
     QFileInfo fi(filePath);
     if (!fi.exists() || !fi.isFile()) {
@@ -101,7 +104,50 @@ bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &er
     }
 #endif
 
+    if (!expectedSha256.trimmed().isEmpty()) {
+        QFile hashFile(filePath);
+        if (!hashFile.open(QIODevice::ReadOnly)) {
+            errorMsg = tr("Cannot open downloaded file for checksum verification.");
+            return false;
+        }
+        QCryptographicHash hash(QCryptographicHash::Sha256);
+        if (!hash.addData(&hashFile)) {
+            errorMsg = tr("Failed to compute SHA-256 checksum.");
+            return false;
+        }
+        QString actualSha256 = QString::fromLatin1(hash.result().toHex()).toLower();
+        if (actualSha256 != expectedSha256.trimmed().toLower()) {
+            errorMsg = tr("SHA-256 checksum mismatch (expected: %1, got: %2).")
+                       .arg(expectedSha256.trimmed().toLower(), actualSha256);
+            return false;
+        }
+    }
+
     return true;
+}
+
+QString UpdateManager::extractSha256(const QString &checksumsContent, const QString &fileName)
+{
+    if (checksumsContent.isEmpty() || fileName.isEmpty())
+        return QString();
+
+    const QStringList lines = checksumsContent.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+    for (const QString &line : lines) {
+        const QString trimmed = line.trimmed();
+        if (trimmed.isEmpty())
+            continue;
+        const QStringList parts = trimmed.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
+        if (parts.size() >= 2) {
+            QString hash = parts[0].trimmed();
+            QString name = parts[1].trimmed();
+            if (name.startsWith(QLatin1Char('*')))
+                name = name.mid(1);
+            if (name.compare(fileName, Qt::CaseInsensitive) == 0 && hash.length() == 64) {
+                return hash.toLower();
+            }
+        }
+    }
+    return QString();
 }
 
 #ifdef Q_OS_WIN
@@ -113,7 +159,7 @@ bool UpdateManager::verifyDownloadedPayload(const QString &filePath, QString &er
 #endif
 
 static const QString REPO_RELEASES_API = QStringLiteral("https://api.github.com/repos/nileshchakraborty/AstraPlay/releases/latest");
-static const QString REPO_VERSION_FALLBACK_URL = QStringLiteral("https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/version.json");
+static const QString REPO_VERSION_FALLBACK_URL = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/latest/download/version.json");
 
 UpdateManager::UpdateManager(Settings *settings, QObject *parent)
     : QObject(parent)
@@ -155,6 +201,15 @@ UpdateManager::~UpdateManager()
     if (m_checkReply) {
         QNetworkReply *reply = m_checkReply.data();
         m_checkReply.clear();
+        if (reply) {
+            reply->disconnect();
+            reply->abort();
+            reply->deleteLater();
+        }
+    }
+    if (m_checksumReply) {
+        QNetworkReply *reply = m_checksumReply.data();
+        m_checksumReply.clear();
         if (reply) {
             reply->disconnect();
             reply->abort();
@@ -380,7 +435,23 @@ void UpdateManager::onCheckFinished()
 
     // Look for matching asset for current platform and CPU architecture
     m_downloadUrl.clear();
+    m_checksumsUrl.clear();
+    m_checksumsContent.clear();
+    m_expectedSha256.clear();
     QJsonArray assets = obj.value("assets").toArray();
+
+    for (const auto &val : assets) {
+        QJsonObject asset = val.toObject();
+        QString name = asset.value("name").toString();
+        QString dlUrl = asset.value("browser_download_url").toString();
+        if (name.compare(QLatin1String("SHA256SUMS.txt"), Qt::CaseInsensitive) == 0) {
+            m_checksumsUrl = dlUrl;
+            break;
+        }
+    }
+    if (m_checksumsUrl.isEmpty() && !tagName.isEmpty()) {
+        m_checksumsUrl = QStringLiteral("https://github.com/nileshchakraborty/AstraPlay/releases/download/%1/SHA256SUMS.txt").arg(tagName);
+    }
 
     QString arch = QSysInfo::currentCpuArchitecture().toLower();
     bool isArm = (arch == QLatin1String("arm64") || arch == QLatin1String("aarch64"));
@@ -579,6 +650,25 @@ void UpdateManager::startDownload()
     m_statusMessage = tr("Downloading update...");
     emit statusMessageChanged();
 
+    m_expectedSha256.clear();
+    m_checksumsContent.clear();
+    if (!m_checksumsUrl.isEmpty()) {
+        if (m_checksumReply) {
+            m_checksumReply->disconnect(this);
+            m_checksumReply->abort();
+            m_checksumReply->deleteLater();
+            m_checksumReply.clear();
+        }
+        QNetworkRequest csReq{QUrl(m_checksumsUrl)};
+        csReq.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
+        csReq.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        csReq.setTransferTimeout(15000);
+#endif
+        m_checksumReply = m_nam->get(csReq);
+        connect(m_checksumReply, &QNetworkReply::finished, this, &UpdateManager::onChecksumFinished);
+    }
+
     QUrl url(m_downloadUrl);
     QString filename = QFileInfo(url.path()).fileName();
     if (filename.isEmpty()) {
@@ -666,6 +756,24 @@ void UpdateManager::retryDownload()
     emit failedChanged();
     emit lastErrorChanged();
     startDownload();
+}
+
+void UpdateManager::onChecksumFinished()
+{
+    if (!m_checksumReply)
+        return;
+
+    if (m_checksumReply->error() == QNetworkReply::NoError) {
+        m_checksumsContent = QString::fromUtf8(m_checksumReply->readAll());
+        QString filename = QFileInfo(QUrl(m_downloadUrl).path()).fileName();
+        m_expectedSha256 = extractSha256(m_checksumsContent, filename);
+        qInfo() << "[UpdateManager] Retrieved expected SHA-256 for" << filename << ":" << m_expectedSha256;
+    } else {
+        qWarning() << "[UpdateManager] Failed to fetch SHA256SUMS.txt:" << m_checksumReply->errorString();
+    }
+
+    m_checksumReply->deleteLater();
+    m_checksumReply.clear();
 }
 
 void UpdateManager::onDownloadDataAvailable()
@@ -781,8 +889,22 @@ void UpdateManager::onDownloadFinished()
         m_downloadReply.clear();
     }
 
+    if (m_checksumReply && m_checksumReply->isRunning()) {
+        QEventLoop loop;
+        QTimer timer;
+        timer.setSingleShot(true);
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+        connect(m_checksumReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        timer.start(5000);
+        loop.exec();
+    }
+    if (m_expectedSha256.isEmpty() && !m_checksumsContent.isEmpty()) {
+        QString filename = QFileInfo(QUrl(m_downloadUrl).path()).fileName();
+        m_expectedSha256 = extractSha256(m_checksumsContent, filename);
+    }
+
     QString verifyError;
-    if (!verifyDownloadedPayload(m_downloadedFilePath, verifyError)) {
+    if (!verifyDownloadedPayload(m_downloadedFilePath, verifyError, m_expectedSha256)) {
         m_failed = true;
         m_lastError = verifyError;
         emit failedChanged();
@@ -814,6 +936,15 @@ void UpdateManager::cancelDownload()
     if (m_downloadReply) {
         QNetworkReply *reply = m_downloadReply.data();
         m_downloadReply.clear();
+        if (reply) {
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
+        }
+    }
+    if (m_checksumReply) {
+        QNetworkReply *reply = m_checksumReply.data();
+        m_checksumReply.clear();
         if (reply) {
             reply->disconnect(this);
             reply->abort();

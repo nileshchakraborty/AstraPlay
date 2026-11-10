@@ -37,15 +37,9 @@ static char *strdup_jni(const char *str)
 {
 	if(!str)
 		return NULL;
-	char *r = strdup(str);
-	if(!r)
-		return NULL;
-	for(char *c=r; *c; c++)
-	{
-		if(*c & (1 << 7))
-			*c = '?';
-	}
-	return r;
+	// Preserve valid UTF-8 sequences. JNI NewStringUTF natively accepts standard
+	// UTF-8 for code points U+0001 through U+FFFF (including CJK and European accents).
+	return strdup(str);
 }
 
 jobject jnistr_from_ascii(JNIEnv *env, const char *str)
@@ -147,18 +141,36 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
 	return JNI_VERSION;
 }
 
-JNIEnv *attach_thread_jni()
+JNIEnv *attach_thread_jni_ex(bool *out_needs_detach)
 {
+	if(out_needs_detach)
+		*out_needs_detach = false;
+
 	JNIEnv *env;
 	int r = (*global_vm)->GetEnv(global_vm, (void **)&env, JNI_VERSION);
 	if(r == JNI_OK)
 		return env;
 
 	if((*global_vm)->AttachCurrentThread(global_vm, &env, NULL) == 0)
+	{
+		if(out_needs_detach)
+			*out_needs_detach = true;
 		return env;
+	}
 
 	CHIAKI_LOGE(&global_log, "Failed to get JNIEnv from JavaVM or attach");
 	return NULL;
+}
+
+void detach_thread_jni_ex(bool needs_detach)
+{
+	if(needs_detach && global_vm)
+		(*global_vm)->DetachCurrentThread(global_vm);
+}
+
+JNIEnv *attach_thread_jni()
+{
+	return attach_thread_jni_ex(NULL);
 }
 
 JNIEXPORT void JNICALL JNI_FCN(initNativeSsl)(JNIEnv *env, jobject obj, jstring cache_dir_str)
@@ -297,7 +309,8 @@ static void android_chiaki_event_cb(ChiakiEvent *event, void *user)
 {
 	AndroidChiakiSession *session = user;
 
-	JNIEnv *env = attach_thread_jni();
+	bool needs_detach = false;
+	JNIEnv *env = attach_thread_jni_ex(&needs_detach);
 	if(!env)
 		return;
 
@@ -385,7 +398,7 @@ static void android_chiaki_event_cb(ChiakiEvent *event, void *user)
 			break;
 	}
 
-	(*global_vm)->DetachCurrentThread(global_vm);
+	detach_thread_jni_ex(needs_detach);
 }
 
 // With enable_dualsense=true a PS5 streams rumble as DualSense haptic-audio PCM
@@ -997,7 +1010,8 @@ static void android_discovery_service_cb(ChiakiDiscoveryHost *hosts, size_t host
 
 	CHIAKI_LOGI(&global_log, "JNI Discovery Callback got %llu hosts", (unsigned long long)hosts_count);
 
-	JNIEnv *env = attach_thread_jni();
+	bool needs_detach = false;
+	JNIEnv *env = attach_thread_jni_ex(&needs_detach);
 	if(!env)
 		return;
 
@@ -1037,7 +1051,7 @@ static void android_discovery_service_cb(ChiakiDiscoveryHost *hosts, size_t host
 
 	E->CallVoidMethod(env, service->java_service, service->java_service_hosts_updated_meth, r);
 
-	(*global_vm)->DetachCurrentThread(global_vm);
+	detach_thread_jni_ex(needs_detach);
 }
 
 static ChiakiErrorCode sockaddr_from_java(JNIEnv *env, jobject /*InetSocketAddress*/ sockaddr_obj, struct sockaddr **addr, size_t *addr_size)
@@ -1209,7 +1223,8 @@ static void android_chiaki_regist_cb(ChiakiRegistEvent *event, void *user)
 {
 	AndroidChiakiRegist *regist = user;
 
-	JNIEnv *env = attach_thread_jni();
+	bool needs_detach = false;
+	JNIEnv *env = attach_thread_jni_ex(&needs_detach);
 	if(!env)
 		return;
 
@@ -1244,7 +1259,7 @@ static void android_chiaki_regist_cb(ChiakiRegistEvent *event, void *user)
 	if(java_event)
 		E->CallVoidMethod(env, regist->java_regist, regist->java_regist_event_meth, java_event);
 
-	(*global_vm)->DetachCurrentThread(global_vm);
+	detach_thread_jni_ex(needs_detach);
 }
 
 static void android_chiaki_regist_fini_partial(JNIEnv *env, AndroidChiakiRegist *regist)

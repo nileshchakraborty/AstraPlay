@@ -32,6 +32,24 @@
   <content_rating type="oars-1.1" />
   <!-- Flathub: add <release> entries here when shipping new versions (not generated from CMake). -->
   <releases>
+    <release date="2026-11-10" version="2.12.26">
+      <description>
+        <p>Hardened in-app auto-updater with SHA-256 checksum verification against release digests.</p>
+        <p>AES-256 encrypted credential vault for desktop secrets and tokens bound to hardware identity.</p>
+        <p>Embedded PSN login relay TCP stream framing, rate-limiting, and memory bounds protection.</p>
+        <p>Enforced strict TLS certificate and hostname verification across remote holepunch transport.</p>
+        <p>Added hardware controller profile for ASUS ROG Xbox Ally X (PID 0x1b4c).</p>
+      </description>
+    </release>
+    <release date="2026-11-09" version="2.12.25">
+      <description>
+        <p>Simplified PlayStation sign-in with clear 3-step workflow and direct Sony OAuth links.</p>
+        <p>Smart auto-extraction for 64-character account codes from clipboard or webpage.</p>
+        <p>Enhanced Android TV and Fire TV D-pad remote navigation.</p>
+        <p>In-app PSN relay configuration and offline account connection options.</p>
+        <p>Performance, UI responsiveness, and streaming stability improvements.</p>
+      </description>
+    </release>
     <release date="2026-08-02" version="2.11.4">
       <description>
         <p>Cloud Play fixes for regions without native PlayStation cloud support: the streamable PS3 and PS4 catalog is restored, and titles such as Bloodborne now launch correctly. Improved store routing and reliability for all regions.</p>

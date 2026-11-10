@@ -155,8 +155,8 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     cloud_streaming_backend = new CloudStreamingBackend(settings, this);
     cloud_catalog_backend = new CloudCatalogBackend(settings, this);
 
-    // Initialize standalone embedded PSN Login Relay server
-    embedded_relay_server = new EmbeddedRelayServer(this);
+    // Initialize standalone embedded PSN Login Relay server with 500-code bound & rate limiting
+    embedded_relay_server = new EmbeddedRelayServer(this, {}, 500, true);
     embedded_relay_server->start(25525);
     connect(settings_qml, &QmlSettings::cloudStoreLocaleChanged, this, [this]() {
         // Full wipe (not just the v6 PS5 intermediates): the unified catalog is locale-specific,

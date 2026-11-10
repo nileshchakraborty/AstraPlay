@@ -74,7 +74,8 @@ public:
 
     // Utility to compare semver versions (returns true if remote > current)
     static bool isVersionNewer(const QString &remoteVersion, const QString &currentVersion);
-    static bool verifyDownloadedPayload(const QString &filePath, QString &errorMsg);
+    static bool verifyDownloadedPayload(const QString &filePath, QString &errorMsg, const QString &expectedSha256 = QString());
+    static QString extractSha256(const QString &checksumsContent, const QString &fileName);
 
 signals:
     void checkingChanged();
@@ -97,6 +98,7 @@ signals:
 
 private slots:
     void onCheckFinished();
+    void onChecksumFinished();
     void onDownloadDataAvailable();
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void onDownloadFinished();
@@ -105,6 +107,7 @@ private:
     Settings *m_settings;
     QNetworkAccessManager *m_nam;
     QPointer<QNetworkReply> m_checkReply;
+    QPointer<QNetworkReply> m_checksumReply;
     QPointer<QNetworkReply> m_downloadReply;
 
     bool m_checking = false;
@@ -120,6 +123,9 @@ private:
     QString m_releaseNotes;
     QString m_releaseUrl;
     QString m_downloadUrl;
+    QString m_checksumsUrl;
+    QString m_checksumsContent;
+    QString m_expectedSha256;
     QString m_statusMessage;
     QString m_downloadedFilePath;
     QFile *m_downloadFile = nullptr;

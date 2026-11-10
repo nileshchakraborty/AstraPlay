@@ -45,9 +45,11 @@ static bool isVirtualInterfaceName(const QString &rawName)
            name.contains(QStringLiteral("wg")) || name.contains(QStringLiteral("zerotier"));
 }
 
-EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now)
+EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now, int maxCodes, bool enableRateLimit)
     : QObject(parent)
     , m_server(new QTcpServer(this))
+    , m_maxCodes(maxCodes)
+    , m_enableRateLimit(enableRateLimit)
     , m_cleanupTimer(new QTimer(this))
     , m_now(now ? std::move(now) : [] { return QDateTime::currentMSecsSinceEpoch(); })
 {
@@ -76,8 +78,8 @@ bool EmbeddedRelayServer::start(quint16 port)
             qCritical() << "[EmbeddedRelayServer] Failed to start on any port:" << m_server->errorString();
             return false;
         }
-        m_port = m_server->serverPort();
     }
+    m_port = m_server->serverPort();
 
     m_cleanupTimer->start();
     qInfo() << "[EmbeddedRelayServer] Standalone PSN Relay Server listening on port" << m_port;
@@ -89,6 +91,8 @@ void EmbeddedRelayServer::stop()
 {
     if (m_cleanupTimer->isActive())
         m_cleanupTimer->stop();
+
+    m_socketBuffers.clear();
 
     if (m_server && m_server->isListening()) {
         m_server->close();
@@ -183,6 +187,14 @@ bool EmbeddedRelayServer::createCode(const QString &code)
     if (trimmed.isEmpty())
         return false;
 
+    if (m_codes.size() >= m_maxCodes) {
+        cleanupExpiredCodes();
+        if (m_codes.size() >= m_maxCodes && !m_codes.contains(trimmed)) {
+            qWarning() << "[EmbeddedRelayServer] Code store reached maximum capacity:" << m_maxCodes;
+            return false;
+        }
+    }
+
     RelayCodeEntry entry;
     entry.npsso = QString();
     entry.createdAt = m_now();
@@ -230,7 +242,10 @@ void EmbeddedRelayServer::onNewConnection()
     while (m_server->hasPendingConnections()) {
         QTcpSocket *socket = m_server->nextPendingConnection();
         connect(socket, &QTcpSocket::readyRead, this, &EmbeddedRelayServer::onClientReadyRead);
-        connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+        connect(socket, &QTcpSocket::disconnected, this, [this, socket]() {
+            m_socketBuffers.remove(socket);
+            socket->deleteLater();
+        });
     }
 }
 
@@ -240,8 +255,47 @@ void EmbeddedRelayServer::onClientReadyRead()
     if (!socket)
         return;
 
-    QByteArray requestData = socket->readAll();
-    handleHttpRequest(socket, requestData);
+    QByteArray &buf = m_socketBuffers[socket];
+    buf.append(socket->readAll());
+
+    while (!buf.isEmpty()) {
+        int headerEnd = buf.indexOf("\r\n\r\n");
+        if (headerEnd == -1) {
+            // Check if buffer exceeded max allowed header size (64 KB)
+            if (buf.size() > 64 * 1024) {
+                sendResponse(socket, 400, "Bad Request", "text/plain", "Header Too Large");
+                m_socketBuffers.remove(socket);
+                socket->close();
+            }
+            return;
+        }
+
+        // Parse Content-Length if present
+        QByteArray headers = buf.left(headerEnd);
+        int contentLength = 0;
+        int clPos = headers.indexOf("Content-Length:");
+        if (clPos == -1)
+            clPos = headers.indexOf("content-length:");
+        if (clPos != -1) {
+            int lineEnd = headers.indexOf("\r\n", clPos);
+            QByteArray clLine = (lineEnd != -1) ? headers.mid(clPos, lineEnd - clPos) : headers.mid(clPos);
+            int colon = clLine.indexOf(':');
+            if (colon != -1) {
+                contentLength = clLine.mid(colon + 1).trimmed().toInt();
+            }
+        }
+
+        int totalExpected = headerEnd + 4 + contentLength;
+        if (buf.size() < totalExpected) {
+            // Incomplete body, await more TCP packets
+            return;
+        }
+
+        QByteArray requestData = buf.left(totalExpected);
+        buf.remove(0, totalExpected);
+
+        handleHttpRequest(socket, requestData);
+    }
 }
 
 void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray &requestData)
@@ -269,6 +323,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         return;
     }
 
+    QString clientIp = socket ? socket->peerAddress().toString() : QStringLiteral("127.0.0.1");
+
     // Extract body if POST
     QByteArray body;
     int bodyStart = requestData.indexOf("\r\n\r\n");
@@ -278,17 +334,43 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /psstream/create-code or /astraplay/create-code ---
     if ((path == "/psstream/create-code" || path == "/astraplay/create-code") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 5)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
+        QString norm = code.trimmed().toUpper();
+        if (norm.isEmpty()) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Invalid code";
+            sendJsonResponse(socket, 400, resp);
+            return;
+        }
+        if (m_codes.size() >= m_maxCodes) {
+            cleanupExpiredCodes();
+            if (m_codes.size() >= m_maxCodes && !m_codes.contains(norm)) {
+                QJsonObject resp;
+                resp["result"] = "error";
+                resp["error"] = "Too many active codes, please try again later";
+                sendJsonResponse(socket, 429, resp);
+                return;
+            }
+        }
         if (createCode(code)) {
             QJsonObject resp;
             resp["result"] = "success";
-            resp["code"] = code.trimmed().toUpper();
+            resp["code"] = norm;
             sendJsonResponse(socket, 200, resp);
         } else {
             QJsonObject resp;
             resp["result"] = "error";
-            resp["error"] = "Invalid code";
+            resp["error"] = "Failed to create code";
             sendJsonResponse(socket, 400, resp);
         }
         return;
@@ -296,6 +378,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /psstream/get-tokens or /astraplay/get-tokens ---
     if ((path == "/psstream/get-tokens" || path == "/astraplay/get-tokens") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 30)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso;
@@ -315,6 +405,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /astraplay/validate-code or /psstream/validate-code ---
     if ((path == "/astraplay/validate-code" || path == "/psstream/validate-code") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 10)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         if (validateCode(code)) {
@@ -332,6 +430,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /astraplay/connect or /psstream/connect ---
     if ((path == "/astraplay/connect" || path == "/psstream/connect") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 10)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso = json.value("npsso").toString();
@@ -350,8 +456,18 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: Local search.php helper ---
     if (path == "/search.php" && method == "GET") {
+        QUrlQuery query(parsedUrl);
+        QString username = query.queryItemValue("username");
+        QString mockId = query.queryItemValue("mock_id");
         QJsonObject resp;
-        resp["error"] = "Lookup disabled. Please use the direct PSN Login on this device.";
+        if (username.isEmpty()) {
+            resp["error"] = "Username required";
+        } else if (!mockId.isEmpty()) {
+            resp["username"] = username;
+            resp["encoded_id"] = mockId;
+        } else {
+            resp["error"] = "Lookup disabled. Please use the direct PSN Login on this device.";
+        }
         sendJsonResponse(socket, 200, resp);
         return;
     }
@@ -429,4 +545,23 @@ RelayCodeEntry *EmbeddedRelayServer::activeCode(const QString &normalizedCode)
         return nullptr;
     }
     return &it.value();
+}
+
+bool EmbeddedRelayServer::checkRateLimit(const QString &endpoint, const QString &ip, int limit, qint64 windowMs)
+{
+    if (!m_enableRateLimit)
+        return true;
+
+    QString key = endpoint + QLatin1Char(':') + ip;
+    qint64 nowMs = m_now();
+    auto it = m_rateLimits.find(key);
+    if (it == m_rateLimits.end() || nowMs >= it.value().resetTime) {
+        m_rateLimits[key] = {1, nowMs + windowMs};
+        return true;
+    }
+    if (it.value().count >= limit) {
+        return false;
+    }
+    it.value().count++;
+    return true;
 }
