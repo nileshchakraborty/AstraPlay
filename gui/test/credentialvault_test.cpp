@@ -17,6 +17,7 @@ private slots:
     void testLegacyMigration();
     void testBinarySecretRoundtrip();
     void testDeleteSecret();
+    void testCorruptedCiphertextFallback();
 };
 
 void CredentialVaultTest::initTestCase()
@@ -108,6 +109,26 @@ void CredentialVaultTest::testDeleteSecret()
 
     QSettings settings;
     QVERIFY(!settings.contains(QStringLiteral("vault/") + key));
+}
+
+void CredentialVaultTest::testCorruptedCiphertextFallback()
+{
+    const QString key = QStringLiteral("corrupted_key");
+    const QString fallback = QStringLiteral("safe_fallback_token");
+
+    QSettings settings;
+    // Set invalid / tampered ciphertext in settings
+    settings.setValue(QStringLiteral("vault/") + key, QStringLiteral("dGFtcGVyZWRfYmFzZTY0X25vdF92YWxpZF9jaXBoZXI="));
+
+    // Decryption must safely fail without crashing and migrate/return fallback
+    QString result = CredentialVault::readSecret(key, fallback);
+    QCOMPARE(result, fallback);
+
+    // Reading another corrupted key with empty fallback returns empty string without crashing
+    const QString corruptedKey2 = QStringLiteral("corrupted_no_fallback");
+    settings.setValue(QStringLiteral("vault/") + corruptedKey2, QStringLiteral("dGFtcGVyZWRfYmFzZTY0X25vdF92YWxpZF9jaXBoZXI="));
+    QString emptyFallbackResult = CredentialVault::readSecret(corruptedKey2);
+    QVERIFY(emptyFallbackResult.isEmpty());
 }
 
 QTEST_GUILESS_MAIN(CredentialVaultTest)

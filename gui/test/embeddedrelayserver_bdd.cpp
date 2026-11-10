@@ -15,6 +15,9 @@ private slots:
     void search_endpoint_handles_missing_username_and_mock_id();
     void capacity_limit_rejects_excess_codes();
     void rate_limiting_returns_http_429();
+    void http_capacity_limit_returns_http_429();
+    void rate_limiting_resets_after_window_expires();
+    void full_http_auth_exchange_flow();
 };
 
 void EmbeddedRelayServerBdd::code_is_normalized_and_consumed_once()
@@ -210,6 +213,233 @@ void EmbeddedRelayServerBdd::rate_limiting_returns_http_429()
         QByteArray resp = client.readAll();
         QVERIFY(resp.startsWith("HTTP/1.1 429"));
         QVERIFY(resp.contains("Too many requests"));
+    }
+}
+
+void EmbeddedRelayServerBdd::http_capacity_limit_returns_http_429()
+{
+    qint64 now = 1000;
+    // Server with maxCodes = 1
+    EmbeddedRelayServer relay(nullptr, [&now] { return now; }, 1, false);
+    QVERIFY(relay.start(0));
+    quint16 port = relay.port();
+    QVERIFY(port > 0);
+
+    // 1st create-code succeeds
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"HTTPCAP1\"}";
+        QByteArray req = QString("POST /astraplay/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"result\":\"success\""));
+    }
+
+    // 2nd create-code exceeds capacity and returns HTTP 429
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"HTTPCAP2\"}";
+        QByteArray req = QString("POST /astraplay/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 429"));
+        QVERIFY(resp.contains("Too many active codes"));
+    }
+}
+
+void EmbeddedRelayServerBdd::rate_limiting_resets_after_window_expires()
+{
+    qint64 now = 1000;
+    EmbeddedRelayServer relay(nullptr, [&now] { return now; }, 500, true);
+    QVERIFY(relay.start(0));
+    quint16 port = relay.port();
+    QVERIFY(port > 0);
+
+    // Exhaust 5 allowed requests
+    for (int i = 0; i < 5; ++i) {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = QString("{\"code\":\"WIN%1\"}").arg(i).toUtf8();
+        QByteArray req = QString("POST /psstream/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+    }
+
+    // 6th request gets 429
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"WIN_FAIL\"}";
+        QByteArray req = QString("POST /psstream/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 429"));
+    }
+
+    // Advance time past 60-second window
+    now += 61000;
+
+    // Next request succeeds again
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"WIN_AFTER_RESET\"}";
+        QByteArray req = QString("POST /psstream/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"result\":\"success\""));
+    }
+}
+
+void EmbeddedRelayServerBdd::full_http_auth_exchange_flow()
+{
+    qint64 now = 1000;
+    EmbeddedRelayServer relay(nullptr, [&now] { return now; }, 500, false);
+    QVERIFY(relay.start(0));
+    quint16 port = relay.port();
+    QVERIFY(port > 0);
+
+    // 1. Client creates code
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\"}";
+        QByteArray req = QString("POST /astraplay/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"code\":\"E2ECODE1\""));
+    }
+
+    // 2. Browser validates code
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\"}";
+        QByteArray req = QString("POST /astraplay/validate-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"result\":\"valid\""));
+    }
+
+    // 3. Client polls tokens before user connects (reports 404 pending)
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\"}";
+        QByteArray req = QString("POST /astraplay/get-tokens HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 404"));
+        QVERIFY(resp.contains("Token not ready yet"));
+    }
+
+    // 4. Browser connects NPSSO token
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\",\"npsso\":\"SECRET_NPSSO_TOKEN_99\"}";
+        QByteArray req = QString("POST /astraplay/connect HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"result\":\"success\""));
+    }
+
+    // 5. Client polls tokens and receives NPSSO
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\"}";
+        QByteArray req = QString("POST /astraplay/get-tokens HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+        QVERIFY(resp.contains("\"result\":\"success\""));
+        QVERIFY(resp.contains("\"npsso\":\"SECRET_NPSSO_TOKEN_99\""));
+    }
+
+    // 6. Token is consumed once: immediate next poll returns 404
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"E2ECODE1\"}";
+        QByteArray req = QString("POST /astraplay/get-tokens HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 404"));
     }
 }
 
