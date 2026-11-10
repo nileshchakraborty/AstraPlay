@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <settings.h>
+#include "credentialvault.h"
 #include <SDL.h>
 #include <QFile>
 #include <QFileInfo>
@@ -942,22 +943,38 @@ void Settings::SetEchoSuppressLevel(int reduceby)
 
 QString Settings::GetPsnAuthToken() const
 {
-	return settings.value("settings/psn_auth_token").toString();
+	QString legacy = settings.value("settings/psn_auth_token").toString();
+	QString val = CredentialVault::readSecret(QStringLiteral("psn_auth_token"), legacy);
+	if (!legacy.isEmpty())
+		const_cast<QSettings&>(settings).remove("settings/psn_auth_token");
+	return val;
 }
 
 void Settings::SetPsnAuthToken(QString auth_token)
 {
-	settings.setValue("settings/psn_auth_token", auth_token);
+	if (auth_token.isEmpty())
+		CredentialVault::deleteSecret(QStringLiteral("psn_auth_token"));
+	else
+		CredentialVault::writeSecret(QStringLiteral("psn_auth_token"), auth_token);
+	settings.remove("settings/psn_auth_token");
 }
 
 QString Settings::GetPsnRefreshToken() const
 {
-	return settings.value("settings/psn_refresh_token").toString();
+	QString legacy = settings.value("settings/psn_refresh_token").toString();
+	QString val = CredentialVault::readSecret(QStringLiteral("psn_refresh_token"), legacy);
+	if (!legacy.isEmpty())
+		const_cast<QSettings&>(settings).remove("settings/psn_refresh_token");
+	return val;
 }
 
 void Settings::SetPsnRefreshToken(QString refresh_token)
 {
-	settings.setValue("settings/psn_refresh_token", refresh_token);
+	if (refresh_token.isEmpty())
+		CredentialVault::deleteSecret(QStringLiteral("psn_refresh_token"));
+	else
+		CredentialVault::writeSecret(QStringLiteral("psn_refresh_token"), refresh_token);
+	settings.remove("settings/psn_refresh_token");
 }
 
 QString Settings::GetPsnAuthTokenExpiry() const
@@ -972,7 +989,11 @@ void Settings::SetPsnAuthTokenExpiry(QString expiry_date)
 
 QString Settings::GetNpssoToken() const
 {
-	return settings.value("settings/psn_npsso_token").toString();
+	QString legacy = settings.value("settings/psn_npsso_token").toString();
+	QString val = CredentialVault::readSecret(QStringLiteral("psn_npsso_token"), legacy);
+	if (!legacy.isEmpty())
+		const_cast<QSettings&>(settings).remove("settings/psn_npsso_token");
+	return val;
 }
 
 void Settings::SetNpssoToken(QString npsso_token)
@@ -980,9 +1001,13 @@ void Settings::SetNpssoToken(QString npsso_token)
 	// No-op when the token is unchanged so we don't needlessly drop the cloud catalog
 	// cache. Re-auth paths can re-write the same npsso (e.g. token re-exchange after an
 	// expired access token), and that is not an account change.
-	if(settings.value("settings/psn_npsso_token").toString() == npsso_token)
+	if(GetNpssoToken() == npsso_token)
 		return;
-	settings.setValue("settings/psn_npsso_token", npsso_token);
+	if (npsso_token.isEmpty())
+		CredentialVault::deleteSecret(QStringLiteral("psn_npsso_token"));
+	else
+		CredentialVault::writeSecret(QStringLiteral("psn_npsso_token"), npsso_token);
+	settings.remove("settings/psn_npsso_token");
 	// Fires on login, logout, and token re-entry (not on periodic auth/refresh-token
 	// renewals, which don't touch the npsso). Listeners use this to drop the cached
 	// cloud catalog so one account never sees another's owned games.

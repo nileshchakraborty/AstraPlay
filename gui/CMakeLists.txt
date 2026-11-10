@@ -52,6 +52,8 @@ set(SOURCE_FILES
 	src/settings.cpp
 	include/host.h
 	src/host.cpp
+	include/credentialvault.h
+	src/credentialvault.cpp
 	include/embeddedrelayserver.h
 	src/embeddedrelayserver.cpp
 	res/resources.qrc
@@ -266,4 +268,16 @@ if(CHIAKI_ENABLE_TESTS)
 	target_include_directories(chiaki-updater-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include ${CMAKE_BINARY_DIR}/lib/include)
 	target_link_libraries(chiaki-updater-test PRIVATE Qt::Core Qt::Gui Qt::Network Qt::Test)
 	add_test(NAME qt-updater-test COMMAND chiaki-updater-test)
+
+	add_executable(chiaki-vault-test
+		test/credentialvault_test.cpp
+		include/credentialvault.h
+		src/credentialvault.cpp
+	)
+	target_include_directories(chiaki-vault-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include)
+	target_link_libraries(chiaki-vault-test PRIVATE Qt::Core Qt::Test chiaki-lib)
+	if(APPLE)
+		target_link_libraries(chiaki-vault-test PRIVATE "-framework IOKit" "-framework CoreFoundation")
+	endif()
+	add_test(NAME qt-credential-vault-test COMMAND chiaki-vault-test)
 endif()

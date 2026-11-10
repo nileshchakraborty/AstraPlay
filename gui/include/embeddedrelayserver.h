@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QMap>
+#include <QHash>
 #include <QDateTime>
 #include <QTimer>
 #include <QHostAddress>
@@ -52,6 +53,7 @@ private:
     QTcpServer *m_server = nullptr;
     quint16 m_port = 25525;
     QMap<QString, RelayCodeEntry> m_codes;
+    QHash<QTcpSocket *, QByteArray> m_socketBuffers;
     QTimer *m_cleanupTimer = nullptr;
     std::function<qint64()> m_now;
 };

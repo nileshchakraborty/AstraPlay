@@ -76,8 +76,8 @@ bool EmbeddedRelayServer::start(quint16 port)
             qCritical() << "[EmbeddedRelayServer] Failed to start on any port:" << m_server->errorString();
             return false;
         }
-        m_port = m_server->serverPort();
     }
+    m_port = m_server->serverPort();
 
     m_cleanupTimer->start();
     qInfo() << "[EmbeddedRelayServer] Standalone PSN Relay Server listening on port" << m_port;
@@ -89,6 +89,8 @@ void EmbeddedRelayServer::stop()
 {
     if (m_cleanupTimer->isActive())
         m_cleanupTimer->stop();
+
+    m_socketBuffers.clear();
 
     if (m_server && m_server->isListening()) {
         m_server->close();
@@ -230,7 +232,10 @@ void EmbeddedRelayServer::onNewConnection()
     while (m_server->hasPendingConnections()) {
         QTcpSocket *socket = m_server->nextPendingConnection();
         connect(socket, &QTcpSocket::readyRead, this, &EmbeddedRelayServer::onClientReadyRead);
-        connect(socket, &QTcpSocket::disconnected, socket, &QTcpSocket::deleteLater);
+        connect(socket, &QTcpSocket::disconnected, this, [this, socket]() {
+            m_socketBuffers.remove(socket);
+            socket->deleteLater();
+        });
     }
 }
 
@@ -240,8 +245,47 @@ void EmbeddedRelayServer::onClientReadyRead()
     if (!socket)
         return;
 
-    QByteArray requestData = socket->readAll();
-    handleHttpRequest(socket, requestData);
+    QByteArray &buf = m_socketBuffers[socket];
+    buf.append(socket->readAll());
+
+    while (!buf.isEmpty()) {
+        int headerEnd = buf.indexOf("\r\n\r\n");
+        if (headerEnd == -1) {
+            // Check if buffer exceeded max allowed header size (64 KB)
+            if (buf.size() > 64 * 1024) {
+                sendResponse(socket, 400, "Bad Request", "text/plain", "Header Too Large");
+                m_socketBuffers.remove(socket);
+                socket->close();
+            }
+            return;
+        }
+
+        // Parse Content-Length if present
+        QByteArray headers = buf.left(headerEnd);
+        int contentLength = 0;
+        int clPos = headers.indexOf("Content-Length:");
+        if (clPos == -1)
+            clPos = headers.indexOf("content-length:");
+        if (clPos != -1) {
+            int lineEnd = headers.indexOf("\r\n", clPos);
+            QByteArray clLine = (lineEnd != -1) ? headers.mid(clPos, lineEnd - clPos) : headers.mid(clPos);
+            int colon = clLine.indexOf(':');
+            if (colon != -1) {
+                contentLength = clLine.mid(colon + 1).trimmed().toInt();
+            }
+        }
+
+        int totalExpected = headerEnd + 4 + contentLength;
+        if (buf.size() < totalExpected) {
+            // Incomplete body, await more TCP packets
+            return;
+        }
+
+        QByteArray requestData = buf.left(totalExpected);
+        buf.remove(0, totalExpected);
+
+        handleHttpRequest(socket, requestData);
+    }
 }
 
 void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray &requestData)
@@ -350,8 +394,18 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: Local search.php helper ---
     if (path == "/search.php" && method == "GET") {
+        QUrlQuery query(parsedUrl);
+        QString username = query.queryItemValue("username");
+        QString mockId = query.queryItemValue("mock_id");
         QJsonObject resp;
-        resp["error"] = "Lookup disabled. Please use the direct PSN Login on this device.";
+        if (username.isEmpty()) {
+            resp["error"] = "Username required";
+        } else if (!mockId.isEmpty()) {
+            resp["username"] = username;
+            resp["encoded_id"] = mockId;
+        } else {
+            resp["error"] = "Lookup disabled. Please use the direct PSN Login on this device.";
+        }
         sendJsonResponse(socket, 200, resp);
         return;
     }

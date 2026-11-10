@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <host.h>
+#include "credentialvault.h"
 
 #include <QSettings>
 
@@ -57,7 +58,9 @@ void RegisteredHost::SaveToSettings(QSettings *settings) const
 	settings->setValue("server_mac", QByteArray((const char *)server_mac.GetMAC(), 6));
 	settings->setValue("rp_regist_key", QByteArray(rp_regist_key, sizeof(rp_regist_key)));
 	settings->setValue("rp_key_type", rp_key_type);
-	settings->setValue("rp_key", QByteArray((const char *)rp_key, sizeof(rp_key)));
+	QString hostKey = QString("rp_key_%1").arg(server_mac.ToString());
+	CredentialVault::writeSecretBytes(hostKey, QByteArray((const char *)rp_key, sizeof(rp_key)));
+	settings->remove("rp_key");
 	settings->setValue("console_pin", console_pin);
 	settings->setValue("last_host_ip", last_host_ip);
 }
@@ -78,7 +81,13 @@ RegisteredHost RegisteredHost::LoadFromSettings(QSettings *settings)
 	if(rp_regist_key.size() == sizeof(r.rp_regist_key))
 		memcpy(r.rp_regist_key, rp_regist_key.constData(), sizeof(r.rp_regist_key));
 	r.rp_key_type = settings->value("rp_key_type").toUInt();
-	auto rp_key = settings->value("rp_key").toByteArray();
+
+	QString hostKey = QString("rp_key_%1").arg(r.server_mac.ToString());
+	auto legacy_rp_key = settings->value("rp_key").toByteArray();
+	auto rp_key = CredentialVault::readSecretBytes(hostKey, legacy_rp_key);
+	if (!legacy_rp_key.isEmpty()) {
+		settings->remove("rp_key");
+	}
 	if(rp_key.size() == sizeof(r.rp_key))
 		memcpy(r.rp_key, rp_key.constData(), sizeof(r.rp_key));
 	r.console_pin = settings->value("console_pin").toString();
