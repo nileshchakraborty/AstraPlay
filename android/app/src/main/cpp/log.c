@@ -108,11 +108,12 @@ static void android_chiaki_log_cb(ChiakiLogLevel level, const char *msg, void *u
 	log_cb_android(level, msg, NULL);
 
 	AndroidChiakiJNILog *log = user;
-	JNIEnv *env = attach_thread_jni();
+	bool needs_detach = false;
+	JNIEnv *env = attach_thread_jni_ex(&needs_detach);
 	if(!env)
 		return;
 	E->CallVoidMethod(env, log->java_log, log->java_log_meth, (jint)level, jnistr_from_ascii(env, msg));
-	(*global_vm)->DetachCurrentThread(global_vm);
+	detach_thread_jni_ex(needs_detach);
 }
 
 void android_chiaki_jni_log_init(AndroidChiakiJNILog *log, JNIEnv *env, jobject java_log)

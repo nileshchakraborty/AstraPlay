@@ -113,6 +113,7 @@ static QSet<QPair<uint16_t, uint16_t>> chiaki_handheld_controller_ids({
 	// in format (vendor id, product id)
 	QPair<uint16_t, uint16_t>(0x28de, 0x1205), // Steam Deck
 	QPair<uint16_t, uint16_t>(0x0b05, 0x1abe), // Rog Ally
+	QPair<uint16_t, uint16_t>(0x0b05, 0x1b4c), // ROG Xbox Ally X
 	QPair<uint16_t, uint16_t>(0x17ef, 0x6182), // Legion Go
 	QPair<uint16_t, uint16_t>(0x0db0, 0x1901), // MSI Claw
 });

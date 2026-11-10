@@ -74,7 +74,7 @@ DialogView {
         statusLabel.visible = true;
         
         AstraPlay.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
-            console.log("astraplay API response - success:", success, "error:", errorMsg, "npsso:", npssoToken);
+            console.log("astraplay API response - success:", success, "error:", errorMsg, "npsso len:", (npssoToken ? npssoToken.length : 0));
             
             isCheckingStatus = false;
             
@@ -125,7 +125,7 @@ DialogView {
                         }
                     });
                 } else {
-                    console.error("Invalid token format received (empty):", npssoToken);
+                    console.error("Invalid token format received (empty or null)");
                     statusLabel.visible = false;
                     root.showMessageDialog(qsTr("Login Error"), qsTr("Invalid token format received from server"), () => {});
                 }
