@@ -1,4 +1,4 @@
-• Simplified PlayStation sign-in with 3 clear steps and direct Sony links.
+• Simplified PlayStation sign-in with 3 clear steps and direct authentication links.
 • Smart auto-extraction for 64-character account codes from clipboard or webpage.
 • Enhanced Android TV and Fire TV D-pad remote navigation.
 • In-app PSN relay configuration and offline account connection options.

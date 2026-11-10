@@ -16,7 +16,7 @@ This Privacy Policy explains our commitment to user privacy, device permissions,
 > AstraPlay operates entirely on a zero-data-collection architecture:
 > - **No Telemetry & No Analytics**: We do not include any tracking software, telemetry libraries, analytics SDKs, advertising SDKs, or background crash-reporting servers.
 > - **No User Accounts on Our Servers**: We do not maintain user databases, accounts, or cloud profiles. We operate no surveillance or data-harvesting infrastructure.
-> - **Direct Peer-to-Peer & Sony PSN Only**: When you stream, all audio, video, and controller data flows directly between your client device and your PlayStation console on your local network (or direct remote connection). When you log in, authentication occurs directly and exclusively with official Sony PlayStation servers over encrypted HTTPS (TLS).
+> - **Direct Peer-to-Peer & PSN Only**: When you stream, all audio, video, and controller data flows directly between your client device and your PlayStation console on your local network (or direct remote connection). When you log in, authentication occurs directly and exclusively with official PlayStation servers over encrypted HTTPS (TLS).
 > - **100% Auditable Open-Source Code**: Every line of code, network socket call, and build script is publicly inspectable and auditable on GitHub at [github.com/nileshchakraborty/AstraPlay](https://github.com/nileshchakraborty/AstraPlay).
 
 ---
@@ -33,7 +33,7 @@ To assist users and comply with Google Play Data Safety declarations and Apple A
 | **Advertising / Tracking Identifiers** (AAID, IDFA) | **No** | **No** | No | Not accessed or collected |
 | **Analytics / Diagnostic Usage Telemetry** | **No** | **No** | No | Not accessed or collected |
 | **Contacts / Browsing History / Photos** | **No** | **No** | No | Not accessed or collected |
-| **PSN Account ID & Session Tokens** | **No** | **No** (Direct to Sony PSN only) | **Yes** (Secure Storage / Keychain) | Authenticating your Remote Play session |
+| **PSN Account ID & Session Tokens** | **No** | **No** (Direct to PSN only) | **Yes** (Secure Storage / Keychain) | Authenticating your Remote Play session |
 | **Console Registration Keys & PINs** | **No** | **No** (Local LAN only) | **Yes** (Encrypted on device) | Connecting to your PlayStation |
 | **Diagnostic Session Logs** | **No** | **No** (Manual export only) | **Yes** (Local text files on device) | Debugging connection issues (user controlled) |
 
@@ -47,7 +47,7 @@ AstraPlay requests only the minimal system permissions required to enable local 
 
 | Permission | Protection Level | Why It Is Required | How It Is Used | User Data Collected |
 | :--- | :--- | :--- | :--- | :--- |
-| **`android.permission.INTERNET`** | Normal | To stream audio/video and send controller inputs between your device and your PlayStation console, and communicate with Sony PSN for authentication. | Opens TCP/UDP sockets for real-time Remote Play streaming and direct HTTPS requests to official Sony servers. | **Zero** |
+| **`android.permission.INTERNET`** | Normal | To stream audio/video and send controller inputs between your device and your PlayStation console, and communicate with PSN for authentication. | Opens TCP/UDP sockets for real-time Remote Play streaming and direct HTTPS requests to official PlayStation servers. | **Zero** |
 | **`android.permission.ACCESS_NETWORK_STATE`** | Normal | To detect network connectivity changes (e.g., switching between Wi-Fi and mobile data). | Dynamically adapts streaming bitrate and buffer sizes to prevent frame stutter or packet loss during network handoffs. | **Zero** |
 | **`android.permission.ACCESS_WIFI_STATE`** | Normal | To determine your device's local Wi-Fi IP address. | Generates and displays the exact local IP address on the Embedded Relay Server screen and in the pairing QR code (`http://<local-ip>:25525`) so you can pair from other devices on the same Wi-Fi network. | **Zero** (IP is never sent to any remote server) |
 | **`android.permission.CHANGE_WIFI_MULTICAST_STATE`** | Normal | To receive UDP multicast/broadcast packets on your home Wi-Fi. | PlayStation consoles broadcast their presence and wake-up status using UDP packets. Without this permission, Android drops multicast packets to save battery, preventing automatic console discovery and console wake-up. | **Zero** |
@@ -58,7 +58,7 @@ AstraPlay requests only the minimal system permissions required to enable local 
 
 | Entitlement | Why It Is Required | How It Is Used | User Data Collected |
 | :--- | :--- | :--- | :--- |
-| **`com.apple.security.network.client`** | Outgoing network connections under macOS App Sandbox. | Connects to your PlayStation console on your local network or via remote IP, and accesses Sony PSN login endpoints. | **Zero** |
+| **`com.apple.security.network.client`** | Outgoing network connections under macOS App Sandbox. | Connects to your PlayStation console on your local network or via remote IP, and accesses PlayStation login endpoints. | **Zero** |
 | **`com.apple.security.network.server`** | Incoming network socket binding under macOS App Sandbox. | Powers the local Embedded Relay Server (`http://127.0.0.1:25525`) to receive OAuth login callback redirects from your default web browser, and binds incoming UDP streaming ports. | **Zero** |
 | **`com.apple.security.device.usb`** | Raw USB HID controller communication under Hardened Runtime. | Enables the SDL library to access wired DualSense and DualShock 4 controllers via raw HID (`hidapi`) to support advanced haptics, adaptive triggers, and lightbar controls. | **Zero** |
 | **`com.apple.security.device.bluetooth`** | Raw Bluetooth HID controller communication under Hardened Runtime. | Enables wireless DualSense and DualShock 4 controller rumble and haptics over Bluetooth. | **Zero** |
@@ -86,7 +86,7 @@ AstraPlay handles three specific types of data, all of which remain under your c
 
 1. **PSN Account Credentials & Session Tokens**:
    - In order to discover registered consoles or authenticate Cloud Gaming sessions, the Application requests your PlayStation Network account identifier and session tokens (such as NPSSO).
-   - **How it is used**: Tokens are sent **exclusively and directly** to official Sony PlayStation servers over encrypted HTTPS (TLS).
+   - **How it is used**: Tokens are sent **exclusively and directly** to official PlayStation servers over encrypted HTTPS (TLS).
    - **Local Storage Security**: Session tokens are stored using platform-native encrypted storage primitives (Android Keystore / EncryptedSharedPreferences, macOS Keychain, and iOS Keychain).
    - **No Intermediary**: AstraPlay developers operate no servers that receive, see, or store your tokens.
 
