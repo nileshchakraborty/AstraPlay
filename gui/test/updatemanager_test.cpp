@@ -3,6 +3,7 @@
 
 #include <QTemporaryFile>
 #include <QTemporaryDir>
+#include <QCryptographicHash>
 #include <QtTest>
 
 class UpdateManagerTest final : public QObject
@@ -18,6 +19,8 @@ private slots:
     void testPathEscaping();
     void testVersionJsonStructure();
     void testIntelMacDeprecationLogic();
+    void testExtractSha256();
+    void testVerifyChecksum();
 };
 
 void UpdateManagerTest::testIsVersionNewer()
@@ -223,6 +226,61 @@ void UpdateManagerTest::testIntelMacDeprecationLogic()
 
     // Remote v2.12.19 is newer than local v2.12.18
     QVERIFY(UpdateManager::isVersionNewer(QStringLiteral("v2.12.19"), QStringLiteral("2.12.18")));
+}
+
+void UpdateManagerTest::testExtractSha256()
+{
+    QString sampleSums = QStringLiteral(
+        "349f407e2a06b7df963044a7dcab726502a09bda59f7dc65effc713f53ad7805  AstraPlay-Android.aab\n"
+        "2ecf2dd589b9841b933a71d8a9bc83e5926771bc786d08cce3cf70a303e64cca  AstraPlay-macOS-arm64.dmg\n"
+        "234d0e22066f336730a7028a79c56bbd1023f1e401a9e27dc5282a324d2af08a *AstraPlay-macOS-arm64.zip\n"
+        "5c40238b2184db5f2a2a0cb111880c574a380bad114143e5d0d4b0b45412e354  astraplay-windows-installer.exe\n"
+    );
+
+    QCOMPARE(UpdateManager::extractSha256(sampleSums, QStringLiteral("AstraPlay-Android.aab")),
+             QStringLiteral("349f407e2a06b7df963044a7dcab726502a09bda59f7dc65effc713f53ad7805"));
+    QCOMPARE(UpdateManager::extractSha256(sampleSums, QStringLiteral("AstraPlay-macOS-arm64.zip")),
+             QStringLiteral("234d0e22066f336730a7028a79c56bbd1023f1e401a9e27dc5282a324d2af08a"));
+    QCOMPARE(UpdateManager::extractSha256(sampleSums, QStringLiteral("astraplay-windows-installer.exe")),
+             QStringLiteral("5c40238b2184db5f2a2a0cb111880c574a380bad114143e5d0d4b0b45412e354"));
+    // Non-existent entry
+    QVERIFY(UpdateManager::extractSha256(sampleSums, QStringLiteral("nonexistent.exe")).isEmpty());
+    // Empty content
+    QVERIFY(UpdateManager::extractSha256(QString(), QStringLiteral("test.exe")).isEmpty());
+}
+
+void UpdateManagerTest::testVerifyChecksum()
+{
+    QTemporaryDir tempDir;
+    QVERIFY(tempDir.isValid());
+    QString path = tempDir.filePath(QStringLiteral("update.zip"));
+
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    // Header magic: PK
+    file.write("PK\x03\x04");
+    QByteArray dummyData(6 * 1024 * 1024, 'A');
+    file.write(dummyData);
+    file.close();
+
+    // Compute expected hash of the file
+    QFile hashFile(path);
+    QVERIFY(hashFile.open(QIODevice::ReadOnly));
+    QCryptographicHash hasher(QCryptographicHash::Sha256);
+    hasher.addData(&hashFile);
+    hashFile.close();
+    QString correctSha256 = QString::fromLatin1(hasher.result().toHex()).toLower();
+
+    // Verification with matching hash must succeed
+    QString errorMsg;
+    bool ok = UpdateManager::verifyDownloadedPayload(path, errorMsg, correctSha256);
+    QVERIFY2(ok, qPrintable(errorMsg));
+
+    // Verification with mismatching hash must fail
+    QString wrongSha256 = QStringLiteral("0000000000000000000000000000000000000000000000000000000000000000");
+    ok = UpdateManager::verifyDownloadedPayload(path, errorMsg, wrongSha256);
+    QVERIFY(!ok);
+    QVERIFY(errorMsg.contains(QStringLiteral("checksum mismatch"), Qt::CaseInsensitive));
 }
 
 QTEST_GUILESS_MAIN(UpdateManagerTest)
