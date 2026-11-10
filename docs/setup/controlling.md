@@ -424,3 +424,41 @@ Sony's PlayStation operating system enforces DRM and privacy protection at the c
 2. **One-Time Direct Screen Setup**: If an introductory prompt cannot be navigated blindly, launch the game once while connected directly to a physical TV or monitor to complete the initial agreement and account setup.
 3. **In-Game Streamer Mode**: In games with licensed music (like *WWE 2K*), open the in-game Audio/Jukebox options and enable **Streamer / Content Creator Mode** (or lower entrance music volume). This prevents copyright-flagged audio tracks from triggering the console's Remote Play DRM block during matches.
 4. **Return to Dashboard**: You can click **Go to Home Screen** on the AstraPlay blocked scene prompt to exit the blocked application and return to the console home screen.
+
+---
+
+## Mobile Telescopic Controllers (Backbone One, Razer Kishi, GameSir)
+
+AstraPlay provides first-class support for USB-C, Lightning, and Bluetooth mobile controllers on Android, iOS, and handheld devices:
+
+### Backbone One on iOS & Android
+- **System Gesture Suppression (iOS)**: On iPhones, iOS normally binds the Options, Menu, and Home buttons to system screen recording or App Switcher. AstraPlay automatically disables system capture gestures on connected `GCController` gamepads so the Home button reaches PlayStation as the PS button.
+- **Dedicated Capture Button**: The Backbone One screen record button (`KEYCODE_MEDIA_RECORD`) is mapped to the PlayStation **Create / Share** button.
+- **Touchpad Emulation**: Mobile controllers lack a physical DualSense touchpad surface. In AstraPlay Settings, enable **Touchpad Emulation** to access floating touchpad buttons and top-screen swipe gestures for games like *Ghost of Tsushima* or *Astrobot*.
+- **Backbone App Setting (iOS)**: In the official Backbone iPhone app, turn off *"Launch Backbone App on Button Press"* so pressing the Backbone logo button routes directly to PlayStation Remote Play.
+
+---
+
+## Handheld & Container Troubleshooting (Waydroid & ROG Xbox Ally X)
+
+If your built-in controller on an ASUS ROG Xbox Ally X, Steam Deck, or Linux handheld does not respond when running inside Waydroid:
+
+### 1. Steam Controller Layout Template
+In Steam Gaming Mode, ensure the Waydroid shortcut is not using the **Desktop** template:
+1. Select the **Controller icon** next to the Play button for Waydroid.
+2. Change the layout from **Desktop** to **Gamepad with Joystick Trackpad** (or standard **Gamepad**).
+*(In Desktop mode, the joysticks act as a mouse cursor and buttons act as keyboard shortcuts).*
+
+### 2. Device Node Refresh (`uevent`)
+Waydroid runs in an LXC container and requires a device discovery broadcast to mount virtual gamepads:
+```bash
+# Run the included automated repair utility:
+./scripts/fix-handheld-controllers.sh --fix
+
+# Or target your handheld remotely over SSH:
+./scripts/fix-handheld-controllers.sh --allyx --fix
+```
+Alternatively, trigger the Bazzite-integrated helper directly on the handheld:
+```bash
+pkexec /usr/libexec/waydroid-fix-controllers
+```

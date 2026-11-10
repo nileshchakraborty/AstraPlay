@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.*
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -573,33 +574,116 @@ class StreamInput(val context: Context, val preferences: Preferences)
 
 	private val motionReevaluateRunnable = Runnable { registerMotionSensors() }
 
+	fun logConnectedInputDevices(contextTag: String = "Active Input State")
+	{
+		val inputManager = context.getSystemService(Context.INPUT_SERVICE) as? android.hardware.input.InputManager ?: return
+		val deviceIds = inputManager.inputDeviceIds
+		val isWaydroid = android.os.Build.PRODUCT.contains("waydroid", ignoreCase = true)
+			|| android.os.Build.MODEL.contains("waydroid", ignoreCase = true)
+			|| android.os.Build.HARDWARE.contains("goldfish", ignoreCase = true)
+			|| android.os.Build.HARDWARE.contains("ranchu", ignoreCase = true)
+
+		Log.i("StreamInput", "[$contextTag] Enumerating input devices (total: ${deviceIds.size}, isWaydroid=$isWaydroid)...")
+
+		var gamepadCount = 0
+		for (id in deviceIds)
+		{
+			val dev = inputManager.getInputDevice(id) ?: continue
+			val isVirtual = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+				try { dev.isVirtual } catch (_: Throwable) { false }
+			} else false
+
+			val isGamepad = (dev.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD)
+				|| (dev.sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK)
+			val hasTouchpad = (dev.sources and InputDevice.SOURCE_TOUCHPAD == InputDevice.SOURCE_TOUCHPAD)
+
+			val devName = dev.name ?: "Unknown"
+			val isBackbone = devName.contains("Backbone", ignoreCase = true)
+				|| dev.vendorId == 0x2e3c
+				|| (dev.vendorId == 0x05ac && dev.productId == 0x0001)
+			val isAllyX = devName.contains("Ally", ignoreCase = true) || dev.vendorId == 0x0b05
+			val isKishi = devName.contains("Kishi", ignoreCase = true) || dev.vendorId == 0x1532
+			val isGameSir = devName.contains("GameSir", ignoreCase = true)
+
+			val controllerType = when {
+				isBackbone -> "Backbone One"
+				isAllyX -> "ROG Xbox Ally X"
+				isKishi -> "Razer Kishi"
+				isGameSir -> "GameSir Mobile"
+				devName.contains("DualSense", ignoreCase = true) -> "PlayStation DualSense"
+				devName.contains("Wireless Controller", ignoreCase = true) || devName.contains("DualShock", ignoreCase = true) -> "PlayStation DualShock"
+				devName.contains("Xbox", ignoreCase = true) || devName.contains("X-Box", ignoreCase = true) -> "Xbox Controller"
+				isGamepad -> "Generic Gamepad/Joystick"
+				else -> "Generic Input"
+			}
+
+			if (isGamepad) gamepadCount++
+
+			Log.i("StreamInput", " -> Device #$id: '$devName' [$controllerType] VID:0x${Integer.toHexString(dev.vendorId)} PID:0x${Integer.toHexString(dev.productId)} sources=0x${Integer.toHexString(dev.sources)} gamepad=$isGamepad touchpad=$hasTouchpad virtual=$isVirtual")
+		}
+
+		if (gamepadCount == 0)
+		{
+			if (isWaydroid)
+			{
+				Log.w("StreamInput", "[Waydroid Workaround Warning] No gamepad detected inside Waydroid container!")
+				Log.w("StreamInput", " -> If using ROG Xbox Ally X or USB controller, run 'pkexec /usr/libexec/waydroid-fix-controllers' or 'echo add | sudo tee /sys/devices/virtual/input/input*/event*/uevent' on the host system.")
+				Log.w("StreamInput", " -> Ensure the Waydroid Steam shortcut Controller Template is set to 'Gamepad' instead of 'Desktop'.")
+			}
+			else
+			{
+				Log.i("StreamInput", "No physical/virtual gamepads currently attached. On-screen touch controls active. Mobile telescopic controllers (Backbone One, Razer Kishi, GameSir) or Bluetooth gamepads will auto-attach when connected.")
+			}
+		}
+		else
+		{
+			Log.i("StreamInput", "Successfully identified $gamepadCount active gamepad(s) for streaming session.")
+		}
+	}
+
+	private fun logInputDeviceDiagnostics(tag: String, deviceId: Int)
+	{
+		val inputManager = context.getSystemService(Context.INPUT_SERVICE) as? android.hardware.input.InputManager ?: return
+		val dev = inputManager.getInputDevice(deviceId)
+		if (dev == null) {
+			Log.i("StreamInput", "[$tag] Device ID $deviceId removed")
+			return
+		}
+		val devName = dev.name ?: "Unknown"
+		val isGamepad = (dev.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD)
+			|| (dev.sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK)
+		val isBackbone = devName.contains("Backbone", ignoreCase = true)
+			|| dev.vendorId == 0x2e3c
+			|| (dev.vendorId == 0x05ac && dev.productId == 0x0001)
+		Log.i("StreamInput", "[$tag] ID:$deviceId Name:'$devName' VID:0x${Integer.toHexString(dev.vendorId)} PID:0x${Integer.toHexString(dev.productId)} isGamepad=$isGamepad isBackbone=$isBackbone")
+	}
+
 	private val inputDeviceListener = object: android.hardware.input.InputManager.InputDeviceListener {
-		// A Bluetooth controller is often announced before its sensors are
-		// queryable; the sensors appear in a later "changed" event. React to all
-		// three, plus a delayed re-check as insurance, so AUTO reliably switches
-		// back to the controller after a reconnect.
-		//
-		// NEVER call registerMotionSensors() synchronously from these callbacks:
-		// InputDeviceSensorManager.registerListener and the framework's
-		// device-changed binder delivery take the same two locks in opposite
-		// order (observed AB-BA deadlock -> input-dispatch ANR). Deferring via
-		// the handler runs registration after the event storm drains, and also
-		// coalesces a reconnect's added+changed burst into one registration.
 		private fun scheduleReevaluate()
 		{
 			handler.removeCallbacks(motionReevaluateRunnable)
 			handler.postDelayed(motionReevaluateRunnable, 250)
 			handler.postDelayed(motionReevaluateRunnable, 1200) // sensors-appear-late insurance
 		}
-		override fun onInputDeviceAdded(deviceId: Int) { scheduleReevaluate() }
-		override fun onInputDeviceRemoved(deviceId: Int) { scheduleReevaluate() }
-		override fun onInputDeviceChanged(deviceId: Int) { scheduleReevaluate() }
+		override fun onInputDeviceAdded(deviceId: Int) {
+			logInputDeviceDiagnostics("Device Attached", deviceId)
+			scheduleReevaluate()
+		}
+		override fun onInputDeviceRemoved(deviceId: Int) {
+			logInputDeviceDiagnostics("Device Detached", deviceId)
+			scheduleReevaluate()
+		}
+		override fun onInputDeviceChanged(deviceId: Int) {
+			logInputDeviceDiagnostics("Device Changed", deviceId)
+			scheduleReevaluate()
+		}
 	}
 
 	private val motionLifecycleObserver = object: LifecycleObserver {
 		@OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
 		fun onResume()
 		{
+			logConnectedInputDevices("StreamInput onResume")
 			registerMotionSensors()
 			// Re-evaluate the source when a controller connects or disconnects
 			// (AUTO falls back to the phone and returns to the controller).
@@ -630,9 +714,19 @@ class StreamInput(val context: Context, val preferences: Preferences)
 		controllerStateChangedCallback?.let { it(controllerState) }
 	}
 
+	private var hasLoggedFirstKeyInput = false
+	private var hasLoggedFirstMotionInput = false
+
 	fun dispatchKeyEvent(event: KeyEvent): Boolean
 	{
-		//Log.i("StreamSession", "key event $event")
+		if(!hasLoggedFirstKeyInput && event.action == KeyEvent.ACTION_DOWN)
+		{
+			hasLoggedFirstKeyInput = true
+			val devName = event.device?.name ?: "Unknown Device"
+			val isBackbone = devName.contains("Backbone", ignoreCase = true)
+			Log.i("StreamInput", "Active controller input confirmed: key=${event.keyCode} (${KeyEvent.keyCodeToString(event.keyCode)}) from '$devName' (isBackbone=$isBackbone)")
+		}
+
 		if(event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP)
 			return false
 
@@ -670,7 +764,7 @@ class StreamInput(val context: Context, val preferences: Preferences)
 					return true
 				}
 			}
-			KeyEvent.KEYCODE_BUTTON_SELECT -> {
+			KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_MEDIA_RECORD -> {
 				if(mapSelectToTouchpad)
 				{
 					if(event.action == KeyEvent.ACTION_DOWN)
@@ -705,7 +799,7 @@ class StreamInput(val context: Context, val preferences: Preferences)
 			KeyEvent.KEYCODE_BUTTON_R2 -> if(swapBumpersTriggers) ControllerState.BUTTON_R1 else 0U
 			KeyEvent.KEYCODE_BUTTON_THUMBL -> ControllerState.BUTTON_L3
 			KeyEvent.KEYCODE_BUTTON_THUMBR -> ControllerState.BUTTON_R3
-			KeyEvent.KEYCODE_BUTTON_SELECT -> ControllerState.BUTTON_SHARE
+			KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_MEDIA_RECORD -> ControllerState.BUTTON_SHARE
 			KeyEvent.KEYCODE_BUTTON_START -> ControllerState.BUTTON_OPTIONS
 			KeyEvent.KEYCODE_BUTTON_C -> ControllerState.BUTTON_PS
 			KeyEvent.KEYCODE_BUTTON_MODE -> ControllerState.BUTTON_PS
@@ -730,6 +824,13 @@ class StreamInput(val context: Context, val preferences: Preferences)
 	{
 		if(event.source and InputDevice.SOURCE_CLASS_JOYSTICK != InputDevice.SOURCE_CLASS_JOYSTICK)
 			return false
+
+		if(!hasLoggedFirstMotionInput)
+		{
+			hasLoggedFirstMotionInput = true
+			val devName = event.device?.name ?: "Unknown Device"
+			Log.i("StreamInput", "Active joystick motion confirmed from '$devName' (source=0x${Integer.toHexString(event.source)})")
+		}
 		fun Float.signedAxis() = (this * Short.MAX_VALUE).toInt().toShort()
 		fun Float.unsignedAxis() = (this * UByte.MAX_VALUE.toFloat()).toUInt().toUByte()
 
