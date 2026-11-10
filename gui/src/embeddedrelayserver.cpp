@@ -45,9 +45,11 @@ static bool isVirtualInterfaceName(const QString &rawName)
            name.contains(QStringLiteral("wg")) || name.contains(QStringLiteral("zerotier"));
 }
 
-EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now)
+EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now, int maxCodes, bool enableRateLimit)
     : QObject(parent)
     , m_server(new QTcpServer(this))
+    , m_maxCodes(maxCodes)
+    , m_enableRateLimit(enableRateLimit)
     , m_cleanupTimer(new QTimer(this))
     , m_now(now ? std::move(now) : [] { return QDateTime::currentMSecsSinceEpoch(); })
 {
@@ -185,6 +187,14 @@ bool EmbeddedRelayServer::createCode(const QString &code)
     if (trimmed.isEmpty())
         return false;
 
+    if (m_codes.size() >= m_maxCodes) {
+        cleanupExpiredCodes();
+        if (m_codes.size() >= m_maxCodes && !m_codes.contains(trimmed)) {
+            qWarning() << "[EmbeddedRelayServer] Code store reached maximum capacity:" << m_maxCodes;
+            return false;
+        }
+    }
+
     RelayCodeEntry entry;
     entry.npsso = QString();
     entry.createdAt = m_now();
@@ -313,6 +323,8 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
         return;
     }
 
+    QString clientIp = socket ? socket->peerAddress().toString() : QStringLiteral("127.0.0.1");
+
     // Extract body if POST
     QByteArray body;
     int bodyStart = requestData.indexOf("\r\n\r\n");
@@ -322,17 +334,43 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /psstream/create-code or /astraplay/create-code ---
     if ((path == "/psstream/create-code" || path == "/astraplay/create-code") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 5)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
+        QString norm = code.trimmed().toUpper();
+        if (norm.isEmpty()) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Invalid code";
+            sendJsonResponse(socket, 400, resp);
+            return;
+        }
+        if (m_codes.size() >= m_maxCodes) {
+            cleanupExpiredCodes();
+            if (m_codes.size() >= m_maxCodes && !m_codes.contains(norm)) {
+                QJsonObject resp;
+                resp["result"] = "error";
+                resp["error"] = "Too many active codes, please try again later";
+                sendJsonResponse(socket, 429, resp);
+                return;
+            }
+        }
         if (createCode(code)) {
             QJsonObject resp;
             resp["result"] = "success";
-            resp["code"] = code.trimmed().toUpper();
+            resp["code"] = norm;
             sendJsonResponse(socket, 200, resp);
         } else {
             QJsonObject resp;
             resp["result"] = "error";
-            resp["error"] = "Invalid code";
+            resp["error"] = "Failed to create code";
             sendJsonResponse(socket, 400, resp);
         }
         return;
@@ -340,6 +378,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /psstream/get-tokens or /astraplay/get-tokens ---
     if ((path == "/psstream/get-tokens" || path == "/astraplay/get-tokens") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 30)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso;
@@ -359,6 +405,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /astraplay/validate-code or /psstream/validate-code ---
     if ((path == "/astraplay/validate-code" || path == "/psstream/validate-code") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 10)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         if (validateCode(code)) {
@@ -376,6 +430,14 @@ void EmbeddedRelayServer::handleHttpRequest(QTcpSocket *socket, const QByteArray
 
     // --- API: /astraplay/connect or /psstream/connect ---
     if ((path == "/astraplay/connect" || path == "/psstream/connect") && method == "POST") {
+        if (!checkRateLimit(path, clientIp, 10)) {
+            QJsonObject resp;
+            resp["result"] = "error";
+            resp["error"] = "Too many requests, please try again later";
+            sendJsonResponse(socket, 429, resp);
+            return;
+        }
+
         QJsonObject json = QJsonDocument::fromJson(body).object();
         QString code = json.value("code").toString();
         QString npsso = json.value("npsso").toString();
@@ -483,4 +545,23 @@ RelayCodeEntry *EmbeddedRelayServer::activeCode(const QString &normalizedCode)
         return nullptr;
     }
     return &it.value();
+}
+
+bool EmbeddedRelayServer::checkRateLimit(const QString &endpoint, const QString &ip, int limit, qint64 windowMs)
+{
+    if (!m_enableRateLimit)
+        return true;
+
+    QString key = endpoint + QLatin1Char(':') + ip;
+    qint64 nowMs = m_now();
+    auto it = m_rateLimits.find(key);
+    if (it == m_rateLimits.end() || nowMs >= it.value().resetTime) {
+        m_rateLimits[key] = {1, nowMs + windowMs};
+        return true;
+    }
+    if (it.value().count >= limit) {
+        return false;
+    }
+    it.value().count++;
+    return true;
 }

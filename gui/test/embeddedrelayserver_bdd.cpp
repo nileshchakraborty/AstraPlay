@@ -13,6 +13,8 @@ private slots:
     void server_url_returns_valid_http_format();
     void fragmented_http_post_is_reassembled_and_handled();
     void search_endpoint_handles_missing_username_and_mock_id();
+    void capacity_limit_rejects_excess_codes();
+    void rate_limiting_returns_http_429();
 };
 
 void EmbeddedRelayServerBdd::code_is_normalized_and_consumed_once()
@@ -148,6 +150,66 @@ void EmbeddedRelayServerBdd::search_endpoint_handles_missing_username_and_mock_i
         QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
         QVERIFY(resp.contains("\"encoded_id\":\"bW9ja0lkMTIz\""));
         QVERIFY(resp.contains("\"username\":\"Alice\""));
+    }
+}
+
+void EmbeddedRelayServerBdd::capacity_limit_rejects_excess_codes()
+{
+    qint64 now = 1000;
+    // Server with capacity limit of 2 codes
+    EmbeddedRelayServer relay(nullptr, [&now] { return now; }, 2, false);
+    QVERIFY(relay.createCode(QStringLiteral("CAP01")));
+    QVERIFY(relay.createCode(QStringLiteral("CAP02")));
+    // Third code exceeds capacity
+    QVERIFY(!relay.createCode(QStringLiteral("CAP03")));
+
+    // When time advances past TTL, expired codes are cleaned and capacity is freed
+    now += 15LL * 60LL * 1000LL;
+    QVERIFY(relay.createCode(QStringLiteral("CAP04")));
+}
+
+void EmbeddedRelayServerBdd::rate_limiting_returns_http_429()
+{
+    qint64 now = 1000;
+    // Server with rate limiting enabled
+    EmbeddedRelayServer relay(nullptr, [&now] { return now; }, 500, true);
+    QVERIFY(relay.start(0));
+    quint16 port = relay.port();
+    QVERIFY(port > 0);
+
+    // Limit for create-code is 5 req / min
+    for (int i = 0; i < 5; ++i) {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = QString("{\"code\":\"RATELIM%1\"}").arg(i).toUtf8();
+        QByteArray req = QString("POST /psstream/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 200 OK"));
+    }
+
+    // 6th request exceeds rate limit and must return HTTP 429
+    {
+        QTcpSocket client;
+        client.connectToHost(QStringLiteral("127.0.0.1"), port);
+        QVERIFY(client.waitForConnected(2000));
+        QByteArray body = "{\"code\":\"RATELIM_EXCEED\"}";
+        QByteArray req = QString("POST /psstream/create-code HTTP/1.1\r\n"
+                                 "Host: 127.0.0.1\r\n"
+                                 "Content-Type: application/json\r\n"
+                                 "Content-Length: %1\r\n\r\n").arg(body.size()).toUtf8() + body;
+        client.write(req);
+        client.flush();
+        QTRY_VERIFY_WITH_TIMEOUT(client.bytesAvailable() > 0, 3000);
+        QByteArray resp = client.readAll();
+        QVERIFY(resp.startsWith("HTTP/1.1 429"));
+        QVERIFY(resp.contains("Too many requests"));
     }
 }
 

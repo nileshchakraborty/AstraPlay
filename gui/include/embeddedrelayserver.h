@@ -22,7 +22,9 @@ class EmbeddedRelayServer : public QObject
 
 public:
     explicit EmbeddedRelayServer(QObject *parent = nullptr,
-                                 std::function<qint64()> now = {});
+                                 std::function<qint64()> now = {},
+                                 int maxCodes = 500,
+                                 bool enableRateLimit = false);
     ~EmbeddedRelayServer() override;
 
     bool start(quint16 port = 25525);
@@ -49,10 +51,19 @@ private:
                       const QByteArray &contentType, const QByteArray &body);
     void sendJsonResponse(QTcpSocket *socket, int statusCode, const QJsonObject &json);
     RelayCodeEntry *activeCode(const QString &normalizedCode);
+    bool checkRateLimit(const QString &endpoint, const QString &ip, int limit, qint64 windowMs = 60000);
+
+    struct RateLimitRecord {
+        int count = 0;
+        qint64 resetTime = 0;
+    };
 
     QTcpServer *m_server = nullptr;
     quint16 m_port = 25525;
+    int m_maxCodes = 500;
+    bool m_enableRateLimit = false;
     QMap<QString, RelayCodeEntry> m_codes;
+    QHash<QString, RateLimitRecord> m_rateLimits;
     QHash<QTcpSocket *, QByteArray> m_socketBuffers;
     QTimer *m_cleanupTimer = nullptr;
     std::function<qint64()> m_now;
