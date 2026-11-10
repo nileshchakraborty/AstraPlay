@@ -307,13 +307,13 @@ When registering a PlayStation 4 (firmware >= 7.0) or PlayStation 5 console for 
 AstraPlay makes this effortless:
 
 ### Method 1: Automatic 1-Tap Sign-In (Recommended)
-1. In AstraPlay, tap **"Sign in to PlayStation to Auto-Fill"** on the Register Console screen.
-2. Sign in with your PlayStation account.
+1. In AstraPlay, tap **"Sign in to PS to Auto-Fill"** on the Register Console screen.
+2. Sign in with your PS account.
 3. AstraPlay automatically retrieves your Account ID and fills it in for you.
 
 ### Method 2: 3-Step Browser Sign-In
 If you prefer not to use in-app webviews:
-1. **Step 1**: Open [PlayStation Sign-In](https://my.playstation.com) in your browser and log in with your account email and password.
+1. **Step 1**: Open [PS Sign-In](https://my.playstation.com) in your browser and log in with your account email and password.
 2. **Step 2**: Open [Account Code](https://ca.account.sony.com/api/v1/ssocookie) to view your code (`{"npsso":"<64_character_code>"}`).
 3. **Step 3**: Copy the code (or copy the entire page) and paste it into AstraPlay. AstraPlay automatically extracts the code and auto-fills your Account ID.
 

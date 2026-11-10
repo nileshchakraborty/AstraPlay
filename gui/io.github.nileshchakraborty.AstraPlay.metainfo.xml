@@ -43,7 +43,7 @@
     </release>
     <release date="2026-11-09" version="2.12.25">
       <description>
-        <p>Simplified PlayStation sign-in with clear 3-step workflow and direct authentication links.</p>
+        <p>Simplified PS sign-in with clear 3-step workflow and direct authentication links.</p>
         <p>Smart auto-extraction for 64-character account codes from clipboard or webpage.</p>
         <p>Enhanced Android TV and Fire TV D-pad remote navigation.</p>
         <p>In-app PSN relay configuration and offline account connection options.</p>
