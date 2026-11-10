@@ -48,6 +48,7 @@ typedef struct chiaki_feedback_sender_t
 	uint8_t history_last_packet[CHIAKI_FEEDBACK_HISTORY_PACKET_BUF_SIZE];
 	size_t history_last_size;
 	uint8_t history_last_event_count;
+	ChiakiSeqNum16 history_last_seq_num;
 	uint64_t history_last_sent_ms;
 	unsigned int history_tail_resends;
 

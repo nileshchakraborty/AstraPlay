@@ -287,6 +287,9 @@ class StreamSession : public QObject
 		QQueue<int16_t *> echo_to_cancel;
 #endif
 		SDL_AudioDeviceID haptics_output;
+		// A connected controller restarts the retries; older ones stop
+		quint64 haptics_retry_generation = 0;
+		size_t haptics_retry_attempt = 0;
 		uint8_t *haptics_resampler_buf;
 		MicBuf mic_buf;
 		QMap<Qt::Key, int> key_map;
@@ -312,6 +315,7 @@ class StreamSession : public QObject
 #endif
 		void AdjustAdaptiveTriggerPacket(uint8_t *buf, uint8_t type);
 		void WaitHaptics();
+		void RetryHaptics(quint64 generation);
 
 	private slots:
 		void InitAudio(unsigned int channels, unsigned int rate);

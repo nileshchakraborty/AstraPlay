@@ -64,6 +64,8 @@
 #define PSN_INTERNET_WAIT_SECONDS 5
 #define WAKEUP_PSN_IGNORE_SECONDS 10
 #define WAKEUP_WAIT_SECONDS 25
+// A wakeup is one UDP packet, so it is resent this often while a session waits for the console to wake
+#define WAKEUP_RESEND_MS 1000
 static QMutex chiaki_log_mutex;
 static ChiakiLog *chiaki_log_ctx = nullptr;
 static ChiakiLog global_log;
@@ -385,6 +387,8 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     psn_reconnect_timer = new QTimer(this);
     wakeup_start_timer = new QTimer(this);
     wakeup_start_timer->setSingleShot(true);
+    wakeup_resend_timer = new QTimer(this);
+    wakeup_resend_timer->setInterval(WAKEUP_RESEND_MS);
     if(autoConnect() && !auto_connect_nickname.isEmpty())
     {
         
@@ -445,6 +449,23 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
     connect(wakeup_start_timer, &QTimer::timeout, this, [this]
     {
         emit wakeupStartFailed();
+    });
+    connect(wakeup_resend_timer, &QTimer::timeout, this, [this]
+    {
+        // stop once the console woke up, the wait was cancelled or it timed out
+        if(!wakeup_start || !wakeup_start_timer->isActive())
+        {
+            wakeup_resend_timer->stop();
+            return;
+        }
+        // the console this session is waiting for, not whichever was woken last
+        if(session_info.host.isEmpty())
+            return;
+        try {
+            discovery_manager.SendWakeup(session_info.host, session_info.regist_key, chiaki_target_is_ps5(session_info.target));
+        } catch (const Exception &e) {
+            qCWarning(chiakiGui) << "Failed to resend Wakeup packet:" << e.what();
+        }
     });
     psn_auto_connect_timer->start(PSN_INTERNET_WAIT_SECONDS * 1000);
     sleep_inhibit = new SystemdInhibit(QGuiApplication::applicationName(), tr("Remote Play session"), "sleep", "delay", this);
@@ -1339,6 +1360,7 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
         {
             wakeup_start = true;
             wakeup_start_timer->start(WAKEUP_WAIT_SECONDS * 1000);
+            wakeup_resend_timer->start();
             emit wakeupStartInitiated();
             updateDiscoveryHosts();
         }
@@ -1878,6 +1900,7 @@ void QmlBackend::stopAutoConnect()
     if(!wakeup_nickname.isEmpty())
     {
         wakeup_start_timer->stop();
+        wakeup_resend_timer->stop();
         wakeup_nickname.clear();
         if(wakeup_start)
         {
@@ -2533,6 +2556,7 @@ void QmlBackend::updateDiscoveryHosts()
                 wakeup_nickname.clear();
                 wakeup_start = false;
                 wakeup_start_timer->stop();
+                wakeup_resend_timer->stop();
                 bool session_start_succeeded = true;
 
                 try {

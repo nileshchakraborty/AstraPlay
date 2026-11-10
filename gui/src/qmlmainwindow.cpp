@@ -1057,6 +1057,11 @@ void QmlMainWindow::render()
                 break;
             }
         }
+        // libplacebo API 361 and later read a hint with unknown primaries and transfer as a request for
+        // VK_COLOR_SPACE_PASS_THROUGH_EXT, and switching MoltenVK's swapchain to it waits forever for the
+        // old swapchain, so the window hung at launch. Fill in the defaults it inferred before.
+        if (hint.primaries == PL_COLOR_PRIM_UNKNOWN && hint.transfer == PL_COLOR_TRC_UNKNOWN)
+            pl_color_space_infer(&hint);
         pl_swapchain_colorspace_hint(placebo_swapchain, &hint);
     }
 

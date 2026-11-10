@@ -571,15 +571,22 @@ static bool stun_get_external_address_from_server(ChiakiLog *log, StunServer *se
         uint16_t attr_type = ntohs(*(uint16_t*)(&binding_resp[response_pos]));
         uint16_t attr_length = ntohs(*(uint16_t*)(&binding_resp[response_pos + 2]));
         // check that the whole advertised message has been received
-        if (response_pos + sizeof(attr_type) + sizeof(attr_length) + attr_length > (size_t)received)
+        if (attr_length > (size_t)received - response_pos - (sizeof(attr_type) + sizeof(attr_length)))
         {
             CHIAKI_LOGE(log, "remote/stun.h: Received STUN response with invalid data");
             return false;
         }
         if (attr_type != STUN_ATTRIB_MAPPED_ADDRESS && attr_type != STUN_ATTRIB_XOR_MAPPED_ADDRESS)
         {
-            response_pos += sizeof(attr_type) + sizeof(attr_length) + attr_length;
+            // attribute values are padded to a multiple of 4 bytes
+            response_pos += sizeof(attr_type) + sizeof(attr_length) + (((size_t)attr_length + 3) & ~(size_t)3);
             continue;
+        }
+
+        if (attr_length < 8)
+        {
+            CHIAKI_LOGE(log, "remote/stun.h: Received STUN mapped address with invalid length %u", attr_length);
+            return false;
         }
 
         bool xored = attr_type == STUN_ATTRIB_XOR_MAPPED_ADDRESS;

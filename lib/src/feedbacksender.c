@@ -48,6 +48,7 @@ CHIAKI_EXPORT ChiakiErrorCode chiaki_feedback_sender_init(ChiakiFeedbackSender *
 	feedback_sender->history_seq_num = 0;
 	feedback_sender->history_last_size = 0;
 	feedback_sender->history_last_event_count = 0;
+	feedback_sender->history_last_seq_num = 0;
 	feedback_sender->history_last_sent_ms = 0;
 	feedback_sender->history_tail_resends = FEEDBACK_HISTORY_TAIL_COUNT;
 	ChiakiErrorCode err = chiaki_feedback_history_buffer_init(&feedback_sender->history_buf, FEEDBACK_HISTORY_BUFFER_SIZE);
@@ -280,12 +281,14 @@ static void feedback_sender_send_history_packet(ChiakiFeedbackSender *feedback_s
 
 	//CHIAKI_LOGD(feedback_sender->log, "Feedback History:");
 	//chiaki_log_hexdump(feedback_sender->log, CHIAKI_LOG_DEBUG, buf, buf_size);
-	chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_seq_num++, event_count, buf, buf_size);
+	ChiakiSeqNum16 seq_num = feedback_sender->history_seq_num++;
+	chiaki_takion_send_feedback_history(feedback_sender->takion, seq_num, event_count, buf, buf_size);
 
 	// remember for tail resends; a new packet restarts the schedule
 	memcpy(feedback_sender->history_last_packet, buf, buf_size);
 	feedback_sender->history_last_size = buf_size;
 	feedback_sender->history_last_event_count = event_count;
+	feedback_sender->history_last_seq_num = seq_num;
 	feedback_sender->history_last_sent_ms = chiaki_time_now_monotonic_ms();
 	feedback_sender->history_tail_resends = 0;
 }
@@ -438,8 +441,8 @@ static void *feedback_sender_thread_func(void *user)
 			&& feedback_sender->history_tail_resends < FEEDBACK_HISTORY_TAIL_COUNT
 			&& now_ms >= feedback_sender->history_last_sent_ms + feedback_history_tail_ms[feedback_sender->history_tail_resends])
 		{
-			// nothing new since the last history packet: send it again (gets a new sequence number like any packet)
-			chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_seq_num++,
+			// nothing new since the last history packet: send it again with the same sequence number
+			chiaki_takion_send_feedback_history(feedback_sender->takion, feedback_sender->history_last_seq_num,
 				feedback_sender->history_last_event_count,
 				feedback_sender->history_last_packet, feedback_sender->history_last_size);
 			feedback_sender->history_tail_resends++;
