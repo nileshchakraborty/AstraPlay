@@ -221,8 +221,8 @@
     <string name="psn_login_open_in_browser">Open in Browser</string>
     <string name="psn_login_relay_not_configured">Sign in with your browser or configure a relay server to connect your PlayStation account.</string>
     <string name="psn_login_relay_unconfigured_prompt">Scan the QR code with your phone or tap below to sign in using your web browser in 3 quick steps.</string>
-    <string name="psn_login_container_notice_title">Waydroid Container Detected</string>
-    <string name="psn_login_container_notice_desc">Waydroid runs in an internal container network (192.168.245.x) that external phones cannot reach over Wi-Fi.\n\nPlease tap \"Sign In Directly\" below to log in on this screen, or use \"Sign in with Browser / Code\".</string>
+    <string name="psn_login_container_notice_title">Emulator / Container Detected</string>
+    <string name="psn_login_container_notice_desc">Running inside an emulator or container (BlueStacks, Waydroid, etc.) with an isolated network that external phones cannot reach over Wi-Fi.\n\nPlease tap \"Sign In Directly\" below to log in on this screen, or use \"Sign in with Browser / Code\".</string>
     <string name="psn_login_no_lan_notice_desc">No physical Wi-Fi IP address detected. Please sign in directly on this device or configure a remote relay server.</string>
     
     <!-- PSN Relay URL Configuration & Manual Login -->

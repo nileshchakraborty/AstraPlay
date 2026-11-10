@@ -18,6 +18,14 @@ class EmbeddedRelayServerTest {
         assertTrue(EmbeddedRelayServer.isVirtualSubnet("10.0.2.15"))
         assertTrue(EmbeddedRelayServer.isVirtualSubnet("10.0.2.2"))
 
+        // BlueStacks / Genymotion NAT
+        assertTrue(EmbeddedRelayServer.isVirtualSubnet("10.0.3.15"))
+        assertTrue(EmbeddedRelayServer.isVirtualSubnet("192.168.232.2"))
+
+        // VirtualBox Host-Only network
+        assertTrue(EmbeddedRelayServer.isVirtualSubnet("192.168.56.1"))
+        assertTrue(EmbeddedRelayServer.isVirtualSubnet("192.168.56.101"))
+
         // KVM / libvirt default bridge
         assertTrue(EmbeddedRelayServer.isVirtualSubnet("192.168.122.1"))
 
@@ -44,8 +52,19 @@ class EmbeddedRelayServerTest {
         assertTrue(EmbeddedRelayServer.isVirtualInterface("virbr0"))
         assertTrue(EmbeddedRelayServer.isVirtualInterface("veth1234a"))
         assertTrue(EmbeddedRelayServer.isVirtualInterface("lxcbr0"))
+        // Emulators and hypervisors (BlueStacks, VirtualBox, Hyper-V, WSL, LDPlayer, Nox)
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("bstk0"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("bluestacks-adapter"))
         assertTrue(EmbeddedRelayServer.isVirtualInterface("vboxnet0"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("virtualbox host-only ethernet adapter"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("vethernet (default switch)"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("hyper-v virtual ethernet adapter"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("wsl"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("nox0"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("ldplayer-net"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("memu-bridge"))
         assertTrue(EmbeddedRelayServer.isVirtualInterface("vmnet1"))
+        assertTrue(EmbeddedRelayServer.isVirtualInterface("vmware virtual ethernet adapter"))
         assertTrue(EmbeddedRelayServer.isVirtualInterface("bridge0"))
 
         // VPN / tunnel adapters

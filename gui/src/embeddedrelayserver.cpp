@@ -7,9 +7,43 @@
 #include <QUrlQuery>
 #include <QFile>
 #include <QNetworkInterface>
+#include <QUdpSocket>
 #include <QDebug>
 
 constexpr qint64 RELAY_CODE_TTL_MS = 15LL * 60LL * 1000LL; // 15 minutes
+
+static bool isVirtualSubnet(const QString &ipStr)
+{
+    return ipStr.startsWith(QStringLiteral("10.0.2.")) ||       // QEMU / Android emulator NAT
+           ipStr.startsWith(QStringLiteral("10.0.3.")) ||       // BlueStacks / Genymotion NAT
+           ipStr.startsWith(QStringLiteral("192.168.56.")) ||   // VirtualBox Host-Only default
+           ipStr.startsWith(QStringLiteral("192.168.232.")) ||  // BlueStacks alternate NAT
+           ipStr.startsWith(QStringLiteral("192.168.240.")) ||  // Waydroid default bridge
+           ipStr.startsWith(QStringLiteral("192.168.245.")) ||  // Waydroid alternate bridge
+           ipStr.startsWith(QStringLiteral("192.168.250.")) ||  // Waydroid alternate bridge
+           ipStr.startsWith(QStringLiteral("192.168.122.")) ||  // KVM / libvirt default bridge
+           ipStr.startsWith(QStringLiteral("172.17.")) ||       // Docker default bridge
+           ipStr.startsWith(QStringLiteral("172.18.")) ||       // Docker default bridge
+           ipStr.startsWith(QStringLiteral("172.19."));        // Docker default bridge
+}
+
+static bool isVirtualInterfaceName(const QString &rawName)
+{
+    QString name = rawName.toLower();
+    return name.contains(QStringLiteral("docker")) || name.contains(QStringLiteral("veth")) ||
+           name.contains(QStringLiteral("tun")) || name.contains(QStringLiteral("tap")) ||
+           name.contains(QStringLiteral("bridge")) || name.contains(QStringLiteral("utun")) ||
+           name.contains(QStringLiteral("waydroid")) || name.contains(QStringLiteral("virbr")) ||
+           name.contains(QStringLiteral("vboxnet")) || name.contains(QStringLiteral("virtualbox")) ||
+           name.contains(QStringLiteral("vbox")) || name.contains(QStringLiteral("bluestacks")) ||
+           name.contains(QStringLiteral("bstk")) || name.contains(QStringLiteral("nox")) ||
+           name.contains(QStringLiteral("ldplayer")) || name.contains(QStringLiteral("memu")) ||
+           name.contains(QStringLiteral("vethernet")) || name.contains(QStringLiteral("hyper-v")) ||
+           name.contains(QStringLiteral("wsl")) || name.contains(QStringLiteral("lxc")) ||
+           name.contains(QStringLiteral("anbox")) || name.contains(QStringLiteral("vmnet")) ||
+           name.contains(QStringLiteral("vmware")) || name.contains(QStringLiteral("tailscale")) ||
+           name.contains(QStringLiteral("wg")) || name.contains(QStringLiteral("zerotier"));
+}
 
 EmbeddedRelayServer::EmbeddedRelayServer(QObject *parent, std::function<qint64()> now)
     : QObject(parent)
@@ -64,7 +98,25 @@ void EmbeddedRelayServer::stop()
 
 QString EmbeddedRelayServer::serverUrl() const
 {
-    // Try to find physical LAN IP for display/QR code (ignoring loopback, docker, vpn, waydroid, virbr)
+    // 1. Try kernel outbound routing probe via a zero-traffic connectionless UDP socket connect.
+    // The OS routing table automatically selects the physical adapter used for default gateway/outbound
+    // traffic, bypassing virtual bridges (BlueStacks, Waydroid, VirtualBox, Hyper-V, Docker, WSL, VMware).
+    {
+        QUdpSocket probeSocket;
+        probeSocket.connectToHost(QHostAddress(QStringLiteral("8.8.8.8")), 10002);
+        QHostAddress routeAddr = probeSocket.localAddress();
+        if (!routeAddr.isNull() && routeAddr.protocol() == QAbstractSocket::IPv4Protocol && !routeAddr.isLoopback()) {
+            QString routeIp = routeAddr.toString();
+            bool isPrivateLan = routeIp.startsWith(QStringLiteral("192.168.")) ||
+                                routeIp.startsWith(QStringLiteral("10.")) ||
+                                routeIp.startsWith(QStringLiteral("172."));
+            if (isPrivateLan && !isVirtualSubnet(routeIp)) {
+                return QStringLiteral("http://%1:%2").arg(routeIp).arg(m_port);
+            }
+        }
+    }
+
+    // 2. Fallback to physical LAN interface enumeration (checking both system name and human-readable name)
     QString localIp;
     QString physicalLanIp;
     QString genericLanIp;
@@ -76,33 +128,22 @@ QString EmbeddedRelayServer::serverUrl() const
         if (iface.flags() & QNetworkInterface::IsLoopBack)
             continue;
 
-        QString name = iface.name().toLower();
-        // Skip virtual, bridge, container, or tunnel adapters
-        if (name.contains("docker") || name.contains("veth") || name.contains("tun") ||
-            name.contains("tap") || name.contains("bridge") || name.contains("utun") ||
-            name.contains("waydroid") || name.contains("virbr") || name.contains("vboxnet") ||
-            name.contains("lxc") || name.contains("anbox") || name.contains("vmnet") ||
-            name.contains("tailscale") || name.contains("wg") || name.contains("zerotier"))
+        if (isVirtualInterfaceName(iface.name()) || isVirtualInterfaceName(iface.humanReadableName()))
             continue;
 
+        QString name = iface.name().toLower();
+        QString friendly = iface.humanReadableName().toLower();
         bool isPhysicalAdapter = name.startsWith("wl") || name.startsWith("wifi") ||
                                  name.startsWith("en") || name.startsWith("eth") ||
-                                 name.startsWith("lan");
+                                 name.startsWith("lan") || friendly.contains("wi-fi") ||
+                                 friendly.contains("ethernet") || friendly.contains("wlan");
 
         const QList<QNetworkAddressEntry> entries = iface.addressEntries();
         for (const QNetworkAddressEntry &entry : entries) {
             QHostAddress addr = entry.ip();
             if (addr.protocol() == QAbstractSocket::IPv4Protocol && !addr.isLoopback()) {
                 QString ipStr = addr.toString();
-                // Skip virtual, container, or emulator NAT subnets
-                if (ipStr.startsWith("10.0.2.") ||
-                    ipStr.startsWith("192.168.240.") ||
-                    ipStr.startsWith("192.168.245.") ||
-                    ipStr.startsWith("192.168.250.") ||
-                    ipStr.startsWith("192.168.122.") ||
-                    ipStr.startsWith("172.17.") ||
-                    ipStr.startsWith("172.18.") ||
-                    ipStr.startsWith("172.19."))
+                if (isVirtualSubnet(ipStr))
                     continue;
 
                 // Standard private LAN subnets: 192.168.x.x, 10.x.x.x, 172.16-31.x.x

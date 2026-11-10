@@ -59,14 +59,17 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		 * by external devices on a physical Wi-Fi LAN.
 		 */
 		fun isVirtualSubnet(host: String): Boolean {
-			return host.startsWith("10.0.2.") ||       // Android emulator NAT
-				host.startsWith("192.168.240.") || // Waydroid default bridge
-				host.startsWith("192.168.245.") || // Waydroid alternate bridge
-				host.startsWith("192.168.250.") || // Waydroid alternate bridge
-				host.startsWith("192.168.122.") || // KVM / libvirt default bridge
-				host.startsWith("172.17.") ||      // Docker default bridge
-				host.startsWith("172.18.") ||      // Docker default bridge
-				host.startsWith("172.19.")         // Docker default bridge
+			return host.startsWith("10.0.2.") ||       // Android emulator / QEMU NAT
+				host.startsWith("10.0.3.") ||       // BlueStacks / Genymotion NAT
+				host.startsWith("192.168.56.") ||   // VirtualBox Host-Only default
+				host.startsWith("192.168.232.") ||  // BlueStacks alternate NAT
+				host.startsWith("192.168.240.") ||  // Waydroid default bridge
+				host.startsWith("192.168.245.") ||  // Waydroid alternate bridge
+				host.startsWith("192.168.250.") ||  // Waydroid alternate bridge
+				host.startsWith("192.168.122.") ||  // KVM / libvirt default bridge
+				host.startsWith("172.17.") ||       // Docker default bridge
+				host.startsWith("172.18.") ||       // Docker default bridge
+				host.startsWith("172.19.")          // Docker default bridge
 		}
 
 		/**
@@ -77,8 +80,52 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			return lower.contains("dummy") || lower.contains("tun") || lower.contains("tap") ||
 				lower.contains("p2p") || lower.contains("waydroid") || lower.contains("veth") ||
 				lower.contains("docker") || lower.contains("virbr") || lower.contains("vboxnet") ||
-				lower.contains("lxc") || lower.contains("anbox") || lower.contains("vmnet") ||
-				lower.contains("tailscale") || lower.contains("wg") || lower.contains("bridge")
+				lower.contains("virtualbox") || lower.contains("vbox") || lower.contains("bluestacks") ||
+				lower.contains("bstk") || lower.contains("nox") || lower.contains("ldplayer") ||
+				lower.contains("memu") || lower.contains("vethernet") || lower.contains("hyper-v") ||
+				lower.contains("wsl") || lower.contains("lxc") || lower.contains("anbox") ||
+				lower.contains("vmnet") || lower.contains("vmware") || lower.contains("tailscale") ||
+				lower.contains("wg") || lower.contains("bridge")
+		}
+
+		/**
+		 * Detects whether Android is running inside an emulator or container
+		 * (Waydroid, BlueStacks, LDPlayer, Nox, Genymotion, QEMU, WSA, etc.).
+		 */
+		fun isEmulatorOrContainer(): Boolean {
+			if (isWaydroid()) return true
+
+			val buildProps = listOf(
+				android.os.Build.HARDWARE,
+				android.os.Build.PRODUCT,
+				android.os.Build.BOARD,
+				android.os.Build.BOOTLOADER,
+				android.os.Build.MANUFACTURER,
+				android.os.Build.BRAND,
+				android.os.Build.MODEL,
+				android.os.Build.DEVICE,
+				android.os.Build.FINGERPRINT
+			).joinToString(" ").lowercase()
+
+			if (buildProps.contains("bluestacks") ||
+				buildProps.contains("nox") ||
+				buildProps.contains("ldplayer") ||
+				buildProps.contains("vbox86") ||
+				buildProps.contains("goldfish") ||
+				buildProps.contains("ranchu") ||
+				buildProps.contains("genymotion") ||
+				buildProps.contains("google_sdk") ||
+				buildProps.contains("android sdk built for") ||
+				buildProps.contains("emulator") ||
+				buildProps.contains("subsystem for android") ||
+				buildProps.contains("ttvm") ||
+				buildProps.contains("andy")
+			) return true
+
+			val qemu = getSystemPropertyStatic("ro.kernel.qemu")
+			if (qemu == "1") return true
+
+			return false
 		}
 
 		/**
@@ -216,6 +263,21 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			Log.i(TAG, "Using debug.astraplay.lan_ip override: $override")
 			return override
 		}
+
+		// 2. Kernel outbound routing probe: connectionless UDP socket connect (zero network traffic).
+		// Automatically resolves the true physical outbound adapter chosen by the OS routing table.
+		try {
+			DatagramSocket().use { socket ->
+				socket.connect(InetAddress.getByName("8.8.8.8"), 10002)
+				val localAddr = socket.localAddress
+				if (localAddr is Inet4Address && !localAddr.isLoopbackAddress) {
+					val ip = localAddr.hostAddress
+					if (!ip.isNullOrEmpty() && (ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("172.")) && !isVirtualSubnet(ip)) {
+						return ip
+					}
+				}
+			}
+		} catch (_: Exception) {}
 
 		try {
 			val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())

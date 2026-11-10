@@ -112,10 +112,10 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun isHandheldOrTv(): Boolean {
 		if (isOnTv) return true
-		if (EmbeddedRelayServer.isWaydroid()) {
-			// On Waydroid, direct WebView is always preferred because Waydroid runs inside
-			// an LXC container where external phones cannot reach container subnets (192.168.245.x),
-			// while the host touchscreen / mouse / keyboard allows immediate direct sign-in.
+		if (EmbeddedRelayServer.isEmulatorOrContainer()) {
+			// On emulators and containers (Waydroid, BlueStacks, LDPlayer, Nox, WSA), direct WebView is always
+			// preferred because emulators run inside an isolated virtual network that external phones
+			// cannot reach, while the PC/handheld screen allows immediate direct sign-in.
 			return false
 		}
 		try {
@@ -546,8 +546,8 @@ class PsnLoginActivity : AppCompatActivity()
 		val hasRoutableLan = (embeddedRelayServer?.hasRoutableLanIp() == true) || preferences.psnRelayUrl.isNotEmpty()
 
 		if (!hasRoutableLan) {
-			val isWaydroid = EmbeddedRelayServer.isWaydroid()
-			Log.w(TAG, "No routable physical LAN IP found (isWaydroid=$isWaydroid). Container isolation prevents phone scan.")
+			val isEmulator = EmbeddedRelayServer.isEmulatorOrContainer()
+			Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
 			qrCodeImage.visibility = View.GONE
 			qrCodeCard.visibility = View.GONE
 			qrScanTitle.visibility = View.GONE
@@ -557,8 +557,8 @@ class PsnLoginActivity : AppCompatActivity()
 			containerNoticeLayout.visibility = View.VISIBLE
 			progressBar.visibility = View.GONE
 			checkStatusButton.isEnabled = false
-			containerNoticeText.text = getString(if (isWaydroid) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
-			statusTextView.text = getString(if (isWaydroid) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+			containerNoticeText.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
+			statusTextView.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
 			return
 		}
 

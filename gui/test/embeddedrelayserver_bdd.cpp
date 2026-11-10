@@ -53,6 +53,9 @@ void EmbeddedRelayServerBdd::server_url_returns_valid_http_format()
     QVERIFY(!url.contains(QStringLiteral("192.168.245.")));
     QVERIFY(!url.contains(QStringLiteral("192.168.250.")));
     QVERIFY(!url.contains(QStringLiteral("10.0.2.")));
+    QVERIFY(!url.contains(QStringLiteral("10.0.3.")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.56.")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.232.")));
     QVERIFY(!url.contains(QStringLiteral("192.168.122.")));
 }
 
