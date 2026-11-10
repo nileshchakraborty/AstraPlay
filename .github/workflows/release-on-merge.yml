@@ -866,7 +866,9 @@ jobs:
               gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber dist/*
               gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false
             else
-              echo "Release is already published. Attempting asset upload with fallback for immutable releases..."
+              echo "Release is already published. Updating tag to point to current master commit..."
+              git tag -f "$TAG" HEAD
+              git push origin -f "$TAG" || true
               gh release edit "$TAG" \
                 --repo "$GITHUB_REPOSITORY" \
                 --title "AstraPlay ${TAG}" \
