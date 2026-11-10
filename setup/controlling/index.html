@@ -964,6 +964,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#in-app-controller-diagnostics-troubleshooting-ios-android" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-App Controller Diagnostics &amp; Troubleshooting (iOS &amp; Android)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backbone-one-on-ios-android" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -980,15 +991,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#handheld-container-troubleshooting-waydroid-rog-xbox-ally-x" class="md-nav__link">
+  <a href="#handheld-host-troubleshooting-utility-scriptsfix-handheld-controllerssh" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Handheld &amp; Container Troubleshooting (Waydroid &amp; ROG Xbox Ally X)
+        Handheld &amp; Host Troubleshooting Utility (scripts/fix-handheld-controllers.sh)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Handheld &amp; Container Troubleshooting (Waydroid &amp; ROG Xbox Ally X)">
+    <nav class="md-nav" aria-label="Handheld &amp; Host Troubleshooting Utility (scripts/fix-handheld-controllers.sh)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1467,6 +1478,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#in-app-controller-diagnostics-troubleshooting-ios-android" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-App Controller Diagnostics &amp; Troubleshooting (iOS &amp; Android)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#backbone-one-on-ios-android" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1483,15 +1505,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#handheld-container-troubleshooting-waydroid-rog-xbox-ally-x" class="md-nav__link">
+  <a href="#handheld-host-troubleshooting-utility-scriptsfix-handheld-controllerssh" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Handheld &amp; Container Troubleshooting (Waydroid &amp; ROG Xbox Ally X)
+        Handheld &amp; Host Troubleshooting Utility (scripts/fix-handheld-controllers.sh)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Handheld &amp; Container Troubleshooting (Waydroid &amp; ROG Xbox Ally X)">
+    <nav class="md-nav" aria-label="Handheld &amp; Host Troubleshooting Utility (scripts/fix-handheld-controllers.sh)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2105,6 +2127,19 @@ Once checked, haptics and adaptive triggers (DualSense only) will work in games 
 <hr />
 <h2 id="mobile-telescopic-controllers-backbone-one-razer-kishi-gamesir">Mobile Telescopic Controllers (Backbone One, Razer Kishi, GameSir)<a class="headerlink" href="#mobile-telescopic-controllers-backbone-one-razer-kishi-gamesir" title="Permanent link">&para;</a></h2>
 <p>AstraPlay provides first-class support for USB-C, Lightning, and Bluetooth mobile controllers on Android, iOS, and handheld devices:</p>
+<h3 id="in-app-controller-diagnostics-troubleshooting-ios-android">In-App Controller Diagnostics &amp; Troubleshooting (iOS &amp; Android)<a class="headerlink" href="#in-app-controller-diagnostics-troubleshooting-ios-android" title="Permanent link">&para;</a></h3>
+<p>Mobile users do not need to run terminal scripts. Full hardware diagnostics and troubleshooting tools are built directly into the AstraPlay app:
+- Open <strong>Settings</strong> -&gt; <strong>Gamepad Tuning &amp; Remapping</strong> -&gt; <strong>Controller Diagnostics &amp; Troubleshooting</strong>.
+- <strong>On iPhone (iOS)</strong>:
+  - Enumerates all connected <code>GCController</code> devices with category badges (<code>Backbone One</code>, <code>MFi Extended Gamepad</code>, <code>DualSense</code>, <code>Xbox</code>).
+  - Distinguishes physically attached mobile grips from wireless Bluetooth connections and displays battery level.
+  - <strong>Live Input Tester</strong>: Press buttons or move the thumbsticks on your controller to see instant real-time green highlights confirming every button registers.
+  - One-tap link to open iOS System Settings -&gt; General -&gt; Game Controller.
+- <strong>On Android</strong>:
+  - Scans all input devices with Vendor ID (VID) and Product ID (PID), categorizing Backbone One, ROG Xbox Ally X, Razer Kishi, GameSir, DualSense, and Xbox gamepads.
+  - <strong>Accessibility Interception Audit</strong>: Automatically detects if third-party accessibility apps (Button Mapper, Tasker, AutoClicker) are intercepting and swallowing controller key events, with a one-tap shortcut to Android Accessibility Settings.
+  - Container detection for Waydroid with pass-through validation.
+  - OTG connection guidance for OnePlus, Oppo, Vivo, and Realme devices.</p>
 <h3 id="backbone-one-on-ios-android">Backbone One on iOS &amp; Android<a class="headerlink" href="#backbone-one-on-ios-android" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>System Gesture Suppression (iOS)</strong>: On iPhones, iOS normally binds the Options, Menu, and Home buttons to system screen recording or App Switcher. AstraPlay automatically disables system capture gestures on connected <code>GCController</code> gamepads so the Home button reaches PlayStation as the PS button.</li>
@@ -2113,7 +2148,11 @@ Once checked, haptics and adaptive triggers (DualSense only) will work in games 
 <li><strong>Backbone App Setting (iOS)</strong>: In the official Backbone iPhone app, turn off <em>"Launch Backbone App on Button Press"</em> so pressing the Backbone logo button routes directly to PlayStation Remote Play.</li>
 </ul>
 <hr />
-<h2 id="handheld-container-troubleshooting-waydroid-rog-xbox-ally-x">Handheld &amp; Container Troubleshooting (Waydroid &amp; ROG Xbox Ally X)<a class="headerlink" href="#handheld-container-troubleshooting-waydroid-rog-xbox-ally-x" title="Permanent link">&para;</a></h2>
+<h2 id="handheld-host-troubleshooting-utility-scriptsfix-handheld-controllerssh">Handheld &amp; Host Troubleshooting Utility (<code>scripts/fix-handheld-controllers.sh</code>)<a class="headerlink" href="#handheld-host-troubleshooting-utility-scriptsfix-handheld-controllerssh" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>[!NOTE]
+The shell script <code>scripts/fix-handheld-controllers.sh</code> is a <strong>host-side CLI utility</strong> intended for Linux handhelds (ROG Xbox Ally X, Steam Deck), desktop Linux running Waydroid, or developers using ADB from a PC/Mac. End users on physical iPhones and Android devices should use the in-app <strong>Controller Diagnostics &amp; Troubleshooting</strong> in Settings described above.</p>
+</blockquote>
 <p>If your built-in controller on an ASUS ROG Xbox Ally X, Steam Deck, or Linux handheld does not respond when running inside Waydroid:</p>
 <h3 id="1-steam-controller-layout-template">1. Steam Controller Layout Template<a class="headerlink" href="#1-steam-controller-layout-template" title="Permanent link">&para;</a></h3>
 <p>In Steam Gaming Mode, ensure the Waydroid shortcut is not using the <strong>Desktop</strong> template:
@@ -2122,10 +2161,10 @@ Once checked, haptics and adaptive triggers (DualSense only) will work in games 
 <em>(In Desktop mode, the joysticks act as a mouse cursor and buttons act as keyboard shortcuts).</em></p>
 <h3 id="2-device-node-refresh-uevent">2. Device Node Refresh (<code>uevent</code>)<a class="headerlink" href="#2-device-node-refresh-uevent" title="Permanent link">&para;</a></h3>
 <p>Waydroid runs in an LXC container and requires a device discovery broadcast to mount virtual gamepads:
-<div class="highlight"><pre><span></span><code><span class="c1"># Run the included automated repair utility:</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run the included automated repair utility on the handheld:</span>
 ./scripts/fix-handheld-controllers.sh<span class="w"> </span>--fix
 
-<span class="c1"># Or target your handheld remotely over SSH:</span>
+<span class="c1"># Or target your handheld remotely over SSH from a PC/Mac:</span>
 ./scripts/fix-handheld-controllers.sh<span class="w"> </span>--allyx<span class="w"> </span>--fix
 </code></pre></div>
 Alternatively, trigger the Bazzite-integrated helper directly on the handheld:
@@ -2153,7 +2192,7 @@ Alternatively, trigger the Bazzite-integrated helper directly on the handheld:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2026 22:09:49 UTC">November 10, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2026 22:20:08 UTC">November 10, 2026</span>
   </span>
 
     
