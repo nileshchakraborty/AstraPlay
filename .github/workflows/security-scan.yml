@@ -9,8 +9,6 @@ on:
 permissions:
   contents: read
 
-# CodeQL runs through the repository's configured default setup.
-# GitHub rejects SARIF uploads from advanced workflows while default setup is enabled.
 jobs:
   secret-scan:
     name: Secret & Credential Leak Scan
@@ -27,20 +25,32 @@ jobs:
           FAIL=0
 
           # Check for private key headers
-          if grep -rnEI --exclude-dir={.git,build*,third-party} "BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY" .; then
+          if git grep -EI "BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY"; then
             echo "::error::Found private key in repository!"
             FAIL=1
           fi
 
           # Check for PSN tokens or OAuth hardcodes
-          if grep -rnEI --exclude-dir={.git,build*,third-party,tests,test} -E "npsso[[:space:]]*=[[:space:]]*['\"][a-zA-Z0-9]{30,}['\"]" .; then
+          if git grep -EI -E "npsso[[:space:]]*=[[:space:]]*['\"][a-zA-Z0-9]{30,}['\"]" -- ":(exclude)*test*" ":(exclude)*mock*"; then
             echo "::error::Found potential hardcoded NPSSO token!"
             FAIL=1
           fi
 
           # Check for Discord bot tokens
-          if grep -rnEI --exclude-dir={.git,build*,third-party} -E "(bot_token|DISCORD_TOKEN)[[:space:]]*=[[:space:]]*['\"][a-zA-Z0-9_\-\.]{50,}['\"]" .; then
+          if git grep -EI -E "(bot_token|DISCORD_TOKEN)[[:space:]]*=[[:space:]]*['\"][a-zA-Z0-9_\-\.]{50,}['\"]"; then
             echo "::error::Found potential hardcoded Discord token!"
+            FAIL=1
+          fi
+
+          # Check for AWS Access Keys
+          if git grep -EI -E "AKIA[0-9A-Z]{16}"; then
+            echo "::error::Found potential AWS Access Key!"
+            FAIL=1
+          fi
+
+          # Check for GitHub Personal Access Tokens
+          if git grep -EI -E "ghp_[a-zA-Z0-9]{36}"; then
+            echo "::error::Found potential GitHub Personal Access Token!"
             FAIL=1
           fi
 
@@ -49,3 +59,67 @@ jobs:
             exit 1
           fi
           echo "No secrets or private keys detected."
+
+  policy-and-transport-lint:
+    name: Transport & Policy Compliance Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Verify TLS & CA Policy (SECURITY.md §3.1)
+        run: |
+          echo "Verifying TLS certificate verification is enforced..."
+          FAIL=0
+
+          # Ensure no CURLOPT_SSL_VERIFYPEER = 0
+          if git grep -EI "CURLOPT_SSL_VERIFYPEER[[:space:]]*,[[:space:]]*0[Ll]?" -- "lib/" "switch/" "gui/"; then
+            echo "::error::Found disabled CURLOPT_SSL_VERIFYPEER in code!"
+            FAIL=1
+          fi
+
+          # Ensure no CURLOPT_SSL_VERIFYHOST = 0
+          if git grep -EI "CURLOPT_SSL_VERIFYHOST[[:space:]]*,[[:space:]]*0[Ll]?" -- "lib/" "switch/" "gui/"; then
+            echo "::error::Found disabled CURLOPT_SSL_VERIFYHOST in code!"
+            FAIL=1
+          fi
+
+          # Ensure no raw NPSSO token logging in QML
+          if git grep -EI "console\.log.*npssoToken\b" -- "gui/src/qml/"; then
+            echo "::error::Found console.log of raw npssoToken in QML!"
+            FAIL=1
+          fi
+
+          # Ensure Android network security config exists and is linked
+          if [ ! -f "android/app/src/main/res/xml/network_security_config.xml" ]; then
+            echo "::error::Missing Android network security config file!"
+            FAIL=1
+          fi
+
+          if ! grep -q "networkSecurityConfig" "android/app/src/main/AndroidManifest.xml"; then
+            echo "::error::AndroidManifest.xml must reference networkSecurityConfig!"
+            FAIL=1
+          fi
+
+          if [ $FAIL -ne 0 ]; then
+            echo "Policy check failed: transport security or policy violation detected."
+            exit 1
+          fi
+          echo "Transport security and compliance checks passed."
+
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Audit PSStream Relay Dependencies
+        working-directory: psstream-server
+        run: |
+          npm audit --audit-level=high
