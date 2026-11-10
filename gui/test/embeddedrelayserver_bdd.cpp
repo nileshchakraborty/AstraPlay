@@ -10,6 +10,7 @@ class EmbeddedRelayServerBdd final : public QObject
 private slots:
     void code_is_normalized_and_consumed_once();
     void expired_codes_are_rejected_by_every_operation();
+    void server_url_returns_valid_http_format();
 };
 
 void EmbeddedRelayServerBdd::code_is_normalized_and_consumed_once()
@@ -41,6 +42,18 @@ void EmbeddedRelayServerBdd::expired_codes_are_rejected_by_every_operation()
     QString token;
     QVERIFY(!relay.getTokens(QStringLiteral("EXPIRE1"), token));
     QVERIFY(QMetaObject::invokeMethod(&relay, "cleanupExpiredCodes"));
+}
+
+void EmbeddedRelayServerBdd::server_url_returns_valid_http_format()
+{
+    EmbeddedRelayServer relay(nullptr);
+    QString url = relay.serverUrl();
+    QVERIFY(url.startsWith(QStringLiteral("http://")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.240.")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.245.")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.250.")));
+    QVERIFY(!url.contains(QStringLiteral("10.0.2.")));
+    QVERIFY(!url.contains(QStringLiteral("192.168.122.")));
 }
 
 QTEST_GUILESS_MAIN(EmbeddedRelayServerBdd)

@@ -88,6 +88,12 @@ class PsnLoginActivity : AppCompatActivity()
 	private lateinit var manualTokenButton: MaterialButton
 	private lateinit var cancelButton: MaterialButton
 	private lateinit var qrCodeImage: ImageView
+	private lateinit var qrCodeCard: View
+	private lateinit var qrScanTitle: TextView
+	private lateinit var wifiNoticeLayout: View
+	private lateinit var containerNoticeLayout: View
+	private lateinit var containerNoticeText: TextView
+	private lateinit var codeLabelText: TextView
 
 	private lateinit var toolbar: MaterialToolbar
 
@@ -106,6 +112,12 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun isHandheldOrTv(): Boolean {
 		if (isOnTv) return true
+		if (EmbeddedRelayServer.isWaydroid()) {
+			// On Waydroid, direct WebView is always preferred because Waydroid runs inside
+			// an LXC container where external phones cannot reach container subnets (192.168.245.x),
+			// while the host touchscreen / mouse / keyboard allows immediate direct sign-in.
+			return false
+		}
 		try {
 			for (id in InputDevice.getDeviceIds()) {
 				val dev = InputDevice.getDevice(id) ?: continue
@@ -183,6 +195,12 @@ class PsnLoginActivity : AppCompatActivity()
 		manualTokenButton = findViewById(R.id.manualTokenButton)
 		cancelButton = findViewById(R.id.cancelButton)
 		qrCodeImage = findViewById(R.id.qrCodeImage)
+		qrCodeCard = findViewById(R.id.qrCodeCard)
+		qrScanTitle = findViewById(R.id.qrScanTitle)
+		wifiNoticeLayout = findViewById(R.id.wifiNoticeLayout)
+		containerNoticeLayout = findViewById(R.id.containerNoticeLayout)
+		containerNoticeText = findViewById(R.id.containerNoticeText)
+		codeLabelText = findViewById(R.id.codeLabelText)
 	}
 
 	private fun setupToolbar()
@@ -520,9 +538,36 @@ class PsnLoginActivity : AppCompatActivity()
 			statusTextView.text = getString(R.string.psn_login_relay_unconfigured_prompt)
 			progressBar.visibility = View.GONE
 			qrCodeImage.visibility = View.GONE
+			qrCodeCard.visibility = View.GONE
 			codeTextView.text = "------"
 			return
 		}
+
+		val hasRoutableLan = (embeddedRelayServer?.hasRoutableLanIp() == true) || preferences.psnRelayUrl.isNotEmpty()
+
+		if (!hasRoutableLan) {
+			val isWaydroid = EmbeddedRelayServer.isWaydroid()
+			Log.w(TAG, "No routable physical LAN IP found (isWaydroid=$isWaydroid). Container isolation prevents phone scan.")
+			qrCodeImage.visibility = View.GONE
+			qrCodeCard.visibility = View.GONE
+			qrScanTitle.visibility = View.GONE
+			wifiNoticeLayout.visibility = View.GONE
+			codeLabelText.visibility = View.GONE
+			codeTextView.visibility = View.GONE
+			containerNoticeLayout.visibility = View.VISIBLE
+			progressBar.visibility = View.GONE
+			checkStatusButton.isEnabled = false
+			containerNoticeText.text = getString(if (isWaydroid) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
+			statusTextView.text = getString(if (isWaydroid) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+			return
+		}
+
+		containerNoticeLayout.visibility = View.GONE
+		qrScanTitle.visibility = View.VISIBLE
+		wifiNoticeLayout.visibility = View.VISIBLE
+		codeLabelText.visibility = View.VISIBLE
+		codeTextView.visibility = View.VISIBLE
+		qrCodeCard.visibility = View.VISIBLE
 
 		val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 		loginCode = (1..6).map { chars.random() }.joinToString("")

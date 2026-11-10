@@ -64,8 +64,11 @@ void EmbeddedRelayServer::stop()
 
 QString EmbeddedRelayServer::serverUrl() const
 {
-    // Try to find physical LAN IP for display/QR code (ignoring loopback, docker, vpn)
+    // Try to find physical LAN IP for display/QR code (ignoring loopback, docker, vpn, waydroid, virbr)
     QString localIp;
+    QString physicalLanIp;
+    QString genericLanIp;
+
     const QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
     for (const QNetworkInterface &iface : interfaces) {
         if (!(iface.flags() & QNetworkInterface::IsUp) || !(iface.flags() & QNetworkInterface::IsRunning))
@@ -74,23 +77,46 @@ QString EmbeddedRelayServer::serverUrl() const
             continue;
 
         QString name = iface.name().toLower();
-        // Skip virtual or tunnel adapters
+        // Skip virtual, bridge, container, or tunnel adapters
         if (name.contains("docker") || name.contains("veth") || name.contains("tun") ||
-            name.contains("tap") || name.contains("bridge") || name.contains("utun"))
+            name.contains("tap") || name.contains("bridge") || name.contains("utun") ||
+            name.contains("waydroid") || name.contains("virbr") || name.contains("vboxnet") ||
+            name.contains("lxc") || name.contains("anbox") || name.contains("vmnet") ||
+            name.contains("tailscale") || name.contains("wg") || name.contains("zerotier"))
             continue;
+
+        bool isPhysicalAdapter = name.startsWith("wl") || name.startsWith("wifi") ||
+                                 name.startsWith("en") || name.startsWith("eth") ||
+                                 name.startsWith("lan");
 
         const QList<QNetworkAddressEntry> entries = iface.addressEntries();
         for (const QNetworkAddressEntry &entry : entries) {
             QHostAddress addr = entry.ip();
             if (addr.protocol() == QAbstractSocket::IPv4Protocol && !addr.isLoopback()) {
                 QString ipStr = addr.toString();
-                // Skip QEMU / emulator NAT addresses
-                if (ipStr.startsWith("10.0.2."))
+                // Skip virtual, container, or emulator NAT subnets
+                if (ipStr.startsWith("10.0.2.") ||
+                    ipStr.startsWith("192.168.240.") ||
+                    ipStr.startsWith("192.168.245.") ||
+                    ipStr.startsWith("192.168.250.") ||
+                    ipStr.startsWith("192.168.122.") ||
+                    ipStr.startsWith("172.17.") ||
+                    ipStr.startsWith("172.18.") ||
+                    ipStr.startsWith("172.19."))
                     continue;
+
                 // Standard private LAN subnets: 192.168.x.x, 10.x.x.x, 172.16-31.x.x
-                if (ipStr.startsWith("192.168.") || ipStr.startsWith("10.") || ipStr.startsWith("172.")) {
-                    return QStringLiteral("http://%1:%2").arg(ipStr).arg(m_port);
+                bool isPrivateLan = ipStr.startsWith("192.168.") || ipStr.startsWith("10.") || ipStr.startsWith("172.");
+                if (isPhysicalAdapter && isPrivateLan) {
+                    if (physicalLanIp.isEmpty()) {
+                        physicalLanIp = ipStr;
+                    }
+                } else if (isPrivateLan) {
+                    if (genericLanIp.isEmpty()) {
+                        genericLanIp = ipStr;
+                    }
                 }
+
                 if (localIp.isEmpty()) {
                     localIp = ipStr;
                 }
@@ -98,6 +124,12 @@ QString EmbeddedRelayServer::serverUrl() const
         }
     }
 
+    if (!physicalLanIp.isEmpty()) {
+        return QStringLiteral("http://%1:%2").arg(physicalLanIp).arg(m_port);
+    }
+    if (!genericLanIp.isEmpty()) {
+        return QStringLiteral("http://%1:%2").arg(genericLanIp).arg(m_port);
+    }
     if (localIp.isEmpty()) {
         localIp = QStringLiteral("127.0.0.1");
     }

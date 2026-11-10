@@ -53,6 +53,67 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			instance?.stop()
 			instance = null
 		}
+
+		/**
+		 * Identifies virtual, container, and emulator NAT IPv4 subnets that cannot be reached
+		 * by external devices on a physical Wi-Fi LAN.
+		 */
+		fun isVirtualSubnet(host: String): Boolean {
+			return host.startsWith("10.0.2.") ||       // Android emulator NAT
+				host.startsWith("192.168.240.") || // Waydroid default bridge
+				host.startsWith("192.168.245.") || // Waydroid alternate bridge
+				host.startsWith("192.168.250.") || // Waydroid alternate bridge
+				host.startsWith("192.168.122.") || // KVM / libvirt default bridge
+				host.startsWith("172.17.") ||      // Docker default bridge
+				host.startsWith("172.18.") ||      // Docker default bridge
+				host.startsWith("172.19.")         // Docker default bridge
+		}
+
+		/**
+		 * Identifies virtual, bridge, container, or tunnel network interfaces.
+		 */
+		fun isVirtualInterface(name: String): Boolean {
+			val lower = name.lowercase()
+			return lower.contains("dummy") || lower.contains("tun") || lower.contains("tap") ||
+				lower.contains("p2p") || lower.contains("waydroid") || lower.contains("veth") ||
+				lower.contains("docker") || lower.contains("virbr") || lower.contains("vboxnet") ||
+				lower.contains("lxc") || lower.contains("anbox") || lower.contains("vmnet") ||
+				lower.contains("tailscale") || lower.contains("wg") || lower.contains("bridge")
+		}
+
+		/**
+		 * Detects whether Android is running inside a Waydroid container on Linux.
+		 */
+		fun isWaydroid(): Boolean {
+			val buildProps = listOf(
+				android.os.Build.HARDWARE,
+				android.os.Build.PRODUCT,
+				android.os.Build.BOARD,
+				android.os.Build.MANUFACTURER,
+				android.os.Build.BRAND,
+				android.os.Build.MODEL,
+				android.os.Build.DEVICE
+			).joinToString(" ").lowercase()
+			if (buildProps.contains("waydroid")) return true
+
+			val bootHardware = getSystemPropertyStatic("ro.boot.hardware")?.lowercase() ?: ""
+			if (bootHardware.contains("waydroid")) return true
+			val hardware = getSystemPropertyStatic("ro.hardware")?.lowercase() ?: ""
+			if (hardware.contains("waydroid")) return true
+
+			return false
+		}
+
+		fun getSystemPropertyStatic(key: String): String? {
+			return try {
+				val clazz = Class.forName("android.os.SystemProperties")
+				val method = clazz.getMethod("get", String::class.java)
+				val value = method.invoke(null, key) as? String
+				value?.trim()?.takeIf { it.isNotEmpty() }
+			} catch (_: Exception) {
+				null
+			}
+		}
 	}
 
 	data class CodeEntry(val createdAt: Long, var npsso: String? = null)
@@ -142,9 +203,11 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 	}
 
 	/**
-	 * Find LAN IPv4 address (e.g. 192.168.1.x, 10.x.x.x, 172.x.x.x) for QR code generation.
-	 * Explicitly filters out 10.0.2.* (Android emulator internal NAT) and allows developer
-	 * overrides via the debug.astraplay.lan_ip system property.
+	 * Find physical LAN IPv4 address (e.g. 192.168.1.x, 10.x.x.x, 172.x.x.x) for QR code generation.
+	 * Explicitly filters out virtual/container bridges (Waydroid, QEMU, Docker, KVM, Wireguard, Tailscale)
+	 * so external devices scanning the QR code on a local Wi-Fi network are not given an unreachable
+	 * private container IP (such as Waydroid's 192.168.240.x / 192.168.245.x / 192.168.250.x).
+	 * Allows developer overrides via the debug.astraplay.lan_ip system property.
 	 */
 	fun getLanIpAddress(): String? {
 		// 1. Check for explicit system property override (useful for emulator testing on host LAN)
@@ -156,53 +219,53 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 
 		try {
 			val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
-			val candidates = mutableListOf<String>()
+			val physicalCandidates = mutableListOf<String>()
+			val otherCandidates = mutableListOf<String>()
 
 			for (iface in interfaces) {
 				if (!iface.isUp || iface.isLoopback) continue
 				val name = iface.name.lowercase()
-				if (name.contains("dummy") || name.contains("tun") || name.contains("tap") || name.contains("p2p")) continue
+				if (isVirtualInterface(name)) continue
+
+				val isPhysical = name.startsWith("wl") || name.startsWith("wifi") ||
+					name.startsWith("eth") || name.startsWith("en") || name.startsWith("lan")
 
 				val addrs = Collections.list(iface.inetAddresses)
 				for (addr in addrs) {
 					if (!addr.isLoopbackAddress && addr is Inet4Address) {
 						val host = addr.hostAddress ?: continue
-						// Exclude QEMU / Android emulator internal virtual NAT
-						if (host.startsWith("10.0.2.")) continue
-						candidates.add(host)
+						// Exclude virtual/container NAT subnets (10.0.2.*, 192.168.240.*, 192.168.245.*, etc.)
+						if (isVirtualSubnet(host)) continue
+
+						if (isPhysical) {
+							physicalCandidates.add(host)
+						} else {
+							otherCandidates.add(host)
+						}
 					}
 				}
 			}
 
-			// Priority 1: Standard 192.168.x.x home Wi-Fi subnets
-			candidates.firstOrNull { it.startsWith("192.168.") }?.let { return it }
+			// Prioritize physical Wi-Fi / Ethernet adapters first
+			physicalCandidates.firstOrNull { it.startsWith("192.168.") }?.let { return it }
+			physicalCandidates.firstOrNull { it.startsWith("10.") }?.let { return it }
+			physicalCandidates.firstOrNull { it.startsWith("172.") }?.let { return it }
+			if (physicalCandidates.isNotEmpty()) return physicalCandidates.first()
 
-			// Priority 2: 172.16.x.x - 172.31.x.x private subnets
-			candidates.firstOrNull { it.startsWith("172.") }?.let { return it }
-
-			// Priority 3: Other 10.x.x.x subnets (corporate/VPN, excluding 10.0.2.*)
-			candidates.firstOrNull { it.startsWith("10.") }?.let { return it }
-
-			// Fallback to any non-loopback candidate
-			if (candidates.isNotEmpty()) {
-				return candidates.first()
-			}
+			// Other non-virtual network interfaces
+			otherCandidates.firstOrNull { it.startsWith("192.168.") }?.let { return it }
+			otherCandidates.firstOrNull { it.startsWith("10.") }?.let { return it }
+			otherCandidates.firstOrNull { it.startsWith("172.") }?.let { return it }
+			if (otherCandidates.isNotEmpty()) return otherCandidates.first()
 		} catch (e: Exception) {
 			Log.w(TAG, "Error looking up LAN IP address", e)
 		}
 		return null
 	}
 
-	private fun getSystemProperty(key: String): String? {
-		return try {
-			val clazz = Class.forName("android.os.SystemProperties")
-			val method = clazz.getMethod("get", String::class.java)
-			val value = method.invoke(null, key) as? String
-			value?.trim()?.takeIf { it.isNotEmpty() }
-		} catch (_: Exception) {
-			null
-		}
-	}
+	fun hasRoutableLanIp(): Boolean = !getLanIpAddress().isNullOrEmpty()
+
+	private fun getSystemProperty(key: String): String? = getSystemPropertyStatic(key)
 
 	/**
 	 * URL for other devices on the LAN (QR code target).

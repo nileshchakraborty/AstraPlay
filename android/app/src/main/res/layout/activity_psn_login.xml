@@ -201,8 +201,57 @@
                         android:paddingHorizontal="24dp"
                         android:paddingVertical="16dp">
 
+                        <!-- Container / No-LAN Notice Banner -->
+                        <LinearLayout
+                            android:id="@+id/containerNoticeLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="#2E1C1C"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="14dp"
+                            android:layout_marginBottom="16dp"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="6dp">
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:src="@drawable/ic_phone_android"
+                                    app:tint="#EF5350"
+                                    android:layout_marginEnd="8dp"
+                                    android:contentDescription="Notice" />
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/psn_login_container_notice_title"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#EF5350" />
+                            </LinearLayout>
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/containerNoticeText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/psn_login_container_notice_desc"
+                                android:textSize="12sp"
+                                android:textColor="#FFCDD2"
+                                android:textAlignment="center" />
+
+                        </LinearLayout>
+
                         <!-- QR Code card -->
                         <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/qrCodeCard"
                             android:layout_width="216dp"
                             android:layout_height="216dp"
                             app:cardCornerRadius="12dp"
@@ -223,6 +272,7 @@
                         </com.google.android.material.card.MaterialCardView>
 
                         <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/qrScanTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/psn_login_scan_phone"
@@ -234,6 +284,7 @@
 
                         <!-- Same Wi-Fi Network Notice -->
                         <LinearLayout
+                            android:id="@+id/wifiNoticeLayout"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
@@ -261,6 +312,7 @@
                         </LinearLayout>
 
                         <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/codeLabelText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/psn_login_code_label"
