@@ -28,7 +28,7 @@
 #include <objc/message.h>
 #endif
 
-Q_LOGGING_CATEGORY(chiakiGui, "chiaki.gui");
+Q_LOGGING_CATEGORY(chiakiGui, "astraplay.gui");
 
 static void placebo_log_cb(void *user, pl_log_level level, const char *msg)
 {

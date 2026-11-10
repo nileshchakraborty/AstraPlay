@@ -25,7 +25,7 @@
 #include <QDir>
 #include <algorithm>
 
-Q_LOGGING_CATEGORY(chiakiGuiGames, "chiaki.gui.games")
+Q_LOGGING_CATEGORY(chiakiGuiGames, "astraplay.gui.games")
 
 QmlGamesBackend::QmlGamesBackend(Settings *settings, QObject *parent)
     : QObject(parent)
