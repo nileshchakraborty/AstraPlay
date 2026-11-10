@@ -239,6 +239,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: clangarm64
+          cache: false
           release: false
           update: true
           install: git diffutils

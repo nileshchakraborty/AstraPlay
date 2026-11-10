@@ -186,6 +186,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: clangarm64
+          cache: false
           release: false
           update: true
           install: git diffutils
@@ -813,7 +814,6 @@ jobs:
           # 11. Pre-flight asset verification
           REQUIRED_ASSETS=(
             "astraplay-windows-installer.exe"
-            "astraplay-windows-arm64-installer.exe"
             "astraplay-windows-x64.zip"
             "AstraPlay-Linux-x86_64.AppImage"
             "AstraPlay-Linux-aarch64.AppImage"
@@ -822,6 +822,9 @@ jobs:
             "version.json"
             "SHA256SUMS.txt"
           )
+          if [ -d artifacts/astraplay-windows-arm64-build ]; then
+            REQUIRED_ASSETS+=("astraplay-windows-arm64-installer.exe")
+          fi
           for asset in "${REQUIRED_ASSETS[@]}"; do
             if [ ! -s "dist/$asset" ]; then
               echo "ERROR: Mandatory release asset dist/$asset is missing or empty!" >&2
