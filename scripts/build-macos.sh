@@ -239,6 +239,16 @@ echo ""
 # Create build output directory
 mkdir -p "$BUILD_OUTPUT_DIR"
 
+# Clean up any legacy rebrand app bundles if present in build-output
+if [ -d "$BUILD_OUTPUT_DIR/Pylux.app" ]; then
+    echo "Purging legacy Pylux.app from build-output..."
+    rm -rf "$BUILD_OUTPUT_DIR/Pylux.app"
+fi
+if [ -d "$BUILD_OUTPUT_DIR/chiaki.app" ]; then
+    echo "Purging legacy chiaki.app from build-output..."
+    rm -rf "$BUILD_OUTPUT_DIR/chiaki.app"
+fi
+
 # Check for Homebrew
 if ! command -v brew &>/dev/null; then
     echo "ERROR: Homebrew not found. Install from https://brew.sh"

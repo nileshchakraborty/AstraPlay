@@ -139,13 +139,33 @@ UpdateManager::UpdateManager(Settings *settings, QObject *parent)
 
 UpdateManager::~UpdateManager()
 {
-    if (m_downloading) {
-        cancelDownload();
+    // Disconnect all signals emitted by this object immediately so no QML or parent handlers
+    // are invoked during destruction teardown cascade.
+    disconnect();
+
+    if (m_downloadReply) {
+        QNetworkReply *reply = m_downloadReply.data();
+        m_downloadReply.clear();
+        if (reply) {
+            reply->disconnect();
+            reply->abort();
+            reply->deleteLater();
+        }
     }
     if (m_checkReply) {
-        m_checkReply->abort();
-        m_checkReply->deleteLater();
-        m_checkReply = nullptr;
+        QNetworkReply *reply = m_checkReply.data();
+        m_checkReply.clear();
+        if (reply) {
+            reply->disconnect();
+            reply->abort();
+            reply->deleteLater();
+        }
+    }
+    if (m_downloadFile) {
+        if (m_downloadFile->isOpen())
+            m_downloadFile->close();
+        delete m_downloadFile;
+        m_downloadFile = nullptr;
     }
 }
 
@@ -261,8 +281,13 @@ void UpdateManager::checkForUpdates(bool userInitiated)
 #endif
 
     if (m_checkReply) {
-        m_checkReply->abort();
-        m_checkReply->deleteLater();
+        QNetworkReply *reply = m_checkReply.data();
+        m_checkReply.clear();
+        if (reply) {
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
+        }
     }
 
     m_checkReply = m_nam->get(request);
@@ -283,8 +308,10 @@ void UpdateManager::onCheckFinished()
                    << (hasNetworkError ? m_checkReply->errorString() : QString())
                    << "), attempting CDN fallback:" << REPO_VERSION_FALLBACK_URL;
         m_usedFallback = true;
-        m_checkReply->deleteLater();
-        m_checkReply = nullptr;
+        if (m_checkReply) {
+            m_checkReply->deleteLater();
+            m_checkReply.clear();
+        }
 
         QNetworkRequest fallbackRequest{QUrl(REPO_VERSION_FALLBACK_URL)};
         fallbackRequest.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("AstraPlay-Updater/") + QStringLiteral(CHIAKI_VERSION));
@@ -304,14 +331,18 @@ void UpdateManager::onCheckFinished()
         m_statusMessage = tr("Failed to check for updates: %1").arg(m_checkReply->errorString());
         emit statusMessageChanged();
         emit updateCheckCompleted(false, m_userInitiated, QString());
-        m_checkReply->deleteLater();
-        m_checkReply = nullptr;
+        if (m_checkReply) {
+            m_checkReply->deleteLater();
+            m_checkReply.clear();
+        }
         return;
     }
 
     QByteArray data = m_checkReply->readAll();
-    m_checkReply->deleteLater();
-    m_checkReply = nullptr;
+    if (m_checkReply) {
+        m_checkReply->deleteLater();
+        m_checkReply.clear();
+    }
 
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
@@ -613,8 +644,13 @@ void UpdateManager::startDownload()
 #endif
 
     if (m_downloadReply) {
-        m_downloadReply->abort();
-        m_downloadReply->deleteLater();
+        QNetworkReply *reply = m_downloadReply.data();
+        m_downloadReply.clear();
+        if (reply) {
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
+        }
     }
 
     m_downloadReply = m_nam->get(request);
@@ -701,8 +737,10 @@ void UpdateManager::onDownloadFinished()
         emit statusMessageChanged();
         emit downloadFailed(m_lastError);
         QFile::remove(m_downloadedFilePath);
-        m_downloadReply->deleteLater();
-        m_downloadReply = nullptr;
+        if (m_downloadReply) {
+            m_downloadReply->deleteLater();
+            m_downloadReply.clear();
+        }
         return;
     }
 
@@ -731,13 +769,17 @@ void UpdateManager::onDownloadFinished()
             emit downloadFailed(m_lastError);
         }
         QFile::remove(m_downloadedFilePath);
-        m_downloadReply->deleteLater();
-        m_downloadReply = nullptr;
+        if (m_downloadReply) {
+            m_downloadReply->deleteLater();
+            m_downloadReply.clear();
+        }
         return;
     }
 
-    m_downloadReply->deleteLater();
-    m_downloadReply = nullptr;
+    if (m_downloadReply) {
+        m_downloadReply->deleteLater();
+        m_downloadReply.clear();
+    }
 
     QString verifyError;
     if (!verifyDownloadedPayload(m_downloadedFilePath, verifyError)) {
@@ -770,9 +812,13 @@ void UpdateManager::cancelDownload()
 {
     m_userCancelled = true;
     if (m_downloadReply) {
-        m_downloadReply->abort();
-        m_downloadReply->deleteLater();
-        m_downloadReply = nullptr;
+        QNetworkReply *reply = m_downloadReply.data();
+        m_downloadReply.clear();
+        if (reply) {
+            reply->disconnect(this);
+            reply->abort();
+            reply->deleteLater();
+        }
     }
     if (m_downloadFile) {
         if (m_downloadFile->isOpen())

@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QPointer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -103,8 +104,8 @@ private slots:
 private:
     Settings *m_settings;
     QNetworkAccessManager *m_nam;
-    QNetworkReply *m_checkReply = nullptr;
-    QNetworkReply *m_downloadReply = nullptr;
+    QPointer<QNetworkReply> m_checkReply;
+    QPointer<QNetworkReply> m_downloadReply;
 
     bool m_checking = false;
     bool m_updateAvailable = false;
