@@ -10,12 +10,35 @@ function normalizeCode(value) {
   return value == null ? '' : String(value).trim().toUpperCase();
 }
 
-function createApp({ now = Date.now, logger = console } = {}) {
+function createApp({ now = Date.now, logger = console, maxCodes = 500, enableRateLimit = false, mockLookup = null } = {}) {
   const app = express();
   const codeStore = new Map();
+  const rateLimitMap = new Map();
 
   app.use(cors());
   app.use(express.json());
+
+  function rateLimiter(limit, windowMs = 60 * 1000) {
+    return (req, res, next) => {
+      if (!enableRateLimit) return next();
+      const key = `${req.path}:${req.ip}`;
+      const nowMs = now();
+      let record = rateLimitMap.get(key);
+      if (!record || nowMs >= record.resetTime) {
+        record = { count: 1, resetTime: nowMs + windowMs };
+        rateLimitMap.set(key, record);
+        return next();
+      }
+      if (record.count >= limit) {
+        return res.status(429).json({
+          result: 'error',
+          error: 'Too many requests, please try again later'
+        });
+      }
+      record.count += 1;
+      return next();
+    };
+  }
 
   function findActiveCode(code) {
     const entry = codeStore.get(code);
@@ -34,12 +57,24 @@ function createApp({ now = Date.now, logger = console } = {}) {
         codeStore.delete(code);
       }
     }
+    for (const [key, record] of rateLimitMap.entries()) {
+      if (currentTime >= record.resetTime) {
+        rateLimitMap.delete(key);
+      }
+    }
   }
 
   function handleCreateCode(req, res) {
     const code = normalizeCode(req.body && req.body.code);
     if (!code) {
       return res.status(400).json({ result: 'error', error: 'Missing code' });
+    }
+
+    if (!codeStore.has(code) && codeStore.size >= maxCodes) {
+      cleanupExpiredCodes();
+      if (codeStore.size >= maxCodes) {
+        return res.status(429).json({ result: 'error', error: 'Relay server code capacity reached' });
+      }
     }
 
     codeStore.set(code, { npsso: null, createdAt: now() });
@@ -99,16 +134,26 @@ function createApp({ now = Date.now, logger = console } = {}) {
 
   // Keep both route prefixes compatible with existing AstraPlay and Chiaki clients.
   for (const prefix of ['/psstream', '/astraplay']) {
-    app.post(`${prefix}/create-code`, handleCreateCode);
-    app.post(`${prefix}/get-tokens`, handleGetTokens);
-    app.post(`${prefix}/validate-code`, handleValidateCode);
-    app.post(`${prefix}/connect`, handleConnect);
+    app.post(`${prefix}/create-code`, rateLimiter(5), handleCreateCode);
+    app.post(`${prefix}/get-tokens`, rateLimiter(30), handleGetTokens);
+    app.post(`${prefix}/validate-code`, rateLimiter(10), handleValidateCode);
+    app.post(`${prefix}/connect`, rateLimiter(10), handleConnect);
   }
 
   app.get('/search.php', (req, res) => {
     const username = req.query.username;
     if (!username) {
       return res.json({ error: 'Username required' });
+    }
+    if (typeof mockLookup === 'function') {
+      const result = mockLookup(String(username));
+      return res.json(result);
+    }
+    if (req.query.mock_id) {
+      return res.json({
+        username: String(username),
+        encoded_id: String(req.query.mock_id)
+      });
     }
     return res.json({
       username: String(username),
@@ -131,9 +176,11 @@ function startServer({
   now = Date.now,
   logger = console,
   scheduleInterval = setInterval,
-  clearScheduledInterval = clearInterval
+  clearScheduledInterval = clearInterval,
+  maxCodes = 500,
+  enableRateLimit = true
 } = {}) {
-  const app = createApp({ now, logger });
+  const app = createApp({ now, logger, maxCodes, enableRateLimit });
   const cleanupTimer = scheduleInterval(() => app.locals.cleanupExpiredCodes(), CLEANUP_INTERVAL_MS);
   if (cleanupTimer && typeof cleanupTimer.unref === 'function') cleanupTimer.unref();
 

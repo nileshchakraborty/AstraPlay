@@ -250,14 +250,28 @@ void DiscoveryManager::makeRequest(const std::string& username, std::function<vo
     }
 
     char* encoded_username = curl_easy_escape(curl, username.c_str(), username.length());
-    std::string url = "https://psn.flipscreen.games/search.php?username=" + std::string(encoded_username);
+    const char *custom_search_url = getenv("ASTRAPLAY_PSN_SEARCH_URL");
+    const char *relay_url = getenv("ASTRAPLAY_RELAY_URL");
+    std::string url;
+    if (custom_search_url && custom_search_url[0]) {
+        url = std::string(custom_search_url) + std::string(encoded_username);
+    } else if (relay_url && relay_url[0]) {
+        std::string base(relay_url);
+        while (!base.empty() && base.back() == '/') {
+            base.pop_back();
+        }
+        url = base + "/search.php?username=" + std::string(encoded_username);
+    } else {
+        url = "https://psn.flipscreen.games/search.php?username=" + std::string(encoded_username);
+    }
     curl_free(encoded_username);
 
     std::string response_data;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	// Enforce strict TLS certificate and host verification per SECURITY.md
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
 

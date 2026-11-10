@@ -171,6 +171,91 @@ describe('PSN login relay behavior', () => {
         error: 'Please use the direct PSN Login method on this device or via QR code.'
       });
     });
+
+    it('When a mock_id query parameter is supplied, Then it returns the mock encoded account ID', async () => {
+      const result = await get('/search.php?username=Alice%20Example&mock_id=bW9ja0FjY291bnRJZDEyMw==');
+      assert.equal(result.status, 200);
+      assert.deepEqual(JSON.parse(result.text), {
+        username: 'Alice Example',
+        encoded_id: 'bW9ja0FjY291bnRJZDEyMw=='
+      });
+    });
+  });
+
+  describe('Given a mock third-party account lookup handler is configured', () => {
+    it('When an existing user is looked up, Then the mock lookup callback supplies the account ID', async () => {
+      const mockApp = createApp({
+        mockLookup: (username) => {
+          if (username === 'MockPro') {
+            return { username, encoded_id: 'bW9ja1Byb0lkMTIzNDU2' };
+          }
+          return { error: 'User not found in mock directory' };
+        }
+      });
+      const s = mockApp.listen(0, '127.0.0.1');
+      await once(s, 'listening');
+      const url = `http://127.0.0.1:${s.address().port}`;
+      try {
+        const res1 = await fetch(`${url}/search.php?username=MockPro`);
+        assert.equal(res1.status, 200);
+        const data1 = await res1.json();
+        assert.deepEqual(data1, { username: 'MockPro', encoded_id: 'bW9ja1Byb0lkMTIzNDU2' });
+
+        const res2 = await fetch(`${url}/search.php?username=GhostUser`);
+        assert.equal(res2.status, 200);
+        const data2 = await res2.json();
+        assert.deepEqual(data2, { error: 'User not found in mock directory' });
+      } finally {
+        s.close();
+        await once(s, 'close');
+      }
+    });
+
+    it('When a mock thirdparty relay service handles QR code token exchange, Then credentials flow securely', async () => {
+      const mockThirdPartyApp = createApp();
+      const s = mockThirdPartyApp.listen(0, '127.0.0.1');
+      await once(s, 'listening');
+      const mockUrl = `http://127.0.0.1:${s.address().port}`;
+      try {
+        // Step 1: Mock client registers login code on mock thirdparty URL
+        const createRes = await fetch(`${mockUrl}/psstream/create-code`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: 'MOCK-QR-01' })
+        });
+        assert.equal(createRes.status, 200);
+
+        // Step 2: Client polls mock URL before user login (pending)
+        const pendingPoll = await fetch(`${mockUrl}/psstream/get-tokens`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: 'MOCK-QR-01' })
+        });
+        const pendingData = await pendingPoll.json();
+        assert.equal(pendingData.error, 'Tokens not ready yet');
+
+        // Step 3: Browser submits token to mock thirdparty URL
+        const connectRes = await fetch(`${mockUrl}/psstream/connect`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: 'MOCK-QR-01', npsso: 'mock-secret-npsso-token-64' })
+        });
+        assert.equal(connectRes.status, 200);
+
+        // Step 4: Client polls mock URL after user login (success)
+        const successPoll = await fetch(`${mockUrl}/psstream/get-tokens`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: 'MOCK-QR-01' })
+        });
+        const successData = await successPoll.json();
+        assert.equal(successData.result, 'success');
+        assert.equal(successData.npsso, 'mock-secret-npsso-token-64');
+      } finally {
+        s.close();
+        await once(s, 'close');
+      }
+    });
   });
 
   describe('Given a user opens the relay login page', () => {
@@ -231,5 +316,94 @@ describe('PSN login relay process lifecycle', () => {
     childServer.close();
     await once(childServer, 'close');
     assert.equal(clearedTimer, timer);
+  });
+});
+
+describe('PSN login relay security controls', () => {
+  it('When codeStore reaches maxCodes capacity, Then new codes are rejected with 429', async () => {
+    let nowTime = 1000;
+    const smallApp = createApp({ maxCodes: 1, now: () => nowTime });
+    const s = smallApp.listen(0, '127.0.0.1');
+    await once(s, 'listening');
+    const url = `http://127.0.0.1:${s.address().port}`;
+    try {
+      const res1 = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'CODE1' })
+      });
+      assert.equal(res1.status, 200);
+
+      // Re-registering existing code within capacity is allowed
+      const resSame = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'CODE1' })
+      });
+      assert.equal(resSame.status, 200);
+
+      const res2 = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'CODE2' })
+      });
+      assert.equal(res2.status, 429);
+      assert.deepEqual(await res2.json(), { result: 'error', error: 'Relay server code capacity reached' });
+
+      // Expiring old codes frees capacity
+      nowTime += CODE_TTL_MS + 1000;
+      const res3 = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'CODE3' })
+      });
+      assert.equal(res3.status, 200);
+    } finally {
+      s.close();
+      await once(s, 'close');
+    }
+  });
+
+  it('When rate limiting is enabled and request threshold is exceeded, Then it returns 429', async () => {
+    let simTime = 100000;
+    const rateApp = createApp({ enableRateLimit: true, now: () => simTime });
+    const s = rateApp.listen(0, '127.0.0.1');
+    await once(s, 'listening');
+    const url = `http://127.0.0.1:${s.address().port}`;
+    try {
+      // Limit for create-code is 5 req / min
+      for (let i = 0; i < 5; i++) {
+        const res = await fetch(`${url}/astraplay/create-code`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ code: `RL${i}` })
+        });
+        assert.equal(res.status, 200);
+      }
+      // 6th request should hit 429
+      const res6 = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'RL6' })
+      });
+      assert.equal(res6.status, 429);
+      assert.deepEqual(await res6.json(), {
+        result: 'error',
+        error: 'Too many requests, please try again later'
+      });
+
+      // Advance time by 61 seconds; rate limit should reset and cleanup evicts record
+      simTime += 61 * 1000;
+      rateApp.locals.cleanupExpiredCodes();
+      const resAfterReset = await fetch(`${url}/astraplay/create-code`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: 'RL_RESET' })
+      });
+      assert.equal(resAfterReset.status, 200);
+    } finally {
+      s.close();
+      await once(s, 'close');
+    }
   });
 });
