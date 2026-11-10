@@ -44,7 +44,7 @@ The Free Software Foundation explicitly guarantees the right to charge for copie
    - **Ads**: No ads.
    - **Data Safety**:
      - Does the app collect or share user data? **No** (all credentials stay local on device).
-     - Does the app transmit data? Only direct local network and HTTPS to official Sony PSN endpoints.
+     - Does the app transmit data? Only direct local network and HTTPS to official PSN endpoints.
 
 ---
 

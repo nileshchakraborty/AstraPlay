@@ -57,7 +57,7 @@
 
                 If you get a `connection to the server timed out` message, keep on trying to login by hitting ++enter++ every few seconds until you get a different error message such as `Can't connect to the server` or you have tried for at least 20 seconds. If that doesn't work, please try refreshing the page and going through the process again. If you still can't find success, make an attempt using a different browser.
 
-                Unfortunately, we have no control over Sony's site (that gives out auth tokens to access their PSN servers for the remote connection over PSN setup) so we can only give tips on how best to handle the errors that may occur on the page and wish you the best in obtaining your token. Fortunately, once this token is obtained, AstraPlay will automatically refresh it as needed and only ask for you to create a new token in the event that PSN requires you to generate a new one using your login.
+                Unfortunately, we have no control over the authentication site (that gives out auth tokens to access PSN servers for the remote connection over PSN setup) so we can only give tips on how best to handle the errors that may occur on the page and wish you the best in obtaining your token. Fortunately, once this token is obtained, AstraPlay will automatically refresh it as needed and only ask for you to create a new token in the event that PSN requires you to generate a new one using your login.
 
         2. Copy your redirect url from the browser
 
@@ -70,7 +70,7 @@
 
             !!! Danger "Error Message"
 
-                If you obtain an error with a link to Sony's oauth site, it is likely the code from the link has expired and you need to create a new code by logging in again and pasting the url into AstraPlay. The code usually expires within a few minutes. Otherwise, the error code should hopefully be self explanatory.
+                If you obtain an error with a link to the OAuth site, it is likely the code from the link has expired and you need to create a new code by logging in again and pasting the url into AstraPlay. The code usually expires within a few minutes. Otherwise, the error code should hopefully be self explanatory.
 
     4. Register your PlayStation console
 

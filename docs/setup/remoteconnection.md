@@ -8,14 +8,14 @@ Connect to your PS4 or PS5 from outside your home network. There are two methods
 
 **IPv4 only** — PlayStation only supports IPv4 for Remote Play.
 
-AstraPlay uses PSN servers as a go-between to initiate a direct connection between your device and your PlayStation using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching){target="_blank" rel="noopener"}, replicating the behavior of Sony's official Remote Play app.
+AstraPlay uses PSN servers as a go-between to initiate a direct connection between your device and your PlayStation using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching){target="_blank" rel="noopener"}, replicating official Remote Play behavior.
 
 ### Requirements
 
 1. Console must be on the latest firmware
 2. Console must be registered locally before using remote connection via PSN
 3. The console must not be reachable on your local network — remote connection is only shown when the console isn't found locally
-4. **PS4 only:** remote connection via PSN works only with your PSN account's main registered console *(Sony limitation, not specific to AstraPlay)*
+4. **PS4 only:** remote connection via PSN works only with your PSN account's main registered console *(console limitation, not specific to AstraPlay)*
 
 !!! warning "Not All Networks Supported"
 

@@ -313,8 +313,8 @@ AstraPlay makes this effortless:
 
 ### Method 2: 3-Step Browser Sign-In
 If you prefer not to use in-app webviews:
-1. **Step 1**: Open [PlayStation Sign-In](https://my.playstation.com) in your browser and log in with your Sony email and password.
-2. **Step 2**: Open [Sony Account Code](https://ca.account.sony.com/api/v1/ssocookie) to view your code (`{"npsso":"<64_character_code>"}`).
+1. **Step 1**: Open [PlayStation Sign-In](https://my.playstation.com) in your browser and log in with your account email and password.
+2. **Step 2**: Open [Account Code](https://ca.account.sony.com/api/v1/ssocookie) to view your code (`{"npsso":"<64_character_code>"}`).
 3. **Step 3**: Copy the code (or copy the entire page) and paste it into AstraPlay. AstraPlay automatically extracts the code and auto-fills your Account ID.
 
 ---
@@ -324,7 +324,7 @@ If you prefer not to use in-app webviews:
 > **FYI: AstraPlay does not collect user data.**
 
 - **Zero Remote Tracking**: We operate zero telemetry servers, zero analytics trackers, and zero advertising SDKs.
-- **Strictly Local & Peer-to-Peer**: Video, audio, and controller commands travel directly between your client device and your PlayStation console over your local network. Authentication tokens (NPSSO) are exchanged exclusively with official Sony PlayStation servers over encrypted TLS.
+- **Strictly Local & Peer-to-Peer**: Video, audio, and controller commands travel directly between your client device and your PlayStation console over your local network. Authentication tokens (NPSSO) are exchanged exclusively with official PlayStation servers over encrypted TLS.
 - **Why Permissions Are Needed**:
   - **Network & Local Wi-Fi (`INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_MULTICAST_STATE`, `NSLocalNetworkUsageDescription`)**: Used solely for local network console discovery (UDP broadcasts), low-latency streaming, adapting bitrate during network handoffs, and displaying your device's local IP on the embedded relay pairing screen.
   - **Microphone (`RECORD_AUDIO`, `NSMicrophoneUsageDescription`, `device.audio-input`)**: Transmits voice chat to your PlayStation party only when you explicitly un-mute the in-stream mic toggle. Voice data is never recorded or stored.

@@ -73,7 +73,7 @@ Head to the [Setup section](setup/index.md) to get AstraPlay running on your dev
     
     * **Zero Telemetry**: No analytics, trackers, or advertising SDKs.
     * **Direct Peer-to-Peer**: All game streaming and controller input runs directly between your device and your console over your home network.
-    * **Direct Authentication**: PSN login is conducted directly with official Sony PlayStation servers over encrypted HTTPS (TLS).
+    * **Direct Authentication**: PSN login is conducted directly with official PlayStation servers over encrypted HTTPS (TLS).
     * **Minimal Permissions**: Every permission requested on Android, iOS, macOS, and Windows is strictly used on-device for local console discovery, low-latency streaming, and controller haptics.
     
     See our comprehensive [Privacy Policy](privacy.md) for detailed permission rationales.

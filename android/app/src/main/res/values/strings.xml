@@ -252,7 +252,7 @@
     <string name="psn_login_connect_button">Connect Account</string>
     <string name="psn_login_npsso_dialog_hint">Paste code or {\"npsso\":\"...\"} here</string>
     <string name="psn_login_npsso_dialog_message">Sign into PlayStation Network, then copy the 64-character token from the ssocookie page.</string>
-    <string name="psn_login_open_npsso_page">Open Sony Page</string>
+    <string name="psn_login_open_npsso_page">Open Account Page</string>
     <string name="psn_login_invalid_url">Please enter a valid URL starting with http:// or https://</string>
     <string name="psn_login_invalid_npsso">We couldn\'t find a valid 64-character PlayStation code. Make sure you completed Step 1 (Sign in) and copied the code from Step 2.</string>
     

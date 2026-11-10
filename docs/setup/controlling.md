@@ -417,7 +417,7 @@ Some games (such as *WWE 2K*, *Persona*, or titles with licensed entrance music 
 > *"The screen contains content that can't be displayed using Remote Play."*
 
 ### Why It Happens
-Sony's PlayStation operating system enforces DRM and privacy protection at the console encoder level (`sceRemotePlayProhibit`). During introductory terms-of-service dialogs, 2K account logins, or copyright-protected entrance videos, the console halts video frame encoding.
+The PlayStation operating system enforces DRM and privacy protection at the console encoder level (`sceRemotePlayProhibit`). During introductory terms-of-service dialogs, 2K account logins, or copyright-protected entrance videos, the console halts video frame encoding.
 
 ### How to Resolve It
 1. **Controller Input Forwarding**: AstraPlay keeps your controller inputs active during blocked scenes. If an invisible agreement or login screen is awaiting confirmation, press **Cross (X)** or **Circle (O)** on your controller to accept or skip the background modal. Once dismissed, the video stream will resume automatically.
