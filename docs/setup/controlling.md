@@ -431,6 +431,20 @@ Sony's PlayStation operating system enforces DRM and privacy protection at the c
 
 AstraPlay provides first-class support for USB-C, Lightning, and Bluetooth mobile controllers on Android, iOS, and handheld devices:
 
+### In-App Controller Diagnostics & Troubleshooting (iOS & Android)
+Mobile users do not need to run terminal scripts. Full hardware diagnostics and troubleshooting tools are built directly into the AstraPlay app:
+- Open **Settings** -> **Gamepad Tuning & Remapping** -> **Controller Diagnostics & Troubleshooting**.
+- **On iPhone (iOS)**:
+  - Enumerates all connected `GCController` devices with category badges (`Backbone One`, `MFi Extended Gamepad`, `DualSense`, `Xbox`).
+  - Distinguishes physically attached mobile grips from wireless Bluetooth connections and displays battery level.
+  - **Live Input Tester**: Press buttons or move the thumbsticks on your controller to see instant real-time green highlights confirming every button registers.
+  - One-tap link to open iOS System Settings -> General -> Game Controller.
+- **On Android**:
+  - Scans all input devices with Vendor ID (VID) and Product ID (PID), categorizing Backbone One, ROG Xbox Ally X, Razer Kishi, GameSir, DualSense, and Xbox gamepads.
+  - **Accessibility Interception Audit**: Automatically detects if third-party accessibility apps (Button Mapper, Tasker, AutoClicker) are intercepting and swallowing controller key events, with a one-tap shortcut to Android Accessibility Settings.
+  - Container detection for Waydroid with pass-through validation.
+  - OTG connection guidance for OnePlus, Oppo, Vivo, and Realme devices.
+
 ### Backbone One on iOS & Android
 - **System Gesture Suppression (iOS)**: On iPhones, iOS normally binds the Options, Menu, and Home buttons to system screen recording or App Switcher. AstraPlay automatically disables system capture gestures on connected `GCController` gamepads so the Home button reaches PlayStation as the PS button.
 - **Dedicated Capture Button**: The Backbone One screen record button (`KEYCODE_MEDIA_RECORD`) is mapped to the PlayStation **Create / Share** button.
@@ -439,7 +453,10 @@ AstraPlay provides first-class support for USB-C, Lightning, and Bluetooth mobil
 
 ---
 
-## Handheld & Container Troubleshooting (Waydroid & ROG Xbox Ally X)
+## Handheld & Host Troubleshooting Utility (`scripts/fix-handheld-controllers.sh`)
+
+> [!NOTE]
+> The shell script `scripts/fix-handheld-controllers.sh` is a **host-side CLI utility** intended for Linux handhelds (ROG Xbox Ally X, Steam Deck), desktop Linux running Waydroid, or developers using ADB from a PC/Mac. End users on physical iPhones and Android devices should use the in-app **Controller Diagnostics & Troubleshooting** in Settings described above.
 
 If your built-in controller on an ASUS ROG Xbox Ally X, Steam Deck, or Linux handheld does not respond when running inside Waydroid:
 
@@ -452,10 +469,10 @@ In Steam Gaming Mode, ensure the Waydroid shortcut is not using the **Desktop** 
 ### 2. Device Node Refresh (`uevent`)
 Waydroid runs in an LXC container and requires a device discovery broadcast to mount virtual gamepads:
 ```bash
-# Run the included automated repair utility:
+# Run the included automated repair utility on the handheld:
 ./scripts/fix-handheld-controllers.sh --fix
 
-# Or target your handheld remotely over SSH:
+# Or target your handheld remotely over SSH from a PC/Mac:
 ./scripts/fix-handheld-controllers.sh --allyx --fix
 ```
 Alternatively, trigger the Bazzite-integrated helper directly on the handheld:

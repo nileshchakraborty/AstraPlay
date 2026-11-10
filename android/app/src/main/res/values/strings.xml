@@ -407,6 +407,12 @@
     <string name="shortcut_cloud_play_short">Cloud Games</string>
     <string name="shortcut_cloud_play_long">Play Cloud Games</string>
     <string name="preferences_category_title_controller_tuning">Gamepad Tuning &amp; Remapping</string>
+    <string name="preferences_controller_diagnostics_key">controller_diagnostics</string>
+    <string name="preferences_controller_diagnostics_title">Controller Diagnostics &amp; Troubleshooting</string>
+    <string name="preferences_controller_diagnostics_summary">Check connected gamepads, test inputs, and troubleshoot mobile grips</string>
+    <string name="controller_diag_close">Done</string>
+    <string name="controller_diag_open_accessibility">Accessibility Settings</string>
+    <string name="controller_diag_open_connected_devices">Bluetooth / Devices</string>
     <string name="preferences_controller_deadzone_key">controller_deadzone</string>
     <string name="preferences_controller_deadzone_title">Stick Deadzone Calibration</string>
     <string name="preferences_controller_deadzone_summary">Radial deadzone percentage to eliminate stick drift (default 5%%)</string>

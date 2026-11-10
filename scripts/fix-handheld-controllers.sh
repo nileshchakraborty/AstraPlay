@@ -93,6 +93,9 @@ header "AstraPlay Controller & Handheld Diagnostic Tool"
 # ==============================================================================
 if [[ "$TARGET_MODE" == "ios" ]]; then
     header "iPhone / iOS & Backbone One Controller Guide"
+    echo -e "${GREEN}TIP:${NC} AstraPlay includes built-in ${BOLD}Controller Diagnostics & Troubleshooting${NC}!"
+    echo -e "Open AstraPlay on your iPhone: ${BOLD}Settings -> Gamepad Tuning & Remapping -> Controller Diagnostics & Troubleshooting${NC}"
+    echo -e "to test buttons live and inspect connected GCControllers.\n"
     echo -e "AstraPlay on iOS uses Apple's ${BOLD}GameController (GCController)${NC} framework."
     echo -e "To ensure Backbone One or mobile telescopic controllers function with zero button capture issues:\n"
     
@@ -124,6 +127,9 @@ fi
 # ==============================================================================
 if [[ "$TARGET_MODE" == "android" ]]; then
     header "Android Controller Diagnostics (via ADB)"
+    echo -e "${GREEN}TIP:${NC} AstraPlay Android includes built-in ${BOLD}Controller Diagnostics & Troubleshooting${NC}!"
+    echo -e "Open AstraPlay on your device: ${BOLD}Settings -> Gamepad Tuning & Remapping -> Controller Diagnostics & Troubleshooting${NC}"
+    echo -e "to inspect gamepads and detect accessibility conflicts without using ADB.\n"
     if ! command -v adb >/dev/null 2>&1; then
         error "ADB command not found on host. Please install android-tools or connect via local shell."
         exit 1

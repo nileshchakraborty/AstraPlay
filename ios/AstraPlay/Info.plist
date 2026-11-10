@@ -8,6 +8,10 @@
 	</array>
 	<key>GCSupportsControllerUserInteraction</key>
 	<true/>
+	<key>GCSupportsGameMode</key>
+	<true/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>

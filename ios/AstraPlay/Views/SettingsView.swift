@@ -2,6 +2,7 @@
 // Settings matching Android's SettingsActivity exactly
 
 import Foundation
+import GameController
 import SwiftUI
 import UniformTypeIdentifiers
 import WebKit
@@ -579,6 +580,19 @@ struct SettingsView: View {
 
     private var controllerTuningSection: some View {
         Section {
+            NavigationLink {
+                ControllerDiagnosticsView()
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Controller Diagnostics & Troubleshooting")
+                        Text("Inspect connected gamepads, test inputs, and troubleshoot mobile grips")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text("Stick Deadzone")
@@ -1013,6 +1027,207 @@ private struct CloudBitrateSlider: View {
                     if !editing { onCommit() }
                 }
             )
+        }
+    }
+}
+
+// MARK: - Controller Diagnostics & Troubleshooting View
+
+struct ControllerDiagnosticsView: View {
+    @State private var connectedControllers: [GCController] = []
+    @State private var pressedButtons: Set<String> = []
+
+    var body: some View {
+        List {
+            // Section 1: Connected Controllers
+            Section(header: Text("Connected Gamepads")) {
+                if connectedControllers.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "gamecontroller")
+                                .font(.title2)
+                                .foregroundColor(.secondary)
+                            Text("No physical gamepads connected")
+                                .font(.headline)
+                        }
+                        Text("Connect a Backbone One (Lightning / USB-C), Razer Kishi, DualSense, or Xbox Wireless controller.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                } else {
+                    ForEach(connectedControllers, id: \.self) { controller in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Image(systemName: "gamecontroller.fill")
+                                    .foregroundColor(.accentColor)
+                                Text(controller.vendorName ?? "Gamepad")
+                                    .font(.headline)
+                                Spacer()
+                                if controller.isAttachedToDevice {
+                                    Text("Attached (Mobile Grip)")
+                                        .font(.caption)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.accentColor.opacity(0.15))
+                                        .cornerRadius(4)
+                                } else {
+                                    Text("Wireless")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            HStack {
+                                Text("Category: \(controller.productCategory)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                if let battery = controller.battery {
+                                    Spacer()
+                                    Text("Battery: \(Int(battery.batteryLevel * 100))%")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+
+            // Section 2: Real-Time Input Tester
+            if !connectedControllers.isEmpty {
+                Section(header: Text("Live Input Tester")) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Press buttons or move sticks on your controller to test response:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 64))], spacing: 8) {
+                            ForEach(["Cross", "Circle", "Square", "Triangle", "L1", "R1", "L2", "R2", "L3", "R3", "Up", "Down", "Left", "Right", "Options", "Share"], id: \.self) { btn in
+                                Text(btn)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 6)
+                                    .background(pressedButtons.contains(btn) ? Color.green : Color.secondary.opacity(0.15))
+                                    .foregroundColor(pressedButtons.contains(btn) ? .white : .primary)
+                                    .cornerRadius(6)
+                                    .animation(.easeInOut(duration: 0.1), value: pressedButtons.contains(btn))
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            // Section 3: Mobile Grips & Backbone One Troubleshooting Guide
+            Section(header: Text("Telescopic Mobile Grips & Backbone One")) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Lightning / USB-C Connector Seating", systemImage: "cable.connector")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("If controls do not respond, your phone case may be preventing the plug from seating fully. Remove thick cases or install the slim adapter pads provided with your Backbone One.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 2)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("System Gestures Suppressed", systemImage: "hand.tap")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("AstraPlay disables system gestures on the Home bar and Option buttons during streaming so button presses are not swallowed by the operating system.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 2)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Backbone Buttons in AstraPlay", systemImage: "app.badge.checkmark")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("The orange Backbone button launches the Backbone launcher app. The dedicated Capture button (bottom left) is mapped to PlayStation Share (Create) inside AstraPlay.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 2)
+
+                Link(destination: URL(string: UIApplication.openSettingsURLString)!) {
+                    HStack {
+                        Label("Open iOS System Settings", systemImage: "gearshape")
+                        Spacer()
+                        Image(systemName: "arrow.up.forward.app")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            // Section 4: Handheld & Linux Note
+            Section(header: Text("Handhelds & Advanced CLI")) {
+                Text("For Linux handhelds (ROG Ally X, Steam Deck) and Waydroid, AstraPlay includes the 'scripts/fix-handheld-controllers.sh' host script to configure Steam Controller templates and uevent broadcasts.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .navigationTitle("Controller Diagnostics")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            refreshControllers()
+            startObserving()
+        }
+        .onDisappear {
+            stopObserving()
+        }
+    }
+
+    private func refreshControllers() {
+        connectedControllers = GCController.controllers()
+        setupInputHandlers()
+    }
+
+    private func setupInputHandlers() {
+        for controller in connectedControllers {
+            controller.extendedGamepad?.valueChangedHandler = { gamepad, element in
+                var pressed = Set<String>()
+                if gamepad.buttonA.isPressed { pressed.insert("Cross") }
+                if gamepad.buttonB.isPressed { pressed.insert("Circle") }
+                if gamepad.buttonX.isPressed { pressed.insert("Square") }
+                if gamepad.buttonY.isPressed { pressed.insert("Triangle") }
+                if gamepad.leftShoulder.isPressed { pressed.insert("L1") }
+                if gamepad.rightShoulder.isPressed { pressed.insert("R1") }
+                if gamepad.leftTrigger.isPressed { pressed.insert("L2") }
+                if gamepad.rightTrigger.isPressed { pressed.insert("R2") }
+                if gamepad.leftThumbstickButton?.isPressed == true { pressed.insert("L3") }
+                if gamepad.rightThumbstickButton?.isPressed == true { pressed.insert("R3") }
+                if gamepad.dpad.up.isPressed { pressed.insert("Up") }
+                if gamepad.dpad.down.isPressed { pressed.insert("Down") }
+                if gamepad.dpad.left.isPressed { pressed.insert("Left") }
+                if gamepad.dpad.right.isPressed { pressed.insert("Right") }
+                if gamepad.buttonMenu.isPressed { pressed.insert("Options") }
+                if gamepad.buttonOptions?.isPressed == true { pressed.insert("Share") }
+
+                DispatchQueue.main.async {
+                    self.pressedButtons = pressed
+                }
+            }
+        }
+    }
+
+    private func startObserving() {
+        NotificationCenter.default.addObserver(forName: .GCControllerDidConnect, object: nil, queue: .main) { _ in
+            self.refreshControllers()
+        }
+        NotificationCenter.default.addObserver(forName: .GCControllerDidDisconnect, object: nil, queue: .main) { _ in
+            self.refreshControllers()
+        }
+    }
+
+    private func stopObserving() {
+        NotificationCenter.default.removeObserver(self, name: .GCControllerDidConnect, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .GCControllerDidDisconnect, object: nil)
+        for controller in connectedControllers {
+            controller.extendedGamepad?.valueChangedHandler = nil
         }
     }
 }

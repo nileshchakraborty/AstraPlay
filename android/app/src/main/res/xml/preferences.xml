@@ -310,6 +310,12 @@
         app:key="category_controller_tuning"
         app:title="@string/preferences_category_title_controller_tuning">
 
+        <Preference
+            app:key="@string/preferences_controller_diagnostics_key"
+            app:title="@string/preferences_controller_diagnostics_title"
+            app:summary="@string/preferences_controller_diagnostics_summary"
+            app:icon="@drawable/ic_gamepad" />
+
         <SeekBarPreference
             app:key="@string/preferences_controller_deadzone_key"
             app:title="@string/preferences_controller_deadzone_title"
