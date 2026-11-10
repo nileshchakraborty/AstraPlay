@@ -468,7 +468,7 @@ Pane {
                 
                 // Keyboard navigation
                 KeyNavigation.left: mainTabBar.itemAt(1)  // Cloud Play tab
-                KeyNavigation.right: updateNotificationButton.visible ? updateNotificationButton : settingsButton
+                KeyNavigation.right: settingsButton
                 KeyNavigation.down: {
                     if (mainTabBar.currentIndex === 1 && cloudPlayLoader.active) {
                         let cloudPlayView = cloudPlayLoader.item;
