@@ -2,11 +2,19 @@
 
 package com.metallic.chiaki.settings
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
+import android.hardware.input.InputManager
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.view.InputDevice
+import android.view.accessibility.AccessibilityManager
+import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -232,6 +240,10 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 
 		preferenceScreen.findPreference<Preference>(getString(R.string.preferences_export_settings_key))?.setOnPreferenceClickListener { exportSettings(); true }
 		preferenceScreen.findPreference<Preference>(getString(R.string.preferences_import_settings_key))?.setOnPreferenceClickListener { importSettings(); true }
+		preferenceScreen.findPreference<Preference>(getString(R.string.preferences_controller_diagnostics_key))?.setOnPreferenceClickListener {
+			showControllerDiagnosticsDialog()
+			true
+		}
 		
 		// View License & Legal
 		preferenceScreen.findPreference<Preference>("view_license")?.setOnPreferenceClickListener { viewLicense(); true }
@@ -538,5 +550,154 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 			}
 			true
 		}
+	}
+
+	private fun showControllerDiagnosticsDialog()
+	{
+		val ctx = context ?: return
+		val inputManager = ctx.getSystemService(Context.INPUT_SERVICE) as? InputManager
+		val accessibilityManager = ctx.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+
+		val sb = StringBuilder()
+		val deviceIds = inputManager?.inputDeviceIds ?: InputDevice.getDeviceIds()
+		val gamepads = mutableListOf<InputDevice>()
+
+		for (id in deviceIds)
+		{
+			val dev = inputManager?.getInputDevice(id) ?: InputDevice.getDevice(id) ?: continue
+			val sources = dev.sources
+			val isGamepad = (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD) ||
+							(sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK)
+			val isVirtual = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				try { dev.isVirtual } catch (_: Throwable) { false }
+			} else false
+
+			if (isGamepad && !isVirtual)
+			{
+				gamepads.add(dev)
+			}
+		}
+
+		// 1. Connected Gamepads
+		sb.append("🎮 CONNECTED GAMEPADS (").append(gamepads.size).append(")\n")
+		if (gamepads.isEmpty())
+		{
+			sb.append("• No physical gamepads detected.\n")
+			sb.append("  Connect a Backbone One (USB-C/Lightning), Razer Kishi, GameSir, or Bluetooth gamepad (Xbox, DualSense).\n\n")
+		}
+		else
+		{
+			for ((idx, dev) in gamepads.withIndex())
+			{
+				val name = dev.name ?: "Unknown"
+				val vid = dev.vendorId
+				val pid = dev.productId
+				val category = when {
+					name.contains("Backbone", ignoreCase = true) || vid == 0x2e3c || (vid == 0x05ac && pid == 0x0001) -> "Backbone One"
+					name.contains("Ally", ignoreCase = true) || vid == 0x0b05 -> "ROG Xbox Ally X"
+					name.contains("Kishi", ignoreCase = true) || vid == 0x1532 -> "Razer Kishi"
+					name.contains("GameSir", ignoreCase = true) || vid == 0x3537 || vid == 0x2e8a -> "GameSir Mobile"
+					name.contains("DualSense", ignoreCase = true) -> "PlayStation DualSense"
+					name.contains("Wireless Controller", ignoreCase = true) || name.contains("DualShock", ignoreCase = true) -> "PlayStation DualShock"
+					name.contains("Xbox", ignoreCase = true) || name.contains("X-Box", ignoreCase = true) -> "Xbox Controller"
+					else -> "Gamepad / Telescopic Grip"
+				}
+				sb.append("• [").append(idx + 1).append("] ").append(name).append("\n")
+				sb.append("   Type: ").append(category).append("\n")
+				sb.append("   VID: 0x").append(Integer.toHexString(vid).padStart(4, '0'))
+				  .append(" | PID: 0x").append(Integer.toHexString(pid).padStart(4, '0')).append("\n\n")
+			}
+		}
+
+		// 2. Waydroid / Container Environment Check
+		val isWaydroid = Build.PRODUCT.contains("waydroid", ignoreCase = true) ||
+						 Build.MODEL.contains("waydroid", ignoreCase = true) ||
+						 Build.HARDWARE.contains("waydroid", ignoreCase = true) ||
+						 Build.HARDWARE.contains("goldfish", ignoreCase = true) ||
+						 Build.HARDWARE.contains("ranchu", ignoreCase = true)
+		if (isWaydroid)
+		{
+			sb.append("📦 CONTAINER DETECTED (Waydroid)\n")
+			if (gamepads.isEmpty())
+			{
+				sb.append("⚠️ Host gamepad pass-through is inactive.\n")
+				sb.append("  1. In Steam Gaming Mode, ensure 'Waydroid' controller template is set to 'Gamepad' (not 'Desktop').\n")
+				sb.append("  2. Run 'pkexec /usr/libexec/waydroid-fix-controllers' or 'scripts/fix-handheld-controllers.sh' on host.\n\n")
+			}
+			else
+			{
+				sb.append("✓ Host gamepad pass-through active.\n\n")
+			}
+		}
+
+		// 3. Accessibility Services Conflict Audit
+		var hasAccessibilityConflict = false
+		val enabledServices = accessibilityManager?.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK) ?: emptyList()
+		val suspiciousServices = enabledServices.filter { service ->
+			val pkg = service.resolveInfo?.serviceInfo?.packageName?.lowercase(Locale.ROOT) ?: ""
+			!pkg.contains("android") && !pkg.contains("google") && !pkg.contains("samsung") && !pkg.contains("a11y")
+		}
+
+		sb.append("⚙️ SYSTEM & ACCESSIBILITY AUDIT\n")
+		if (suspiciousServices.isNotEmpty())
+		{
+			hasAccessibilityConflict = true
+			sb.append("⚠️ Potential Key-Interception Conflict!\n")
+			sb.append("Active third-party Accessibility services can intercept and swallow controller button presses:\n")
+			for (srv in suspiciousServices)
+			{
+				val label = srv.resolveInfo?.loadLabel(ctx.packageManager) ?: srv.id
+				sb.append("  - ").append(label).append(" (").append(srv.resolveInfo?.serviceInfo?.packageName).append(")\n")
+			}
+			sb.append("👉 Tap 'Accessibility Settings' below to disable if controller buttons don't respond.\n\n")
+		}
+		else
+		{
+			sb.append("✓ No conflicting third-party Accessibility key interceptors detected.\n\n")
+		}
+
+		// 4. Mobile Telescopic Grip & Backbone Tips
+		sb.append("💡 MOBILE GRIP & BACKBONE TIPS\n")
+		sb.append("• Capture Button: The Backbone One capture button (red circle) is mapped to PlayStation Share (Create) in AstraPlay.\n")
+		sb.append("• OTG Connection: On OnePlus, Oppo, Vivo, or Realme devices, enable 'OTG Connection' in system settings if the gamepad disconnects after 10 minutes.\n")
+		sb.append("• Touchpad Emulation: AstraPlay provides a floating touchpad pill and dual-tap gesture for mobile grips without physical touchpads.")
+
+		val scrollView = ScrollView(ctx).apply {
+			setPadding(48, 24, 48, 24)
+			addView(TextView(ctx).apply {
+				text = sb.toString()
+				textSize = 14f
+				setLineSpacing(4f, 1.15f)
+				setTextIsSelectable(true)
+			})
+		}
+
+		ctx.alertDialogBuilder()
+			.setTitle(R.string.preferences_controller_diagnostics_title)
+			.setView(scrollView)
+			.setPositiveButton(R.string.controller_diag_close, null)
+			.apply {
+				if (hasAccessibilityConflict)
+				{
+					setNeutralButton(R.string.controller_diag_open_accessibility) { _, _ ->
+						try {
+							startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+						} catch (e: Exception) {
+							Toast.makeText(ctx, "Could not open Accessibility settings", Toast.LENGTH_SHORT).show()
+						}
+					}
+				}
+				else
+				{
+					setNeutralButton(R.string.controller_diag_open_connected_devices) { _, _ ->
+						try {
+							startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+						} catch (e: Exception) {
+							// fallback
+						}
+					}
+				}
+			}
+			.show()
 	}
 }
