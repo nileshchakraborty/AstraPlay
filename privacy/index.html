@@ -948,7 +948,7 @@
 AstraPlay operates entirely on a zero-data-collection architecture:
 - <strong>No Telemetry &amp; No Analytics</strong>: We do not include any tracking software, telemetry libraries, analytics SDKs, advertising SDKs, or background crash-reporting servers.
 - <strong>No User Accounts on Our Servers</strong>: We do not maintain user databases, accounts, or cloud profiles. We operate no surveillance or data-harvesting infrastructure.
-- <strong>Direct Peer-to-Peer &amp; Sony PSN Only</strong>: When you stream, all audio, video, and controller data flows directly between your client device and your PlayStation console on your local network (or direct remote connection). When you log in, authentication occurs directly and exclusively with official Sony PlayStation servers over encrypted HTTPS (TLS).
+- <strong>Direct Peer-to-Peer &amp; PSN Only</strong>: When you stream, all audio, video, and controller data flows directly between your client device and your PlayStation console on your local network (or direct remote connection). When you log in, authentication occurs directly and exclusively with official PlayStation servers over encrypted HTTPS (TLS).
 - <strong>100% Auditable Open-Source Code</strong>: Every line of code, network socket call, and build script is publicly inspectable and auditable on GitHub at <a href="https://github.com/nileshchakraborty/AstraPlay">github.com/nileshchakraborty/AstraPlay</a>.</p>
 </blockquote>
 <hr />
@@ -1010,7 +1010,7 @@ AstraPlay operates entirely on a zero-data-collection architecture:
 <tr>
 <td style="text-align: left;"><strong>PSN Account ID &amp; Session Tokens</strong></td>
 <td style="text-align: left;"><strong>No</strong></td>
-<td style="text-align: left;"><strong>No</strong> (Direct to Sony PSN only)</td>
+<td style="text-align: left;"><strong>No</strong> (Direct to PSN only)</td>
 <td style="text-align: left;"><strong>Yes</strong> (Secure Storage / Keychain)</td>
 <td style="text-align: left;">Authenticating your Remote Play session</td>
 </tr>
@@ -1048,8 +1048,8 @@ AstraPlay operates entirely on a zero-data-collection architecture:
 <tr>
 <td style="text-align: left;"><strong><code>android.permission.INTERNET</code></strong></td>
 <td style="text-align: left;">Normal</td>
-<td style="text-align: left;">To stream audio/video and send controller inputs between your device and your PlayStation console, and communicate with Sony PSN for authentication.</td>
-<td style="text-align: left;">Opens TCP/UDP sockets for real-time Remote Play streaming and direct HTTPS requests to official Sony servers.</td>
+<td style="text-align: left;">To stream audio/video and send controller inputs between your device and your PlayStation console, and communicate with PSN for authentication.</td>
+<td style="text-align: left;">Opens TCP/UDP sockets for real-time Remote Play streaming and direct HTTPS requests to official PlayStation servers.</td>
 <td style="text-align: left;"><strong>Zero</strong></td>
 </tr>
 <tr>
@@ -1103,7 +1103,7 @@ AstraPlay operates entirely on a zero-data-collection architecture:
 <tr>
 <td style="text-align: left;"><strong><code>com.apple.security.network.client</code></strong></td>
 <td style="text-align: left;">Outgoing network connections under macOS App Sandbox.</td>
-<td style="text-align: left;">Connects to your PlayStation console on your local network or via remote IP, and accesses Sony PSN login endpoints.</td>
+<td style="text-align: left;">Connects to your PlayStation console on your local network or via remote IP, and accesses PlayStation login endpoints.</td>
 <td style="text-align: left;"><strong>Zero</strong></td>
 </tr>
 <tr>
@@ -1180,7 +1180,7 @@ AstraPlay operates entirely on a zero-data-collection architecture:
 <ol>
 <li><strong>PSN Account Credentials &amp; Session Tokens</strong>:</li>
 <li>In order to discover registered consoles or authenticate Cloud Gaming sessions, the Application requests your PlayStation Network account identifier and session tokens (such as NPSSO).</li>
-<li><strong>How it is used</strong>: Tokens are sent <strong>exclusively and directly</strong> to official Sony PlayStation servers over encrypted HTTPS (TLS).</li>
+<li><strong>How it is used</strong>: Tokens are sent <strong>exclusively and directly</strong> to official PlayStation servers over encrypted HTTPS (TLS).</li>
 <li><strong>Local Storage Security</strong>: Session tokens are stored using platform-native encrypted storage primitives (Android Keystore / EncryptedSharedPreferences, macOS Keychain, and iOS Keychain).</li>
 <li>
 <p><strong>No Intermediary</strong>: AstraPlay developers operate no servers that receive, see, or store your tokens.</p>
@@ -1243,7 +1243,7 @@ AstraPlay operates entirely on a zero-data-collection architecture:
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 9, 2026 23:27:02 UTC">November 9, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2026 22:49:22 UTC">November 10, 2026</span>
   </span>
 
     
