@@ -93,62 +93,70 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		 * (Waydroid, BlueStacks, LDPlayer, Nox, Genymotion, QEMU, WSA, etc.).
 		 */
 		fun isEmulatorOrContainer(): Boolean {
-			if (isWaydroid()) return true
+			return try {
+				if (isWaydroid()) return true
 
-			val buildProps = listOf(
-				android.os.Build.HARDWARE,
-				android.os.Build.PRODUCT,
-				android.os.Build.BOARD,
-				android.os.Build.BOOTLOADER,
-				android.os.Build.MANUFACTURER,
-				android.os.Build.BRAND,
-				android.os.Build.MODEL,
-				android.os.Build.DEVICE,
-				android.os.Build.FINGERPRINT
-			).joinToString(" ").lowercase()
+				val buildProps = listOf(
+					android.os.Build.HARDWARE,
+					android.os.Build.PRODUCT,
+					android.os.Build.BOARD,
+					android.os.Build.BOOTLOADER,
+					android.os.Build.MANUFACTURER,
+					android.os.Build.BRAND,
+					android.os.Build.MODEL,
+					android.os.Build.DEVICE,
+					android.os.Build.FINGERPRINT
+				).joinToString(" ").lowercase()
 
-			if (buildProps.contains("bluestacks") ||
-				buildProps.contains("nox") ||
-				buildProps.contains("ldplayer") ||
-				buildProps.contains("vbox86") ||
-				buildProps.contains("goldfish") ||
-				buildProps.contains("ranchu") ||
-				buildProps.contains("genymotion") ||
-				buildProps.contains("google_sdk") ||
-				buildProps.contains("android sdk built for") ||
-				buildProps.contains("emulator") ||
-				buildProps.contains("subsystem for android") ||
-				buildProps.contains("ttvm") ||
-				buildProps.contains("andy")
-			) return true
+				if (buildProps.contains("bluestacks") ||
+					buildProps.contains("nox") ||
+					buildProps.contains("ldplayer") ||
+					buildProps.contains("vbox86") ||
+					buildProps.contains("goldfish") ||
+					buildProps.contains("ranchu") ||
+					buildProps.contains("genymotion") ||
+					buildProps.contains("google_sdk") ||
+					buildProps.contains("android sdk built for") ||
+					buildProps.contains("emulator") ||
+					buildProps.contains("subsystem for android") ||
+					buildProps.contains("ttvm") ||
+					buildProps.contains("andy")
+				) return true
 
-			val qemu = getSystemPropertyStatic("ro.kernel.qemu")
-			if (qemu == "1") return true
+				val qemu = getSystemPropertyStatic("ro.kernel.qemu")
+				if (qemu == "1") return true
 
-			return false
+				false
+			} catch (_: Throwable) {
+				false
+			}
 		}
 
 		/**
 		 * Detects whether Android is running inside a Waydroid container on Linux.
 		 */
 		fun isWaydroid(): Boolean {
-			val buildProps = listOf(
-				android.os.Build.HARDWARE,
-				android.os.Build.PRODUCT,
-				android.os.Build.BOARD,
-				android.os.Build.MANUFACTURER,
-				android.os.Build.BRAND,
-				android.os.Build.MODEL,
-				android.os.Build.DEVICE
-			).joinToString(" ").lowercase()
-			if (buildProps.contains("waydroid")) return true
+			return try {
+				val buildProps = listOf(
+					android.os.Build.HARDWARE,
+					android.os.Build.PRODUCT,
+					android.os.Build.BOARD,
+					android.os.Build.MANUFACTURER,
+					android.os.Build.BRAND,
+					android.os.Build.MODEL,
+					android.os.Build.DEVICE
+				).joinToString(" ").lowercase()
+				if (buildProps.contains("waydroid")) return true
 
-			val bootHardware = getSystemPropertyStatic("ro.boot.hardware")?.lowercase() ?: ""
-			if (bootHardware.contains("waydroid")) return true
-			val hardware = getSystemPropertyStatic("ro.hardware")?.lowercase() ?: ""
-			if (hardware.contains("waydroid")) return true
+				val bootHardware = getSystemPropertyStatic("ro.boot.hardware")?.lowercase() ?: ""
+				if (bootHardware.contains("waydroid")) return true
+				val hardware = getSystemPropertyStatic("ro.hardware")?.lowercase() ?: ""
+				if (hardware.contains("waydroid")) return true
 
-			return false
+				false
+			} catch (_: Throwable) {
+				false
+			}
 		}
 
 		fun getSystemPropertyStatic(key: String): String? {
@@ -157,7 +165,7 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 				val method = clazz.getMethod("get", String::class.java)
 				val value = method.invoke(null, key) as? String
 				value?.trim()?.takeIf { it.isNotEmpty() }
-			} catch (_: Exception) {
+			} catch (_: Throwable) {
 				null
 			}
 		}
@@ -170,6 +178,8 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 	private var serverSocket: ServerSocket? = null
 	private var executor = Executors.newCachedThreadPool()
 	private var boundPort = DEFAULT_PORT
+	@Volatile
+	private var cachedLanIp: String? = null
 
 	val isRunning: Boolean get() = running.get()
 	val port: Int get() = boundPort
@@ -215,6 +225,9 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			executor = Executors.newCachedThreadPool()
 
 			val acceptThread = Thread({
+				try {
+					getLanIpAddress(forceRefresh = true)
+				} catch (_: Throwable) {}
 				Log.i(TAG, "EmbeddedRelayServer listening on port $boundPort (URL: ${serverUrl()})")
 				while (running.get()) {
 					try {
@@ -246,6 +259,7 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		serverSocket = null
 		executor.shutdownNow()
 		codeStore.clear()
+		cachedLanIp = null
 		Log.i(TAG, "EmbeddedRelayServer stopped")
 	}
 
@@ -255,12 +269,18 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 	 * so external devices scanning the QR code on a local Wi-Fi network are not given an unreachable
 	 * private container IP (such as Waydroid's 192.168.240.x / 192.168.245.x / 192.168.250.x).
 	 * Allows developer overrides via the debug.astraplay.lan_ip system property.
+	 * Results are cached in memory to avoid redundant socket queries and StrictMode warnings.
 	 */
-	fun getLanIpAddress(): String? {
+	fun getLanIpAddress(forceRefresh: Boolean = false): String? {
+		if (!forceRefresh && cachedLanIp != null) {
+			return cachedLanIp
+		}
+
 		// 1. Check for explicit system property override (useful for emulator testing on host LAN)
 		val override = getSystemProperty("debug.astraplay.lan_ip")
 		if (!override.isNullOrEmpty()) {
 			Log.i(TAG, "Using debug.astraplay.lan_ip override: $override")
+			cachedLanIp = override
 			return override
 		}
 
@@ -273,11 +293,12 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 				if (localAddr is Inet4Address && !localAddr.isLoopbackAddress) {
 					val ip = localAddr.hostAddress
 					if (!ip.isNullOrEmpty() && (ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("172.")) && !isVirtualSubnet(ip)) {
+						cachedLanIp = ip
 						return ip
 					}
 				}
 			}
-		} catch (_: Exception) {}
+		} catch (_: Throwable) {}
 
 		try {
 			val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
@@ -309,18 +330,21 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			}
 
 			// Prioritize physical Wi-Fi / Ethernet adapters first
-			physicalCandidates.firstOrNull { it.startsWith("192.168.") }?.let { return it }
-			physicalCandidates.firstOrNull { it.startsWith("10.") }?.let { return it }
-			physicalCandidates.firstOrNull { it.startsWith("172.") }?.let { return it }
-			if (physicalCandidates.isNotEmpty()) return physicalCandidates.first()
+			val found = physicalCandidates.firstOrNull { it.startsWith("192.168.") }
+				?: physicalCandidates.firstOrNull { it.startsWith("10.") }
+				?: physicalCandidates.firstOrNull { it.startsWith("172.") }
+				?: physicalCandidates.firstOrNull()
+				?: otherCandidates.firstOrNull { it.startsWith("192.168.") }
+				?: otherCandidates.firstOrNull { it.startsWith("10.") }
+				?: otherCandidates.firstOrNull { it.startsWith("172.") }
+				?: otherCandidates.firstOrNull()
 
-			// Other non-virtual network interfaces
-			otherCandidates.firstOrNull { it.startsWith("192.168.") }?.let { return it }
-			otherCandidates.firstOrNull { it.startsWith("10.") }?.let { return it }
-			otherCandidates.firstOrNull { it.startsWith("172.") }?.let { return it }
-			if (otherCandidates.isNotEmpty()) return otherCandidates.first()
-		} catch (e: Exception) {
-			Log.w(TAG, "Error looking up LAN IP address", e)
+			if (found != null) {
+				cachedLanIp = found
+				return found
+			}
+		} catch (t: Throwable) {
+			Log.w(TAG, "Error looking up LAN IP address", t)
 		}
 		return null
 	}

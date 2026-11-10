@@ -224,6 +224,8 @@
     <string name="psn_login_container_notice_title">Emulator / Container Detected</string>
     <string name="psn_login_container_notice_desc">Running inside an emulator or container (BlueStacks, Waydroid, etc.) with an isolated network that external phones cannot reach over Wi-Fi.\n\nPlease tap \"Sign In Directly\" below to log in on this screen, or use \"Sign in with Browser / Code\".</string>
     <string name="psn_login_no_lan_notice_desc">No physical Wi-Fi IP address detected. Please sign in directly on this device or configure a remote relay server.</string>
+    <string name="psn_login_webview_unsupported_title">In-App Browser Not Available</string>
+    <string name="psn_login_webview_unsupported_desc">This Android system does not have a functional web browser component (WebView).\n\nPlease sign in using the Phone QR code or your external web browser.</string>
     
     <!-- PSN Relay URL Configuration & Manual Login -->
     <string name="preferences_psn_relay_url_key" translatable="false">preferences_psn_relay_url</string>

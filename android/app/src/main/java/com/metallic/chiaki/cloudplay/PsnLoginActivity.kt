@@ -69,7 +69,12 @@ class PsnLoginActivity : AppCompatActivity()
 	private lateinit var layoutPhoneRelay: View
 
 	// WebView UI components
-	private lateinit var loginWebView: WebView
+	private var loginWebView: WebView? = null
+	private var isWebViewSupported: Boolean = false
+	private lateinit var webViewContainer: FrameLayout
+	private lateinit var webViewUnsupportedLayout: LinearLayout
+	private lateinit var btnFallbackSwitchToPhone: MaterialButton
+	private lateinit var btnFallbackOpenBrowser: MaterialButton
 	private lateinit var webViewProgressBar: ProgressBar
 	private lateinit var webViewLoadingOverlay: LinearLayout
 	private lateinit var webViewStatusText: TextView
@@ -112,54 +117,78 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun isHandheldOrTv(): Boolean {
 		if (isOnTv) return true
-		if (EmbeddedRelayServer.isEmulatorOrContainer()) {
-			// On emulators and containers (Waydroid, BlueStacks, LDPlayer, Nox, WSA), direct WebView is always
-			// preferred because emulators run inside an isolated virtual network that external phones
-			// cannot reach, while the PC/handheld screen allows immediate direct sign-in.
-			return false
-		}
+
+		// Check for physical gamepad/joystick controls (Steam Deck, ROG Ally, Odin, etc.)
 		try {
 			for (id in InputDevice.getDeviceIds()) {
 				val dev = InputDevice.getDevice(id) ?: continue
 				val sources = dev.sources
 				if ((sources and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
 					(sources and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
-					if (!dev.isVirtual) return true
+					val isVirtual = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+						try { dev.isVirtual } catch (_: Throwable) { false }
+					} else {
+						false
+					}
+					if (!isVirtual) return true
 				}
 			}
-		} catch (_: Exception) {}
+		} catch (_: Throwable) {}
 
-		val model = android.os.Build.MODEL.lowercase()
-		return model.contains("odin") || model.contains("retroid") || model.contains("gcloud") || model.contains("abxylute")
+		try {
+			val model = android.os.Build.MODEL.lowercase()
+			if (model.contains("odin") || model.contains("retroid") || model.contains("gcloud") ||
+				model.contains("abxylute") || model.contains("steam") || model.contains("ally") ||
+				model.contains("legion") || model.contains("claw")) {
+				return true
+			}
+		} catch (_: Throwable) {}
+
+		return false
 	}
 
-	@SuppressLint("SetJavaScriptEnabled")
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
 		super.onCreate(savedInstanceState)
-		setContentView(R.layout.activity_psn_login)
+		try {
+			setContentView(R.layout.activity_psn_login)
+		} catch (t: Throwable) {
+			Log.e(TAG, "Fatal error inflating activity_psn_login layout", t)
+			finish()
+			return
+		}
 
 		tokenManager = SecureTokenManager(this)
 		preferences = Preferences(this)
-		isOnTv = (getSystemService(UI_MODE_SERVICE) as UiModeManager).currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-
-		// Start local embedded relay server if no remote relay is explicitly configured
-		if (preferences.psnRelayUrl.isEmpty()) {
-			try {
-				embeddedRelayServer = EmbeddedRelayServer.start(this)
-				Log.i(TAG, "Embedded relay server started at ${embeddedRelayServer?.serverUrl()}")
-			} catch (e: Exception) {
-				Log.e(TAG, "Failed to start EmbeddedRelayServer", e)
-			}
+		isOnTv = try {
+			(getSystemService(UI_MODE_SERVICE) as? UiModeManager)?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+		} catch (_: Throwable) {
+			false
 		}
 
 		bindViews()
 		setupToolbar()
-		setupWebView()
+		setupWebViewActions()
 		setupRelayActions()
+		setupFallbackActions()
 
-		// Prepare the relay code so both direct and QR flows are ready immediately
-		prepareRelayCode()
+		// Asynchronously start local embedded relay server if no remote relay is explicitly configured
+		if (preferences.psnRelayUrl.isEmpty()) {
+			scope.launch(Dispatchers.IO) {
+				try {
+					val server = EmbeddedRelayServer.start(applicationContext)
+					withContext(Dispatchers.Main) {
+						embeddedRelayServer = server
+						Log.i(TAG, "Embedded relay server ready at ${server.serverUrl()}")
+						prepareRelayCode()
+					}
+				} catch (t: Throwable) {
+					Log.e(TAG, "Failed to start EmbeddedRelayServer", t)
+				}
+			}
+		} else {
+			prepareRelayCode()
+		}
 
 		if (isHandheldOrTv()) {
 			showPhoneRelayView()
@@ -176,7 +205,10 @@ class PsnLoginActivity : AppCompatActivity()
 		layoutPhoneRelay = findViewById(R.id.layoutPhoneRelay)
 
 		// WebView components
-		loginWebView = findViewById(R.id.loginWebView)
+		webViewContainer = findViewById(R.id.webViewContainer)
+		webViewUnsupportedLayout = findViewById(R.id.webViewUnsupportedLayout)
+		btnFallbackSwitchToPhone = findViewById(R.id.btnFallbackSwitchToPhone)
+		btnFallbackOpenBrowser = findViewById(R.id.btnFallbackOpenBrowser)
 		webViewProgressBar = findViewById(R.id.webViewProgressBar)
 		webViewLoadingOverlay = findViewById(R.id.webViewLoadingOverlay)
 		webViewStatusText = findViewById(R.id.webViewStatusText)
@@ -211,85 +243,8 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 	}
 
-	@SuppressLint("SetJavaScriptEnabled")
-	private fun setupWebView()
+	private fun setupWebViewActions()
 	{
-		loginWebView.settings.apply {
-			javaScriptEnabled = true
-			domStorageEnabled = true
-			databaseEnabled = true
-			useWideViewPort = true
-			loadWithOverviewMode = true
-			setSupportZoom(false)
-			builtInZoomControls = false
-			userAgentString = SONY_USER_AGENT
-		}
-
-		val cookieManager = CookieManager.getInstance()
-		cookieManager.setAcceptCookie(true)
-		cookieManager.setAcceptThirdPartyCookies(loginWebView, true)
-
-		loginWebView.webChromeClient = object : WebChromeClient() {
-			override fun onProgressChanged(view: WebView?, newProgress: Int) {
-				if (newProgress in 1..99) {
-					webViewProgressBar.visibility = View.VISIBLE
-					webViewProgressBar.progress = newProgress
-				} else {
-					webViewProgressBar.visibility = View.GONE
-				}
-			}
-
-			override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
-				val msg = consoleMessage?.message() ?: return false
-				if (msg.contains("passkey_unsupported") || (msg.contains("CORS") && msg.contains("authz/v3/oauth/token"))) {
-					Log.w(TAG, "WebView console detected passkey/CORS issue: $msg")
-					showPasskeyFallbackDialog()
-				}
-				return super.onConsoleMessage(consoleMessage)
-			}
-		}
-
-		loginWebView.webViewClient = object : WebViewClient() {
-			override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-				val url = request?.url?.toString() ?: return false
-				return handlePotentialLoginRedirect(url, view)
-			}
-
-			@Deprecated("Deprecated in Java")
-			override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-				if (url == null) return false
-				return handlePotentialLoginRedirect(url, view)
-			}
-
-			override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-				super.onPageStarted(view, url, favicon)
-				if (url != null) {
-					handlePotentialLoginRedirect(url, view)
-				}
-			}
-
-			override fun onPageFinished(view: WebView?, url: String?) {
-				super.onPageFinished(view, url)
-				if (url == null || isLoginHandled.get()) return
-
-				// 1. Check cookies for NPSSO
-				checkCookiesForNpsso()
-
-				// 2. If at ssocookie endpoint, extract text from JSON body
-				if (url.contains("ca.account.sony.com/api/v1/ssocookie")) {
-					view?.evaluateJavascript("(function() { return document.body.innerText; })();") { text ->
-						if (text != null && !isLoginHandled.get()) {
-							val npsso = sanitizeNpsso(text)
-							if (npsso.length == 64) {
-								Log.i(TAG, "Extracted NPSSO from ssocookie page content")
-								onLoginSuccess(npsso)
-							}
-						}
-					}
-				}
-			}
-		}
-
 		val focusHighlight = createFocusHighlight()
 		btnSwitchToPhoneRelay.onFocusChangeListener = focusHighlight
 		btnOpenBrowserFromWebView.onFocusChangeListener = focusHighlight
@@ -311,6 +266,136 @@ class PsnLoginActivity : AppCompatActivity()
 		btnCancelWebView.setOnClickListener {
 			setResult(RESULT_LOGIN_CANCELLED)
 			finish()
+		}
+	}
+
+	private fun setupFallbackActions()
+	{
+		val focusHighlight = createFocusHighlight()
+		btnFallbackSwitchToPhone.onFocusChangeListener = focusHighlight
+		btnFallbackOpenBrowser.onFocusChangeListener = focusHighlight
+
+		btnFallbackSwitchToPhone.setOnClickListener {
+			showPhoneRelayView()
+		}
+
+		btnFallbackOpenBrowser.setOnClickListener {
+			openSonyOAuthInExternalBrowser()
+		}
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
+	private fun initWebViewIfSupported(): Boolean
+	{
+		if (loginWebView != null) return true
+
+		return try {
+			val wv = WebView(this)
+			if (EmbeddedRelayServer.isEmulatorOrContainer()) {
+				// Prevent Chromium hardware acceleration crashes in container/LXC/Waydroid environments
+				wv.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+			}
+			webViewContainer.removeAllViews()
+			webViewContainer.addView(
+				wv,
+				FrameLayout.LayoutParams(
+					FrameLayout.LayoutParams.MATCH_PARENT,
+					FrameLayout.LayoutParams.MATCH_PARENT
+				)
+			)
+			loginWebView = wv
+			isWebViewSupported = true
+			setupWebView(wv)
+			true
+		} catch (t: Throwable) {
+			Log.e(TAG, "WebView provider is unavailable or crashed during initialization", t)
+			loginWebView = null
+			isWebViewSupported = false
+			false
+		}
+	}
+
+	@SuppressLint("SetJavaScriptEnabled")
+	private fun setupWebView(wv: WebView)
+	{
+		try {
+			wv.settings.apply {
+				javaScriptEnabled = true
+				domStorageEnabled = true
+				databaseEnabled = true
+				useWideViewPort = true
+				loadWithOverviewMode = true
+				setSupportZoom(false)
+				builtInZoomControls = false
+				userAgentString = SONY_USER_AGENT
+			}
+
+			val cookieManager = CookieManager.getInstance()
+			cookieManager.setAcceptCookie(true)
+			cookieManager.setAcceptThirdPartyCookies(wv, true)
+
+			wv.webChromeClient = object : WebChromeClient() {
+				override fun onProgressChanged(view: WebView?, newProgress: Int) {
+					if (newProgress in 1..99) {
+						webViewProgressBar.visibility = View.VISIBLE
+						webViewProgressBar.progress = newProgress
+					} else {
+						webViewProgressBar.visibility = View.GONE
+					}
+				}
+
+				override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+					val msg = consoleMessage?.message() ?: return false
+					if (msg.contains("passkey_unsupported") || (msg.contains("CORS") && msg.contains("authz/v3/oauth/token"))) {
+						Log.w(TAG, "WebView console detected passkey/CORS issue: $msg")
+						showPasskeyFallbackDialog()
+					}
+					return super.onConsoleMessage(consoleMessage)
+				}
+			}
+
+			wv.webViewClient = object : WebViewClient() {
+				override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+					val url = request?.url?.toString() ?: return false
+					return handlePotentialLoginRedirect(url, view)
+				}
+
+				@Deprecated("Deprecated in Java")
+				override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+					if (url == null) return false
+					return handlePotentialLoginRedirect(url, view)
+				}
+
+				override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+					super.onPageStarted(view, url, favicon)
+					if (url != null) {
+						handlePotentialLoginRedirect(url, view)
+					}
+				}
+
+				override fun onPageFinished(view: WebView?, url: String?) {
+					super.onPageFinished(view, url)
+					if (url == null || isLoginHandled.get()) return
+
+					// 1. Check cookies for NPSSO
+					checkCookiesForNpsso()
+
+					// 2. If at ssocookie endpoint, extract text from JSON body
+					if (url.contains("ca.account.sony.com/api/v1/ssocookie")) {
+						view?.evaluateJavascript("(function() { return document.body.innerText; })();") { text ->
+							if (text != null && !isLoginHandled.get()) {
+								val npsso = sanitizeNpsso(text)
+								if (npsso.length == 64) {
+									Log.i(TAG, "Extracted NPSSO from ssocookie page content")
+									onLoginSuccess(npsso)
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (t: Throwable) {
+			Log.e(TAG, "Error configuring WebView settings", t)
 		}
 	}
 
@@ -438,10 +523,38 @@ class PsnLoginActivity : AppCompatActivity()
 		layoutPhoneRelay.visibility = View.GONE
 		toolbar.title = getString(R.string.psn_login_direct_title)
 
-		if (loginWebView.url.isNullOrEmpty()) {
+		if (!initWebViewIfSupported()) {
+			webViewContainer.visibility = View.GONE
+			webViewUnsupportedLayout.visibility = View.VISIBLE
+			webViewLoadingOverlay.visibility = View.GONE
+			return
+		}
+
+		webViewUnsupportedLayout.visibility = View.GONE
+		webViewContainer.visibility = View.VISIBLE
+
+		val wv = loginWebView ?: return
+		if (wv.url.isNullOrEmpty()) {
 			val url = buildSonyOAuthUrl()
 			Log.i(TAG, "Loading Sony OAuth URL in WebView: $url")
-			loginWebView.loadUrl(url)
+			wv.loadUrl(url)
+		}
+	}
+
+	private fun openSonyOAuthInExternalBrowser()
+	{
+		try
+		{
+			val url = buildSonyOAuthUrl()
+			val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+			startActivity(intent)
+			Toast.makeText(this, "Complete sign-in in browser, then enter token", Toast.LENGTH_LONG).show()
+			showManualTokenDialog()
+		}
+		catch (e: Exception)
+		{
+			Log.e(TAG, "Failed to launch external browser for Sony OAuth", e)
+			showManualTokenDialog()
 		}
 	}
 
@@ -543,52 +656,56 @@ class PsnLoginActivity : AppCompatActivity()
 			return
 		}
 
-		val hasRoutableLan = (embeddedRelayServer?.hasRoutableLanIp() == true) || preferences.psnRelayUrl.isNotEmpty()
-
-		if (!hasRoutableLan) {
+		scope.launch(Dispatchers.IO) {
+			val hasRoutableLan = (embeddedRelayServer?.hasRoutableLanIp() == true) || preferences.psnRelayUrl.isNotEmpty()
 			val isEmulator = EmbeddedRelayServer.isEmulatorOrContainer()
-			Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
-			qrCodeImage.visibility = View.GONE
-			qrCodeCard.visibility = View.GONE
-			qrScanTitle.visibility = View.GONE
-			wifiNoticeLayout.visibility = View.GONE
-			codeLabelText.visibility = View.GONE
-			codeTextView.visibility = View.GONE
-			containerNoticeLayout.visibility = View.VISIBLE
-			progressBar.visibility = View.GONE
-			checkStatusButton.isEnabled = false
-			containerNoticeText.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
-			statusTextView.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
-			return
-		}
 
-		containerNoticeLayout.visibility = View.GONE
-		qrScanTitle.visibility = View.VISIBLE
-		wifiNoticeLayout.visibility = View.VISIBLE
-		codeLabelText.visibility = View.VISIBLE
-		codeTextView.visibility = View.VISIBLE
-		qrCodeCard.visibility = View.VISIBLE
+			withContext(Dispatchers.Main) {
+				if (!hasRoutableLan) {
+					Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
+					qrCodeImage.visibility = View.GONE
+					qrCodeCard.visibility = View.GONE
+					qrScanTitle.visibility = View.GONE
+					wifiNoticeLayout.visibility = View.GONE
+					codeLabelText.visibility = View.GONE
+					codeTextView.visibility = View.GONE
+					containerNoticeLayout.visibility = View.VISIBLE
+					progressBar.visibility = View.GONE
+					checkStatusButton.isEnabled = false
+					containerNoticeText.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
+					statusTextView.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+					return@withContext
+				}
 
-		val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-		loginCode = (1..6).map { chars.random() }.joinToString("")
-		codeTextView.text = loginCode
+				containerNoticeLayout.visibility = View.GONE
+				qrScanTitle.visibility = View.VISIBLE
+				wifiNoticeLayout.visibility = View.VISIBLE
+				codeLabelText.visibility = View.VISIBLE
+				codeTextView.visibility = View.VISIBLE
+				qrCodeCard.visibility = View.VISIBLE
 
-		loadQrCode(loginCode)
-		embeddedRelayServer?.createCode(loginCode)
+				val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+				loginCode = (1..6).map { chars.random() }.joinToString("")
+				codeTextView.text = loginCode
 
-		scope.launch {
-			val success = createAstraPlayCode(loginCode)
-			if (success || embeddedRelayServer != null) {
-				statusTextView.text = getString(R.string.psn_login_waiting_phone)
-				progressBar.visibility = View.VISIBLE
-				checkStatusButton.isEnabled = true
-				openBrowserButton.isEnabled = true
-				startAutoPolling()
-			} else {
-				val errorMsg = getString(R.string.psn_login_server_error)
-				statusTextView.text = "$errorMsg ($effectiveRelay)"
-				progressBar.visibility = View.GONE
-				openBrowserButton.isEnabled = false
+				loadQrCode(loginCode)
+				embeddedRelayServer?.createCode(loginCode)
+
+				scope.launch {
+					val success = createAstraPlayCode(loginCode)
+					if (success || embeddedRelayServer != null) {
+						statusTextView.text = getString(R.string.psn_login_waiting_phone)
+						progressBar.visibility = View.VISIBLE
+						checkStatusButton.isEnabled = true
+						openBrowserButton.isEnabled = true
+						startAutoPolling()
+					} else {
+						val errorMsg = getString(R.string.psn_login_server_error)
+						statusTextView.text = "$errorMsg ($effectiveRelay)"
+						progressBar.visibility = View.GONE
+						openBrowserButton.isEnabled = false
+					}
+				}
 			}
 		}
 	}
@@ -896,8 +1013,9 @@ class PsnLoginActivity : AppCompatActivity()
 
 	override fun onBackPressed()
 	{
-		if (layoutWebView.visibility == View.VISIBLE && loginWebView.canGoBack()) {
-			loginWebView.goBack()
+		val wv = loginWebView
+		if (layoutWebView.visibility == View.VISIBLE && wv != null && wv.canGoBack()) {
+			wv.goBack()
 		} else {
 			setResult(RESULT_LOGIN_CANCELLED)
 			super.onBackPressed()
@@ -929,8 +1047,17 @@ class PsnLoginActivity : AppCompatActivity()
 		super.onDestroy()
 		autoPollJob?.cancel()
 		scope.cancel()
-		loginWebView.stopLoading()
-		loginWebView.destroy()
+		try {
+			loginWebView?.let { wv ->
+				wv.stopLoading()
+				wv.loadUrl("about:blank")
+				webViewContainer.removeAllViews()
+				wv.destroy()
+			}
+		} catch (t: Throwable) {
+			Log.w(TAG, "Exception during WebView cleanup in onDestroy", t)
+		}
+		loginWebView = null
 		EmbeddedRelayServer.stop()
 	}
 }

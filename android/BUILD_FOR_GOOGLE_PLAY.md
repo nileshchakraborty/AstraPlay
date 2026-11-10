@@ -92,6 +92,27 @@ See `../../psstream-server/README.md` for how to self-host the relay (default po
 - **Package Name**: `io.github.nileshchakraborty.astraplay`
 - **Data Safety**: All credentials (PSN Account ID, NPSSO tokens) are stored locally in the Android Keystore / encrypted SharedPreferences. Zero data is shared or transmitted to third parties. Refer to [`PRIVACY.md`](../PRIVACY.md) and [`docs/privacy.md`](../docs/privacy.md) for the exact Data Safety responses required in Google Play Console.
 
+### R8 Optimization, Obfuscation & Resource Shrinking
+
+AstraPlay utilizes R8 in Full Mode (`android.enableR8.fullMode=true`) paired with `shrinkResources true` and `minifyEnabled true` in production release builds to satisfy Google Play's performance and memory optimization benchmarks:
+
+- **Aggressive Dead-Code Elimination & Class Inlining**: Legacy `-dontobfuscate` and blanket package keep rules have been removed, enabling R8 to inline single-caller methods, merge classes, prune dead code, and shrink member field names.
+- **Resource Shrinking**: Unused drawables, layouts, and strings are stripped from final release bundles (`.aab` and `.apk`).
+- **Surgical Keep Boundaries**:
+  - `com.metallic.chiaki.lib.**` is kept to guarantee JNI boundary stability with `chiaki-jni.c`.
+  - Room entities (`@Entity`), DAOs (`@Dao`), and database subclasses (`RoomDatabase`) are preserved.
+  - Moshi JSON serialization classes (`@JsonClass`) and synthetic constructors are retained.
+  - Native methods across all classes (`native <methods>;`) and `Parcelable` creators are protected.
+- **Crash Stack Trace Retention**: `SourceFile` and `LineNumberTable` attributes are preserved, and ProGuard mapping files are automatically generated and uploaded to Google Play Console for de-obfuscation.
+
+### Container & Emulation Resiliency (Waydroid, SteamOS, BlueStacks)
+
+To ensure crash-proof operation on handheld devices running Waydroid or containerized Android environments:
+- **Dynamic WebView Decoupling**: WebView is instantiated dynamically rather than statically inflated from XML. If a system lacks a functional Android System WebView provider (e.g., bare AOSP Waydroid images without GAPPS), the app displays a fallback layout with "Open in External Browser" and "Switch to Phone Login" rather than crashing with `InflateException`.
+- **Software Layer Rendering**: When running inside an emulator or container, `LAYER_TYPE_SOFTWARE` is applied to avoid Chromium hardware acceleration crashes in LXC containers.
+- **Non-blocking Socket Operations**: Local relay server initialization and LAN IP discovery run on `Dispatchers.IO` coroutines to prevent `NetworkOnMainThreadException` on modern Android versions and StrictMode.
+- **API Guardrails**: `InputDevice.isVirtual` is guarded by `Build.VERSION_CODES.Q` (API 29+) with `Throwable` exception handling.
+
 ## Build Options
 
 - `.\build.ps1 release -bundle` - Full production build with all ABIs (recommended for Google Play)

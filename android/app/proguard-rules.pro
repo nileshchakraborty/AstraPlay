@@ -12,16 +12,27 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Preserve line numbers and source file names for crash stack traces
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Native methods called across C/C++ and Java/Kotlin
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
 
--dontobfuscate
--keep class com.metallic.chiaki.** { *; }
+# Chiaki library JNI boundary objects (constructed or accessed directly from chiaki-jni.c)
+-keep class com.metallic.chiaki.lib.** { *; }
+
+# Room database entities, DAOs, and database classes
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+
+# Parcelable CREATORs
+-keepclassmembers class * implements android.os.Parcelable {
+    static ** CREATOR;
+}
 
 # Strip verbose/debug/info log calls in release builds (zero runtime cost)
 -assumenosideeffects class android.util.Log {

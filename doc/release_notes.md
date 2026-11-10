@@ -1,5 +1,26 @@
 # AstraPlay Release Notes
 
+## Version 2.12.25
+
+### Highlights & What's New
+- **Android Crash Mitigation & Container Resiliency (Waydroid, SteamOS, Handhelds)**:
+  - **Dynamic WebView Decoupling**: Decoupled `<WebView>` from static XML inflation to prevent `MissingWebViewPackageException` / `InflateException` crashes on systems without Google Play Services or System WebView (e.g. bare AOSP Waydroid on SteamOS / Bazzite).
+  - **WebView Fallback UI**: Added graceful fallback controls offering direct external browser sign-in and quick switch to Phone QR Relay if WebView is unavailable or crashes.
+  - **Software Layer Rendering**: Enforced software rendering for WebViews inside container / LXC environments to prevent Chromium GPU/zygote segmentation faults.
+  - **Thread-Safe Relay & LAN Probing**: Moved all local relay server startup and LAN IP discovery off the main thread to `Dispatchers.IO` coroutines, eliminating `NetworkOnMainThreadException` on modern Android.
+  - **API 29+ Virtual Device Guard**: Safe reflection guard for `InputDevice.isVirtual` with `Throwable` exception handling.
+- **R8 Optimization & Resource Shrinking**:
+  - Removed obsolete `-dontobfuscate` and blanket `-keep class com.metallic.chiaki.** { *; }` rules from ProGuard.
+  - Enabled R8 Full Mode (`android.enableR8.fullMode=true`) and resource shrinking (`shrinkResources true`) in release builds, reducing DEX size, inlining methods, and lowering runtime memory consumption per Google Play performance recommendations.
+  - Added surgical keep rules for JNI boundaries (`com.metallic.chiaki.lib.**`), Room database entities, and Parcelable creators.
+- **Automated Tag & Version Bumping Pipeline**:
+  - Added automated CI/CD release version resolution (`scripts/auto-bump-tag.sh` and Job 0 in `.github/workflows/release-on-merge.yml`).
+  - Merging to `master` automatically computes the next patch version and Android `versionCode`, pushes the bumped tag with `[skip ci]`, and builds all 7 matrix platforms against the unique tag to prevent duplicate version code rejections in Google Play Console.
+- **macOS DMG Packaging Reliability**:
+  - Added unmount retry protection and sync commands in `scripts/package-macos-dmg.sh` to prevent `hdiutil: create failed - Resource busy` failures on Intel macOS builders.
+
+---
+
 ## Version 2.12.18
 
 ### Highlights & What's New
