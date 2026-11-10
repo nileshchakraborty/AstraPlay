@@ -62,7 +62,26 @@ METHOD 2: Standard Drag & Drop (Manual)
 EOF
 
 echo "Creating DMG image with hdiutil..."
-hdiutil create -srcfolder "$STAGE_DIR" -volname "AstraPlay" -ov "$OUTPUT_DMG"
+sync
+hdiutil detach "/Volumes/AstraPlay" 2>/dev/null || true
+
+DMG_SUCCESS=false
+for attempt in 1 2 3; do
+    sync
+    if hdiutil create -srcfolder "$STAGE_DIR" -volname "AstraPlay" -ov "$OUTPUT_DMG"; then
+        DMG_SUCCESS=true
+        break
+    else
+        echo "hdiutil create attempt $attempt failed (resource busy or locked). Retrying in 3s..."
+        hdiutil detach "/Volumes/AstraPlay" 2>/dev/null || true
+        sleep 3
+    fi
+done
+
+if [ "$DMG_SUCCESS" != "true" ]; then
+    echo "ERROR: hdiutil create failed after 3 attempts." >&2
+    exit 1
+fi
 
 if command -v codesign >/dev/null 2>&1; then
     echo "Signing DMG with '$SIGN_ID'..."

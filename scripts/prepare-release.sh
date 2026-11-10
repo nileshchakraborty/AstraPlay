@@ -37,7 +37,7 @@ DO_PUSH=false
 
 for arg in "$@"; do
     case "$arg" in
-        patch|minor|major)
+        auto|patch|minor|major)
             TARGET_BUMP="$arg"
             ;;
         --push)
@@ -48,7 +48,7 @@ for arg in "$@"; do
             ;;
         *)
             echo "Unknown argument: $arg"
-            echo "Usage: $0 [patch|minor|major|X.Y.Z] [--push]"
+            echo "Usage: $0 [auto|patch|minor|major|X.Y.Z] [--push]"
             exit 1
             ;;
     esac
@@ -66,6 +66,19 @@ elif [ "$TARGET_BUMP" = "minor" ]; then
     NEW_MAJOR=$CURRENT_MAJOR
     NEW_MINOR=$((CURRENT_MINOR + 1))
     NEW_PATCH=0
+elif [ "$TARGET_BUMP" = "auto" ]; then
+    git fetch --tags origin 2>/dev/null || true
+    LATEST_TAG=$(git tag -l "v${CURRENT_MAJOR}.${CURRENT_MINOR}.*" 2>/dev/null | sort -V | tail -n 1 || echo "")
+    MAX_PATCH="$CURRENT_PATCH"
+    if [ -n "$LATEST_TAG" ]; then
+        TAG_PATCH=$(echo "$LATEST_TAG" | sed -E "s/^v${CURRENT_MAJOR}\.${CURRENT_MINOR}\.//" | grep -Eo '^[0-9]+' || echo "$CURRENT_PATCH")
+        if [ "$TAG_PATCH" -gt "$MAX_PATCH" ]; then
+            MAX_PATCH="$TAG_PATCH"
+        fi
+    fi
+    NEW_MAJOR=$CURRENT_MAJOR
+    NEW_MINOR=$CURRENT_MINOR
+    NEW_PATCH=$((MAX_PATCH + 1))
 else
     # Default: patch
     NEW_MAJOR=$CURRENT_MAJOR
