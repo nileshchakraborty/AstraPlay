@@ -74,7 +74,8 @@ DialogView {
         statusLabel.visible = true;
         
         AstraPlay.checkAstraPlayStatus(qrCode, function(success, errorMsg, npssoToken) {
-            console.log("astraplay API response - success:", success, "error:", errorMsg, "npsso len:", (npssoToken ? npssoToken.length : 0));
+            var hasToken = Boolean(npssoToken && npssoToken.length > 0);
+            console.log("astraplay API response - success:", success, "error:", errorMsg, "token received:", hasToken);
             
             isCheckingStatus = false;
             
