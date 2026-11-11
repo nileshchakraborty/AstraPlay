@@ -157,7 +157,8 @@ QmlMainWindow::~QmlMainWindow()
     delete qml_engine;
     delete qt_vk_inst;
 
-    av_buffer_unref(&vulkan_hw_dev_ctx);
+    if (vulkan_hw_dev_ctx)
+        av_buffer_unref(&vulkan_hw_dev_ctx);
 
     if (placebo_vulkan && placebo_vulkan->gpu) {
         pl_gpu_finish(placebo_vulkan->gpu);
@@ -173,15 +174,16 @@ QmlMainWindow::~QmlMainWindow()
 
     FILE *file = fopen(qPrintable(shader_cache_path()), "wb");
     if (file) {
-        pl_cache_save_file(placebo_cache, file);
+        if (placebo_cache)
+            pl_cache_save_file(placebo_cache, file);
         fclose(file);
     }
-    pl_cache_destroy(&placebo_cache);
-    pl_renderer_destroy(&placebo_renderer);
-    pl_vulkan_destroy(&placebo_vulkan);
-    pl_vk_inst_destroy(&placebo_vk_inst);
-    pl_options_free(&renderparams_opts);
-    pl_log_destroy(&placebo_log);
+    if (placebo_cache) pl_cache_destroy(&placebo_cache);
+    if (placebo_renderer) pl_renderer_destroy(&placebo_renderer);
+    if (placebo_vulkan) pl_vulkan_destroy(&placebo_vulkan);
+    if (placebo_vk_inst) pl_vk_inst_destroy(&placebo_vk_inst);
+    if (renderparams_opts) pl_options_free(&renderparams_opts);
+    if (placebo_log) pl_log_destroy(&placebo_log);
 }
 
 void QmlMainWindow::updateWindowType(WindowType type)
@@ -308,8 +310,51 @@ void QmlMainWindow::setSettings(Settings *new_settings)
     this->setTitle(QGuiApplication::applicationDisplayName());
 }
 
+void QmlMainWindow::showVulkanErrorDialog()
+{
+    QDialog *dialog = new QDialog();
+    dialog->setWindowTitle("AstraPlay");
+    dialog->setMinimumSize(500, 260);
+    dialog->setStyleSheet(
+        "QDialog { background-color: #1e1e2e; color: #ffffff; }"
+        "QLabel { color: #ffffff; font-size: 14px; }"
+        "QPushButton { background-color: #3b82f6; color: white; padding: 8px 24px; border-radius: 6px; font-weight: bold; font-size: 14px; }"
+        "QPushButton:hover { background-color: #2563eb; }"
+    );
+
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+    layout->setContentsMargins(28, 28, 28, 28);
+    layout->setSpacing(18);
+
+    QLabel *title = new QLabel("<h2>AstraPlay</h2>", dialog);
+    title->setAlignment(Qt::AlignCenter);
+    layout->addWidget(title);
+
+    QLabel *msg = new QLabel(
+        "AstraPlay requires a Vulkan-compatible display driver to run.<br><br>"
+        "No compatible Vulkan driver was detected on this display.<br>"
+        "On Linux, please ensure <b>mesa-vulkan-drivers</b> or your GPU vendor's Vulkan driver is installed.",
+        dialog
+    );
+    msg->setWordWrap(true);
+    msg->setAlignment(Qt::AlignCenter);
+    layout->addWidget(msg);
+
+    QPushButton *btn = new QPushButton("Close", dialog);
+    QObject::connect(btn, &QPushButton::clicked, dialog, &QDialog::accept);
+    layout->addWidget(btn, 0, Qt::AlignCenter);
+
+    QObject::connect(dialog, &QDialog::finished, qGuiApp, &QGuiApplication::quit);
+    dialog->show();
+}
+
 void QmlMainWindow::show()
 {
+    if (vulkan_failed) {
+        showVulkanErrorDialog();
+        return;
+    }
+
     QQmlComponent component(qml_engine, QUrl(QStringLiteral("qrc:/Main.qml")));
     if (!component.isReady()) {
         qCCritical(chiakiGui) << "Component not ready\n" << component.errors();
@@ -478,6 +523,11 @@ void QmlMainWindow::init(Settings *settings, bool exit_app_on_stream_exit, Steam
         .num_opt_extensions = 1,
     };
     placebo_vk_inst = pl_vk_inst_create(placebo_log, &vk_inst_params);
+    if (!placebo_vk_inst) {
+        qCCritical(chiakiGui) << "Failed to initialize Vulkan instance (no compatible Vulkan driver found)";
+        vulkan_failed = true;
+        return;
+    }
 
 #define GET_PROC(name_) { \
     vk_funcs.name_ = reinterpret_cast<decltype(vk_funcs.name_)>( \
@@ -519,6 +569,11 @@ void QmlMainWindow::init(Settings *settings, bool exit_app_on_stream_exit, Steam
         .num_opt_extensions = 4,
     };
     placebo_vulkan = pl_vulkan_create(placebo_log, &vulkan_params);
+    if (!placebo_vulkan) {
+        qCCritical(chiakiGui) << "Failed to initialize Vulkan device";
+        vulkan_failed = true;
+        return;
+    }
 
 #define GET_PROC(name_) { \
     vk_funcs.name_ = reinterpret_cast<decltype(vk_funcs.name_)>( \
@@ -571,8 +626,11 @@ void QmlMainWindow::init(Settings *settings, bool exit_app_on_stream_exit, Steam
 
     qt_vk_inst = new QVulkanInstance;
     qt_vk_inst->setVkInstance(placebo_vk_inst->instance);
-    if (!qt_vk_inst->create())
-        qFatal("Failed to create QVulkanInstance");
+    if (!qt_vk_inst->create()) {
+        qCCritical(chiakiGui) << "Failed to create QVulkanInstance";
+        vulkan_failed = true;
+        return;
+    }
 
     quick_render = new RenderControl(this);
 
