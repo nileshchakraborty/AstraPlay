@@ -276,10 +276,12 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			return cachedLanIp
 		}
 
-		// 1. Check for explicit system property override (useful for emulator testing on host LAN)
-		val override = getSystemProperty("debug.astraplay.lan_ip")
+		// 1. Check for explicit system property override (useful for Waydroid host proxy or emulator testing)
+		val override = getSystemProperty("persist.astraplay.lan_ip")
+			?: getSystemProperty("debug.astraplay.lan_ip")
+			?: getSystemProperty("persist.waydroid.host_ip")
 		if (!override.isNullOrEmpty()) {
-			Log.i(TAG, "Using debug.astraplay.lan_ip override: $override")
+			Log.i(TAG, "Using LAN IP override: $override")
 			cachedLanIp = override
 			return override
 		}

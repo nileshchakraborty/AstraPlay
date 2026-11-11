@@ -25,6 +25,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -156,6 +158,16 @@ class PsnLoginActivity : AppCompatActivity()
 			Log.e(TAG, "Fatal error inflating activity_psn_login layout", t)
 			finish()
 			return
+		}
+
+		findViewById<View>(android.R.id.content)?.let { root ->
+			ViewCompat.setOnApplyWindowInsetsListener(root) { view, windowInsets ->
+				val insets = windowInsets.getInsets(
+					WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+				)
+				view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+				windowInsets
+			}
 		}
 
 		tokenManager = SecureTokenManager(this)
