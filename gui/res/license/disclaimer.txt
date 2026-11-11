@@ -4,8 +4,8 @@
 DISCLAIMER
 ═══════════════════════════════════════════════════════════
 
-This application is NOT affiliated with, endorsed by, sponsored by, or approved by Sony Interactive Entertainment Inc. or any of its subsidiaries.
+This application is NOT affiliated with, endorsed by, sponsored by, or approved by any console manufacturer or platform holder.
 
-All trademarks including PlayStation, PS5, PS4, PSN, and related marks are the property of their respective owners.
+All trademarks including PS, PS5, PS4, PSN, DualSense, and related marks are the property of their respective owners.
 
 Source code: https://github.com/nileshchakraborty/astraplay

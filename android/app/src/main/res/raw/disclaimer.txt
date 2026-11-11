@@ -5,9 +5,9 @@ DISCLAIMER & OPEN SOURCE NOTICE
 
 AstraPlay is an independent open-source project licensed under the GNU Affero General Public License v3 (AGPL-3.0).
 
-This application is NOT affiliated with, endorsed by, sponsored by, or approved by Sony Interactive Entertainment Inc. or any of its subsidiaries.
+This application is NOT affiliated with, endorsed by, sponsored by, or approved by any console manufacturer or platform holder.
 
-All trademarks including PlayStation, PS5, PS4, PSN, and related marks are the property of their respective owners.
+All trademarks including PS, PS5, PS4, PSN, DualSense, and related marks are the property of their respective owners.
 
 In accordance with the AGPL-3.0 license, the full source code for AstraPlay is freely available at:
 https://github.com/nileshchakraborty/AstraPlay

@@ -101,7 +101,7 @@ AstraPlay handles three specific types of data, all of which remain under your c
 
 ## 5. Third-Party Services Disclaimer
 
-- **Sony Interactive Entertainment**: AstraPlay communicates directly with services operated by Sony Interactive Entertainment Inc. ("Sony"). Your interaction with Sony servers is governed by Sony's terms and the [PlayStation Privacy Policy](https://www.playstation.com/legal/privacy-policy/).
+- **Console Network Services**: AstraPlay communicates directly with authentication and streaming services operated by the console network platform. Your interaction with these servers is governed by their respective platform terms and privacy policies.
 - **Zero Third-Party Trackers**: AstraPlay contains **zero** third-party advertising SDKs, analytic SDKs, social media trackers, or third-party cloud data backends.
 
 ---
