@@ -25,6 +25,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -156,6 +158,16 @@ class PsnLoginActivity : AppCompatActivity()
 			Log.e(TAG, "Fatal error inflating activity_psn_login layout", t)
 			finish()
 			return
+		}
+
+		findViewById<View>(android.R.id.content)?.let { root ->
+			ViewCompat.setOnApplyWindowInsetsListener(root) { view, windowInsets ->
+				val insets = windowInsets.getInsets(
+					WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+				)
+				view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+				windowInsets
+			}
 		}
 
 		tokenManager = SecureTokenManager(this)
@@ -666,7 +678,7 @@ class PsnLoginActivity : AppCompatActivity()
 
 			withContext(Dispatchers.Main) {
 				if (!hasRoutableLan) {
-					Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
+					Log.w(TAG, "No phone-reachable LAN IP found (isEmulator=$isEmulator)")
 					qrCodeImage?.visibility = View.GONE
 					qrCodeCard?.visibility = View.GONE
 					qrScanTitle?.visibility = View.GONE
@@ -676,8 +688,11 @@ class PsnLoginActivity : AppCompatActivity()
 					containerNoticeLayout?.visibility = View.VISIBLE
 					progressBar?.visibility = View.GONE
 					checkStatusButton?.isEnabled = false
+
 					containerNoticeText?.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
 					statusTextView?.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+					configureRelayButton?.visibility = View.VISIBLE
+					configureRelayButton?.setOnClickListener { showConfigureRelayDialog() }
 					return@withContext
 				}
 

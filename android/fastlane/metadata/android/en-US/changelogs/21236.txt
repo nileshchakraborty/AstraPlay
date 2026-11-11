@@ -1,0 +1,3 @@
+• Fixed PSN login controls being clipped on landscape handheld screens.
+• Improved phone login in Waydroid and other Android containers: invalid host IP settings no longer create broken QR links.
+• Added clear relay setup guidance when the phone cannot reach the container.
