@@ -591,6 +591,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#phone-qr-login-in-waydroid-and-emulators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phone QR login in Waydroid and emulators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#connecting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -810,6 +821,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#phone-qr-login-in-waydroid-and-emulators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phone QR login in Waydroid and emulators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#connecting" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -962,6 +984,7 @@
 <li>Complete the PSN sign-in on your phone</li>
 <li>Back in AstraPlay, click <strong>Check Status</strong> to confirm the login went through</li>
 </ol>
+<p>If AstraPlay itself runs in Waydroid or another emulator, first follow <a href="#phone-qr-login-in-waydroid-and-emulators">Phone QR login in Waydroid and emulators</a>. A regular Android phone needs no host proxy; the QR code is for a second device.</p>
 </div>
 <div class="tabbed-block">
 <p>Click <strong>Login on This Device</strong> to use a 3-step browser flow instead:</p>
@@ -987,6 +1010,15 @@
 <p class="admonition-title">Embedded &amp; Self-Hosted Token Relay</p>
 <p>AstraPlay runs an embedded local token relay server on port <code>25525</code> (<code>http://localhost:25525</code>) to handle local session tokens without port collisions. You can also self-host a standalone relay instance via <code>psstream-server</code> on your home network.</p>
 </div>
+<h3 id="phone-qr-login-in-waydroid-and-emulators">Phone QR login in Waydroid and emulators<a class="headerlink" href="#phone-qr-login-in-waydroid-and-emulators" title="Permanent link">&para;</a></h3>
+<p>Waydroid and many Android emulators give Android a private bridge address that a phone on Wi-Fi cannot reach. Phone QR login therefore needs the <strong>host computer</strong> to forward TCP port <code>25525</code> to Android and advertise the host's LAN address. Keep AstraPlay's Phone QR screen open while signing in; the embedded relay runs during that login session. Direct sign-in inside AstraPlay does not need port forwarding.</p>
+<p>For <strong>Waydroid on Linux</strong>, install <code>socat</code> using your distribution's package manager, then run the <a href="https://github.com/nileshchakraborty/AstraPlay/blob/master/scripts/setup-waydroid-relay.sh">Waydroid relay setup script</a> in a terminal on the Linux host, outside Waydroid:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fL<span class="w"> </span>-o<span class="w"> </span>setup-waydroid-relay.sh<span class="w"> </span>https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/setup-waydroid-relay.sh
+less<span class="w"> </span>setup-waydroid-relay.sh
+bash<span class="w"> </span>setup-waydroid-relay.sh
+</code></pre></div>
+<p>The script installs and enables a user service. It detects the host LAN IP and current Waydroid IP, forwards TCP <code>25525</code>, and supplies the host IP to AstraPlay. After a host IP change, run <code>systemctl --user restart waydroid-relay-proxy.service</code>. If the host firewall blocks incoming LAN connections, allow TCP <code>25525</code> from your trusted local network. Test <code>http://&lt;host-LAN-IP&gt;:25525/</code> from the phone while AstraPlay's QR screen is open.</p>
+<p>For BlueStacks, WSA, and other emulators, configure equivalent host port forwarding using that emulator's host OS tools. Set <strong>Configure Relay</strong> to a URL the phone can reach, such as <code>http://192.168.1.50:25525</code>; the emulator's bridge gateway is usually not reachable from the phone.</p>
 <h3 id="connecting">Connecting<a class="headerlink" href="#connecting" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Make sure the console is registered (done locally) and not currently reachable on your local network</li>
@@ -1131,7 +1163,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 10, 2026 22:49:22 UTC">November 10, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 11, 2026 21:07:41 UTC">November 11, 2026</span>
   </span>
 
     
