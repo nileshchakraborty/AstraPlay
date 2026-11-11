@@ -169,6 +169,18 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 				null
 			}
 		}
+
+		/** Accept only a literal, usable IPv4 address for the phone-facing host override. */
+		fun isValidLanIpOverride(value: String): Boolean {
+			val octets = value.split('.')
+			return octets.size == 4 && octets.all { it.isNotEmpty() && it.all(Char::isDigit) && (it.toIntOrNull() ?: 256) in 0..255 } &&
+				!value.startsWith("0.") && !value.startsWith("127.") && !isVirtualSubnet(value)
+		}
+
+		fun selectLanIpOverride(getProperty: (String) -> String?): String? =
+			listOf("debug.astraplay.lan_ip", "persist.astraplay.lan_ip", "persist.waydroid.host_ip")
+				.mapNotNull(getProperty)
+				.firstOrNull { isValidLanIpOverride(it) }
 	}
 
 	data class CodeEntry(val createdAt: Long, var npsso: String? = null)
@@ -262,13 +274,12 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		cachedLanIp = null
 		Log.i(TAG, "EmbeddedRelayServer stopped")
 	}
-
 	/**
 	 * Find physical LAN IPv4 address (e.g. 192.168.1.x, 10.x.x.x, 172.x.x.x) for QR code generation.
 	 * Explicitly filters out virtual/container bridges (Waydroid, QEMU, Docker, KVM, Wireguard, Tailscale)
 	 * so external devices scanning the QR code on a local Wi-Fi network are not given an unreachable
 	 * private container IP (such as Waydroid's 192.168.240.x / 192.168.245.x / 192.168.250.x).
-	 * Allows developer overrides via the debug.astraplay.lan_ip system property.
+	 *
 	 * Results are cached in memory to avoid redundant socket queries and StrictMode warnings.
 	 */
 	fun getLanIpAddress(forceRefresh: Boolean = false): String? {
@@ -276,10 +287,10 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			return cachedLanIp
 		}
 
-		// 1. Check for explicit system property override (useful for emulator testing on host LAN)
-		val override = getSystemProperty("debug.astraplay.lan_ip")
-		if (!override.isNullOrEmpty()) {
-			Log.i(TAG, "Using debug.astraplay.lan_ip override: $override")
+		// 1. Check for explicit system property override (useful for Waydroid host proxy or emulator testing)
+		val override = selectLanIpOverride(::getSystemProperty)
+		if (override != null) {
+			Log.i(TAG, "Using LAN IP override: $override")
 			cachedLanIp = override
 			return override
 		}
@@ -346,6 +357,7 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		} catch (t: Throwable) {
 			Log.w(TAG, "Error looking up LAN IP address", t)
 		}
+
 		return null
 	}
 

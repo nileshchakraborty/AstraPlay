@@ -6,6 +6,37 @@ import org.junit.Test
 class EmbeddedRelayServerTest {
 
     @Test
+    fun `LAN override rejects invalid values and private emulator gateways`() {
+        assertTrue(EmbeddedRelayServer.isValidLanIpOverride("192.168.1.161"))
+        assertTrue(EmbeddedRelayServer.isValidLanIpOverride("10.1.2.3"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("disabled"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("host.local"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("192.168.1.1:25525"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("192.168.1.999"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("192.168.240.1"))
+        assertFalse(EmbeddedRelayServer.isValidLanIpOverride("127.0.0.1"))
+    }
+
+    @Test
+    fun `invalid debug override falls through to persistent host LAN address`() {
+        val properties = mapOf(
+            "debug.astraplay.lan_ip" to "disabled",
+            "persist.astraplay.lan_ip" to "192.168.1.161"
+        )
+        assertEquals("192.168.1.161", EmbeddedRelayServer.selectLanIpOverride(properties::get))
+    }
+
+    @Test
+    fun `valid debug override takes precedence and virtual gateway is rejected`() {
+        val properties = mapOf(
+            "debug.astraplay.lan_ip" to "10.1.2.3",
+            "persist.astraplay.lan_ip" to "192.168.1.161"
+        )
+        assertEquals("10.1.2.3", EmbeddedRelayServer.selectLanIpOverride(properties::get))
+        assertNull(EmbeddedRelayServer.selectLanIpOverride { "192.168.240.1" })
+    }
+
+    @Test
     fun `isVirtualSubnet correctly identifies virtual and container bridges`() {
         // Waydroid subnets
         assertTrue(EmbeddedRelayServer.isVirtualSubnet("192.168.240.1"))
