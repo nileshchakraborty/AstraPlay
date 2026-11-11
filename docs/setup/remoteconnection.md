@@ -35,6 +35,8 @@ AstraPlay uses PSN servers as a go-between to initiate a direct connection betwe
         2. Complete the PSN sign-in on your phone
         3. Back in AstraPlay, click **Check Status** to confirm the login went through
 
+        If AstraPlay itself runs in Waydroid or another emulator, first follow [Phone QR login in Waydroid and emulators](#phone-qr-login-in-waydroid-and-emulators). A regular Android phone needs no host proxy; the QR code is for a second device.
+
     === "Login on This Device"
 
         Click **Login on This Device** to use a 3-step browser flow instead:
@@ -58,6 +60,22 @@ AstraPlay uses PSN servers as a go-between to initiate a direct connection betwe
 
 !!! info "Embedded & Self-Hosted Token Relay"
     AstraPlay runs an embedded local token relay server on port `25525` (`http://localhost:25525`) to handle local session tokens without port collisions. You can also self-host a standalone relay instance via `psstream-server` on your home network.
+
+### Phone QR login in Waydroid and emulators
+
+Waydroid and many Android emulators give Android a private bridge address that a phone on Wi-Fi cannot reach. Phone QR login therefore needs the **host computer** to forward TCP port `25525` to Android and advertise the host's LAN address. Keep AstraPlay's Phone QR screen open while signing in; the embedded relay runs during that login session. Direct sign-in inside AstraPlay does not need port forwarding.
+
+For **Waydroid on Linux**, install `socat` using your distribution's package manager, then run the [Waydroid relay setup script](https://github.com/nileshchakraborty/AstraPlay/blob/master/scripts/setup-waydroid-relay.sh) in a terminal on the Linux host, outside Waydroid:
+
+```bash
+curl -fL -o setup-waydroid-relay.sh https://raw.githubusercontent.com/nileshchakraborty/AstraPlay/master/scripts/setup-waydroid-relay.sh
+less setup-waydroid-relay.sh
+bash setup-waydroid-relay.sh
+```
+
+The script installs and enables a user service. It detects the host LAN IP and current Waydroid IP, forwards TCP `25525`, and supplies the host IP to AstraPlay. After a host IP change, run `systemctl --user restart waydroid-relay-proxy.service`. If the host firewall blocks incoming LAN connections, allow TCP `25525` from your trusted local network. Test `http://<host-LAN-IP>:25525/` from the phone while AstraPlay's QR screen is open.
+
+For BlueStacks, WSA, and other emulators, configure equivalent host port forwarding using that emulator's host OS tools. Set **Configure Relay** to a URL the phone can reach, such as `http://192.168.1.50:25525`; the emulator's bridge gateway is usually not reachable from the phone.
 
 ### Connecting
 
