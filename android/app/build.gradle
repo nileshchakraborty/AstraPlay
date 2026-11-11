@@ -210,7 +210,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'com.google.android.material:material:1.9.0'
@@ -229,7 +229,7 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "com.squareup.moshi:moshi:1.15.2"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:1.15.2"
-    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'io.coil-kt:coil:2.7.0'
     implementation 'androidx.security:security-crypto:1.1.0'
