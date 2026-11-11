@@ -97,6 +97,15 @@ echo " New version:         v${NEW_VER}"
 echo " Android versionCode: ${ANDROID_VC}"
 echo "=========================================="
 
+# 0. Pre-flight Quality & Parity Checks
+echo "Running layout parity and null-safety audit..."
+if [ -f "$SCRIPT_DIR/check-layout-parity.py" ]; then
+    python3 "$SCRIPT_DIR/check-layout-parity.py" || {
+        echo "ERROR: Layout parity check failed! Fix ID discrepancies or unsafe view bindings before releasing." >&2
+        exit 1
+    }
+fi
+
 # 1. Update CMakeLists.txt
 sed -i.bak -E \
     -e "s/^set\(CHIAKI_VERSION_MAJOR [0-9]+\)/set(CHIAKI_VERSION_MAJOR ${NEW_MAJOR})/" \
