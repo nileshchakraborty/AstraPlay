@@ -99,7 +99,6 @@ fetch_tool "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/downlo
     -e "${appdir}/usr/bin/astraplay" \
     -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
     --plugin qt \
-    --exclude-library='libva*' \
     --exclude-library='libvulkan*' \
     --output appimage
 

@@ -81,7 +81,6 @@ then
         --appdir="${appdir}" \
         -e "${appdir}/usr/bin/astraplay" \
         -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
-        --exclude-library='libva*' \
         --exclude-library='libvulkan*' \
         --exclude-library='libhidapi*' \
         --exclude-library='libssl*' \
@@ -97,7 +96,6 @@ else
         -e "${appdir}/usr/bin/astraplay" \
         -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
         --plugin qt \
-        --exclude-library='libva*' \
         --exclude-library='libvulkan*' \
         --exclude-library='libhidapi*' \
         --exclude-library='libssl*' \

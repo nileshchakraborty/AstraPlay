@@ -114,7 +114,6 @@ timeout 300 ./linuxdeploy-${ARCH}.AppImage \
   -e "${appdir}/usr/bin/astraplay" \
   -d "${appdir}/usr/share/applications/io.github.nileshchakraborty.AstraPlay.desktop" \
   --plugin qt \
-  --exclude-library='libva*' \
   --exclude-library='libvulkan*' || { echo "linuxdeploy timed out or failed"; exit 1; }
 
 # Optionally skip creating the AppImage and leave a runnable AppDir
