@@ -627,6 +627,29 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun setupRelayActions()
 	{
+		if (EmbeddedRelayServer.isEmulatorOrContainer()) {
+			val parent = qrCodeCard?.parent as? LinearLayout
+			val qrIndex = parent?.indexOfChild(qrCodeCard) ?: -1
+			if (qrIndex >= 0) {
+				val hint = TextView(this).apply {
+					setText(R.string.psn_login_container_relay_script_hint)
+					setTextColor(0xFF90CAF9.toInt())
+					textSize = 12f
+					textAlignment = View.TEXT_ALIGNMENT_CENTER
+					setPadding(12, 8, 12, 12)
+					isFocusable = true
+					setOnClickListener {
+						try {
+							startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.psn_login_waydroid_setup_script_url))))
+						} catch (e: Exception) {
+							Log.w(TAG, "Could not open Waydroid relay setup script", e)
+							Toast.makeText(this@PsnLoginActivity, R.string.psn_login_external_browser_error, Toast.LENGTH_SHORT).show()
+						}
+					}
+				}
+				parent?.addView(hint, qrIndex + 1)
+			}
+		}
 		// openBrowserButton now flips to WebView mode
 		openBrowserButton?.setOnClickListener { showWebView() }
 		checkStatusButton?.setOnClickListener { checkTokenStatus(manual = true) }
