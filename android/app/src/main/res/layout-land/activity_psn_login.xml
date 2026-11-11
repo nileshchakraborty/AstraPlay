@@ -89,10 +89,81 @@
                         android:layout_weight="1"
                         android:background="#121318">
 
-                        <WebView
-                            android:id="@+id/loginWebView"
+                        <FrameLayout
+                            android:id="@+id/webViewContainer"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
+
+                        <!-- Fallback layout if WebView is not supported or not installed -->
+                        <LinearLayout
+                            android:id="@+id/webViewUnsupportedLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="20dp"
+                            android:background="#121318"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:src="@drawable/ic_phone_android"
+                                app:tint="#EF5350"
+                                android:layout_marginBottom="12dp"
+                                android:contentDescription="Notice" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/psn_login_webview_unsupported_title"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#EF5350"
+                                android:layout_marginBottom="6dp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/psn_login_webview_unsupported_desc"
+                                android:textSize="12sp"
+                                android:textColor="#B0BEC5"
+                                android:textAlignment="center"
+                                android:layout_marginBottom="16dp" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnFallbackSwitchToPhone"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="44dp"
+                                    android:text="@string/psn_login_switch_to_phone"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    app:cornerRadius="8dp"
+                                    app:icon="@drawable/ic_qr_code"
+                                    app:iconGravity="textStart"
+                                    app:backgroundTint="@color/accent"
+                                    android:textColor="#FFFFFF"
+                                    android:layout_marginEnd="12dp" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnFallbackOpenBrowser"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="44dp"
+                                    android:text="@string/psn_login_open_in_browser"
+                                    android:textSize="13sp"
+                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                    app:cornerRadius="8dp"
+                                    android:textColor="#90CAF9" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
 
                         <!-- Loading / Authenticating Overlay -->
                         <LinearLayout
@@ -208,7 +279,56 @@
                             android:orientation="vertical"
                             android:gravity="center">
 
+                            <!-- Container / No-LAN Notice Banner -->
+                            <LinearLayout
+                                android:id="@+id/containerNoticeLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="#2E1C1C"
+                                android:paddingHorizontal="14dp"
+                                android:paddingVertical="12dp"
+                                android:layout_marginBottom="10dp"
+                                android:visibility="gone">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:layout_marginBottom="4dp">
+
+                                    <ImageView
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_phone_android"
+                                        app:tint="#EF5350"
+                                        android:layout_marginEnd="6dp"
+                                        android:contentDescription="Notice" />
+
+                                    <com.google.android.material.textview.MaterialTextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/psn_login_container_notice_title"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold"
+                                        android:textColor="#EF5350" />
+                                </LinearLayout>
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/containerNoticeText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/psn_login_container_notice_desc"
+                                    android:textSize="11sp"
+                                    android:textColor="#FFCDD2"
+                                    android:textAlignment="center" />
+
+                            </LinearLayout>
+
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/qrCodeCard"
                                 android:layout_width="190dp"
                                 android:layout_height="190dp"
                                 app:cardCornerRadius="12dp"
@@ -229,6 +349,7 @@
                             </com.google.android.material.card.MaterialCardView>
 
                             <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/qrScanTitle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/psn_login_scan_phone"
@@ -240,6 +361,7 @@
 
                             <!-- Same Wi-Fi Network Notice -->
                             <LinearLayout
+                                android:id="@+id/wifiNoticeLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
@@ -284,6 +406,7 @@
                             android:orientation="vertical">
 
                             <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/codeLabelText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/psn_login_code_label"
