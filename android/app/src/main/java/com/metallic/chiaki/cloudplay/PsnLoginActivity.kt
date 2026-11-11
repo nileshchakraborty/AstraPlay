@@ -65,42 +65,42 @@ class PsnLoginActivity : AppCompatActivity()
 	}
 
 	// Mode Containers
-	private lateinit var layoutWebView: View
-	private lateinit var layoutPhoneRelay: View
+	private var layoutWebView: View? = null
+	private var layoutPhoneRelay: View? = null
 
 	// WebView UI components
 	private var loginWebView: WebView? = null
 	private var isWebViewSupported: Boolean = false
-	private lateinit var webViewContainer: FrameLayout
-	private lateinit var webViewUnsupportedLayout: LinearLayout
-	private lateinit var btnFallbackSwitchToPhone: MaterialButton
-	private lateinit var btnFallbackOpenBrowser: MaterialButton
-	private lateinit var webViewProgressBar: ProgressBar
-	private lateinit var webViewLoadingOverlay: LinearLayout
-	private lateinit var webViewStatusText: TextView
-	private lateinit var btnSwitchToPhoneRelay: MaterialButton
-	private lateinit var btnOpenBrowserFromWebView: MaterialButton
-	private lateinit var btnManualTokenFromWebView: MaterialButton
-	private lateinit var btnCancelWebView: MaterialButton
+	private var webViewContainer: FrameLayout? = null
+	private var webViewUnsupportedLayout: LinearLayout? = null
+	private var btnFallbackSwitchToPhone: MaterialButton? = null
+	private var btnFallbackOpenBrowser: MaterialButton? = null
+	private var webViewProgressBar: ProgressBar? = null
+	private var webViewLoadingOverlay: LinearLayout? = null
+	private var webViewStatusText: TextView? = null
+	private var btnSwitchToPhoneRelay: MaterialButton? = null
+	private var btnOpenBrowserFromWebView: MaterialButton? = null
+	private var btnManualTokenFromWebView: MaterialButton? = null
+	private var btnCancelWebView: MaterialButton? = null
 
 	// Phone Relay UI components
-	private lateinit var codeTextView: TextView
-	private lateinit var statusTextView: TextView
-	private lateinit var progressBar: ProgressBar
-	private lateinit var openBrowserButton: MaterialButton
-	private lateinit var checkStatusButton: MaterialButton
-	private lateinit var configureRelayButton: MaterialButton
-	private lateinit var manualTokenButton: MaterialButton
-	private lateinit var cancelButton: MaterialButton
-	private lateinit var qrCodeImage: ImageView
-	private lateinit var qrCodeCard: View
-	private lateinit var qrScanTitle: TextView
-	private lateinit var wifiNoticeLayout: View
-	private lateinit var containerNoticeLayout: View
-	private lateinit var containerNoticeText: TextView
-	private lateinit var codeLabelText: TextView
+	private var codeTextView: TextView? = null
+	private var statusTextView: TextView? = null
+	private var progressBar: ProgressBar? = null
+	private var openBrowserButton: MaterialButton? = null
+	private var checkStatusButton: MaterialButton? = null
+	private var configureRelayButton: MaterialButton? = null
+	private var manualTokenButton: MaterialButton? = null
+	private var cancelButton: MaterialButton? = null
+	private var qrCodeImage: ImageView? = null
+	private var qrCodeCard: View? = null
+	private var qrScanTitle: TextView? = null
+	private var wifiNoticeLayout: View? = null
+	private var containerNoticeLayout: View? = null
+	private var containerNoticeText: TextView? = null
+	private var codeLabelText: TextView? = null
 
-	private lateinit var toolbar: MaterialToolbar
+	private var toolbar: MaterialToolbar? = null
 
 	private lateinit var tokenManager: SecureTokenManager
 	private lateinit var preferences: Preferences
@@ -190,7 +190,7 @@ class PsnLoginActivity : AppCompatActivity()
 			prepareRelayCode()
 		}
 
-		if (isHandheldOrTv()) {
+		if (isHandheldOrTv() && !EmbeddedRelayServer.isEmulatorOrContainer()) {
 			showPhoneRelayView()
 		} else {
 			showWebView()
@@ -199,45 +199,49 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun bindViews()
 	{
-		toolbar = findViewById(R.id.toolbar)
+		try {
+			toolbar = findViewById(R.id.toolbar)
 
-		layoutWebView = findViewById(R.id.layoutWebView)
-		layoutPhoneRelay = findViewById(R.id.layoutPhoneRelay)
+			layoutWebView = findViewById(R.id.layoutWebView)
+			layoutPhoneRelay = findViewById(R.id.layoutPhoneRelay)
 
-		// WebView components
-		webViewContainer = findViewById(R.id.webViewContainer)
-		webViewUnsupportedLayout = findViewById(R.id.webViewUnsupportedLayout)
-		btnFallbackSwitchToPhone = findViewById(R.id.btnFallbackSwitchToPhone)
-		btnFallbackOpenBrowser = findViewById(R.id.btnFallbackOpenBrowser)
-		webViewProgressBar = findViewById(R.id.webViewProgressBar)
-		webViewLoadingOverlay = findViewById(R.id.webViewLoadingOverlay)
-		webViewStatusText = findViewById(R.id.webViewStatusText)
-		btnSwitchToPhoneRelay = findViewById(R.id.btnSwitchToPhoneRelay)
-		btnOpenBrowserFromWebView = findViewById(R.id.btnOpenBrowserFromWebView)
-		btnManualTokenFromWebView = findViewById(R.id.btnManualTokenFromWebView)
-		btnCancelWebView = findViewById(R.id.btnCancelWebView)
+			// WebView components
+			webViewContainer = findViewById(R.id.webViewContainer)
+			webViewUnsupportedLayout = findViewById(R.id.webViewUnsupportedLayout)
+			btnFallbackSwitchToPhone = findViewById(R.id.btnFallbackSwitchToPhone)
+			btnFallbackOpenBrowser = findViewById(R.id.btnFallbackOpenBrowser)
+			webViewProgressBar = findViewById(R.id.webViewProgressBar)
+			webViewLoadingOverlay = findViewById(R.id.webViewLoadingOverlay)
+			webViewStatusText = findViewById(R.id.webViewStatusText)
+			btnSwitchToPhoneRelay = findViewById(R.id.btnSwitchToPhoneRelay)
+			btnOpenBrowserFromWebView = findViewById(R.id.btnOpenBrowserFromWebView)
+			btnManualTokenFromWebView = findViewById(R.id.btnManualTokenFromWebView)
+			btnCancelWebView = findViewById(R.id.btnCancelWebView)
 
-		// Relay components
-		codeTextView = findViewById(R.id.loginCodeText)
-		statusTextView = findViewById(R.id.statusText)
-		progressBar = findViewById(R.id.progressBar)
-		openBrowserButton = findViewById(R.id.openBrowserButton)
-		checkStatusButton = findViewById(R.id.checkStatusButton)
-		configureRelayButton = findViewById(R.id.configureRelayButton)
-		manualTokenButton = findViewById(R.id.manualTokenButton)
-		cancelButton = findViewById(R.id.cancelButton)
-		qrCodeImage = findViewById(R.id.qrCodeImage)
-		qrCodeCard = findViewById(R.id.qrCodeCard)
-		qrScanTitle = findViewById(R.id.qrScanTitle)
-		wifiNoticeLayout = findViewById(R.id.wifiNoticeLayout)
-		containerNoticeLayout = findViewById(R.id.containerNoticeLayout)
-		containerNoticeText = findViewById(R.id.containerNoticeText)
-		codeLabelText = findViewById(R.id.codeLabelText)
+			// Relay components
+			codeTextView = findViewById(R.id.loginCodeText)
+			statusTextView = findViewById(R.id.statusText)
+			progressBar = findViewById(R.id.progressBar)
+			openBrowserButton = findViewById(R.id.openBrowserButton)
+			checkStatusButton = findViewById(R.id.checkStatusButton)
+			configureRelayButton = findViewById(R.id.configureRelayButton)
+			manualTokenButton = findViewById(R.id.manualTokenButton)
+			cancelButton = findViewById(R.id.cancelButton)
+			qrCodeImage = findViewById(R.id.qrCodeImage)
+			qrCodeCard = findViewById(R.id.qrCodeCard)
+			qrScanTitle = findViewById(R.id.qrScanTitle)
+			wifiNoticeLayout = findViewById(R.id.wifiNoticeLayout)
+			containerNoticeLayout = findViewById(R.id.containerNoticeLayout)
+			containerNoticeText = findViewById(R.id.containerNoticeText)
+			codeLabelText = findViewById(R.id.codeLabelText)
+		} catch (t: Throwable) {
+			Log.e(TAG, "Error binding views in PsnLoginActivity", t)
+		}
 	}
 
 	private fun setupToolbar()
 	{
-		toolbar.setNavigationOnClickListener {
+		toolbar?.setNavigationOnClickListener {
 			setResult(RESULT_LOGIN_CANCELLED)
 			finish()
 		}
@@ -246,24 +250,24 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun setupWebViewActions()
 	{
 		val focusHighlight = createFocusHighlight()
-		btnSwitchToPhoneRelay.onFocusChangeListener = focusHighlight
-		btnOpenBrowserFromWebView.onFocusChangeListener = focusHighlight
-		btnManualTokenFromWebView.onFocusChangeListener = focusHighlight
-		btnCancelWebView.onFocusChangeListener = focusHighlight
+		btnSwitchToPhoneRelay?.onFocusChangeListener = focusHighlight
+		btnOpenBrowserFromWebView?.onFocusChangeListener = focusHighlight
+		btnManualTokenFromWebView?.onFocusChangeListener = focusHighlight
+		btnCancelWebView?.onFocusChangeListener = focusHighlight
 
-		btnSwitchToPhoneRelay.setOnClickListener {
+		btnSwitchToPhoneRelay?.setOnClickListener {
 			showPhoneRelayView()
 		}
 
-		btnOpenBrowserFromWebView.setOnClickListener {
+		btnOpenBrowserFromWebView?.setOnClickListener {
 			openAstraPlayInBrowser()
 		}
 
-		btnManualTokenFromWebView.setOnClickListener {
+		btnManualTokenFromWebView?.setOnClickListener {
 			showManualTokenDialog()
 		}
 
-		btnCancelWebView.setOnClickListener {
+		btnCancelWebView?.setOnClickListener {
 			setResult(RESULT_LOGIN_CANCELLED)
 			finish()
 		}
@@ -272,14 +276,14 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun setupFallbackActions()
 	{
 		val focusHighlight = createFocusHighlight()
-		btnFallbackSwitchToPhone.onFocusChangeListener = focusHighlight
-		btnFallbackOpenBrowser.onFocusChangeListener = focusHighlight
+		btnFallbackSwitchToPhone?.onFocusChangeListener = focusHighlight
+		btnFallbackOpenBrowser?.onFocusChangeListener = focusHighlight
 
-		btnFallbackSwitchToPhone.setOnClickListener {
+		btnFallbackSwitchToPhone?.setOnClickListener {
 			showPhoneRelayView()
 		}
 
-		btnFallbackOpenBrowser.setOnClickListener {
+		btnFallbackOpenBrowser?.setOnClickListener {
 			openSonyOAuthInExternalBrowser()
 		}
 	}
@@ -295,8 +299,8 @@ class PsnLoginActivity : AppCompatActivity()
 				// Prevent Chromium hardware acceleration crashes in container/LXC/Waydroid environments
 				wv.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
 			}
-			webViewContainer.removeAllViews()
-			webViewContainer.addView(
+			webViewContainer?.removeAllViews()
+			webViewContainer?.addView(
 				wv,
 				FrameLayout.LayoutParams(
 					FrameLayout.LayoutParams.MATCH_PARENT,
@@ -337,10 +341,10 @@ class PsnLoginActivity : AppCompatActivity()
 			wv.webChromeClient = object : WebChromeClient() {
 				override fun onProgressChanged(view: WebView?, newProgress: Int) {
 					if (newProgress in 1..99) {
-						webViewProgressBar.visibility = View.VISIBLE
-						webViewProgressBar.progress = newProgress
+						webViewProgressBar?.visibility = View.VISIBLE
+						webViewProgressBar?.progress = newProgress
 					} else {
-						webViewProgressBar.visibility = View.GONE
+						webViewProgressBar?.visibility = View.GONE
 					}
 				}
 
@@ -519,19 +523,19 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun showWebView()
 	{
 		isPasskeyDialogShown.set(false)
-		layoutWebView.visibility = View.VISIBLE
-		layoutPhoneRelay.visibility = View.GONE
-		toolbar.title = getString(R.string.psn_login_direct_title)
+		layoutWebView?.visibility = View.VISIBLE
+		layoutPhoneRelay?.visibility = View.GONE
+		toolbar?.title = getString(R.string.psn_login_direct_title)
 
 		if (!initWebViewIfSupported()) {
-			webViewContainer.visibility = View.GONE
-			webViewUnsupportedLayout.visibility = View.VISIBLE
-			webViewLoadingOverlay.visibility = View.GONE
+			webViewContainer?.visibility = View.GONE
+			webViewUnsupportedLayout?.visibility = View.VISIBLE
+			webViewLoadingOverlay?.visibility = View.GONE
 			return
 		}
 
-		webViewUnsupportedLayout.visibility = View.GONE
-		webViewContainer.visibility = View.VISIBLE
+		webViewUnsupportedLayout?.visibility = View.GONE
+		webViewContainer?.visibility = View.VISIBLE
 
 		val wv = loginWebView ?: return
 		if (wv.url.isNullOrEmpty()) {
@@ -560,12 +564,12 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun showPhoneRelayView()
 	{
-		layoutWebView.visibility = View.GONE
-		layoutPhoneRelay.visibility = View.VISIBLE
-		toolbar.title = getString(R.string.psn_login_title)
+		layoutWebView?.visibility = View.GONE
+		layoutPhoneRelay?.visibility = View.VISIBLE
+		toolbar?.title = getString(R.string.psn_login_title)
 
 		if (isOnTv) {
-			checkStatusButton.requestFocus()
+			checkStatusButton?.requestFocus()
 		}
 	}
 
@@ -605,28 +609,28 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun showWebViewOverlay(message: String)
 	{
-		webViewStatusText.text = message
-		webViewLoadingOverlay.visibility = View.VISIBLE
+		webViewStatusText?.text = message
+		webViewLoadingOverlay?.visibility = View.VISIBLE
 	}
 
 	private fun setupRelayActions()
 	{
 		// openBrowserButton now flips to WebView mode
-		openBrowserButton.setOnClickListener { showWebView() }
-		checkStatusButton.setOnClickListener { checkTokenStatus(manual = true) }
-		configureRelayButton.setOnClickListener { showConfigureRelayDialog() }
-		manualTokenButton.setOnClickListener { showManualTokenDialog() }
-		cancelButton.setOnClickListener {
+		openBrowserButton?.setOnClickListener { showWebView() }
+		checkStatusButton?.setOnClickListener { checkTokenStatus(manual = true) }
+		configureRelayButton?.setOnClickListener { showConfigureRelayDialog() }
+		manualTokenButton?.setOnClickListener { showManualTokenDialog() }
+		cancelButton?.setOnClickListener {
 			setResult(RESULT_LOGIN_CANCELLED)
 			finish()
 		}
 
 		val focusHighlight = createFocusHighlight()
-		checkStatusButton.onFocusChangeListener = focusHighlight
-		openBrowserButton.onFocusChangeListener = focusHighlight
-		manualTokenButton.onFocusChangeListener = focusHighlight
-		configureRelayButton.onFocusChangeListener = focusHighlight
-		cancelButton.onFocusChangeListener = focusHighlight
+		checkStatusButton?.onFocusChangeListener = focusHighlight
+		openBrowserButton?.onFocusChangeListener = focusHighlight
+		manualTokenButton?.onFocusChangeListener = focusHighlight
+		configureRelayButton?.onFocusChangeListener = focusHighlight
+		cancelButton?.onFocusChangeListener = focusHighlight
 	}
 
 	private fun createFocusHighlight(): View.OnFocusChangeListener {
@@ -648,11 +652,11 @@ class PsnLoginActivity : AppCompatActivity()
 
 		val effectiveRelay = relayBaseUrl()
 		if (effectiveRelay.isEmpty()) {
-			statusTextView.text = getString(R.string.psn_login_relay_unconfigured_prompt)
-			progressBar.visibility = View.GONE
-			qrCodeImage.visibility = View.GONE
-			qrCodeCard.visibility = View.GONE
-			codeTextView.text = "------"
+			statusTextView?.text = getString(R.string.psn_login_relay_unconfigured_prompt)
+			progressBar?.visibility = View.GONE
+			qrCodeImage?.visibility = View.GONE
+			qrCodeCard?.visibility = View.GONE
+			codeTextView?.text = "------"
 			return
 		}
 
@@ -663,30 +667,30 @@ class PsnLoginActivity : AppCompatActivity()
 			withContext(Dispatchers.Main) {
 				if (!hasRoutableLan) {
 					Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
-					qrCodeImage.visibility = View.GONE
-					qrCodeCard.visibility = View.GONE
-					qrScanTitle.visibility = View.GONE
-					wifiNoticeLayout.visibility = View.GONE
-					codeLabelText.visibility = View.GONE
-					codeTextView.visibility = View.GONE
-					containerNoticeLayout.visibility = View.VISIBLE
-					progressBar.visibility = View.GONE
-					checkStatusButton.isEnabled = false
-					containerNoticeText.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
-					statusTextView.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+					qrCodeImage?.visibility = View.GONE
+					qrCodeCard?.visibility = View.GONE
+					qrScanTitle?.visibility = View.GONE
+					wifiNoticeLayout?.visibility = View.GONE
+					codeLabelText?.visibility = View.GONE
+					codeTextView?.visibility = View.GONE
+					containerNoticeLayout?.visibility = View.VISIBLE
+					progressBar?.visibility = View.GONE
+					checkStatusButton?.isEnabled = false
+					containerNoticeText?.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
+					statusTextView?.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
 					return@withContext
 				}
 
-				containerNoticeLayout.visibility = View.GONE
-				qrScanTitle.visibility = View.VISIBLE
-				wifiNoticeLayout.visibility = View.VISIBLE
-				codeLabelText.visibility = View.VISIBLE
-				codeTextView.visibility = View.VISIBLE
-				qrCodeCard.visibility = View.VISIBLE
+				containerNoticeLayout?.visibility = View.GONE
+				qrScanTitle?.visibility = View.VISIBLE
+				wifiNoticeLayout?.visibility = View.VISIBLE
+				codeLabelText?.visibility = View.VISIBLE
+				codeTextView?.visibility = View.VISIBLE
+				qrCodeCard?.visibility = View.VISIBLE
 
 				val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 				loginCode = (1..6).map { chars.random() }.joinToString("")
-				codeTextView.text = loginCode
+				codeTextView?.text = loginCode
 
 				loadQrCode(loginCode)
 				embeddedRelayServer?.createCode(loginCode)
@@ -694,16 +698,16 @@ class PsnLoginActivity : AppCompatActivity()
 				scope.launch {
 					val success = createAstraPlayCode(loginCode)
 					if (success || embeddedRelayServer != null) {
-						statusTextView.text = getString(R.string.psn_login_waiting_phone)
-						progressBar.visibility = View.VISIBLE
-						checkStatusButton.isEnabled = true
-						openBrowserButton.isEnabled = true
+						statusTextView?.text = getString(R.string.psn_login_waiting_phone)
+						progressBar?.visibility = View.VISIBLE
+						checkStatusButton?.isEnabled = true
+						openBrowserButton?.isEnabled = true
 						startAutoPolling()
 					} else {
 						val errorMsg = getString(R.string.psn_login_server_error)
-						statusTextView.text = "$errorMsg ($effectiveRelay)"
-						progressBar.visibility = View.GONE
-						openBrowserButton.isEnabled = false
+						statusTextView?.text = "$errorMsg ($effectiveRelay)"
+						progressBar?.visibility = View.GONE
+						openBrowserButton?.isEnabled = false
 					}
 				}
 			}
@@ -731,8 +735,8 @@ class PsnLoginActivity : AppCompatActivity()
 		val loginUrl = "${relayBaseUrl()}/psstream/?psstream_code=$code"
 		try {
 			val bitmap = generateQrCode(loginUrl, 440)
-			qrCodeImage.setImageBitmap(bitmap)
-			qrCodeImage.visibility = View.VISIBLE
+			qrCodeImage?.setImageBitmap(bitmap)
+			qrCodeImage?.visibility = View.VISIBLE
 		} catch (e: Exception) {
 			Log.e(TAG, "Failed to render QR code bitmap", e)
 		}
@@ -902,21 +906,21 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private fun checkTokenStatus(manual: Boolean = false)
 	{
-		checkStatusButton.isEnabled = false
-		progressBar.visibility = View.VISIBLE
-		statusTextView.text = getString(R.string.psn_login_checking_status)
+		checkStatusButton?.isEnabled = false
+		progressBar?.visibility = View.VISIBLE
+		statusTextView?.text = getString(R.string.psn_login_checking_status)
 
 		scope.launch {
 			val token = checkAstraPlayStatus(loginCode)
-			progressBar.visibility = View.GONE
-			checkStatusButton.isEnabled = true
+			progressBar?.visibility = View.GONE
+			checkStatusButton?.isEnabled = true
 
 			if (token != null) {
 				Log.i(TAG, "NPSSO token received from relay server")
 				onLoginSuccess(token)
 			} else {
 				val msg = getString(R.string.psn_login_not_complete)
-				statusTextView.text = msg
+				statusTextView?.text = msg
 				if (manual) {
 					Toast.makeText(this@PsnLoginActivity, R.string.psn_login_not_complete_toast, Toast.LENGTH_SHORT).show()
 				}
@@ -975,8 +979,8 @@ class PsnLoginActivity : AppCompatActivity()
 
 		// Show feedback in both views
 		showWebViewOverlay("Validating PlayStation account...")
-		progressBar.visibility = View.VISIBLE
-		statusTextView.text = getString(R.string.psn_login_connecting)
+		progressBar?.visibility = View.VISIBLE
+		statusTextView?.text = getString(R.string.psn_login_connecting)
 		Toast.makeText(this, "Validating token with PlayStation Network...", Toast.LENGTH_SHORT).show()
 
 		Thread {
@@ -985,7 +989,7 @@ class PsnLoginActivity : AppCompatActivity()
 			val exchangeSuccess = psnTokenManager.exchangeNpssoForTokens(token)
 
 			runOnUiThread {
-				progressBar.visibility = View.GONE
+				progressBar?.visibility = View.GONE
 				if (exchangeSuccess) {
 					Log.i(TAG, "PSN login complete: NPSSO + Remote Play tokens saved")
 					tokenManager.saveNpssoToken(token)
@@ -1000,12 +1004,12 @@ class PsnLoginActivity : AppCompatActivity()
 					Log.w(TAG, "PSN login: Remote Play token exchange failed for token")
 					isLoginHandled.set(false)
 					tokenManager.clearNpssoToken()
-					webViewLoadingOverlay.visibility = View.GONE
-					statusTextView.text = "Token exchange failed. Token may be expired or invalid. Please try again."
+					webViewLoadingOverlay?.visibility = View.GONE
+					statusTextView?.text = "Token exchange failed. Token may be expired or invalid. Please try again."
 					Toast.makeText(this, "Token exchange failed. Please sign in again to get a fresh token.", Toast.LENGTH_LONG).show()
-					checkStatusButton.isEnabled = true
-					openBrowserButton.isEnabled = true
-					manualTokenButton.isEnabled = true
+					checkStatusButton?.isEnabled = true
+					openBrowserButton?.isEnabled = true
+					manualTokenButton?.isEnabled = true
 				}
 			}
 		}.start()
@@ -1014,7 +1018,7 @@ class PsnLoginActivity : AppCompatActivity()
 	override fun onBackPressed()
 	{
 		val wv = loginWebView
-		if (layoutWebView.visibility == View.VISIBLE && wv != null && wv.canGoBack()) {
+		if (layoutWebView?.visibility == View.VISIBLE && wv != null && wv.canGoBack()) {
 			wv.goBack()
 		} else {
 			setResult(RESULT_LOGIN_CANCELLED)
@@ -1026,7 +1030,7 @@ class PsnLoginActivity : AppCompatActivity()
 	{
 		when (keyCode) {
 			KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1 -> {
-				if (layoutWebView.visibility == View.VISIBLE) {
+				if (layoutWebView?.visibility == View.VISIBLE) {
 					showPhoneRelayView()
 				} else {
 					showWebView()
@@ -1051,7 +1055,7 @@ class PsnLoginActivity : AppCompatActivity()
 			loginWebView?.let { wv ->
 				wv.stopLoading()
 				wv.loadUrl("about:blank")
-				webViewContainer.removeAllViews()
+				webViewContainer?.removeAllViews()
 				wv.destroy()
 			}
 		} catch (t: Throwable) {
