@@ -94,12 +94,13 @@ int real_main(int argc, char *argv[])
 #ifdef CHIAKI_HAVE_WEBENGINE
 	QString webengine_flags = "--disable-gpu";
 
+	if (qEnvironmentVariableIsSet("QTWEBENGINE_DISABLE_SANDBOX") ||
 #ifdef CHIAKI_ENABLE_STEAMWORKS
-	// Disable sandbox when Steamworks is enabled AND running on Steam Deck
-	if (qEnvironmentVariableIsSet("SteamDeck")) {
+	    qEnvironmentVariableIsSet("SteamDeck") ||
+#endif
+	    false) {
 		webengine_flags += " --no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --single-process";
 	}
-#endif
 
 	qputenv("QTWEBENGINE_CHROMIUM_FLAGS", webengine_flags.toUtf8());
 #endif
@@ -130,8 +131,13 @@ int real_main(int argc, char *argv[])
 
 	if(SDL_Init(SDL_INIT_AUDIO) < 0)
 	{
-		fprintf(stderr, "SDL Audio init failed: %s\n", SDL_GetError());
-		return 1;
+		fprintf(stderr, "SDL Audio init failed (%s), falling back to dummy audio driver\n", SDL_GetError());
+		SDL_ClearError();
+		SDL_setenv("SDL_AUDIODRIVER", "dummy", 1);
+		if(SDL_Init(SDL_INIT_AUDIO) < 0)
+		{
+			fprintf(stderr, "SDL Audio dummy init failed: %s (continuing without audio)\n", SDL_GetError());
+		}
 	}
 
 	QGuiApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
