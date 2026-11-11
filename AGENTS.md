@@ -65,6 +65,38 @@ third-party/    nanopb, Jerasure, etc.
 - **Google Play 500-Character Rule:** Release notes in `android/fastlane/metadata/android/en-US/changelogs/` must never exceed **500 characters**. Fastlane enforces an automated truncation safeguard, but source changelogs must be kept concise.
 - **In-App Updater Lifecycle Guard:** When the updater downloads a payload to `/tmp`, `UpdateManager` destructor (`~UpdateManager()`) must **never** call `cancelDownload()` or delete the payload when `m_readyToInstall == true`. Network requests must set `setTransferTimeout(30000)` to prevent hangs on socket stalls.
 
+### 2.8 Quality & Crash Prevention Rules: DRY, YAGNI & Multi-Form-Factor Invariants
+**Reputation Damage Prevention:** Crashes on common device configurations (e.g. landscape handhelds, tablets, containers) destroy user trust. Every agent MUST strictly adhere to these engineering invariants:
+
+#### A. DRY (Don't Repeat Yourself) & Resource Qualifier Parity
+- **Full ID Parity Across Qualifiers (Non-Negotiable):** Whenever a layout XML exists in multiple qualifiers (`layout`, `layout-land`, `layout-sw600dp`, `layout-sw600dp-land`, etc.), EVERY `android:id` defined in one qualifier MUST exist in ALL qualifiers, or the code MUST treat that view as explicitly nullable (`View?`). Orphaned IDs cause instant `NullPointerException` crashes when inflating alternative orientations. Run `python3 scripts/check-layout-parity.py` to verify parity.
+- **Single Source of Truth:** Centralize protocol, streaming, catalog, and auth logic in `lib/` (C). Never duplicate core logic across platform shells.
+- **Extract Reusable Subviews:** Prefer `<include>` or custom composite views over duplicate 500-line XML files across orientation qualifiers.
+
+#### B. YAGNI (You Aren't Gonna Need It) & Minimal Surface Area
+- **No Speculative Layout Divergence:** Do NOT create separate `-land` or `-sw600dp` layout variants unless there is a concrete, tested visual requirement that cannot be satisfied with responsive constraints. Unnecessary layout duplicates are the primary source of configuration drift bugs.
+- **No Incomplete Feature Scaffolding:** If a UI element, fallback screen, or banner is added, it must be added across all layout qualifiers and wired to listeners simultaneously in the same commit.
+
+#### C. Defensive View Binding & Null Safety
+- **Strict Ban on Non-Null `lateinit var` for Views:** In Android Kotlin code, views assigned via `findViewById` MUST NEVER be declared as non-null `lateinit var`. If a layout varies across qualifiers or has conditional views, views MUST be declared as nullable (`View? = null`) and accessed with safe-calls (`?.`).
+- **Prefer Android ViewBinding:** ViewBinding automatically infers `@Nullable` types for views that do not appear across all layout configurations, catching missing view IDs at compile time rather than crashing at runtime.
+- **Defensive Desktop UI & Drivers:** In Qt/QML/C++, never dereference UI widgets, pointers, or native presentation surfaces without null checks. Always handle headless CI or missing driver states gracefully (e.g., fallback audio drivers, Vulkan error notices).
+
+#### D. Multi-Form-Factor & Environment Invariants
+AstraPlay runs across six distinct form factors and runtimes. Never assume phone portrait:
+1. **Phones:** Dynamic portrait/landscape rotation.
+2. **Tablets & Foldables (`sw600dp`, `sw720dp`):** Multi-column navigation, wide dialogs, tablet landscape.
+3. **Handheld Consoles (Steam Deck, ROG Ally, Odin, Retroid, Legion Go):** Landscape-first screens, physical gamepad controls, no hardware keyboard. Focus navigation must work seamlessly via D-pad/joysticks without requiring touch.
+4. **Android TV / 10-Foot UI (`UI_MODE_TYPE_TELEVISION`):** Leanback navigation, focus highlights (`seedFocus()`), D-pad input.
+5. **Containers & Virtual Environments (Waydroid, WSA, QEMU, Docker):** Containers use isolated virtual bridge networks (e.g. 192.168.240.x). External phones CANNOT reach container IP addresses to complete QR code relays. Container detection (`EmbeddedRelayServer.isEmulatorOrContainer()`) MUST default to direct on-device authentication.
+6. **Headless & Virtual Runners (Xvfb, CI test runners):** GPU presentation surfaces and audio output sinks may be completely absent. The app must show an informative dialog or fall back to dummy drivers instead of aborting or crashing.
+
+#### E. Mandatory Pre-Flight Verification
+Before opening any PR or preparing any release:
+1. Run `python3 scripts/check-layout-parity.py` (0 errors required).
+2. Verify local compilation (`./gradlew assembleDebug` on Android, `./scripts/build-macos.sh` on macOS, etc.).
+3. Test against both portrait and landscape orientations.
+
 ---
 
 ## 3. Build Commands (Read Script Headers First)

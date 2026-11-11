@@ -318,6 +318,14 @@ find_aab() {
 run_gradle() {
   local gradle_task="$1"
   shift
+
+  if [[ -f "$REPO_ROOT/scripts/check-layout-parity.py" ]]; then
+    python3 "$REPO_ROOT/scripts/check-layout-parity.py" || {
+      echo "ERROR: Layout parity check failed! Fix ID discrepancies or unsafe view bindings before building." >&2
+      exit 1
+    }
+  fi
+
   local extra_args=()
   if [[ -n "$RELAY_URL" ]]; then
     extra_args+=("-PAstraPlayRelayUrl=$RELAY_URL")

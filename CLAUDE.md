@@ -16,6 +16,15 @@ AstraPlay is a cross-platform PS4/PS5 Remote Play + Internet/Cloud Play client (
 - **DON'T** make sweeping edits to upstream-owned Qt files; prefer new files so chiaki-ng
   fixes stay cherry-pickable.
 
+## Quality, DRY, YAGNI & Multi-Form-Factor Rules
+- **Layout Qualifier Parity (DRY):** Whenever a layout XML exists in multiple qualifiers (`layout`, `layout-land`, `layout-sw600dp`, etc.), ALL `android:id` attributes MUST match 100%, or the backing view must be declared nullable (`View?`). Missing IDs cause instant `NullPointerException` crashes on orientation change. Run `python3 scripts/check-layout-parity.py`.
+- **Ban on Non-Null `lateinit var` for Views:** Never declare non-null `lateinit var` for views assigned via `findViewById`. Use ViewBinding or nullable `View? = null` with safe-calls (`?.`).
+- **No Speculative Layout Copies (YAGNI):** Do not create `-land` or `-sw600dp` files unless there is an actual visual distinction. Unneeded copies cause configuration drift.
+- **Form Factor & Environment Invariants:**
+  - Never assume phone portrait: support handheld landscape (ROG Ally/Steam Deck), Android TV (10-foot D-pad), and tablets (`sw600dp`).
+  - Containers (Waydroid, WSA, QEMU): Isolated bridge networks block inbound phone QR relays; container detection must default to direct on-device login.
+  - Headless/CI environments: Never crash on missing Vulkan presentation surfaces or absent audio devices (fall back gracefully).
+
 ## Workflow & Releases
 - Create feature, fix, and documentation branches from `dev`; their PRs target **`dev`**.
   Release PRs go from **`dev` to `master`**. Merging a release PR triggers the

@@ -156,6 +156,31 @@ val uiState: StateFlow<StreamUiState> = _uiState.asStateFlow()
 external fun chiakiSessionInit(config: ChiakiConnectConfig): Long  // returns handle
 ```
 
+**View Binding & Null Safety Rules (Crash Prevention)**
+```kotlin
+// ❌ FORBIDDEN: Non-null lateinit var for views assigned via findViewById
+private lateinit var loginButton: Button // CRASHES if ID is absent in landscape/tablet!
+
+// ✅ DO: Use Android ViewBinding (generates @Nullable for qualifier-varying views)
+private lateinit var binding: ActivityMainBinding
+
+// ✅ DO: If using manual findViewById, declare views as nullable and use safe calls (?.)
+private var loginButton: Button? = null
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_psn_login)
+    loginButton = findViewById(R.id.loginButton)
+    loginButton?.setOnClickListener { performLogin() }
+}
+```
+
+**Layout Qualifier Parity (DRY & YAGNI)**
+- **Parity Requirement:** Every `android:id` in `res/layout/` MUST be present in `res/layout-land/`, `res/layout-sw600dp/`, and `res/layout-sw600dp-land/`. Missing an ID in any qualifier causes immediate `NullPointerException` on orientation change or tablet mode.
+- **Verification Command:** Run `python3 scripts/check-layout-parity.py` before committing any layout modifications.
+- **YAGNI Rule:** Never copy layout files into `-land` or `-sw600dp` unless there is an intentional, tested UI layout difference that cannot be handled by flexible layout constraints. Unnecessary layout copies cause maintenance drift and runtime crashes.
+- **Containers & Handhelds:** Do not assume a portrait phone. Handle landscape handhelds (ROG Ally, Steam Deck), Android TV, and containers (Waydroid, WSA) where isolated bridge networking prevents QR code phone scanning.
+
 ---
 
 ### 1.4 Swift / ObjC (`ios/`)
