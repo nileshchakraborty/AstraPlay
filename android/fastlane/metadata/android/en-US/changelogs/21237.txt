@@ -1,0 +1,3 @@
+• Added Waydroid and emulator phone QR setup guidance in the login screen.
+• Linked a Waydroid host relay setup script and expanded the Help guide.
+• Clarified that regular Android phones do not need host port forwarding.
