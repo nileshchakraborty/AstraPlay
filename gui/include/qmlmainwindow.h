@@ -7,6 +7,10 @@
 #include <QWindow>
 #include <QQuickWindow>
 #include <QLoggingCategory>
+#include <QDialog>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QPushButton>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -138,7 +142,9 @@ private:
     bool handleShortcut(QKeyEvent *event);
     bool event(QEvent *event) override;
     QObject *focusObject() const override;
+    void showVulkanErrorDialog();
 
+    bool vulkan_failed = false;
     bool has_video = false;
     bool was_maximized = false;
     bool amd_card = false;
