@@ -678,7 +678,7 @@ class PsnLoginActivity : AppCompatActivity()
 
 			withContext(Dispatchers.Main) {
 				if (!hasRoutableLan) {
-					Log.w(TAG, "No routable physical LAN IP found (isEmulator=$isEmulator). Container/emulator isolation prevents phone scan.")
+					Log.w(TAG, "No phone-reachable LAN IP found (isEmulator=$isEmulator)")
 					qrCodeImage?.visibility = View.GONE
 					qrCodeCard?.visibility = View.GONE
 					qrScanTitle?.visibility = View.GONE
@@ -688,8 +688,11 @@ class PsnLoginActivity : AppCompatActivity()
 					containerNoticeLayout?.visibility = View.VISIBLE
 					progressBar?.visibility = View.GONE
 					checkStatusButton?.isEnabled = false
+
 					containerNoticeText?.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
 					statusTextView?.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
+					configureRelayButton?.visibility = View.VISIBLE
+					configureRelayButton?.setOnClickListener { showConfigureRelayDialog() }
 					return@withContext
 				}
 
