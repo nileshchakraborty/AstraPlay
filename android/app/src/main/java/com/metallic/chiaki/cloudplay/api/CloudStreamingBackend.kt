@@ -208,8 +208,15 @@ class CloudStreamingBackend(
 			{
 				msg.contains("AUTHORIZATION_FAILED") ->
 					AuthorizationFailedException("Your NPSSO token is likely expired. Please re-login to continue using cloud streaming.")
-				msg.contains("PS_PLUS_SUBSCRIPTION_REQUIRED") ->
-					PsPlusSubscriptionException("PS Plus subscription required")
+				msg.contains("PS_PLUS_SUBSCRIPTION_REQUIRED") ||
+				msg.contains("002.2001") ||
+				msg.contains("SUBSCRIPTION_REQUIRED") ||
+				msg.contains("NOT_SUBSCRIBED") ||
+				msg.contains("NO_ENTITLEMENT") ||
+				msg.contains("NOT_ENTITLED") ||
+				(msg.contains("subscription", ignoreCase = true) && msg.contains("plus", ignoreCase = true)) ||
+				(msg.contains("premium", ignoreCase = true) && msg.contains("subscription", ignoreCase = true)) ->
+					PsPlusSubscriptionException("PlayStation Plus Premium subscription required")
 				msg.startsWith("GAME_NOT_FREE") ->
 					// Stale catalog: a free PS+ title now costs money. Sentinel is
 					// "GAME_NOT_FREE:<price>" (price may be empty).

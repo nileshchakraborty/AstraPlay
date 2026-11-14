@@ -453,7 +453,15 @@ static ChiakiErrorCode gk_step8_start(GaikaiCtx *c, ChiakiCloudProvisionResult *
 	if(e != CHIAKI_ERR_SUCCESS || resp.status_code != 200)
 	{
 		CHIAKI_LOGE(c->log, "[GAIKAI] step8 start http %ld: %s", resp.status_code, resp.data ? resp.data : "");
-		if(resp.data) { free(out->error_message); out->error_message = strdup(resp.data); }
+		char *ev = gk_header_value(resp.headers, "x-gaikai-event");
+		bool psplus = (ev && strstr(ev, "002.2001")) || (resp.data && strstr(resp.data, "002.2001"));
+		if(psplus)
+		{
+			free(out->error_message);
+			out->error_message = strdup("PS_PLUS_SUBSCRIPTION_REQUIRED");
+		}
+		else if(resp.data) { free(out->error_message); out->error_message = strdup(resp.data); }
+		free(ev);
 		cc_http_response_fini(&resp);
 		return CHIAKI_ERR_UNKNOWN;
 	}
@@ -528,7 +536,11 @@ static ChiakiErrorCode gk_step9_authorize(GaikaiCtx *c, ChiakiCloudProvisionResu
 		char *ev = gk_header_value(resp.headers, "x-gaikai-event");
 		bool psplus = (ev && strstr(ev, "002.2001")) || (resp.data && strstr(resp.data, "002.2001"));
 		if(psplus)
+		{
 			*out_psplus_err = true;
+			free(out->error_message);
+			out->error_message = strdup("PS_PLUS_SUBSCRIPTION_REQUIRED");
+		}
 		// Otherwise forward the reject body so the orchestrator's one-shot
 		// noGameForEntitlementId fallback fires when Gaikai rejects an owned entitlement
 		// at authorize (step9), not just at start (step8) -- matches both originals.
@@ -1176,8 +1188,11 @@ ChiakiErrorCode cc_gaikai_allocate(ChiakiLog *log,
 		const char *s = json_object_to_json_string(c.dc_picker);
 		if(s) { free(out->datacenter_pings); out->datacenter_pings = strdup(s); }
 	}
-	if(psplus_err && !out->error_message)
+	if(psplus_err)
+	{
+		free(out->error_message);
 		out->error_message = strdup("PS_PLUS_SUBSCRIPTION_REQUIRED");
+	}
 	if(c.ping_timeout && !out->error_message)
 		out->error_message = strdup("PING_TIMEOUT");
 	if(c.forced_dc_unavailable && !out->error_message)

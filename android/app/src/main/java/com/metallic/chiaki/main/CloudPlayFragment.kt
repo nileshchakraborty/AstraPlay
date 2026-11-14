@@ -3,6 +3,8 @@
 package com.metallic.chiaki.main
 
 import android.app.Activity
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -765,15 +767,17 @@ class CloudPlayFragment : Fragment()
 
 		viewModel.error.observe(viewLifecycleOwner, Observer { error ->
 			if (error.isNullOrEmpty()) return@Observer
+			val ctx = context ?: activity ?: return@Observer
 			viewModel.clearError()
-			showError(error)
+			showError(ctx, error)
 		})
 
 		viewModel.warning.observe(viewLifecycleOwner, Observer { warning ->
 			// An auth error also re-evaluates the region banner (it must hide when login failed).
 			updateRegionBanner(viewModel.fallbackRegion.value)
 			if (warning.isNullOrEmpty()) return@Observer
-			Toast.makeText(requireContext(), warning, Toast.LENGTH_LONG).show()
+			val ctx = context ?: activity ?: return@Observer
+			Toast.makeText(ctx, warning, Toast.LENGTH_LONG).show()
 		})
 
 		viewModel.fallbackRegion.observe(viewLifecycleOwner, Observer { region ->
@@ -820,17 +824,17 @@ class CloudPlayFragment : Fragment()
 		binding.gamesRecyclerView.postDelayed(focusFirstGameRunnable1, 100)
 	}
 
-	private fun showError(message: String)
+	private fun showError(ctx: Context, message: String)
 	{
 		val error = CloudError.fromMessage(message)
 		when (error) {
-			is CloudError.AuthenticationError -> handleAuthenticationError(error)
-			is CloudError.NetworkError -> handleNetworkError(error)
-			is CloudError.GeneralError -> handleGeneralError(error)
+			is CloudError.AuthenticationError -> handleAuthenticationError(ctx, error)
+			is CloudError.NetworkError -> handleNetworkError(ctx, error)
+			is CloudError.GeneralError -> handleGeneralError(ctx, error)
 		}
 	}
 	
-	private fun handleAuthenticationError(error: CloudError.AuthenticationError)
+	private fun handleAuthenticationError(ctx: Context, error: CloudError.AuthenticationError)
 	{
 		Log.w(TAG, "Authentication error, clearing session")
 		
@@ -846,7 +850,7 @@ class CloudPlayFragment : Fragment()
 		showLoginRequiredState()
 		
 		// Then show authentication error dialog
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle(getString(R.string.psn_login_required_title))
 			.setMessage(getString(R.string.psn_login_session_expired_message))
 			.setPositiveButton(R.string.psn_login_button) { _, _ ->
@@ -857,9 +861,9 @@ class CloudPlayFragment : Fragment()
 			.show()
 	}
 	
-	private fun handleNetworkError(error: CloudError.NetworkError)
+	private fun handleNetworkError(ctx: Context, error: CloudError.NetworkError)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle(R.string.error_network_title)
 			.setMessage(error.message)
 			.setPositiveButton(R.string.action_retry) { _, _ ->
@@ -870,9 +874,9 @@ class CloudPlayFragment : Fragment()
 			.show()
 	}
 	
-	private fun handleGeneralError(error: CloudError.GeneralError)
+	private fun handleGeneralError(ctx: Context, error: CloudError.GeneralError)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle(R.string.error)
 			.setMessage(error.message)
 			.setPositiveButton(R.string.action_ok, null)
@@ -901,10 +905,11 @@ class CloudPlayFragment : Fragment()
 	 */
 	private fun showAddToLibraryDialog(game: CloudGame)
 	{
+		val ctx = context ?: activity ?: return
 		if (game.conceptUrl.isEmpty())
 		{
 			Log.e(TAG, "Missing concept URL for: ${game.name}")
-			requireContext().alertDialogBuilder()
+			ctx.alertDialogBuilder()
 				.setTitle("Add to Library")
 				.setMessage("Unable to add this game to your library. The game URL is not available.")
 				.setPositiveButton("OK", null)
@@ -912,10 +917,10 @@ class CloudPlayFragment : Fragment()
 			return
 		}
 
-		if (requireContext().isTv()) {
-			showAddToLibraryQrDialog(game)
+		if (ctx.isTv() || ctx.hasGamepadOrHandheld()) {
+			showAddToLibraryQrDialog(ctx, game)
 		} else {
-			requireContext().alertDialogBuilder()
+			ctx.alertDialogBuilder()
 				.setTitle("Add to Library")
 				.setMessage("This game needs to be added to your library before you can stream it.\n\nAfter adding the game, press the Refresh Games button to update your list.")
 				.setPositiveButton("Add Now") { _, _ ->
@@ -926,9 +931,8 @@ class CloudPlayFragment : Fragment()
 		}
 	}
 
-	private fun showAddToLibraryQrDialog(game: CloudGame)
+	private fun showAddToLibraryQrDialog(ctx: Context, game: CloudGame)
 	{
-		val ctx = requireContext()
 		val qrBitmap = generateQrCode(game.conceptUrl, 512)
 
 		val dp = ctx.resources.displayMetrics.density
@@ -1017,13 +1021,16 @@ class CloudPlayFragment : Fragment()
 		// Reset cancellation flag
 		allocationCancelled = false
 		
+		val act = activity ?: return
 		// Create and show full-screen progress dialog with game image
-		requireActivity().runOnUiThread {
+		act.runOnUiThread {
+			if (act.isFinishing || act.isDestroyed || !isAdded) return@runOnUiThread
+			val ctx = context ?: act
 			// Save current orientation and switch to landscape (like StreamActivity)
-			savedOrientation = requireActivity().requestedOrientation
-			requireActivity().requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+			savedOrientation = act.requestedOrientation
+			act.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
 			
-			val dialogView = android.view.LayoutInflater.from(requireContext()).inflate(R.layout.dialog_allocation_progress, null)
+			val dialogView = android.view.LayoutInflater.from(ctx).inflate(R.layout.dialog_allocation_progress, null)
 			allocationGameImageView = dialogView.findViewById(R.id.gameImageView)
 			allocationProgressTextView = dialogView.findViewById(R.id.progressTextView)
 			val cancelButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.cancelButton)
@@ -1046,12 +1053,12 @@ class CloudPlayFragment : Fragment()
 			
 			cancelButton.setOnClickListener {
 				allocationCancelled = true
-				requireActivity().requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+				act.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 				savedOrientation = -1
 				allocationProgressDialog?.dismiss()
 			}
 			
-			allocationProgressDialog = requireContext().alertDialogBuilder()
+			allocationProgressDialog = ctx.alertDialogBuilder()
 				.setView(dialogView)
 				.setCancelable(false)
 				.create()
@@ -1103,7 +1110,8 @@ class CloudPlayFragment : Fragment()
 		lifecycleScope.launch {
 			try
 			{
-				val backend = CloudStreamingBackend(requireContext(), viewModel.preferences)
+				val ctx = context ?: activity ?: return@launch
+				val backend = CloudStreamingBackend(ctx, viewModel.preferences)
 				// Owned-PSNOW fast-path, gated like Qt's getOwnedPsnowEntitlement: only owned
 				// PSNOW rows carry a pre-resolved streaming entitlement. Passing entitlementId
 				// unconditionally worked only because unowned rows currently normalize to an
@@ -1145,43 +1153,45 @@ class CloudPlayFragment : Fragment()
 					// The fragment can be destroyed while the (non-cancellable) JNI call
 					// runs; requireActivity() would throw on the detached fragment. No
 					// activity also means no UI to clean up or show dialogs on.
-					val act = activity ?: return@launch
-					act.runOnUiThread {
-						act.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+					val hostAct = activity ?: return@launch
+					hostAct.runOnUiThread {
+						if (hostAct.isFinishing || hostAct.isDestroyed) return@runOnUiThread
+						hostAct.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 						savedOrientation = -1
 						allocationProgressDialog?.dismiss()
 						allocationProgressDialog = null
 						allocationProgressTextView = null
 						allocationGameImageView = null
-					}
 
-					if (allocationCancelled) return@launch
-					
-					Log.e(TAG, "Cloud session failed: ${error.message}")
-					
-					// Handle specific error types with appropriate dialogs
-					when (error)
-					{
-						is com.metallic.chiaki.cloudplay.api.PsPlusSubscriptionException ->
+						if (allocationCancelled) return@runOnUiThread
+						
+						Log.e(TAG, "Cloud session failed: ${error.message}")
+						val uiCtx = context ?: hostAct
+						
+						// Handle specific error types with appropriate dialogs
+						when (error)
 						{
-							showPsPlusSubscriptionErrorDialog()
-						}
-						is com.metallic.chiaki.cloudplay.api.AccountPrivacySettingsException ->
-						{
-							showAccountPrivacySettingsErrorDialog(error.upgradeUrl)
-						}
-						is com.metallic.chiaki.cloudplay.api.PingTimeoutException ->
-						{
-							showPingTimeoutErrorDialog()
-						}
-						is com.metallic.chiaki.cloudplay.api.AuthorizationFailedException ->
-						{
-							showAuthorizationFailedDialog()
-						}
-						else ->
-						{
-							// Generic error
-							showError("Cloud Session Failed", error.message ?: "Unknown error")
+							is com.metallic.chiaki.cloudplay.api.PsPlusSubscriptionException ->
+							{
+								showPsPlusSubscriptionErrorDialog(uiCtx)
+							}
+							is com.metallic.chiaki.cloudplay.api.AccountPrivacySettingsException ->
+							{
+								showAccountPrivacySettingsErrorDialog(uiCtx, error.upgradeUrl)
+							}
+							is com.metallic.chiaki.cloudplay.api.PingTimeoutException ->
+							{
+								showPingTimeoutErrorDialog(uiCtx)
+							}
+							is com.metallic.chiaki.cloudplay.api.AuthorizationFailedException ->
+							{
+								showAuthorizationFailedDialog(uiCtx)
+							}
+							else ->
+							{
+								// Generic error
+								showError(uiCtx, "Cloud Session Failed", error.message ?: "Unknown error")
+							}
 						}
 					}
 				}
@@ -1197,42 +1207,44 @@ class CloudPlayFragment : Fragment()
 			catch (e: Exception)
 			{
 				// Same detachment guard as onFailure above.
-				val act = activity ?: return@launch
-				act.runOnUiThread {
-					act.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+				val hostAct = activity ?: return@launch
+				hostAct.runOnUiThread {
+					if (hostAct.isFinishing || hostAct.isDestroyed) return@runOnUiThread
+					hostAct.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 					savedOrientation = -1
 					allocationProgressDialog?.dismiss()
 					allocationProgressDialog = null
 					allocationProgressTextView = null
 					allocationGameImageView = null
-				}
 
-				if (allocationCancelled) return@launch
-				
-				Log.e(TAG, "Exception starting cloud session", e)
-				
-				// Handle specific exception types
-				when (e)
-				{
-					is com.metallic.chiaki.cloudplay.api.PsPlusSubscriptionException ->
+					if (allocationCancelled) return@runOnUiThread
+					
+					Log.e(TAG, "Exception starting cloud session", e)
+					val uiCtx = context ?: hostAct
+					
+					// Handle specific exception types
+					when (e)
 					{
-						showPsPlusSubscriptionErrorDialog()
-					}
-					is com.metallic.chiaki.cloudplay.api.AccountPrivacySettingsException ->
-					{
-						showAccountPrivacySettingsErrorDialog(e.upgradeUrl)
-					}
-					is com.metallic.chiaki.cloudplay.api.PingTimeoutException ->
-					{
-						showPingTimeoutErrorDialog()
-					}
-					is com.metallic.chiaki.cloudplay.api.AuthorizationFailedException ->
-					{
-						showAuthorizationFailedDialog()
-					}
-					else ->
-					{
-						showError("Error", e.message ?: "Unknown error")
+						is com.metallic.chiaki.cloudplay.api.PsPlusSubscriptionException ->
+						{
+							showPsPlusSubscriptionErrorDialog(uiCtx)
+						}
+						is com.metallic.chiaki.cloudplay.api.AccountPrivacySettingsException ->
+						{
+							showAccountPrivacySettingsErrorDialog(uiCtx, e.upgradeUrl)
+						}
+						is com.metallic.chiaki.cloudplay.api.PingTimeoutException ->
+						{
+							showPingTimeoutErrorDialog(uiCtx)
+						}
+						is com.metallic.chiaki.cloudplay.api.AuthorizationFailedException ->
+						{
+							showAuthorizationFailedDialog(uiCtx)
+						}
+						else ->
+						{
+							showError(uiCtx, "Error", e.message ?: "Unknown error")
+						}
 					}
 				}
 			}
@@ -1243,9 +1255,9 @@ class CloudPlayFragment : Fragment()
 	 * Show PS Plus subscription error dialog
 	 * Mirrors: CloudStreamingBackend Qt signals
 	 */
-	private fun showPsPlusSubscriptionErrorDialog()
+	private fun showPsPlusSubscriptionErrorDialog(ctx: Context)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle("PlayStation Plus Required")
 			.setMessage("You need an active PlayStation Plus Premium subscription to stream games from the cloud, or this service may not be available in your region.")
 			.setPositiveButton("OK", null)
@@ -1255,9 +1267,9 @@ class CloudPlayFragment : Fragment()
 	/**
 	 * Show account privacy settings error dialog
 	 */
-	private fun showAccountPrivacySettingsErrorDialog(upgradeUrl: String)
+	private fun showAccountPrivacySettingsErrorDialog(ctx: Context, upgradeUrl: String)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle("Account Settings Update Required")
 			.setMessage("Your account privacy settings need to be updated to use cloud streaming.\n\nUpgrade URL: $upgradeUrl")
 			.setPositiveButton("OK", null)
@@ -1267,9 +1279,9 @@ class CloudPlayFragment : Fragment()
 	/**
 	 * Show ping timeout error dialog
 	 */
-	private fun showPingTimeoutErrorDialog()
+	private fun showPingTimeoutErrorDialog(ctx: Context)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle("Ping Too High")
 			.setMessage("Ping must be less than 80ms to start a cloud session.\n\nTo continue anyway, go to Settings → Cloud and manually select a datacenter for your service (PSNow Catalog).")
 			.setPositiveButton("OK", null)
@@ -1279,9 +1291,9 @@ class CloudPlayFragment : Fragment()
 	/**
 	 * Show authorization failed dialog
 	 */
-	private fun showAuthorizationFailedDialog()
+	private fun showAuthorizationFailedDialog(ctx: Context)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle("Authorization Failed")
 			.setMessage("Failed to authorize your PlayStation Network account. Please check your NPSSO token and try again.")
 			.setPositiveButton("OK", null)
@@ -1291,9 +1303,9 @@ class CloudPlayFragment : Fragment()
 	/**
 	 * Show generic error dialog
 	 */
-	private fun showError(title: String, message: String)
+	private fun showError(ctx: Context, title: String, message: String)
 	{
-		requireContext().alertDialogBuilder()
+		ctx.alertDialogBuilder()
 			.setTitle(title)
 			.setMessage(message)
 			.setPositiveButton("OK", null)

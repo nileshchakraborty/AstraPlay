@@ -103,20 +103,20 @@ class AppAlertDialogBuilder(context: Context) : MaterialAlertDialogBuilder(conte
 						if (focused != null && focused.isClickable) {
 							focused.performClick()
 							true
-						} else if (dialog.listView != null && dialog.listView.hasFocus()) {
-							val pos = dialog.listView.selectedItemPosition
-							if (pos != AdapterView.INVALID_POSITION) {
-								dialog.listView.performItemClick(
-									dialog.listView.selectedView,
-									pos,
-									dialog.listView.getItemIdAtPosition(pos)
-								)
+						} else {
+							val lv = dialog.listView
+							if (lv != null && lv.hasFocus()) {
+								val pos = lv.selectedItemPosition
+								val view = lv.selectedView ?: if (pos >= 0 && pos - lv.firstVisiblePosition >= 0) lv.getChildAt(pos - lv.firstVisiblePosition) else null
+								if (pos != AdapterView.INVALID_POSITION && view != null) {
+									lv.performItemClick(view, pos, lv.getItemIdAtPosition(pos))
+									true
+								} else false
+							} else if (positiveBtn != null) {
+								positiveBtn.performClick()
 								true
 							} else false
-						} else if (positiveBtn != null) {
-							positiveBtn.performClick()
-							true
-						} else false
+						}
 					}
 					KeyEvent.KEYCODE_BUTTON_B -> {
 						dialog.cancel()

@@ -357,19 +357,21 @@ class MainActivity : AppCompatActivity()
 
 					// Cloud game card in first row → secondary header
 					focusedInCloud != null -> {
-						val pos  = cloudRv!!.getChildAdapterPosition(focusedInCloud)
-						val span = (cloudRv.layoutManager as? GridLayoutManager)?.spanCount ?: 2
+						val rv = cloudRv
+						val pos = rv?.getChildAdapterPosition(focusedInCloud) ?: -1
+						val span = (rv?.layoutManager as? GridLayoutManager)?.spanCount ?: 2
 						if (pos in 0 until span) { focusSecondaryHeader(); return true }
 						return super.dispatchKeyEvent(event)
 					}
 
 					// Console card → primary header if at first visible position
 					focusedInHost != null -> {
-						val lm  = hostRv!!.layoutManager
-						val pos = hostRv.getChildAdapterPosition(focusedInHost)
+						val rv = hostRv
+						val lm = rv?.layoutManager
+						val pos = rv?.getChildAdapterPosition(focusedInHost) ?: -1
 						val firstVisible = (lm as? androidx.recyclerview.widget.LinearLayoutManager)
 							?.findFirstVisibleItemPosition() ?: 0
-						if (pos <= firstVisible) { focusPrimaryHeader(); return true }
+						if (pos in 0..firstVisible) { focusPrimaryHeader(); return true }
 					}
 				}
 			}
@@ -421,15 +423,17 @@ class MainActivity : AppCompatActivity()
 
 					// Cloud game card: stop at last item
 					focusedInCloud != null -> {
-						val pos        = cloudRv!!.getChildAdapterPosition(focusedInCloud)
-						val lastLoaded = (cloudRv.adapter?.itemCount ?: 0) - 1
+						val rv = cloudRv
+						val pos = rv?.getChildAdapterPosition(focusedInCloud) ?: -1
+						val lastLoaded = (rv?.adapter?.itemCount ?: 0) - 1
 						if (pos < 0 || pos >= lastLoaded) return true
 						return super.dispatchKeyEvent(event)
 					}
 
 					focusedInHost != null -> {
-						val pos = hostRv!!.getChildAdapterPosition(focusedInHost)
-						val lastPos = (hostRv.adapter?.itemCount ?: 0) - 1
+						val rv = hostRv
+						val pos = rv?.getChildAdapterPosition(focusedInHost) ?: -1
+						val lastPos = (rv?.adapter?.itemCount ?: 0) - 1
 						if (pos >= 0 && lastPos >= 0 && pos >= lastPos) {
 							focusFab()
 							return true
