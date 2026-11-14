@@ -289,15 +289,16 @@ class RemotePlayFragment : Fragment()
 				val npsso = prefs.getNpssoToken()
 				val ok = tokenManager.exchangeNpssoForTokens(npsso)
 				activity?.runOnUiThread {
+					val ctx = context ?: activity ?: return@runOnUiThread
 					if(ok)
 					{
-						Toast.makeText(requireContext(), "Refreshing consoles list...", Toast.LENGTH_SHORT).show()
+						Toast.makeText(ctx, "Refreshing consoles list...", Toast.LENGTH_SHORT).show()
 						viewModel.refreshPsnHosts()
 						updateRefreshButtonText()
 					}
 					else
 					{
-						Toast.makeText(requireContext(), "Token exchange failed. Try logging in again in Settings.", Toast.LENGTH_LONG).show()
+						Toast.makeText(ctx, "Token exchange failed. Try logging in again in Settings.", Toast.LENGTH_LONG).show()
 					}
 				}
 			}.start()

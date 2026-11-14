@@ -123,7 +123,7 @@ class CloudPlayViewModel(
 			finally
 			{
 				_fallbackRegion.value = preferences.getCloudResolvedStoreCountry()
-		_catalogIsForeign.value = preferences.isCloudCatalogIsForeign()
+				_catalogIsForeign.value = preferences.isCloudCatalogIsForeign()
 				updateLocaleWarningIfNeeded()
 				_loading.value = false
 				fetchInProgress = false

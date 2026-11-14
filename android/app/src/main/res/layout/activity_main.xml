@@ -124,7 +124,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:focusable="true"
                         android:clickable="true"
-                        android:tint="#CCFFFFFF" />
+                        app:tint="#CCFFFFFF" />
 
                     <!-- Settings Icon -->
                     <ImageView
@@ -137,7 +137,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:focusable="true"
                         android:clickable="true"
-                        android:tint="#CCFFFFFF" />
+                        app:tint="#CCFFFFFF" />
 
                 </LinearLayout>
 

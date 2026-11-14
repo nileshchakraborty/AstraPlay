@@ -1406,17 +1406,19 @@ class CloudPlayFragment : Fragment()
 			audioBufferSize = preferences.audioBufferSize
 		)
 		
+		val ctx = context ?: activity ?: return
 		// Launch StreamActivity
-		val intent = android.content.Intent(requireContext(), com.metallic.chiaki.stream.StreamActivity::class.java)
+		val intent = android.content.Intent(ctx, com.metallic.chiaki.stream.StreamActivity::class.java)
 		intent.putExtra(com.metallic.chiaki.stream.StreamActivity.EXTRA_CONNECT_INFO, connectInfo)
 		startActivity(intent)
 		
-		requireActivity().runOnUiThread {
-			requireActivity().requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+		val act = activity ?: return
+		act.runOnUiThread {
+			act.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
 			savedOrientation = -1
 		}
 		
-		requireActivity().runOnUiThread {
+		act.runOnUiThread {
 			android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
 				allocationProgressDialog?.dismiss()
 				allocationProgressDialog = null
