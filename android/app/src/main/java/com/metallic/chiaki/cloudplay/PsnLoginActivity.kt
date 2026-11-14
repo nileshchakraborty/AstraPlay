@@ -184,22 +184,21 @@ class PsnLoginActivity : AppCompatActivity()
 		setupRelayActions()
 		setupFallbackActions()
 
-		// Asynchronously start local embedded relay server if no remote relay is explicitly configured
-		if (preferences.psnRelayUrl.isEmpty()) {
-			scope.launch(Dispatchers.IO) {
-				try {
-					val server = EmbeddedRelayServer.start(applicationContext)
-					withContext(Dispatchers.Main) {
-						embeddedRelayServer = server
-						Log.i(TAG, "Embedded relay server ready at ${server.serverUrl()}")
-						prepareRelayCode()
-					}
-				} catch (t: Throwable) {
-					Log.e(TAG, "Failed to start EmbeddedRelayServer", t)
+		// Asynchronously start local embedded relay server
+		scope.launch(Dispatchers.IO) {
+			try {
+				val server = EmbeddedRelayServer.start(applicationContext)
+				withContext(Dispatchers.Main) {
+					embeddedRelayServer = server
+					Log.i(TAG, "Embedded relay server ready at ${server.serverUrl()}")
+					prepareRelayCode()
+				}
+			} catch (t: Throwable) {
+				Log.e(TAG, "Failed to start EmbeddedRelayServer", t)
+				withContext(Dispatchers.Main) {
+					prepareRelayCode()
 				}
 			}
-		} else {
-			prepareRelayCode()
 		}
 
 		if (isHandheldOrTv() && !EmbeddedRelayServer.isEmulatorOrContainer()) {
@@ -721,7 +720,7 @@ class PsnLoginActivity : AppCompatActivity()
 					checkStatusButton?.isEnabled = false
 
 					containerNoticeText?.text = when {
-						suggestedRelayUrl != null -> getString(R.string.psn_login_container_notice_desc_gateway, suggestedRelayUrl)
+						suggestedRelayUrl != null -> getString(R.string.psn_login_container_notice_desc_gateway)
 						isEmulator -> getString(R.string.psn_login_container_notice_desc)
 						else -> getString(R.string.psn_login_no_lan_notice_desc)
 					}
@@ -919,8 +918,9 @@ class PsnLoginActivity : AppCompatActivity()
 
 	private suspend fun createAstraPlayCode(code: String): Boolean = withContext(Dispatchers.IO)
 	{
-		if (embeddedRelayServer != null && preferences.psnRelayUrl.isEmpty()) {
-			return@withContext embeddedRelayServer!!.createCode(code)
+		val localSuccess = embeddedRelayServer?.createCode(code) ?: false
+		if (preferences.psnRelayUrl.isEmpty()) {
+			return@withContext localSuccess
 		}
 
 		try
@@ -946,12 +946,12 @@ class PsnLoginActivity : AppCompatActivity()
 				val jsonResponse = JSONObject(response)
 				return@withContext jsonResponse.optString("result") == "success"
 			}
-			return@withContext false
+			return@withContext localSuccess
 		}
 		catch (e: Exception)
 		{
 			Log.w(TAG, "Exception creating astraplay code on remote relay", e)
-			return@withContext false
+			return@withContext localSuccess
 		}
 	}
 
