@@ -17,6 +17,7 @@ import android.text.InputType
 import android.util.Log
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
@@ -261,10 +262,16 @@ class PsnLoginActivity : AppCompatActivity()
 	private fun setupWebViewActions()
 	{
 		val focusHighlight = createFocusHighlight()
-		btnSwitchToPhoneRelay?.onFocusChangeListener = focusHighlight
-		btnOpenBrowserFromWebView?.onFocusChangeListener = focusHighlight
-		btnManualTokenFromWebView?.onFocusChangeListener = focusHighlight
-		btnCancelWebView?.onFocusChangeListener = focusHighlight
+		listOfNotNull(
+			btnSwitchToPhoneRelay,
+			btnOpenBrowserFromWebView,
+			btnManualTokenFromWebView,
+			btnCancelWebView
+		).forEach { btn ->
+			btn.isFocusable = true
+			btn.isFocusableInTouchMode = true
+			btn.onFocusChangeListener = focusHighlight
+		}
 
 		btnSwitchToPhoneRelay?.setOnClickListener {
 			showPhoneRelayView()
@@ -554,6 +561,9 @@ class PsnLoginActivity : AppCompatActivity()
 			Log.i(TAG, "Loading Sony OAuth URL in WebView: $url")
 			wv.loadUrl(url)
 		}
+		btnSwitchToPhoneRelay?.post {
+			btnSwitchToPhoneRelay?.requestFocus()
+		}
 	}
 
 	private fun openSonyOAuthInExternalBrowser()
@@ -579,7 +589,7 @@ class PsnLoginActivity : AppCompatActivity()
 		layoutPhoneRelay?.visibility = View.VISIBLE
 		toolbar?.title = getString(R.string.psn_login_title)
 
-		if (isOnTv) {
+		checkStatusButton?.post {
 			checkStatusButton?.requestFocus()
 		}
 	}
@@ -660,11 +670,17 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 
 		val focusHighlight = createFocusHighlight()
-		checkStatusButton?.onFocusChangeListener = focusHighlight
-		openBrowserButton?.onFocusChangeListener = focusHighlight
-		manualTokenButton?.onFocusChangeListener = focusHighlight
-		configureRelayButton?.onFocusChangeListener = focusHighlight
-		cancelButton?.onFocusChangeListener = focusHighlight
+		listOfNotNull(
+			checkStatusButton,
+			openBrowserButton,
+			manualTokenButton,
+			configureRelayButton,
+			cancelButton
+		).forEach { btn ->
+			btn.isFocusable = true
+			btn.isFocusableInTouchMode = true
+			btn.onFocusChangeListener = focusHighlight
+		}
 	}
 
 	private fun createFocusHighlight(): View.OnFocusChangeListener {
@@ -1077,9 +1093,49 @@ class PsnLoginActivity : AppCompatActivity()
 		}
 	}
 
+	private var lastNavTime = 0L
+
 	override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean
 	{
 		when (keyCode) {
+			KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_ENTER -> {
+				val focused = currentFocus
+				if (focused != null && focused.isClickable) {
+					focused.performClick()
+					return true
+				}
+				if (layoutPhoneRelay?.visibility == View.VISIBLE) {
+					checkStatusButton?.performClick()
+					return true
+				} else if (layoutWebView?.visibility == View.VISIBLE) {
+					btnSwitchToPhoneRelay?.performClick()
+					return true
+				}
+			}
+			KeyEvent.KEYCODE_DPAD_UP -> {
+				navigateDirection(View.FOCUS_UP)
+				return true
+			}
+			KeyEvent.KEYCODE_DPAD_DOWN -> {
+				navigateDirection(View.FOCUS_DOWN)
+				return true
+			}
+			KeyEvent.KEYCODE_DPAD_LEFT -> {
+				navigateDirection(View.FOCUS_LEFT)
+				return true
+			}
+			KeyEvent.KEYCODE_DPAD_RIGHT -> {
+				navigateDirection(View.FOCUS_RIGHT)
+				return true
+			}
+			KeyEvent.KEYCODE_BUTTON_X -> {
+				if (layoutPhoneRelay?.visibility == View.VISIBLE) {
+					manualTokenButton?.performClick()
+				} else if (layoutWebView?.visibility == View.VISIBLE) {
+					btnManualTokenFromWebView?.performClick()
+				}
+				return true
+			}
 			KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1 -> {
 				if (layoutWebView?.visibility == View.VISIBLE) {
 					showPhoneRelayView()
@@ -1095,6 +1151,79 @@ class PsnLoginActivity : AppCompatActivity()
 			}
 		}
 		return super.onKeyDown(keyCode, event)
+	}
+
+	override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+		if (event == null) return super.onGenericMotionEvent(event)
+		if ((event.source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
+			event.action == MotionEvent.ACTION_MOVE) {
+			val now = android.os.SystemClock.uptimeMillis()
+			if (now - lastNavTime < 220) return true
+
+			val x = if (Math.abs(event.getAxisValue(MotionEvent.AXIS_X)) > 0.45f) {
+				event.getAxisValue(MotionEvent.AXIS_X)
+			} else {
+				event.getAxisValue(MotionEvent.AXIS_HAT_X)
+			}
+			val y = if (Math.abs(event.getAxisValue(MotionEvent.AXIS_Y)) > 0.45f) {
+				event.getAxisValue(MotionEvent.AXIS_Y)
+			} else {
+				event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+			}
+
+			if (y < -0.45f) {
+				lastNavTime = now
+				navigateDirection(View.FOCUS_UP)
+				return true
+			} else if (y > 0.45f) {
+				lastNavTime = now
+				navigateDirection(View.FOCUS_DOWN)
+				return true
+			} else if (x < -0.45f) {
+				lastNavTime = now
+				navigateDirection(View.FOCUS_LEFT)
+				return true
+			} else if (x > 0.45f) {
+				lastNavTime = now
+				navigateDirection(View.FOCUS_RIGHT)
+				return true
+			}
+		}
+		return super.onGenericMotionEvent(event)
+	}
+
+	private fun navigateDirection(direction: Int) {
+		val buttons = if (layoutPhoneRelay?.visibility == View.VISIBLE) {
+			listOfNotNull(
+				checkStatusButton,
+				openBrowserButton,
+				manualTokenButton,
+				configureRelayButton,
+				cancelButton
+			)
+		} else {
+			listOfNotNull(
+				btnSwitchToPhoneRelay,
+				btnOpenBrowserFromWebView,
+				btnManualTokenFromWebView,
+				btnCancelWebView
+			)
+		}.filter { it.visibility == View.VISIBLE && it.isEnabled }
+
+		if (buttons.isEmpty()) return
+
+		val current = currentFocus
+		val currentIndex = buttons.indexOf(current)
+		val nextIndex = if (currentIndex == -1) {
+			0
+		} else {
+			when (direction) {
+				View.FOCUS_DOWN, View.FOCUS_RIGHT -> (currentIndex + 1) % buttons.size
+				View.FOCUS_UP, View.FOCUS_LEFT -> if (currentIndex - 1 < 0) buttons.size - 1 else currentIndex - 1
+				else -> currentIndex
+			}
+		}
+		buttons[nextIndex].requestFocus()
 	}
 
 	override fun onDestroy()
