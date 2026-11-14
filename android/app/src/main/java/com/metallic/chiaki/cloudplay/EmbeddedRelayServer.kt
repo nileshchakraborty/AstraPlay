@@ -186,36 +186,69 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 		 * Reads the default IPv4 gateway from /proc/net/route (Linux only).
 		 * Works universally inside any Linux-based container or emulator (Waydroid, QEMU,
 		 * BlueStacks on Linux, WSA, etc.) without host-side daemon or property injection.
+		 *
+		 * Strategy:
+		 *  1. Standard: look for a default route (Destination=00000000) with RTF_GATEWAY flag.
+		 *  2. Waydroid fallback: Waydroid's Android kernel namespace has no explicit default
+		 *     gateway entry — only a directly-connected subnet route (RTF_UP only). In this case
+		 *     we infer the host gateway as the first host address (.1) of that subnet.
+		 *
 		 * Returns the gateway IP as dotted-decimal, or null if unavailable.
 		 */
 		fun readDefaultGatewayIp(): String? {
 			return try {
 				val lines = java.io.BufferedReader(java.io.FileReader("/proc/net/route")).readLines()
+				var inferredSubnetGateway: String? = null
+
 				for (line in lines.drop(1)) {
 					val parts = line.trim().split("\\s+".toRegex())
-					if (parts.size < 4) continue
+					if (parts.size < 8) continue
 					val destination = parts[1]
-					val gateway = parts[2]
-					val flags = parts[3].toIntOrNull(16) ?: continue
-					// RTF_UP (0x0001) | RTF_GATEWAY (0x0002) → default route via gateway
+					val gateway     = parts[2]
+					val flags       = parts[3].toIntOrNull(16) ?: continue
+					val mask        = parts[7]
+
+					// 1. Standard default route: Dest=0.0.0.0, RTF_UP | RTF_GATEWAY
 					if (destination == "00000000" && (flags and 0x3) == 0x3) {
-						// Gateway stored little-endian hex: "0100A8C0" = 192.168.0.1
 						val gwLong = gateway.toLongOrNull(16) ?: continue
-						val b0 = (gwLong and 0xFF).toInt()
-						val b1 = ((gwLong shr 8) and 0xFF).toInt()
-						val b2 = ((gwLong shr 16) and 0xFF).toInt()
-						val b3 = ((gwLong shr 24) and 0xFF).toInt()
-						val gwIp = "$b0.$b1.$b2.$b3"
+						val gwIp = longToIp(gwLong)
 						if (!gwIp.startsWith("0.") && !gwIp.startsWith("127.")) {
 							Log.i(TAG, "Default gateway from /proc/net/route: $gwIp")
 							return gwIp
 						}
 					}
+
+					// 2. Waydroid fallback: directly-connected subnet (RTF_UP only, no RTF_GATEWAY,
+					// gateway field is 00000000). Infer host gateway as subnet_base | 1 (e.g. .1).
+					if (inferredSubnetGateway == null &&
+						(flags and 0x3) == 0x1 && gateway == "00000000" &&
+						destination != "00000000"
+					) {
+						val destLong = destination.toLongOrNull(16) ?: continue
+						val maskLong = mask.toLongOrNull(16) ?: continue
+						val subnetBase = destLong and maskLong
+						// Host byte-order first host in subnet = subnet_base | 1
+						val gwLong = subnetBase or 0x01000000L  // set byte0 (LE) = 1 → host .1
+						val gwIp = longToIp(gwLong)
+						if (!gwIp.startsWith("0.") && !gwIp.startsWith("127.")) {
+							inferredSubnetGateway = gwIp
+							Log.i(TAG, "Inferred host gateway from directly-connected subnet: $gwIp")
+						}
+					}
 				}
-				null
+				inferredSubnetGateway
 			} catch (_: Throwable) {
 				null
 			}
+		}
+
+		/** Converts a little-endian 32-bit long from /proc/net/route to dotted-decimal IPv4. */
+		private fun longToIp(le: Long): String {
+			val b0 = (le and 0xFF).toInt()
+			val b1 = ((le shr 8) and 0xFF).toInt()
+			val b2 = ((le shr 16) and 0xFF).toInt()
+			val b3 = ((le shr 24) and 0xFF).toInt()
+			return "$b0.$b1.$b2.$b3"
 		}
 
 		/**
