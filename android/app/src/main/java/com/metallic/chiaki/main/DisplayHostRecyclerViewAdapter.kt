@@ -3,6 +3,7 @@
 package com.metallic.chiaki.main
 
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -196,6 +197,8 @@ class DisplayHostRecyclerViewAdapter(
 				it.menuButton.setOnClickListener(null)
 			}
 
+			it.root.isFocusable = true
+			it.root.isFocusableInTouchMode = true
 			it.root.enableFocusableInTouchModeForTv(context)
 			// One focus target per row; overflow via ⋮ tap or long-press on the card.
 			it.menuButton.isFocusable = false
@@ -217,6 +220,23 @@ class DisplayHostRecyclerViewAdapter(
 					it.root.strokeWidth = 0
 					it.root.foreground = null
 				}
+			}
+			it.root.setOnKeyListener { _, keyCode, event ->
+				if (event.action == KeyEvent.ACTION_DOWN) {
+					when (keyCode) {
+						KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+							it.root.performClick()
+							true
+						}
+						KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_MENU -> {
+							if (canWakeup || canEditDelete) {
+								showHostOverflowMenu()
+								true
+							} else false
+						}
+						else -> false
+					}
+				} else false
 			}
 			if (canWakeup || canEditDelete)
 			{

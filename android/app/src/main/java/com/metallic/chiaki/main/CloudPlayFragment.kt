@@ -24,6 +24,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.metallic.chiaki.common.ext.enableFocusableInTouchModeForTv
+import com.metallic.chiaki.common.ext.hasGamepadOrHandheld
 import com.metallic.chiaki.common.ext.isTv
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -153,6 +154,8 @@ class CloudPlayFragment : Fragment()
 	
 	private fun setupLoginButton()
 	{
+		binding.loginButton.isFocusable = true
+		binding.loginButton.isFocusableInTouchMode = true
 		binding.loginButton.setOnClickListener {
 			launchPsnLogin()
 		}
@@ -259,6 +262,14 @@ class CloudPlayFragment : Fragment()
 		binding.gamesRecyclerView.visibility = View.GONE
 		binding.emptyStateLayout.visibility = View.GONE
 		binding.progressBar.visibility = View.GONE
+
+		if (requireContext().hasGamepadOrHandheld()) {
+			binding.loginButton.post {
+				if (binding.loginButton.isShown) {
+					binding.loginButton.requestFocus()
+				}
+			}
+		}
 	}
 	
 	private fun hideLoginRequiredState()
@@ -401,6 +412,8 @@ class CloudPlayFragment : Fragment()
 			val layoutManager = binding.gamesRecyclerView.layoutManager as? GridLayoutManager
 			layoutManager?.scrollToPosition(0)
 			binding.gamesRecyclerView.postDelayed(focusFirstGameRunnable2, 50)
+		} else {
+			binding.loginButton.let { if (it.isShown) it.requestFocus() }
 		}
 	}
 	private val focusFirstGameRunnable2 = Runnable {

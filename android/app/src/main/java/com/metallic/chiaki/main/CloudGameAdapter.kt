@@ -78,6 +78,8 @@ class CloudGameAdapter(
 			parent,
 			false
 		)
+		binding.root.isFocusable = true
+		binding.root.isFocusableInTouchMode = true
 		binding.root.enableFocusableInTouchModeForTv(parent.context)
 
 		// MaterialCardView.drawableStateChanged() only updates ripple, not stroke.
@@ -252,14 +254,22 @@ class CloudGameAdapter(
 				true
 			}
 			binding.root.setOnKeyListener { _, keyCode, event ->
-				if (event.action == android.view.KeyEvent.ACTION_DOWN &&
-					keyCode == android.view.KeyEvent.KEYCODE_BUTTON_SELECT) {
-					toggleFavorite()
-					onFavoriteKeyToggled?.invoke()
-					true
-				} else {
-					false
-				}
+				if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+					when (keyCode) {
+						android.view.KeyEvent.KEYCODE_BUTTON_SELECT -> {
+							toggleFavorite()
+							onFavoriteKeyToggled?.invoke()
+							true
+						}
+						android.view.KeyEvent.KEYCODE_BUTTON_A,
+						android.view.KeyEvent.KEYCODE_DPAD_CENTER,
+						android.view.KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+							binding.root.performClick()
+							true
+						}
+						else -> false
+					}
+				} else false
 			}
 		}
 	}

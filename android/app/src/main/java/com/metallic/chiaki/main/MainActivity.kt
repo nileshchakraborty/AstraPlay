@@ -4,11 +4,14 @@ package com.metallic.chiaki.main
 
 import com.metallic.chiaki.common.ext.alertDialogBuilder
 import com.metallic.chiaki.common.ext.enableFocusableInTouchModeForTv
+import com.metallic.chiaki.common.ext.hasGamepadOrHandheld
 import com.metallic.chiaki.common.ext.isTv
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
@@ -43,6 +46,15 @@ class MainActivity : AppCompatActivity()
 	private var currentPage = 0
 	/** Timestamp of last card-level favorite toggle (used to debounce SELECT+MENU from PS Options). */
 	private var lastCardFavoriteToggleMs = 0L
+	private var lastNavTime = 0L
+	private var gamepadModeEnabled = false
+
+	private fun ensureGamepadFocusMode()
+	{
+		if (gamepadModeEnabled) return
+		gamepadModeEnabled = true
+		binding.root.enableFocusableInTouchModeForTv(this)
+	}
 
 	override fun onCreate(savedInstanceState: Bundle?)
 	{
@@ -140,8 +152,8 @@ class MainActivity : AppCompatActivity()
 			}
 		}
 
-		if (isTv()) {
-			binding.root.enableFocusableInTouchModeForTv(this)
+		if (hasGamepadOrHandheld()) {
+			ensureGamepadFocusMode()
 		}
 		val primaryFocusHighlight = View.OnFocusChangeListener { v, hasFocus ->
 			if (hasFocus) {
@@ -161,9 +173,54 @@ class MainActivity : AppCompatActivity()
 		binding.settingsIcon.onFocusChangeListener = primaryFocusHighlight
 	}
 
+	override fun onGenericMotionEvent(event: MotionEvent): Boolean
+	{
+		ensureGamepadFocusMode()
+		if ((event.source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK &&
+			event.action == MotionEvent.ACTION_MOVE) {
+			val now = android.os.SystemClock.uptimeMillis()
+			if (now - lastNavTime < 200) return true
+
+			val x = if (Math.abs(event.getAxisValue(MotionEvent.AXIS_X)) > 0.45f) {
+				event.getAxisValue(MotionEvent.AXIS_X)
+			} else {
+				event.getAxisValue(MotionEvent.AXIS_HAT_X)
+			}
+			val y = if (Math.abs(event.getAxisValue(MotionEvent.AXIS_Y)) > 0.45f) {
+				event.getAxisValue(MotionEvent.AXIS_Y)
+			} else {
+				event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+			}
+
+			if (y < -0.45f) {
+				lastNavTime = now
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP))
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_UP))
+				return true
+			} else if (y > 0.45f) {
+				lastNavTime = now
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN))
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_DOWN))
+				return true
+			} else if (x < -0.45f) {
+				lastNavTime = now
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_LEFT))
+				return true
+			} else if (x > 0.45f) {
+				lastNavTime = now
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
+				dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_RIGHT))
+				return true
+			}
+		}
+		return super.onGenericMotionEvent(event)
+	}
+
 	/** Keyboard/gamepad routing across toolbar ↔ ViewPager; only the active tab’s list participates. */
 	override fun dispatchKeyEvent(event: KeyEvent): Boolean
 	{
+		ensureGamepadFocusMode()
 		if (event.action != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event)
 		if (event.keyCode == KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
 
@@ -189,24 +246,8 @@ class MainActivity : AppCompatActivity()
 
 		if (refocusIfWrongViewPagerPage()) return true
 
-		val focused = currentFocus
 		val cloudRv = if (currentPage == 1) window.decorView.findViewById<RecyclerView>(R.id.gamesRecyclerView) else null
 		val hostRv = if (currentPage == 0) window.decorView.findViewById<RecyclerView>(R.id.hostsRecyclerView) else null
-
-		if (focused == null) {
-			// We only reach here while handling a D-pad/gamepad key, so the window is already in
-			// non-touch mode and a plain requestFocus() succeeds and shows the focus highlight.
-			// Do NOT set isFocusableInTouchMode here: that makes the views grab focus on the first
-			// finger tap (requiring a second tap to click). TV focusability is handled separately
-			// by enableFocusableInTouchModeForTv().
-			if (currentPage == 1) {
-				val lm = cloudRv?.layoutManager as? GridLayoutManager
-				lm?.findViewByPosition(lm.findFirstVisibleItemPosition())?.requestFocus()
-			} else {
-				binding.remotePlayButton.requestFocus()
-			}
-			return true
-		}
 
 		val secondaryIds = setOf(
 			R.id.filterSummary, R.id.headerFilterButton,
@@ -218,29 +259,19 @@ class MainActivity : AppCompatActivity()
 			R.id.settingsIcon, R.id.wifiIcon
 		)
 
-		val focusedInCloud = cloudRv?.findContainingItemView(focused)
-		val focusedInHost  = hostRv?.findContainingItemView(focused)
-
-		val isFab         = focused.id == R.id.floatingActionButton
-		val isLoginButton = focused.id == R.id.loginButton
-
-		val speedDialIds = setOf(
-			R.id.refreshPsnButton, R.id.refreshPsnLabelButton,
-			R.id.registerButton,   R.id.registerLabelButton,
-			R.id.addManualButton,  R.id.addManualLabelButton
-		)
-		val isSpeedDialItem = focused.id in speedDialIds
-		val isSpeedDialOpen = window.decorView.findViewById<View>(R.id.addManualButton)?.isShown == true
-
-		// These helpers run only during D-pad/gamepad key handling (non-touch mode), so requestFocus()
-		// is enough to move focus and show the highlight. No isFocusableInTouchMode here — see note above.
 		fun focusPrimaryHeader() {
 			val btn = if (currentPage == 0) binding.remotePlayButton else binding.cloudPlayButton
 			btn.requestFocus()
 		}
 
 		fun focusSecondaryHeader() {
-			window.decorView.findViewById<View>(R.id.headerFilterButton)?.requestFocus()
+			window.decorView.findViewById<View>(R.id.headerFilterButton)?.let {
+				if (it.isShown) { it.requestFocus(); return }
+			}
+			window.decorView.findViewById<View>(R.id.filterSummary)?.let {
+				if (it.isShown) { it.requestFocus(); return }
+			}
+			focusPrimaryHeader()
 		}
 
 		fun focusFab() {
@@ -259,6 +290,50 @@ class MainActivity : AppCompatActivity()
 			}
 		}
 
+		val focused = currentFocus
+		if (focused == null) {
+			// We only reach here while handling a D-pad/gamepad key, so the window is already in
+			// non-touch mode and a plain requestFocus() succeeds and shows the focus highlight.
+			// Do NOT set isFocusableInTouchMode here: that makes the views grab focus on the first
+			// finger tap (requiring a second tap to click). TV focusability is handled separately
+			// by enableFocusableInTouchModeForTv().
+			if (currentPage == 1) {
+				val lm = cloudRv?.layoutManager as? GridLayoutManager
+				val firstPos = lm?.findFirstVisibleItemPosition() ?: -1
+				val firstGame = if (firstPos >= 0) lm?.findViewByPosition(firstPos) else null
+				val loginBtn = window.decorView.findViewById<View>(R.id.loginButton)
+				if (firstGame != null) {
+					firstGame.requestFocus()
+				} else if (loginBtn != null && loginBtn.isShown) {
+					loginBtn.requestFocus()
+				} else {
+					focusSecondaryHeader()
+				}
+			} else {
+				val firstHost = hostRv?.layoutManager?.findViewByPosition(0)
+				if (firstHost != null && (hostRv?.adapter?.itemCount ?: 0) > 0) {
+					firstHost.requestFocus()
+				} else {
+					binding.remotePlayButton.requestFocus()
+				}
+			}
+			return true
+		}
+
+		val focusedInCloud = cloudRv?.findContainingItemView(focused)
+		val focusedInHost  = hostRv?.findContainingItemView(focused)
+
+		val isFab         = focused.id == R.id.floatingActionButton
+		val isLoginButton = focused.id == R.id.loginButton
+
+		val speedDialIds = setOf(
+			R.id.refreshPsnButton, R.id.refreshPsnLabelButton,
+			R.id.registerButton,   R.id.registerLabelButton,
+			R.id.addManualButton,  R.id.addManualLabelButton
+		)
+		val isSpeedDialItem = focused.id in speedDialIds
+		val isSpeedDialOpen = window.decorView.findViewById<View>(R.id.addManualButton)?.isShown == true
+
 		when (event.keyCode) {
 
 			KeyEvent.KEYCODE_DPAD_UP -> {
@@ -267,15 +342,15 @@ class MainActivity : AppCompatActivity()
 
 					focused.id in secondaryIds -> { focusPrimaryHeader(); return true }
 
-				isFab -> {
-					if (isSpeedDialOpen) return super.dispatchKeyEvent(event)
-					if ((hostRv?.adapter?.itemCount ?: 0) > 0) {
-						focusLastConsole()
-					} else {
-						focusPrimaryHeader()
+					isFab -> {
+						if (isSpeedDialOpen) return super.dispatchKeyEvent(event)
+						if ((hostRv?.adapter?.itemCount ?: 0) > 0) {
+							focusLastConsole()
+						} else {
+							focusPrimaryHeader()
+						}
+						return true
 					}
-					return true
-				}
 
 					// Login button (Cloud Play, not signed in) → secondary header
 					isLoginButton -> { focusSecondaryHeader(); return true }
@@ -307,28 +382,29 @@ class MainActivity : AppCompatActivity()
 							// Cloud Play: secondary header first
 							focusSecondaryHeader()
 						} else {
-						// Remote Play: first console, or FAB if none
-						val firstHost = hostRv?.layoutManager?.findViewByPosition(0)
-						if (firstHost != null && (hostRv?.adapter?.itemCount ?: 0) > 0) {
-							firstHost.requestFocus()
-						} else {
-							focusFab()
-						}
+							// Remote Play: first console, or FAB if none
+							val firstHost = hostRv?.layoutManager?.findViewByPosition(0)
+							if (firstHost != null && (hostRv?.adapter?.itemCount ?: 0) > 0) {
+								firstHost.requestFocus()
+							} else {
+								focusFab()
+							}
 						}
 						return true
 					}
 
-				// Secondary header (Cloud Play) → first game card, or login button
-				focused.id in secondaryIds -> {
-					val lm    = cloudRv?.layoutManager as? GridLayoutManager
-					val first = lm?.findViewByPosition(lm.findFirstVisibleItemPosition())
-					if (first != null) {
-						first.requestFocus()
+					// Secondary header (Cloud Play) → first game card, or login button
+					focused.id in secondaryIds -> {
+						val lm    = cloudRv?.layoutManager as? GridLayoutManager
+						val firstPos = lm?.findFirstVisibleItemPosition() ?: -1
+						val first = if (firstPos >= 0) lm?.findViewByPosition(firstPos) else null
+						if (first != null) {
+							first.requestFocus()
+							return true
+						}
+						focusLoginButton()
 						return true
 					}
-					focusLoginButton()
-					return true
-				}
 
 					// Speed dial submenu items → bottom row goes to FAB, else natural intra-menu movement
 					isSpeedDialItem -> {
@@ -362,6 +438,60 @@ class MainActivity : AppCompatActivity()
 					}
 
 					else -> return super.dispatchKeyEvent(event)
+				}
+			}
+
+			KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+				val cur = currentFocus
+				if (cur != null && cur.isClickable) {
+					cur.performClick()
+					return true
+				}
+				if (focusedInCloud != null) {
+					focusedInCloud.performClick()
+					return true
+				}
+				if (focusedInHost != null) {
+					focusedInHost.performClick()
+					return true
+				}
+			}
+
+			KeyEvent.KEYCODE_BUTTON_B -> {
+				if (focusedInCloud != null || focusedInHost != null || (focused.id in secondaryIds) || isLoginButton || isFab) {
+					focusPrimaryHeader()
+					return true
+				}
+				onBackPressed()
+				return true
+			}
+
+			KeyEvent.KEYCODE_BUTTON_X -> {
+				if (focusedInCloud != null) {
+					val now = System.currentTimeMillis()
+					if (now - lastCardFavoriteToggleMs > 300) {
+						lastCardFavoriteToggleMs = now
+						focusedInCloud.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT))
+					}
+					return true
+				}
+			}
+
+			KeyEvent.KEYCODE_BUTTON_L1 -> {
+				if (currentPage != 0) {
+					binding.viewPager.currentItem = 0
+					binding.remotePlayButton.requestFocus()
+					return true
+				}
+			}
+
+			KeyEvent.KEYCODE_BUTTON_R1 -> {
+				if (currentPage != 1) {
+					binding.viewPager.currentItem = 1
+					if (!binding.cloudPlayButton.isGone) {
+						binding.cloudPlayButton.requestFocus()
+					}
+					return true
 				}
 			}
 		}

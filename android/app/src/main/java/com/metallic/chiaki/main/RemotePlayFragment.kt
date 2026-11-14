@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.core.view.isGone
 import com.metallic.chiaki.common.ext.alertDialogBuilder
 import com.metallic.chiaki.common.ext.enableFocusableInTouchModeForTv
+import com.metallic.chiaki.common.ext.hasGamepadOrHandheld
 import com.metallic.chiaki.common.ext.isTv
 import io.github.nileshchakraborty.astraplay.R
 import com.metallic.chiaki.common.*
@@ -243,7 +244,7 @@ class RemotePlayFragment : Fragment()
 				// On phones, focusableInTouchMode makes the first tap only focus (yellow) and the second
 				// tap click — same issue as [enableFocusableInTouchModeForTv]. TV D-pad still works with
 				// isFocusable=true; touch-mode focus is for Leanback / TV remote edge cases.
-				isFocusableInTouchMode = expanded && requireContext().isTv()
+				isFocusableInTouchMode = expanded && requireContext().hasGamepadOrHandheld()
 			}
 		}
 		dial.isFocusable = false

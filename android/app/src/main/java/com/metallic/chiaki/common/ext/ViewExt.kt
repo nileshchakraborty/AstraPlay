@@ -14,7 +14,7 @@ import android.view.ViewGroup
  */
 fun View.enableFocusableInTouchModeForTv(context: Context)
 {
-	if (!context.isTv()) return
+	if (!context.hasGamepadOrHandheld()) return
 	if (this is ViewGroup) {
 		for (i in 0 until childCount) {
 			getChildAt(i).enableFocusableInTouchModeForTv(context)
