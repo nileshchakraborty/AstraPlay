@@ -223,6 +223,7 @@
     <string name="psn_login_relay_unconfigured_prompt">Scan the QR code with your phone or tap below to sign in using your web browser in 3 quick steps.</string>
     <string name="psn_login_container_notice_title">Emulator / Container Detected</string>
     <string name="psn_login_container_notice_desc">This emulator or container has a private network that your phone cannot reach. Phone QR login needs port 25525 forwarded from the host computer to Android. For Waydroid on Linux, open the setup script link below; for other emulators, configure host port forwarding and enter a phone-reachable URL under Configure Relay.\n\nYou can also sign in directly on this screen or use Browser / Code.</string>
+    <string name="psn_login_container_notice_desc_gateway">A relay proxy was detected at your host gateway. Tap Configure Relay — the URL %1$s has been pre-filled. Save it to enable QR code login from your phone.\n\nIf the relay is not running yet, follow the Waydroid setup script below.</string>
     <string name="psn_login_container_relay_script_hint">Waydroid or emulator? Phone QR requires host port forwarding. View the Waydroid setup script (Linux host).</string>
     <string name="psn_login_waydroid_setup_script_url" translatable="false">https://github.com/nileshchakraborty/AstraPlay/blob/master/scripts/setup-waydroid-relay.sh</string>
     <string name="psn_login_no_lan_notice_desc">No physical Wi-Fi IP address detected. Please sign in directly on this device or configure a remote relay server.</string>

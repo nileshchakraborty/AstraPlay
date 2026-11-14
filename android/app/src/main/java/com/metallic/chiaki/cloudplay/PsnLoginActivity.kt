@@ -699,9 +699,17 @@ class PsnLoginActivity : AppCompatActivity()
 			val hasRoutableLan = (embeddedRelayServer?.hasRoutableLanIp() == true) || preferences.psnRelayUrl.isNotEmpty()
 			val isEmulator = EmbeddedRelayServer.isEmulatorOrContainer()
 
+			// When in a container with no routable LAN and no user-configured relay, check if the
+			// user has a host-side relay proxy running (socat, Nginx, etc.) at the default gateway.
+			// This is a network probe so it must stay on the IO thread (1500ms TCP connect).
+			val suggestedGatewayIp: String? = if (!hasRoutableLan && isEmulator) {
+				EmbeddedRelayServer.probeRelayAtGateway()
+			} else null
+			val suggestedRelayUrl: String? = suggestedGatewayIp?.let { "http://$it:${EmbeddedRelayServer.DEFAULT_PORT}" }
+
 			withContext(Dispatchers.Main) {
 				if (!hasRoutableLan) {
-					Log.w(TAG, "No phone-reachable LAN IP found (isEmulator=$isEmulator)")
+					Log.w(TAG, "No phone-reachable LAN IP found (isEmulator=$isEmulator, suggestedGateway=$suggestedGatewayIp)")
 					qrCodeImage?.visibility = View.GONE
 					qrCodeCard?.visibility = View.GONE
 					qrScanTitle?.visibility = View.GONE
@@ -712,10 +720,14 @@ class PsnLoginActivity : AppCompatActivity()
 					progressBar?.visibility = View.GONE
 					checkStatusButton?.isEnabled = false
 
-					containerNoticeText?.text = getString(if (isEmulator) R.string.psn_login_container_notice_desc else R.string.psn_login_no_lan_notice_desc)
+					containerNoticeText?.text = when {
+						suggestedRelayUrl != null -> getString(R.string.psn_login_container_notice_desc_gateway, suggestedRelayUrl)
+						isEmulator -> getString(R.string.psn_login_container_notice_desc)
+						else -> getString(R.string.psn_login_no_lan_notice_desc)
+					}
 					statusTextView?.text = getString(if (isEmulator) R.string.psn_login_container_notice_title else R.string.psn_login_relay_not_configured)
 					configureRelayButton?.visibility = View.VISIBLE
-					configureRelayButton?.setOnClickListener { showConfigureRelayDialog() }
+					configureRelayButton?.setOnClickListener { showConfigureRelayDialog(suggestedRelayUrl) }
 					return@withContext
 				}
 
@@ -793,12 +805,13 @@ class PsnLoginActivity : AppCompatActivity()
 		return bitmap
 	}
 
-	private fun showConfigureRelayDialog()
+	private fun showConfigureRelayDialog(suggestedUrl: String? = null)
 	{
 		val input = EditText(this).apply {
 			hint = getString(R.string.psn_login_relay_dialog_hint)
 			inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-			setText(preferences.psnRelayUrl.ifEmpty { BuildConfig.ASTRAPLAY_RELAY_URL })
+			// Pre-fill: suggested gateway URL > saved preference > default relay URL
+			setText(suggestedUrl ?: preferences.psnRelayUrl.ifEmpty { BuildConfig.ASTRAPLAY_RELAY_URL })
 			setSelectAllOnFocus(true)
 		}
 		val container = FrameLayout(this).apply {

@@ -181,6 +181,64 @@ class EmbeddedRelayServer private constructor(private val appContext: Context) {
 			listOf("debug.astraplay.lan_ip", "persist.astraplay.lan_ip", "persist.waydroid.host_ip")
 				.mapNotNull(getProperty)
 				.firstOrNull { isValidLanIpOverride(it) }
+
+		/**
+		 * Reads the default IPv4 gateway from /proc/net/route (Linux only).
+		 * Works universally inside any Linux-based container or emulator (Waydroid, QEMU,
+		 * BlueStacks on Linux, WSA, etc.) without host-side daemon or property injection.
+		 * Returns the gateway IP as dotted-decimal, or null if unavailable.
+		 */
+		fun readDefaultGatewayIp(): String? {
+			return try {
+				val lines = java.io.BufferedReader(java.io.FileReader("/proc/net/route")).readLines()
+				for (line in lines.drop(1)) {
+					val parts = line.trim().split("\\s+".toRegex())
+					if (parts.size < 4) continue
+					val destination = parts[1]
+					val gateway = parts[2]
+					val flags = parts[3].toIntOrNull(16) ?: continue
+					// RTF_UP (0x0001) | RTF_GATEWAY (0x0002) → default route via gateway
+					if (destination == "00000000" && (flags and 0x3) == 0x3) {
+						// Gateway stored little-endian hex: "0100A8C0" = 192.168.0.1
+						val gwLong = gateway.toLongOrNull(16) ?: continue
+						val b0 = (gwLong and 0xFF).toInt()
+						val b1 = ((gwLong shr 8) and 0xFF).toInt()
+						val b2 = ((gwLong shr 16) and 0xFF).toInt()
+						val b3 = ((gwLong shr 24) and 0xFF).toInt()
+						val gwIp = "$b0.$b1.$b2.$b3"
+						if (!gwIp.startsWith("0.") && !gwIp.startsWith("127.")) {
+							Log.i(TAG, "Default gateway from /proc/net/route: $gwIp")
+							return gwIp
+						}
+					}
+				}
+				null
+			} catch (_: Throwable) {
+				null
+			}
+		}
+
+		/**
+		 * Probes whether an AstraPlay relay server is reachable at the host gateway IP on
+		 * DEFAULT_PORT. Allows users who have set up a host-side relay proxy (socat, Nginx, etc.)
+		 * forwarding port 25525 to get transparent QR login with no manual IP configuration.
+		 * Uses a 1500ms TCP connect-only probe (no data sent).
+		 * MUST be called from a background (IO) thread.
+		 * Returns the gateway IP string if relay is reachable, null otherwise.
+		 */
+		fun probeRelayAtGateway(timeoutMs: Int = 1500): String? {
+			val gatewayIp = readDefaultGatewayIp() ?: return null
+			return try {
+				Socket().use { socket ->
+					socket.connect(InetSocketAddress(gatewayIp, DEFAULT_PORT), timeoutMs)
+					Log.i(TAG, "Host relay reachable at gateway $gatewayIp:$DEFAULT_PORT")
+					gatewayIp
+				}
+			} catch (_: Throwable) {
+				Log.d(TAG, "No host relay at gateway $gatewayIp:$DEFAULT_PORT")
+				null
+			}
+		}
 	}
 
 	data class CodeEntry(val createdAt: Long, var npsso: String? = null)
