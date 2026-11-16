@@ -4,6 +4,7 @@
 #include "streamsession.h"
 #include "sessionlog.h"
 #include "xboxauthmanager.h"
+#include "controllermanager.h"
 
 #include <rtc/rtc.hpp>
 #include <chiaki/opusdecoder.h>
@@ -11,6 +12,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QTimer>
+#include <QMap>
 #include <memory>
 
 class XboxStreamSession : public StreamSession
@@ -92,6 +94,11 @@ private:
     void handleMessageChannelPayload(const QByteArray &data);
     void sendSystemUiConfigurations();
 
-    // Gamepad binary frame serialization (23-byte binary layout)
+    // Gamepad binary frame serialization (38-byte binary layout)
     QByteArray serializeGamepadPacket();
+
+    // Physical controllers
+    void UpdateControllers();
+
+    friend class XboxAuthTest;
 };

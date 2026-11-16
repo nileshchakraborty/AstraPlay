@@ -2,6 +2,7 @@
 
 #include "xboxstreamsession.h"
 #include "controllermanager.h"
+#include "settings.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -49,7 +50,8 @@ XboxStreamSession::XboxStreamSession(const StreamSessionConnectInfo &connect_inf
     chiaki_opus_decoder_init(&m_opusDecoder, m_log.GetChiakiLog());
 
     // 3. Connect controller updates
-    connect(ControllerManager::GetInstance(), &ControllerManager::AvailableControllersUpdated, this, &XboxStreamSession::SendFeedbackState);
+    connect(ControllerManager::GetInstance(), &ControllerManager::AvailableControllersUpdated, this, &XboxStreamSession::UpdateControllers);
+    UpdateControllers();
 
     // 4. Setup timers
     m_inputTimer->setInterval(4);
@@ -62,6 +64,11 @@ XboxStreamSession::XboxStreamSession(const StreamSessionConnectInfo &connect_inf
 XboxStreamSession::~XboxStreamSession()
 {
     Stop();
+
+    for (auto controller : controllers) {
+        controller->Unref();
+    }
+    controllers.clear();
 
     if (ffmpeg_decoder) {
         chiaki_ffmpeg_decoder_fini(ffmpeg_decoder);
@@ -245,25 +252,36 @@ void XboxStreamSession::setupWebRtc()
     audioDesc.addOpusCodec(97);
     m_audioTrack = m_peerConnection->addTrack(audioDesc);
 
-    // DataChannel: input (1.0, unordered, unreliable)
+    // DataChannel: input (1.0, ordered)
     rtc::DataChannelInit inputConfig;
     inputConfig.protocol = "1.0";
-    inputConfig.reliability.unordered = true;
-    inputConfig.reliability.maxRetransmits = 0;
+    inputConfig.reliability.unordered = false;
     m_inputChannel = m_peerConnection->createDataChannel("input", inputConfig);
 
     m_inputChannel->onOpen([this]() {
-        m_inputTimer->start();
+        QMetaObject::invokeMethod(this, [this]() {
+            m_inputTimer->start();
+        });
     });
 
     m_inputChannel->onMessage([this](auto msg) {
         if (std::holds_alternative<rtc::binary>(msg)) {
             auto bin = std::get<rtc::binary>(msg);
-            if (bin.size() >= 13 && static_cast<uint8_t>(bin[0]) == 128) {
-                // Vibration feedback: left / right motor strength
-                uint16_t left = (uint8_t(bin[1]) << 8) | uint8_t(bin[2]);
-                uint16_t right = (uint8_t(bin[3]) << 8) | uint8_t(bin[4]);
-                emit RumbleHapticPushed(qMax(left, right));
+            if (bin.size() >= 13) {
+                uint16_t reportType = static_cast<uint8_t>(bin[0]) | (static_cast<uint8_t>(bin[1]) << 8);
+                if (reportType == 128) { // ReportTypes.Vibration
+                    uint8_t leftPercent = static_cast<uint8_t>(bin[4]);
+                    uint8_t rightPercent = static_cast<uint8_t>(bin[5]);
+                    uint16_t left = (static_cast<uint32_t>(leftPercent) * 65535) / 100;
+                    uint16_t right = (static_cast<uint32_t>(rightPercent) * 65535) / 100;
+                    QMetaObject::invokeMethod(this, [this, left, right]() {
+                        emit RumbleHapticPushed(qMax(left, right));
+                        for (auto controller : controllers) {
+                            controller->SetHapticRumble(left, right);
+                            controller->SetRumble(static_cast<uint8_t>(left >> 8), static_cast<uint8_t>(right >> 8));
+                        }
+                    });
+                }
             }
         }
     });
@@ -482,10 +500,48 @@ void XboxStreamSession::onInputTimer()
     m_inputChannel->send(reinterpret_cast<const std::byte*>(packet.constData()), packet.size());
 }
 
+void XboxStreamSession::UpdateControllers()
+{
+#if CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER
+    for (auto controller_id : controllers.keys()) {
+        auto controller = controllers[controller_id];
+        if (!controller->IsConnected()) {
+            CHIAKI_LOGI(m_log.GetChiakiLog(), "XboxStreamSession: Controller %d disconnected", controller->GetDeviceID());
+            controllers.remove(controller_id);
+            controller->Unref();
+        }
+    }
+
+    const auto available_controllers = ControllerManager::GetInstance()->GetAvailableControllers();
+    for (auto controller_id : available_controllers) {
+        if (!controllers.contains(controller_id)) {
+            auto controller = ControllerManager::GetInstance()->OpenController(controller_id);
+            if (!controller) {
+                CHIAKI_LOGE(m_log.GetChiakiLog(), "XboxStreamSession: Failed to open controller %d", controller_id);
+                continue;
+            }
+            CHIAKI_LOGI(m_log.GetChiakiLog(), "XboxStreamSession: Controller %d opened: \"%s\"", controller_id, controller->GetName().toLocal8Bit().constData());
+            connect(controller, &Controller::StateChanged, this, &XboxStreamSession::SendFeedbackState);
+            controllers[controller_id] = controller;
+        }
+    }
+#endif
+}
+
 QByteArray XboxStreamSession::serializeGamepadPacket()
 {
-    // Format: 14 bytes header + 1 byte count + 22 bytes gamepad frame = 37 bytes
-    QByteArray packet(37, 0);
+    // 1. Aggregate physical controllers and keyboard state
+    ChiakiControllerState combined_state;
+    chiaki_controller_state_set_idle(&combined_state);
+
+    for (auto controller : controllers) {
+        auto c_state = controller->GetState();
+        chiaki_controller_state_or(&combined_state, &combined_state, &c_state);
+    }
+    chiaki_controller_state_or(&combined_state, &combined_state, &keyboard_state);
+
+    // Format: 14 bytes header + 1 byte count + 23 bytes gamepad frame = 38 bytes
+    QByteArray packet(38, 0);
     uint8_t *p = reinterpret_cast<uint8_t*>(packet.data());
 
     // 1. ReportType: Gamepad = 2 (uint16 little endian)
@@ -510,32 +566,36 @@ QByteArray XboxStreamSession::serializeGamepadPacket()
     p[15] = 0x00;
 
     // 6. Buttons bitmask (uint16 little endian)
-    // Map ChiakiControllerState to Xbox bitmask
+    // Map ChiakiControllerState to Xbox WebRTC bitmask:
+    // Nexus: 2, Menu: 4, View: 8, A: 16, B: 32, X: 64, Y: 128,
+    // DPadUp: 256, DPadDown: 512, DPadLeft: 1024, DPadRight: 2048,
+    // LB: 4096, RB: 8192, L3: 16384, R3: 32768
     uint16_t xbuttons = 0;
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_CROSS) xbuttons |= 16;       // A
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_MOON) xbuttons |= 32;        // B
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_BOX) xbuttons |= 64;         // X
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_PYRAMID) xbuttons |= 128;    // Y
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_UP) xbuttons |= 256;    // Dpad Up
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN) xbuttons |= 512;  // Dpad Down
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT) xbuttons |= 1024; // Dpad Left
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT) xbuttons |= 2048;// Dpad Right
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_L1) xbuttons |= 4096;        // LB
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_R1) xbuttons |= 8192;        // RB
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_L3) xbuttons |= 16384;       // L3
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_R3) xbuttons |= 32768;       // R3
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_OPTIONS) xbuttons |= 4;      // Menu
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_SHARE) xbuttons |= 8;        // View
-    if (keyboard_state.buttons & CHIAKI_CONTROLLER_BUTTON_PS) xbuttons |= 2;           // Nexus
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_CROSS) xbuttons |= 16;        // A
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_MOON) xbuttons |= 32;         // B
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_BOX) xbuttons |= 64;          // X
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_PYRAMID) xbuttons |= 128;     // Y
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_UP) xbuttons |= 256;     // Dpad Up
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN) xbuttons |= 512;   // Dpad Down
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT) xbuttons |= 1024;  // Dpad Left
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT) xbuttons |= 2048; // Dpad Right
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_L1) xbuttons |= 4096;         // LB
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_R1) xbuttons |= 8192;         // RB
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_L3) xbuttons |= 16384;        // L3
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_R3) xbuttons |= 32768;        // R3
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_OPTIONS) xbuttons |= 4;       // Menu
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_SHARE) xbuttons |= 8;         // View
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_PS) xbuttons |= 2;            // Nexus
+    if (combined_state.buttons & CHIAKI_CONTROLLER_BUTTON_TOUCHPAD) xbuttons |= 8;      // Touchpad as View
 
     p[16] = uint8_t(xbuttons & 0xFF);
     p[17] = uint8_t((xbuttons >> 8) & 0xFF);
 
-    // 7. Sticks (int16 little endian)
-    int16_t lx = keyboard_state.left_x;
-    int16_t ly = -keyboard_state.left_y;
-    int16_t rx = keyboard_state.right_x;
-    int16_t ry = -keyboard_state.right_y;
+    // 7. Sticks (int16 little endian, Y inverted: up is negative in Chiaki, positive in Xbox)
+    int16_t lx = combined_state.left_x;
+    int16_t ly = -combined_state.left_y;
+    int16_t rx = combined_state.right_x;
+    int16_t ry = -combined_state.right_y;
 
     memcpy(p + 18, &lx, 2);
     memcpy(p + 20, &ly, 2);
@@ -543,27 +603,84 @@ QByteArray XboxStreamSession::serializeGamepadPacket()
     memcpy(p + 24, &ry, 2);
 
     // 8. Triggers (uint16 little endian 0..65535)
-    uint16_t lt = (keyboard_state.l2_state * 65535) / 255;
-    uint16_t rt = (keyboard_state.r2_state * 65535) / 255;
+    uint16_t lt = static_cast<uint16_t>((combined_state.l2_state * 65535) / 255);
+    uint16_t rt = static_cast<uint16_t>((combined_state.r2_state * 65535) / 255);
     memcpy(p + 26, &lt, 2);
     memcpy(p + 28, &rt, 2);
 
-    // 9. Physicality flags (uint32 = 1)
-    uint32_t one = 1;
-    memcpy(p + 30, &one, 4);
+    // 9. PhysicalPhysicality (uint32 little endian = 1)
+    uint32_t physical = 1;
+    memcpy(p + 30, &physical, 4);
+
+    // 10. VirtualPhysicality (uint32 big endian = 1)
+    p[34] = 0;
+    p[35] = 0;
+    p[36] = 0;
+    p[37] = 1;
 
     return packet;
 }
 
 void XboxStreamSession::SendFeedbackState()
 {
-    // Aggregate input states from ControllerManager into keyboard_state
-    // onInputTimer() transmits every 4ms
+    if (m_inputChannel && m_inputChannel->isOpen()) {
+        QByteArray packet = serializeGamepadPacket();
+        m_inputChannel->send(reinterpret_cast<const std::byte*>(packet.constData()), packet.size());
+    }
 }
 
 void XboxStreamSession::HandleKeyboardEvent(QKeyEvent *event)
 {
-    Q_UNUSED(event);
+    if (!keyboard_controller_enabled)
+        return;
+    if (!key_map.contains(Qt::Key(event->key())))
+        return;
+    if (event->isAutoRepeat())
+        return;
+
+    int button = key_map[Qt::Key(event->key())];
+    bool press_event = event->type() == QEvent::Type::KeyPress;
+
+    switch (button) {
+        case CHIAKI_CONTROLLER_ANALOG_BUTTON_L2:
+            keyboard_state.l2_state = press_event ? 0xff : 0;
+            break;
+        case CHIAKI_CONTROLLER_ANALOG_BUTTON_R2:
+            keyboard_state.r2_state = press_event ? 0xff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_RIGHT_Y_UP):
+            keyboard_state.right_y = press_event ? -0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_RIGHT_Y_DOWN):
+            keyboard_state.right_y = press_event ? 0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_RIGHT_X_UP):
+            keyboard_state.right_x = press_event ? 0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_RIGHT_X_DOWN):
+            keyboard_state.right_x = press_event ? -0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_Y_UP):
+            keyboard_state.left_y = press_event ? -0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_Y_DOWN):
+            keyboard_state.left_y = press_event ? 0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_X_UP):
+            keyboard_state.left_x = press_event ? 0x7fff : 0;
+            break;
+        case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_X_DOWN):
+            keyboard_state.left_x = press_event ? -0x7fff : 0;
+            break;
+        default:
+            if (press_event)
+                keyboard_state.buttons |= button;
+            else
+                keyboard_state.buttons &= ~button;
+            break;
+    }
+
+    SendFeedbackState();
 }
 
 void XboxStreamSession::HandleTouchEvent(QTouchEvent *event, qreal width, qreal height)

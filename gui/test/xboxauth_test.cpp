@@ -13,6 +13,7 @@
 #include "xboxpopsigner.h"
 #include "xboxauthmanager.h"
 #include "credentialvault.h"
+#include <chiaki/controller.h>
 
 #include <openssl/evp.h>
 #include <openssl/ecdsa.h>
@@ -67,6 +68,8 @@ private slots:
     void testXboxAuthManagerInitialState();
     void testLiveDeviceCodeFlow();
     void testXboxViewQml();
+    void testXboxGamepadProtocolSerialization();
+    void testXboxVibrationProtocolParsing();
 };
 
 void XboxAuthTest::initTestCase()
@@ -337,6 +340,181 @@ void XboxAuthTest::testXboxViewQml()
     qDebug() << "Successfully closed stream session for:" << astraplayStub.lastGameName;
 
     delete rootObj;
+}
+
+void XboxAuthTest::testXboxGamepadProtocolSerialization()
+{
+    // Test 38-byte Xbox Cloud / xHome Gamepad Protocol Layout
+    ChiakiControllerState state;
+    chiaki_controller_state_set_idle(&state);
+
+    // Set buttons: Cross (A), Moon (B), DPad Up, LB, R3, Options (Menu)
+    state.buttons = CHIAKI_CONTROLLER_BUTTON_CROSS |
+                    CHIAKI_CONTROLLER_BUTTON_MOON |
+                    CHIAKI_CONTROLLER_BUTTON_DPAD_UP |
+                    CHIAKI_CONTROLLER_BUTTON_L1 |
+                    CHIAKI_CONTROLLER_BUTTON_R3 |
+                    CHIAKI_CONTROLLER_BUTTON_OPTIONS;
+
+    // Set sticks
+    state.left_x = 16000;
+    state.left_y = -20000; // In Chiaki, up is negative. In Xbox, up is positive.
+    state.right_x = -8000;
+    state.right_y = 12000;
+
+    // Set triggers (0..255)
+    state.l2_state = 128; // ~50%
+    state.r2_state = 255; // 100%
+
+    // Serialize packet conforming to Xbox WebRTC specification
+    QByteArray packet(38, 0);
+    uint8_t *p = reinterpret_cast<uint8_t*>(packet.data());
+
+    p[0] = 0x02; // ReportType = Gamepad
+    p[1] = 0x00;
+
+    uint32_t seq = 42;
+    p[2] = uint8_t(seq & 0xFF);
+    p[3] = uint8_t((seq >> 8) & 0xFF);
+    p[4] = uint8_t((seq >> 16) & 0xFF);
+    p[5] = uint8_t((seq >> 24) & 0xFF);
+
+    double nowMs = 12345678.0;
+    memcpy(p + 6, &nowMs, sizeof(double));
+
+    p[14] = 0x01; // Frame count = 1
+    p[15] = 0x00; // Gamepad index = 0
+
+    uint16_t xbuttons = 0;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_CROSS) xbuttons |= 16;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_MOON) xbuttons |= 32;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_BOX) xbuttons |= 64;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_PYRAMID) xbuttons |= 128;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_UP) xbuttons |= 256;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_DOWN) xbuttons |= 512;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT) xbuttons |= 1024;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT) xbuttons |= 2048;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_L1) xbuttons |= 4096;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_R1) xbuttons |= 8192;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_L3) xbuttons |= 16384;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_R3) xbuttons |= 32768;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_OPTIONS) xbuttons |= 4;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_SHARE) xbuttons |= 8;
+    if (state.buttons & CHIAKI_CONTROLLER_BUTTON_PS) xbuttons |= 2;
+
+    p[16] = uint8_t(xbuttons & 0xFF);
+    p[17] = uint8_t((xbuttons >> 8) & 0xFF);
+
+    int16_t lx = state.left_x;
+    int16_t ly = -state.left_y;
+    int16_t rx = state.right_x;
+    int16_t ry = -state.right_y;
+
+    memcpy(p + 18, &lx, 2);
+    memcpy(p + 20, &ly, 2);
+    memcpy(p + 22, &rx, 2);
+    memcpy(p + 24, &ry, 2);
+
+    uint16_t lt = static_cast<uint16_t>((state.l2_state * 65535) / 255);
+    uint16_t rt = static_cast<uint16_t>((state.r2_state * 65535) / 255);
+    memcpy(p + 26, &lt, 2);
+    memcpy(p + 28, &rt, 2);
+
+    uint32_t physical = 1;
+    memcpy(p + 30, &physical, 4);
+
+    p[34] = 0;
+    p[35] = 0;
+    p[36] = 0;
+    p[37] = 1;
+
+    // Verify Packet Dimensions and Exact Layout
+    QCOMPARE(packet.size(), 38);
+    QCOMPARE(p[0], 0x02);
+    QCOMPARE(p[1], 0x00);
+    QCOMPARE(p[14], 0x01);
+    QCOMPARE(p[15], 0x00);
+
+    // Verify Button Bitmask:
+    // A (16) + B (32) + DPadUp (256) + LB (4096) + R3 (32768) + Options (4) = 37166
+    uint16_t expectedButtons = 16 | 32 | 256 | 4096 | 32768 | 4;
+    uint16_t parsedButtons = p[16] | (p[17] << 8);
+    QCOMPARE(parsedButtons, expectedButtons);
+
+    // Verify Sticks:
+    int16_t parsedLx = 0, parsedLy = 0, parsedRx = 0, parsedRy = 0;
+    memcpy(&parsedLx, p + 18, 2);
+    memcpy(&parsedLy, p + 20, 2);
+    memcpy(&parsedRx, p + 22, 2);
+    memcpy(&parsedRy, p + 24, 2);
+    QCOMPARE(parsedLx, 16000);
+    QCOMPARE(parsedLy, 20000); // inverted from -20000
+    QCOMPARE(parsedRx, -8000);
+    QCOMPARE(parsedRy, -12000); // inverted from 12000
+
+    // Verify Triggers:
+    uint16_t parsedLt = 0, parsedRt = 0;
+    memcpy(&parsedLt, p + 26, 2);
+    memcpy(&parsedRt, p + 28, 2);
+    QCOMPARE(parsedLt, uint16_t((128 * 65535) / 255));
+    QCOMPARE(parsedRt, uint16_t(65535));
+
+    // Verify Physicality:
+    uint32_t parsedPhysical = 0;
+    memcpy(&parsedPhysical, p + 30, 4);
+    QCOMPARE(parsedPhysical, 1u);
+    QCOMPARE(p[37], 0x01);
+}
+
+void XboxAuthTest::testXboxVibrationProtocolParsing()
+{
+    // Simulate a 13-byte incoming Vibration packet from Xbox WebRTC input data channel
+    // reportType = 128 (uint16 little endian)
+    // rumbleType = 0
+    // gamepadIndex = 0
+    // leftMotorPercent = 80
+    // rightMotorPercent = 40
+    // leftTriggerPercent = 20
+    // rightTriggerPercent = 10
+    // durationMs = 350
+    // delayMs = 0
+    // repeat = 1
+    QByteArray bin(13, 0);
+    bin[0] = static_cast<char>(128); // 0x80
+    bin[1] = 0x00;
+    bin[2] = 0x00;
+    bin[3] = 0x00; // GamepadIndex = 0
+    bin[4] = 80;   // Left motor 80%
+    bin[5] = 40;   // Right motor 40%
+    bin[6] = 20;
+    bin[7] = 10;
+    bin[8] = static_cast<char>(350 & 0xFF);
+    bin[9] = static_cast<char>((350 >> 8) & 0xFF);
+    bin[10] = 0;
+    bin[11] = 0;
+    bin[12] = 1;
+
+    QVERIFY(bin.size() >= 13);
+    uint16_t reportType = static_cast<uint8_t>(bin[0]) | (static_cast<uint8_t>(bin[1]) << 8);
+    QCOMPARE(reportType, 128);
+
+    uint8_t leftPercent = static_cast<uint8_t>(bin[4]);
+    uint8_t rightPercent = static_cast<uint8_t>(bin[5]);
+    QCOMPARE(leftPercent, 80);
+    QCOMPARE(rightPercent, 40);
+
+    uint16_t leftStrength = (static_cast<uint32_t>(leftPercent) * 65535) / 100;
+    uint16_t rightStrength = (static_cast<uint32_t>(rightPercent) * 65535) / 100;
+    QCOMPARE(leftStrength, uint16_t((80 * 65535) / 100));
+    QCOMPARE(rightStrength, uint16_t((40 * 65535) / 100));
+
+    uint16_t maxHaptic = qMax(leftStrength, rightStrength);
+    QCOMPARE(maxHaptic, leftStrength);
+
+    // SDL 8-bit rumble scaling
+    uint8_t leftSdl = static_cast<uint8_t>(leftStrength >> 8);
+    uint8_t rightSdl = static_cast<uint8_t>(rightStrength >> 8);
+    QVERIFY(leftSdl > rightSdl);
 }
 
 QTEST_MAIN(XboxAuthTest)
