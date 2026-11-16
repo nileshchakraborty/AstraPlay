@@ -554,7 +554,7 @@ static ChiakiErrorCode gk_step9_authorize(GaikaiCtx *c, ChiakiCloudProvisionResu
 	return CHIAKI_ERR_SUCCESS;
 }
 
-static ChiakiErrorCode gk_step10_lock(GaikaiCtx *c)
+static ChiakiErrorCode gk_step10_lock(GaikaiCtx *c, ChiakiCloudProvisionResult *out, bool *out_psplus_err)
 {
 	gk_progress(c, "Locking Session - Step 7 of 10");
 	int net_errors = 0; // consecutive transient network failures, like the allocate poll
@@ -584,7 +584,26 @@ static ChiakiErrorCode gk_step10_lock(GaikaiCtx *c)
 			continue;
 		}
 		net_errors = 0;
-		if(resp.status_code != 200) { CHIAKI_LOGE(c->log, "[GAIKAI] step10 lock http %ld", resp.status_code); cc_http_response_fini(&resp); return CHIAKI_ERR_UNKNOWN; }
+		if(resp.status_code != 200)
+		{
+			CHIAKI_LOGE(c->log, "[GAIKAI] step10 lock http %ld: %s", resp.status_code, resp.data ? resp.data : "");
+			char *ev = gk_header_value(resp.headers, "x-gaikai-event");
+			bool psplus = (ev && strstr(ev, "002.2001")) || (resp.data && strstr(resp.data, "002.2001"));
+			if(psplus)
+			{
+				*out_psplus_err = true;
+				free(out->error_message);
+				out->error_message = strdup("PS_PLUS_SUBSCRIPTION_REQUIRED");
+			}
+			else if(resp.data && *resp.data)
+			{
+				free(out->error_message);
+				out->error_message = strdup(resp.data);
+			}
+			free(ev);
+			cc_http_response_fini(&resp);
+			return CHIAKI_ERR_UNKNOWN;
+		}
 		gk_update_session_key(c, &resp);
 		struct json_object *j = resp.data ? json_tokener_parse(resp.data) : NULL;
 		bool acquired = j && cc_json_bool(j, "lockAcquired");
@@ -620,6 +639,9 @@ static ChiakiErrorCode gk_step10_lock(GaikaiCtx *c)
 		gk_progress(c, prog);
 		if(!gk_sleep_cancellable(c, poll)) return CHIAKI_ERR_CANCELED;
 	}
+	CHIAKI_LOGE(c->log, "[GAIKAI] step10 lock timeout (%d attempts)", MAX_LOCK_RETRIES);
+	if(!out->error_message)
+		out->error_message = strdup("Could not acquire cloud session lock (timed out waiting for old session to close)");
 	return CHIAKI_ERR_UNKNOWN;
 }
 
@@ -1176,7 +1198,7 @@ ChiakiErrorCode cc_gaikai_allocate(ChiakiLog *log,
 	if(e == CHIAKI_ERR_SUCCESS && gk_cancelled(&c)) e = CHIAKI_ERR_CANCELED;
 	if(e == CHIAKI_ERR_SUCCESS) e = gk_step9_authorize(&c, out, &psplus_err);
 	if(e == CHIAKI_ERR_SUCCESS && gk_cancelled(&c)) e = CHIAKI_ERR_CANCELED;
-	if(e == CHIAKI_ERR_SUCCESS) e = gk_step10_lock(&c);
+	if(e == CHIAKI_ERR_SUCCESS) e = gk_step10_lock(&c, out, &psplus_err);
 	if(e == CHIAKI_ERR_SUCCESS) e = gk_step11_datacenters(&c);
 	if(e == CHIAKI_ERR_SUCCESS) e = gk_step12_select(&c);
 	if(e == CHIAKI_ERR_SUCCESS) e = gk_step13_allocate(&c, out);
