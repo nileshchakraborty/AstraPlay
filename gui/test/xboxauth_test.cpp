@@ -285,8 +285,13 @@ void XboxAuthTest::testXboxViewQml()
     qmlRegisterSingletonInstance(uri, 1, 0, "XboxAuth", auth);
     qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlay", &astraplayStub);
 
-    QString qmlPath = QStringLiteral("/Users/nileshchakraborty/workspace/astraplay/gui/src/qml/XboxView.qml");
-    QQmlComponent component(&engine, QUrl::fromLocalFile(qmlPath));
+    QUrl qmlUrl(QStringLiteral("qrc:/XboxView.qml"));
+    if (!QFile::exists(QStringLiteral(":/XboxView.qml"))) {
+        QString fallback = QStringLiteral("%1/../../gui/src/qml/XboxView.qml").arg(QCoreApplication::applicationDirPath());
+        if (QFile::exists(fallback))
+            qmlUrl = QUrl::fromLocalFile(fallback);
+    }
+    QQmlComponent component(&engine, qmlUrl);
 
     if (!component.isReady()) {
         for (const auto &err : component.errors()) {
