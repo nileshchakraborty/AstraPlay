@@ -1,5 +1,6 @@
 
 add_library(munit "${CMAKE_CURRENT_SOURCE_DIR}/munit/munit.c")
+target_compile_options(munit PRIVATE "-include${CMAKE_CURRENT_SOURCE_DIR}/munit_compat.h")
 target_include_directories(munit PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/munit")
 
 add_executable(chiaki-unit
