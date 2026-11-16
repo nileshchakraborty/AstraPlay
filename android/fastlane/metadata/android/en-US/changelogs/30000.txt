@@ -1,0 +1,4 @@
+• Major Release 3.0.0: Full Xbox Cloud Gaming and Remote Play integration.
+• Direct full-screen auto-launch for Xbox Cloud Gaming streams.
+• Persistent exit stream control and clean session teardown.
+• Enhanced regional GSSV WebRTC routing and stability.

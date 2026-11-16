@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-project(astraplay VERSION 2.12.37 LANGUAGES C CXX)
+project(astraplay VERSION 3.0.0 LANGUAGES C CXX)
 
 # Fix for 16 KB page size compatibility (required for Android devices with 16 KB pages)
 # This ensures ELF LOAD segments are aligned to 16 KB boundaries for shared libraries
@@ -75,9 +75,9 @@ tri_option(CHIAKI_USE_SYSTEM_CURL "Use system-provided curl instead of submodule
 # AstraPlay semver — single source for packaging (Android, iOS CI archive, macOS App Store bundle, etc.).
 # ios/AstraPlay.xcodeproj uses MARKETING_VERSION=0.0.0 and CURRENT_PROJECT_VERSION=0 only as local placeholders;
 # CI injects real values from the CHIAKI_VERSION_* lines below at archive time (.github/workflows/deploy-ios.yml).
-set(CHIAKI_VERSION_MAJOR 2)
-set(CHIAKI_VERSION_MINOR 12)
-set(CHIAKI_VERSION_PATCH 37)
+set(CHIAKI_VERSION_MAJOR 3)
+set(CHIAKI_VERSION_MINOR 0)
+set(CHIAKI_VERSION_PATCH 0)
 set(CHIAKI_VERSION ${CHIAKI_VERSION_MAJOR}.${CHIAKI_VERSION_MINOR}.${CHIAKI_VERSION_PATCH})
 
 configure_file(
