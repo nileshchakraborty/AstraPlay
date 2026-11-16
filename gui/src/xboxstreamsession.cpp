@@ -225,6 +225,9 @@ void XboxStreamSession::requestPlaySession()
             QJsonDocument doc = QJsonDocument::fromJson(respData);
             QJsonObject obj = doc.object();
             m_sessionPath = obj.value(QStringLiteral("sessionPath")).toString();
+            while (m_sessionPath.startsWith(QLatin1Char('/'))) {
+                m_sessionPath.remove(0, 1);
+            }
             pollSessionState();
         } else {
             QString detail;
