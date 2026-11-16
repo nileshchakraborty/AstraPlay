@@ -6,8 +6,6 @@ import QtQuick.Effects
 
 import io.github.nileshchakraborty.astraplay
 
-import "controls" as C
-
 Pane {
     id: root
     padding: 0
@@ -22,6 +20,16 @@ Pane {
     property string qrCodeUrl: ""
     property int expiresIn: 0
     property string loginStatusMessage: ""
+    property bool codeCopied: false
+
+    function formatUserCode(code) {
+        if (!code || code.length === 0) return "";
+        let clean = code.replace(/[^A-Za-z0-9]/g, "");
+        if (clean.length === 8) {
+            return clean.substring(0, 4) + " - " + clean.substring(4);
+        }
+        return code;
+    }
 
     // Clean blue background matching AstraPlay theme
     CleanBlueBackground {
@@ -38,30 +46,35 @@ Pane {
             root.verificationUri = uri;
             root.qrCodeUrl = qr;
             root.expiresIn = expires;
-            root.loginStatusMessage = qsTr("Waiting for authentication approval...");
+            root.loginStatusMessage = qsTr("Waiting for authentication in browser...");
+            root.codeCopied = false;
         }
 
         function onAuthenticated(gamertag, uhs) {
             root.isLoggingIn = false;
             root.loginStatusMessage = "";
+            root.codeCopied = false;
             XboxAuth.fetchConsoles();
         }
 
         function onAuthFailed(errorMessage) {
             root.isLoggingIn = false;
             root.loginStatusMessage = errorMessage;
+            root.codeCopied = false;
         }
 
         function onLoginCancelled() {
             root.isLoggingIn = false;
             root.userCode = "";
             root.verificationUri = "";
+            root.codeCopied = false;
         }
 
         function onLoggedOut() {
             root.isLoggingIn = false;
             root.userCode = "";
             root.verificationUri = "";
+            root.codeCopied = false;
         }
     }
 
@@ -77,7 +90,9 @@ Pane {
         }
     }
 
-    // Header bar (when logged in)
+    // ----------------------------------------------------
+    // HEADER BAR (When logged in)
+    // ----------------------------------------------------
     Rectangle {
         id: xboxHeaderBar
         anchors {
@@ -87,7 +102,7 @@ Pane {
         }
         height: 60
         color: Qt.rgba(10/255, 15/255, 26/255, 0.85)
-        border.color: Qt.rgba(16/255, 124/255, 65/255, 0.3)
+        border.color: Qt.rgba(16/255, 124/255, 65/255, 0.4)
         border.width: 1
         visible: XboxAuth.isLoggedIn
         z: 10
@@ -105,7 +120,7 @@ Pane {
                 Layout.preferredHeight: 38
                 Layout.preferredWidth: profileRow.implicitWidth + 24
                 radius: 19
-                color: Qt.rgba(16/255, 124/255, 65/255, 0.15)
+                color: Qt.rgba(16/255, 124/255, 65/255, 0.2)
                 border.color: "#107C10"
                 border.width: 1
 
@@ -118,7 +133,7 @@ Pane {
                         width: 12
                         height: 12
                         radius: 6
-                        color: "#107C10"
+                        color: "#4ADE80"
                     }
 
                     Text {
@@ -133,22 +148,54 @@ Pane {
             Item { Layout.fillWidth: true }
 
             // Refresh Consoles button
-            C.Button {
+            Button {
                 text: qsTr("Refresh")
                 Layout.preferredHeight: 36
+                Layout.preferredWidth: 90
+                background: Rectangle {
+                    radius: 8
+                    color: parent.hovered ? Qt.rgba(255, 255, 255, 0.12) : Qt.rgba(255, 255, 255, 0.06)
+                    border.color: parent.activeFocus ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.2)
+                    border.width: 1
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: "#FFFFFF"
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
                 onClicked: XboxAuth.fetchConsoles()
             }
 
             // Sign Out button
-            C.Button {
+            Button {
                 text: qsTr("Sign Out")
                 Layout.preferredHeight: 36
+                Layout.preferredWidth: 90
+                background: Rectangle {
+                    radius: 8
+                    color: parent.hovered ? Qt.rgba(239, 68, 68, 0.2) : Qt.rgba(255, 255, 255, 0.06)
+                    border.color: parent.hovered ? "#EF4444" : Qt.rgba(255, 255, 255, 0.2)
+                    border.width: 1
+                }
+                contentItem: Text {
+                    text: parent.text
+                    color: parent.hovered ? "#EF4444" : "#FFFFFF"
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
                 onClicked: XboxAuth.logout()
             }
         }
     }
 
-    // Scrollable container for logged-in view
+    // ----------------------------------------------------
+    // LOGGED IN SCROLL VIEW (Consoles + xCloud)
+    // ----------------------------------------------------
     ScrollView {
         id: loggedInScrollView
         anchors {
@@ -176,7 +223,7 @@ Pane {
             // Section 1: My Consoles (xHome)
             Text {
                 text: qsTr("My Xbox Consoles")
-                color: "#107C10"
+                color: "#4ADE80"
                 font.pixelSize: 20
                 font.weight: Font.Bold
             }
@@ -205,14 +252,14 @@ Pane {
                             width: 56
                             height: 56
                             radius: 10
-                            color: Qt.rgba(16/255, 124/255, 65/255, 0.2)
+                            color: Qt.rgba(16/255, 124/255, 65/255, 0.25)
                             border.color: "#107C10"
                             border.width: 1
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "X"
-                                color: "#107C10"
+                                color: "#4ADE80"
                                 font.pixelSize: 28
                                 font.weight: Font.Black
                             }
@@ -237,7 +284,7 @@ Pane {
                                     width: 8
                                     height: 8
                                     radius: 4
-                                    color: modelData.powerState === "On" ? "#107C10" :
+                                    color: modelData.powerState === "On" ? "#4ADE80" :
                                            (modelData.powerState === "ConnectedStandby" ? "#F59E0B" : "#6B7280")
                                 }
 
@@ -261,18 +308,48 @@ Pane {
                             spacing: 12
 
                             // Wake up button (if in standby)
-                            C.Button {
+                            Button {
                                 text: qsTr("Wake Up")
                                 visible: modelData.powerState === "ConnectedStandby"
                                 Layout.preferredHeight: 40
+                                Layout.preferredWidth: 95
+                                background: Rectangle {
+                                    radius: 8
+                                    color: parent.hovered ? Qt.rgba(245/255, 158/255, 11/255, 0.2) : Qt.rgba(255, 255, 255, 0.08)
+                                    border.color: "#F59E0B"
+                                    border.width: 1
+                                }
+                                contentItem: Text {
+                                    text: parent.text
+                                    color: "#F59E0B"
+                                    font.pixelSize: 13
+                                    font.weight: Font.DemiBold
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
                                 onClicked: XboxAuth.wakeConsole(modelData.id)
                             }
 
                             // Turn Off button (if On)
-                            C.Button {
+                            Button {
                                 text: qsTr("Turn Off")
                                 visible: modelData.powerState === "On"
                                 Layout.preferredHeight: 40
+                                Layout.preferredWidth: 95
+                                background: Rectangle {
+                                    radius: 8
+                                    color: parent.hovered ? Qt.rgba(239/255, 68/255, 68/255, 0.2) : Qt.rgba(255, 255, 255, 0.08)
+                                    border.color: Qt.rgba(255, 255, 255, 0.25)
+                                    border.width: 1
+                                }
+                                contentItem: Text {
+                                    text: parent.text
+                                    color: parent.hovered ? "#EF4444" : "#FFFFFF"
+                                    font.pixelSize: 13
+                                    font.weight: Font.DemiBold
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
                                 onClicked: XboxAuth.turnOffConsole(modelData.id)
                             }
 
@@ -283,7 +360,7 @@ Pane {
                                 Layout.preferredWidth: 110
                                 background: Rectangle {
                                     radius: 8
-                                    color: "#107C10"
+                                    color: parent.hovered ? "#169B14" : "#107C10"
                                 }
                                 contentItem: Text {
                                     text: parent.text
@@ -338,7 +415,7 @@ Pane {
             // Section 2: Cloud Gaming (xCloud)
             Text {
                 text: qsTr("Xbox Cloud Gaming (xCloud)")
-                color: "#107C10"
+                color: "#4ADE80"
                 font.pixelSize: 20
                 font.weight: Font.Bold
             }
@@ -378,7 +455,7 @@ Pane {
                             background: Rectangle {
                                 radius: 8
                                 color: Qt.rgba(255, 255, 255, 0.08)
-                                border.color: cloudTitleInput.activeFocus ? "#107C10" : Qt.rgba(255, 255, 255, 0.15)
+                                border.color: cloudTitleInput.activeFocus ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.15)
                                 border.width: 1
                             }
                         }
@@ -389,7 +466,7 @@ Pane {
                             Layout.preferredWidth: 140
                             background: Rectangle {
                                 radius: 8
-                                color: "#107C10"
+                                color: parent.hovered ? "#169B14" : "#107C10"
                             }
                             contentItem: Text {
                                 text: parent.text
@@ -418,35 +495,44 @@ Pane {
         }
     }
 
-    // Not logged in view: Welcome card OR Device Code Login card
+    // ----------------------------------------------------
+    // NOT LOGGED IN VIEW (Welcome Card or Device Code Dialog)
+    // ----------------------------------------------------
     Rectangle {
+        id: authCard
         anchors.centerIn: parent
-        width: Math.min(540, parent.width - 40)
-        height: root.isLoggingIn ? 480 : 320
+        width: Math.min(500, parent.width - 40)
+        implicitHeight: authContentCol.implicitHeight + 56
+        height: implicitHeight
         radius: 16
-        color: Qt.rgba(17/255, 24/255, 39/255, 0.95)
+        color: Qt.rgba(17/255, 24/255, 39/255, 0.96)
         border.color: "#107C10"
         border.width: 1.5
         visible: !XboxAuth.isLoggedIn
 
         ColumnLayout {
+            id: authContentCol
             anchors {
-                fill: parent
-                margins: 32
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: 28
             }
-            spacing: 16
+            spacing: 20
 
-            // State A: Welcome card
+            // ------------------------------------------------
+            // State A: Welcome Card
+            // ------------------------------------------------
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 16
+                spacing: 18
                 visible: !root.isLoggingIn
 
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    width: 64
-                    height: 64
-                    radius: 32
+                    width: 72
+                    height: 72
+                    radius: 36
                     color: Qt.rgba(16/255, 124/255, 65/255, 0.25)
                     border.color: "#107C10"
                     border.width: 2
@@ -454,8 +540,8 @@ Pane {
                     Text {
                         anchors.centerIn: parent
                         text: "X"
-                        color: "#107C10"
-                        font.pixelSize: 36
+                        color: "#4ADE80"
+                        font.pixelSize: 40
                         font.weight: Font.Black
                     }
                 }
@@ -464,7 +550,7 @@ Pane {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Xbox Streaming")
                     color: "#FFFFFF"
-                    font.pixelSize: 24
+                    font.pixelSize: 26
                     font.weight: Font.Bold
                 }
 
@@ -472,10 +558,11 @@ Pane {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     text: qsTr("Stream games from your Xbox Series X|S, Xbox One, or Xbox Cloud Gaming directly to AstraPlay with low-latency WebRTC and native controller input.")
-                    color: Qt.rgba(255, 255, 255, 0.7)
+                    color: Qt.rgba(255, 255, 255, 0.75)
                     font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
+                    lineHeight: 1.3
                 }
 
                 Item { Layout.preferredHeight: 8 }
@@ -483,10 +570,10 @@ Pane {
                 Button {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: 260
-                    Layout.preferredHeight: 46
+                    Layout.preferredHeight: 48
                     background: Rectangle {
                         radius: 10
-                        color: "#107C10"
+                        color: parent.hovered ? "#169B14" : "#107C10"
                     }
                     contentItem: Text {
                         text: qsTr("Sign In with Xbox")
@@ -502,82 +589,154 @@ Pane {
                 }
             }
 
+            // ------------------------------------------------
             // State B: Device Code Login in progress
+            // ------------------------------------------------
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 14
+                spacing: 18
                 visible: root.isLoggingIn
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     text: qsTr("Device Code Login")
                     color: "#FFFFFF"
-                    font.pixelSize: 22
+                    font.pixelSize: 24
                     font.weight: Font.Bold
                 }
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
-                    text: qsTr("Scan the QR code or go to %1 and enter the code:").arg(root.verificationUri.length > 0 ? root.verificationUri : "microsoft.com/link")
-                    color: Qt.rgba(255, 255, 255, 0.7)
-                    font.pixelSize: 13
+                    text: qsTr("Scan the QR code or visit <font color='#4ADE80'><b>%1</b></font> and enter:").arg(
+                        root.verificationUri.length > 0 ? root.verificationUri.replace(/^https?:\/\//, "") : "microsoft.com/link"
+                    )
+                    textFormat: Text.RichText
+                    color: Qt.rgba(255, 255, 255, 0.8)
+                    font.pixelSize: 14
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                 }
 
-                // Code box
+                // Generously-sized Code Box with generous padding and internal copy action
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 260
-                    Layout.preferredHeight: 52
-                    radius: 8
-                    color: Qt.rgba(0, 0, 0, 0.4)
+                    Layout.preferredWidth: Math.min(380, parent.width)
+                    Layout.preferredHeight: 60
+                    radius: 12
+                    color: Qt.rgba(0, 0, 0, 0.5)
                     border.color: "#107C10"
-                    border.width: 1
+                    border.width: 1.5
 
                     RowLayout {
-                        anchors.centerIn: parent
+                        anchors.fill: parent
+                        anchors.leftMargin: 20
+                        anchors.rightMargin: 12
                         spacing: 12
 
                         Text {
-                            text: root.userCode
+                            Layout.fillWidth: true
+                            text: root.formatUserCode(root.userCode)
                             color: "#FFFFFF"
-                            font.pixelSize: 24
+                            font.pixelSize: 22
                             font.weight: Font.Black
-                            font.letterSpacing: 4
-                            font.family: "Monospace"
+                            font.letterSpacing: 2
+                            font.family: "Menlo, Monaco, 'Courier New', monospace"
+                            verticalAlignment: Text.AlignVCenter
                         }
 
-                        C.Button {
-                            text: qsTr("Copy")
-                            Layout.preferredHeight: 32
-                            onClicked: AstraPlay.setClipboardText(root.userCode)
+                        Button {
+                            Layout.preferredWidth: 78
+                            Layout.preferredHeight: 36
+                            background: Rectangle {
+                                radius: 8
+                                color: root.codeCopied ? "#107C10" : (parent.hovered ? Qt.rgba(255, 255, 255, 0.18) : Qt.rgba(255, 255, 255, 0.08))
+                                border.color: root.codeCopied ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.3)
+                                border.width: 1
+                            }
+                            contentItem: Text {
+                                text: root.codeCopied ? qsTr("Copied!") : qsTr("Copy")
+                                color: root.codeCopied ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.9)
+                                font.pixelSize: 12
+                                font.weight: Font.DemiBold
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            onClicked: {
+                                AstraPlay.setClipboardText(root.userCode);
+                                root.codeCopied = true;
+                                copiedResetTimer.restart();
+                            }
                         }
                     }
                 }
 
-                // QR Code
-                Image {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 160
-                    Layout.preferredHeight: 160
-                    source: root.verificationUri.length > 0 ? AstraPlay.getQRCodeDataUrl(root.verificationUri, 180) : ""
-                    fillMode: Image.PreserveAspectFit
+                Timer {
+                    id: copiedResetTimer
+                    interval: 2000
+                    onTriggered: root.codeCopied = false
                 }
 
-                Text {
+                // Framed QR Code with rounded white padding and subtle Xbox border
+                Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.loginStatusMessage
-                    color: "#107C10"
-                    font.pixelSize: 13
+                    width: 190
+                    height: 190
+                    radius: 14
+                    color: "#FFFFFF"
+                    border.color: "#107C10"
+                    border.width: 2.5
+
+                    Image {
+                        anchors.centerIn: parent
+                        width: 170
+                        height: 170
+                        source: root.verificationUri.length > 0 ? AstraPlay.getQRCodeDataUrl(root.verificationUri, 200) : ""
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
                 }
 
-                C.Button {
+                // Status row with spinner and crisp green text
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: 10
+
+                    BusyIndicator {
+                        Layout.preferredWidth: 22
+                        Layout.preferredHeight: 22
+                        running: root.isLoggingIn
+                    }
+
+                    Text {
+                        text: root.loginStatusMessage.length > 0 ? root.loginStatusMessage : qsTr("Waiting for authentication approval...")
+                        color: "#4ADE80"
+                        font.pixelSize: 13
+                        font.weight: Font.Medium
+                    }
+                }
+
+                Item { Layout.preferredHeight: 4 }
+
+                // Cancel button
+                Button {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: 160
-                    Layout.preferredHeight: 36
-                    text: qsTr("Cancel")
+                    Layout.preferredHeight: 40
+                    background: Rectangle {
+                        radius: 8
+                        color: parent.hovered ? Qt.rgba(255, 255, 255, 0.12) : Qt.rgba(255, 255, 255, 0.05)
+                        border.color: Qt.rgba(255, 255, 255, 0.3)
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: qsTr("Cancel")
+                        color: "#FFFFFF"
+                        font.pixelSize: 14
+                        font.weight: Font.Medium
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
                     onClicked: {
                         XboxAuth.cancelLogin();
                         root.isLoggingIn = false;
