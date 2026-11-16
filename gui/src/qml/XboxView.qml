@@ -22,6 +22,13 @@ Pane {
     property string loginStatusMessage: ""
     property bool codeCopied: false
 
+    // Navigation and Catalog properties
+    property int currentSection: 0 // 0: Cloud Gaming, 1: My Consoles
+    property string searchQuery: ""
+    property string selectedCategory: "All"
+    property var filteredGames: []
+    readonly property var categoryList: ["All", "Action & adventure", "Shooter", "Role playing", "Sports", "Family & kids", "Racing & flying", "Strategy"]
+
     function formatUserCode(code) {
         if (!code || code.length === 0) return "";
         let clean = code.replace(/[^A-Za-z0-9]/g, "");
@@ -29,6 +36,66 @@ Pane {
             return clean.substring(0, 4) + " - " + clean.substring(4);
         }
         return code;
+    }
+
+    function applyFilter() {
+        let titles = XboxAuth.cloudTitles;
+        if (!titles || titles.length === 0) {
+            filteredGames = [];
+            return;
+        }
+        let query = searchQuery.trim().toLowerCase();
+        let hasQuery = query.length > 0;
+        let filterCat = selectedCategory !== "All";
+
+        if (!hasQuery && !filterCat) {
+            filteredGames = titles;
+            return;
+        }
+
+        let res = [];
+        for (let i = 0; i < titles.length; ++i) {
+            let g = titles[i];
+            if (filterCat) {
+                let catMatch = false;
+                if (g.categories) {
+                    for (let c = 0; c < g.categories.length; ++c) {
+                        if (g.categories[c] === selectedCategory) {
+                            catMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!catMatch) continue;
+            }
+
+            if (hasQuery) {
+                let name = g.name ? g.name.toLowerCase() : "";
+                let dev = g.developer ? g.developer.toLowerCase() : "";
+                let tid = g.titleId ? g.titleId.toLowerCase() : "";
+                if (name.indexOf(query) === -1 && dev.indexOf(query) === -1 && tid.indexOf(query) === -1) {
+                    continue;
+                }
+            }
+            res.push(g);
+        }
+        filteredGames = res;
+    }
+
+    function refreshAll() {
+        XboxAuth.fetchConsoles();
+        XboxAuth.fetchCloudTitles();
+    }
+
+    function launchGame(titleId, gameName) {
+        let mainComp = root;
+        while (mainComp && !mainComp.showStreamView) {
+            mainComp = mainComp.parent;
+        }
+        if (mainComp && mainComp.showStreamView) {
+            mainComp.showStreamView();
+        }
+        AstraPlay.startXboxStream("", titleId, gameName);
     }
 
     // Clean blue background matching AstraPlay theme
@@ -39,6 +106,10 @@ Pane {
 
     Connections {
         target: XboxAuth
+
+        function onCloudTitlesUpdated() {
+            root.applyFilter();
+        }
 
         function onDeviceCodeReceived(code, uri, qr, expires) {
             root.isLoggingIn = true;
@@ -54,7 +125,7 @@ Pane {
             root.isLoggingIn = false;
             root.loginStatusMessage = "";
             root.codeCopied = false;
-            XboxAuth.fetchConsoles();
+            root.refreshAll();
         }
 
         function onAuthFailed(errorMessage) {
@@ -79,14 +150,18 @@ Pane {
     }
 
     Component.onCompleted: {
+        root.applyFilter();
         if (XboxAuth.isLoggedIn) {
-            XboxAuth.fetchConsoles();
+            root.refreshAll();
         }
     }
 
     onVisibleChanged: {
-        if (visible && XboxAuth.isLoggedIn) {
-            XboxAuth.fetchConsoles();
+        if (visible) {
+            root.applyFilter();
+            if (XboxAuth.isLoggedIn) {
+                root.refreshAll();
+            }
         }
     }
 
@@ -145,9 +220,69 @@ Pane {
                 }
             }
 
+            // Sub-navigation Section Tabs: Cloud Gaming | My Consoles
+            RowLayout {
+                spacing: 8
+                Layout.leftMargin: 12
+
+                // Cloud Gaming Tab
+                Rectangle {
+                    Layout.preferredHeight: 36
+                    Layout.preferredWidth: cloudTabLabel.implicitWidth + 24
+                    radius: 8
+                    color: root.currentSection === 0 ? "#107C10" : (cloudTabMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.1) : "transparent")
+                    border.color: root.currentSection === 0 ? "#4ADE80" : "transparent"
+                    border.width: 1
+
+                    Text {
+                        id: cloudTabLabel
+                        anchors.centerIn: parent
+                        text: qsTr("Cloud Gaming") + (XboxAuth.cloudTitles.length > 0 ? (" (" + XboxAuth.cloudTitles.length + ")") : "")
+                        color: root.currentSection === 0 ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.75)
+                        font.pixelSize: 13
+                        font.weight: root.currentSection === 0 ? Font.Bold : Font.Medium
+                    }
+
+                    MouseArea {
+                        id: cloudTabMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.currentSection = 0
+                    }
+                }
+
+                // Consoles Tab
+                Rectangle {
+                    Layout.preferredHeight: 36
+                    Layout.preferredWidth: consoleTabLabel.implicitWidth + 24
+                    radius: 8
+                    color: root.currentSection === 1 ? "#107C10" : (consoleTabMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.1) : "transparent")
+                    border.color: root.currentSection === 1 ? "#4ADE80" : "transparent"
+                    border.width: 1
+
+                    Text {
+                        id: consoleTabLabel
+                        anchors.centerIn: parent
+                        text: qsTr("My Consoles") + (XboxAuth.consoles.length > 0 ? (" (" + XboxAuth.consoles.length + ")") : "")
+                        color: root.currentSection === 1 ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.75)
+                        font.pixelSize: 13
+                        font.weight: root.currentSection === 1 ? Font.Bold : Font.Medium
+                    }
+
+                    MouseArea {
+                        id: consoleTabMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.currentSection = 1
+                    }
+                }
+            }
+
             Item { Layout.fillWidth: true }
 
-            // Refresh Consoles button
+            // Refresh button
             Button {
                 text: qsTr("Refresh")
                 Layout.preferredHeight: 36
@@ -166,7 +301,7 @@ Pane {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
-                onClicked: XboxAuth.fetchConsoles()
+                onClicked: root.refreshAll()
             }
 
             // Sign Out button
@@ -194,10 +329,10 @@ Pane {
     }
 
     // ----------------------------------------------------
-    // LOGGED IN SCROLL VIEW (Consoles + xCloud)
+    // SECTION 0: XBOX CLOUD GAMING CATALOG VIEW
     // ----------------------------------------------------
-    ScrollView {
-        id: loggedInScrollView
+    Item {
+        id: cloudSectionContainer
         anchors {
             top: xboxHeaderBar.bottom
             left: parent.left
@@ -205,7 +340,319 @@ Pane {
             bottom: parent.bottom
             margins: 20
         }
-        visible: XboxAuth.isLoggedIn
+        visible: XboxAuth.isLoggedIn && root.currentSection === 0
+
+        // Search and Filters Bar
+        ColumnLayout {
+            id: searchControlsCol
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+            }
+            spacing: 12
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 14
+
+                // Search field
+                TextField {
+                    id: searchInput
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 44
+                    placeholderText: qsTr("Search Xbox Cloud games (e.g. Cricket 24, Halo, Forza)...")
+                    color: "#FFFFFF"
+                    font.pixelSize: 14
+
+                    background: Rectangle {
+                        radius: 10
+                        color: Qt.rgba(17/255, 24/255, 39/255, 0.85)
+                        border.color: searchInput.activeFocus ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.15)
+                        border.width: 1.5
+                    }
+
+                    onTextChanged: {
+                        root.searchQuery = text;
+                        root.applyFilter();
+                    }
+
+                    // Clear button
+                    Rectangle {
+                        anchors {
+                            right: parent.right
+                            rightMargin: 10
+                            verticalCenter: parent.verticalCenter
+                        }
+                        width: 24
+                        height: 24
+                        radius: 12
+                        color: Qt.rgba(255, 255, 255, 0.15)
+                        visible: searchInput.text.length > 0
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "×"
+                            color: "#FFFFFF"
+                            font.pixelSize: 16
+                            font.weight: Font.Bold
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                searchInput.text = "";
+                                root.searchQuery = "";
+                                root.applyFilter();
+                            }
+                        }
+                    }
+                }
+
+                // Sync indicator / Count badge
+                Rectangle {
+                    Layout.preferredHeight: 44
+                    Layout.preferredWidth: countRow.implicitWidth + 24
+                    radius: 10
+                    color: Qt.rgba(17/255, 24/255, 39/255, 0.85)
+                    border.color: Qt.rgba(16/255, 124/255, 65/255, 0.4)
+                    border.width: 1
+
+                    RowLayout {
+                        id: countRow
+                        anchors.centerIn: parent
+                        spacing: 8
+
+                        BusyIndicator {
+                            Layout.preferredWidth: 18
+                            Layout.preferredHeight: 18
+                            running: XboxAuth.isFetchingTitles
+                            visible: running
+                        }
+
+                        Text {
+                            text: XboxAuth.isFetchingTitles ? qsTr("Syncing...") : qsTr("%1 games").arg(root.filteredGames.length)
+                            color: "#4ADE80"
+                            font.pixelSize: 13
+                            font.weight: Font.DemiBold
+                        }
+                    }
+                }
+            }
+
+            // Category filter chips
+            Flickable {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 34
+                contentWidth: categoryRow.implicitWidth
+                flickableDirection: Flickable.HorizontalFlick
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+
+                RowLayout {
+                    id: categoryRow
+                    spacing: 8
+
+                    Repeater {
+                        model: root.categoryList
+
+                        Rectangle {
+                            Layout.preferredHeight: 32
+                            Layout.preferredWidth: chipText.implicitWidth + 20
+                            radius: 16
+                            color: root.selectedCategory === modelData ? "#107C10" : (chipMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.12) : Qt.rgba(255, 255, 255, 0.05))
+                            border.color: root.selectedCategory === modelData ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.15)
+                            border.width: 1
+
+                            Text {
+                                id: chipText
+                                anchors.centerIn: parent
+                                text: modelData
+                                color: root.selectedCategory === modelData ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.75)
+                                font.pixelSize: 12
+                                font.weight: root.selectedCategory === modelData ? Font.Bold : Font.Normal
+                            }
+
+                            MouseArea {
+                                id: chipMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    root.selectedCategory = modelData;
+                                    root.applyFilter();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Direct Title ID Launch Compact Bar
+        Rectangle {
+            id: directLaunchBar
+            anchors {
+                left: parent.left
+                right: parent.right
+                bottom: parent.bottom
+            }
+            height: 48
+            radius: 10
+            color: Qt.rgba(17/255, 24/255, 39/255, 0.8)
+            border.color: Qt.rgba(255, 255, 255, 0.1)
+            border.width: 1
+
+            RowLayout {
+                anchors {
+                    fill: parent
+                    leftMargin: 14
+                    rightMargin: 14
+                }
+                spacing: 12
+
+                Text {
+                    text: qsTr("Direct Title ID:")
+                    color: Qt.rgba(255, 255, 255, 0.6)
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                }
+
+                TextField {
+                    id: directTitleInput
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 34
+                    placeholderText: qsTr("e.g. CRICKET26THEOFFICIALGAMEOFTHEASHES")
+                    color: "#FFFFFF"
+                    font.pixelSize: 12
+                    background: Rectangle {
+                        radius: 6
+                        color: Qt.rgba(255, 255, 255, 0.06)
+                        border.color: directTitleInput.activeFocus ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.12)
+                        border.width: 1
+                    }
+                }
+
+                Button {
+                    text: qsTr("Launch ID")
+                    Layout.preferredHeight: 34
+                    Layout.preferredWidth: 100
+                    background: Rectangle {
+                        radius: 6
+                        color: parent.hovered ? "#169B14" : "#107C10"
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#FFFFFF"
+                        font.pixelSize: 12
+                        font.weight: Font.Bold
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    onClicked: {
+                        let t = directTitleInput.text.trim();
+                        if (t.length > 0) {
+                            root.launchGame(t, t);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Grid View of Xbox Cloud Games
+        GridView {
+            id: gamesGrid
+            anchors {
+                top: searchControlsCol.bottom
+                topMargin: 14
+                left: parent.left
+                right: parent.right
+                bottom: directLaunchBar.top
+                bottomMargin: 14
+            }
+            cellWidth: 195
+            cellHeight: 275
+            clip: true
+            focus: true
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.vertical: ScrollBar {
+                width: 8
+                policy: ScrollBar.AsNeeded
+                background: Rectangle { color: Qt.rgba(255, 255, 255, 0.08); radius: 4 }
+                contentItem: Rectangle { radius: 4; color: "#107C10"; opacity: 0.8 }
+            }
+
+            model: root.filteredGames
+
+            delegate: XboxGameCard {
+                width: gamesGrid.cellWidth - 15
+                height: gamesGrid.cellHeight - 15
+                gameData: modelData
+                onStreamGame: (titleId, gameName) => root.launchGame(titleId, gameName)
+            }
+        }
+
+        // Empty state message when filteredGames is empty
+        Rectangle {
+            anchors.centerIn: gamesGrid
+            width: 380
+            height: 140
+            radius: 12
+            color: Qt.rgba(17/255, 24/255, 39/255, 0.9)
+            border.color: Qt.rgba(255, 255, 255, 0.1)
+            border.width: 1
+            visible: root.filteredGames.length === 0
+
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 12
+
+                Text {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: root.searchQuery.length > 0 ? qsTr("No games match '%1'").arg(root.searchQuery) : qsTr("No games found in catalog")
+                    color: "#FFFFFF"
+                    font.pixelSize: 15
+                    font.weight: Font.Medium
+                }
+
+                Button {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: qsTr("Refresh Catalog")
+                    Layout.preferredHeight: 36
+                    Layout.preferredWidth: 140
+                    background: Rectangle {
+                        radius: 8
+                        color: parent.hovered ? "#169B14" : "#107C10"
+                    }
+                    contentItem: Text {
+                        text: parent.text
+                        color: "#FFFFFF"
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    onClicked: XboxAuth.fetchCloudTitles()
+                }
+            }
+        }
+    }
+
+    // ----------------------------------------------------
+    // SECTION 1: MY XBOX CONSOLES VIEW
+    // ----------------------------------------------------
+    ScrollView {
+        id: consolesScrollView
+        anchors {
+            top: xboxHeaderBar.bottom
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+            margins: 20
+        }
+        visible: XboxAuth.isLoggedIn && root.currentSection === 1
         clip: true
 
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -217,12 +664,11 @@ Pane {
         }
 
         ColumnLayout {
-            width: loggedInScrollView.width - 20
+            width: consolesScrollView.width - 20
             spacing: 24
 
-            // Section 1: My Consoles (xHome)
             Text {
-                text: qsTr("My Xbox Consoles")
+                text: qsTr("Discovered Xbox Consoles")
                 color: "#4ADE80"
                 font.pixelSize: 20
                 font.weight: Font.Bold
@@ -247,7 +693,6 @@ Pane {
                         }
                         spacing: 20
 
-                        // Console icon placeholder
                         Rectangle {
                             width: 56
                             height: 56
@@ -265,7 +710,6 @@ Pane {
                             }
                         }
 
-                        // Info column
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 4
@@ -303,11 +747,9 @@ Pane {
                             }
                         }
 
-                        // Action buttons
                         RowLayout {
                             spacing: 12
 
-                            // Wake up button (if in standby)
                             Button {
                                 text: qsTr("Wake Up")
                                 visible: modelData.powerState === "ConnectedStandby"
@@ -330,7 +772,6 @@ Pane {
                                 onClicked: XboxAuth.wakeConsole(modelData.id)
                             }
 
-                            // Turn Off button (if On)
                             Button {
                                 text: qsTr("Turn Off")
                                 visible: modelData.powerState === "On"
@@ -353,7 +794,6 @@ Pane {
                                 onClicked: XboxAuth.turnOffConsole(modelData.id)
                             }
 
-                            // Stream button
                             Button {
                                 text: qsTr("Stream")
                                 Layout.preferredHeight: 40
@@ -409,89 +849,6 @@ Pane {
                     }
                 }
             }
-
-            Item { Layout.preferredHeight: 12 }
-
-            // Section 2: Cloud Gaming (xCloud)
-            Text {
-                text: qsTr("Xbox Cloud Gaming (xCloud)")
-                color: "#4ADE80"
-                font.pixelSize: 20
-                font.weight: Font.Bold
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 140
-                radius: 12
-                color: Qt.rgba(17/255, 24/255, 39/255, 0.85)
-                border.color: Qt.rgba(16/255, 124/255, 65/255, 0.4)
-                border.width: 1
-
-                ColumnLayout {
-                    anchors {
-                        fill: parent
-                        margins: 16
-                    }
-                    spacing: 12
-
-                    Text {
-                        text: qsTr("Direct Cloud Game Launch")
-                        color: "#FFFFFF"
-                        font.pixelSize: 16
-                        font.weight: Font.DemiBold
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 12
-
-                        TextField {
-                            id: cloudTitleInput
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 42
-                            placeholderText: qsTr("Enter Xbox Title ID (or game title, e.g. Cricket 24)...")
-                            color: "#FFFFFF"
-                            background: Rectangle {
-                                radius: 8
-                                color: Qt.rgba(255, 255, 255, 0.08)
-                                border.color: cloudTitleInput.activeFocus ? "#4ADE80" : Qt.rgba(255, 255, 255, 0.15)
-                                border.width: 1
-                            }
-                        }
-
-                        Button {
-                            text: qsTr("Stream Game")
-                            Layout.preferredHeight: 42
-                            Layout.preferredWidth: 140
-                            background: Rectangle {
-                                radius: 8
-                                color: parent.hovered ? "#169B14" : "#107C10"
-                            }
-                            contentItem: Text {
-                                text: parent.text
-                                color: "#FFFFFF"
-                                font.pixelSize: 14
-                                font.weight: Font.Bold
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                            }
-                            onClicked: {
-                                let title = cloudTitleInput.text.trim();
-                                if (title.length > 0) {
-                                    AstraPlay.startXboxStream("", title, title);
-                                }
-                            }
-                        }
-                    }
-
-                    Text {
-                        text: qsTr("Streams games directly from Xbox Cloud Gaming servers using WebRTC.")
-                        color: Qt.rgba(255, 255, 255, 0.5)
-                        font.pixelSize: 12
-                    }
-                }
-            }
         }
     }
 
@@ -520,9 +877,7 @@ Pane {
             }
             spacing: 20
 
-            // ------------------------------------------------
             // State A: Welcome Card
-            // ------------------------------------------------
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 18
@@ -589,9 +944,7 @@ Pane {
                 }
             }
 
-            // ------------------------------------------------
             // State B: Device Code Login in progress
-            // ------------------------------------------------
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 18
@@ -618,7 +971,7 @@ Pane {
                     wrapMode: Text.WordWrap
                 }
 
-                // Generously-sized Code Box with generous padding and internal copy action
+                // Generously-sized Code Box with internal copy action
                 Rectangle {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: Math.min(380, parent.width)

@@ -28,6 +28,8 @@ class XboxAuthManager : public QObject
     Q_PROPERTY(QString gamertag READ getGamertag NOTIFY loggedInChanged)
     Q_PROPERTY(QString userHash READ getUserHash NOTIFY loggedInChanged)
     Q_PROPERTY(QJsonArray consoles READ getConsolesJson NOTIFY consolesUpdated)
+    Q_PROPERTY(QJsonArray cloudTitles READ getCloudTitlesJson NOTIFY cloudTitlesUpdated)
+    Q_PROPERTY(bool isFetchingTitles READ isFetchingTitles NOTIFY isFetchingTitlesChanged)
 
 public:
     static XboxAuthManager *instance();
@@ -41,6 +43,8 @@ public:
     QString getWebToken() const { return m_webToken; }
     QString getRefreshToken() const { return m_refreshToken; }
     QJsonArray getConsolesJson() const;
+    QJsonArray getCloudTitlesJson() const { return m_cloudTitles; }
+    bool isFetchingTitles() const { return m_isFetchingTitles; }
 
     // Device code authentication flow
     Q_INVOKABLE void startDeviceCodeLogin();
@@ -56,6 +60,9 @@ public:
     Q_INVOKABLE void wakeConsole(const QString &consoleId);
     Q_INVOKABLE void turnOffConsole(const QString &consoleId);
 
+    // Xbox Cloud Gaming catalog
+    Q_INVOKABLE void fetchCloudTitles();
+
     // Get streaming token for a specific offering ("xhome", "xgpuweb")
     void getStreamingToken(const QString &offeringId, std::function<void(bool success, const QString &token, const QString &host)> callback);
 
@@ -67,6 +74,8 @@ signals:
     void loginCancelled();
     void loggedOut();
     void consolesUpdated(const QJsonArray &consoles);
+    void cloudTitlesUpdated(const QJsonArray &titles);
+    void isFetchingTitlesChanged(bool isFetching);
 
 private slots:
     void onDeviceCodePollTimer();
@@ -95,6 +104,13 @@ private:
 
     // Discovered consoles
     QJsonArray m_consoles;
+
+    // Cloud titles catalog
+    QJsonArray m_cloudTitles;
+    bool m_isFetchingTitles = false;
+    void loadCachedCatalog();
+    void saveCachedCatalog();
+    void hydrateCloudCatalog(const QStringList &ids, int offset);
 
     // Internal request helpers
     void exchangeAccessToken(const QString &accessToken, const QString &refreshToken);

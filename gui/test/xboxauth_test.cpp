@@ -230,6 +230,8 @@ void XboxAuthTest::testXboxAuthManagerInitialState()
     QVERIFY(auth->getGamertag().isEmpty());
     QVERIFY(auth->getUserHash().isEmpty());
     QVERIFY(auth->getConsolesJson().isEmpty());
+    QVERIFY(!auth->getCloudTitlesJson().isEmpty());
+    qDebug() << "Initial cached cloud titles count:" << auth->getCloudTitlesJson().size();
 }
 
 void XboxAuthTest::testLiveDeviceCodeFlow()
@@ -286,9 +288,11 @@ void XboxAuthTest::testXboxViewQml()
     QObject *rootObj = component.create();
     QVERIFY(rootObj != nullptr);
 
-    // Initial state: not logged in, not in login flow
+    // Initial state: not logged in, not in login flow, games populated from catalog
     QCOMPARE(rootObj->property("isLoggingIn").toBool(), false);
     QCOMPARE(rootObj->property("userCode").toString(), QString());
+    QVERIFY(rootObj->property("filteredGames").toList().size() > 0);
+    qDebug() << "XboxView QML loaded with games count:" << rootObj->property("filteredGames").toList().size();
 
     // Trigger device code login
     QSignalSpy spy(auth, &XboxAuthManager::deviceCodeReceived);

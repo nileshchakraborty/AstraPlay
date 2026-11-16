@@ -297,6 +297,7 @@ if(CHIAKI_ENABLE_TESTS)
 		src/xboxauthmanager.cpp
 		include/credentialvault.h
 		src/credentialvault.cpp
+		src/qml/qml.qrc
 	)
 	target_include_directories(chiaki-xbox-auth-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include)
 	target_link_libraries(chiaki-xbox-auth-test PRIVATE Qt::Core Qt::Gui Qt::Qml Qt::Quick Qt::Network Qt::Test chiaki-lib)

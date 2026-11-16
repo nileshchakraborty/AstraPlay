@@ -9,6 +9,9 @@
 #include <QUrlQuery>
 #include <QUuid>
 #include <QDateTime>
+#include <QStandardPaths>
+#include <QFile>
+#include <QDir>
 #include <QDebug>
 
 XboxAuthManager *XboxAuthManager::s_instance = nullptr;
@@ -34,6 +37,8 @@ XboxAuthManager::XboxAuthManager(QObject *parent)
 
     m_pollTimer->setSingleShot(false);
     connect(m_pollTimer, &QTimer::timeout, this, &XboxAuthManager::onDeviceCodePollTimer);
+
+    loadCachedCatalog();
 }
 
 XboxAuthManager::~XboxAuthManager()
@@ -324,6 +329,7 @@ void XboxAuthManager::exchangeXstsTokens()
                     emit authenticated(m_gamertag, m_userHash);
 
                     fetchConsoles();
+                    fetchCloudTitles();
                 } else {
                     emit authFailed(tr("Failed to obtain Xbox GSSV streaming token."));
                 }
@@ -480,4 +486,156 @@ void XboxAuthManager::logout()
     emit loggedInChanged(false);
     emit loggedOut();
     emit consolesUpdated(m_consoles);
+}
+
+void XboxAuthManager::loadCachedCatalog()
+{
+    QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString userCachePath = appDataDir + QStringLiteral("/xcloud_catalog.json");
+
+    QFile file(userCachePath);
+    if (!file.exists()) {
+        file.setFileName(QStringLiteral(":/xcloud_catalog.json"));
+    }
+    if (!file.exists()) {
+        file.setFileName(QStringLiteral("/Users/nileshchakraborty/workspace/astraplay/gui/src/qml/xcloud_catalog.json"));
+    }
+
+    if (file.open(QIODevice::ReadOnly)) {
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+        if (doc.isArray()) {
+            m_cloudTitles = doc.array();
+            emit cloudTitlesUpdated(m_cloudTitles);
+        }
+    }
+}
+
+void XboxAuthManager::saveCachedCatalog()
+{
+    if (m_cloudTitles.isEmpty()) return;
+    QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(appDataDir);
+    QString userCachePath = appDataDir + QStringLiteral("/xcloud_catalog.json");
+    QFile file(userCachePath);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(QJsonDocument(m_cloudTitles).toJson(QJsonDocument::Compact));
+    }
+}
+
+void XboxAuthManager::fetchCloudTitles()
+{
+    if (m_isFetchingTitles) return;
+    m_isFetchingTitles = true;
+    emit isFetchingTitlesChanged(true);
+
+    QUrl url(QStringLiteral("https://catalog.gamepass.com/sigls/v2?id=29a81209-df6f-41fd-a528-2ae6b91f719c&language=en-us&market=US"));
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setRawHeader("Accept", "application/json");
+
+    QNetworkReply *reply = m_nam->get(req);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+            if (doc.isArray()) {
+                QJsonArray arr = doc.array();
+                QStringList productIds;
+                for (const QJsonValue &v : arr) {
+                    QString id = v.toObject().value(QStringLiteral("id")).toString();
+                    if (!id.isEmpty()) {
+                        productIds.append(id);
+                    }
+                }
+                if (!productIds.isEmpty()) {
+                    hydrateCloudCatalog(productIds, 0);
+                    return;
+                }
+            }
+        }
+        m_isFetchingTitles = false;
+        emit isFetchingTitlesChanged(false);
+    });
+}
+
+void XboxAuthManager::hydrateCloudCatalog(const QStringList &ids, int offset)
+{
+    if (offset >= ids.size()) {
+        m_isFetchingTitles = false;
+        emit isFetchingTitlesChanged(false);
+        saveCachedCatalog();
+        emit cloudTitlesUpdated(m_cloudTitles);
+        return;
+    }
+
+    int batchSize = 30;
+    QStringList batch;
+    for (int i = offset; i < ids.size() && i < offset + batchSize; ++i) {
+        batch.append(ids[i]);
+    }
+
+    QUrl url(QStringLiteral("https://catalog.gamepass.com/v3/products?hydration=RemoteHighSapphire0&market=US&language=en-us"));
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setRawHeader("Accept", "application/json");
+    req.setRawHeader("ms-cv", "0.0");
+    req.setRawHeader("calling-app-name", "Greenlight");
+    req.setRawHeader("calling-app-version", "3.0.0");
+
+    QJsonObject payload;
+    QJsonArray batchArr;
+    for (const QString &id : batch) {
+        batchArr.append(id);
+    }
+    payload[QStringLiteral("Products")] = batchArr;
+
+    QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+    QNetworkReply *reply = m_nam->post(req, body);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, ids, offset, batchSize]() {
+        reply->deleteLater();
+        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+            QJsonObject products = doc.object().value(QStringLiteral("Products")).toObject();
+            for (auto it = products.begin(); it != products.end(); ++it) {
+                QJsonObject p = it.value().toObject();
+                QString titleId = p.value(QStringLiteral("XCloudTitleId")).toString();
+                if (titleId.isEmpty()) titleId = it.key();
+                QString name = p.value(QStringLiteral("ProductTitle")).toString();
+                if (name.isEmpty()) continue;
+
+                QString poster = p.value(QStringLiteral("Image_Poster")).toObject().value(QStringLiteral("URL")).toString();
+                QString tile = p.value(QStringLiteral("Image_Tile")).toObject().value(QStringLiteral("URL")).toString();
+                QString boxArt = !poster.isEmpty() ? (QStringLiteral("https:") + poster) : (!tile.isEmpty() ? (QStringLiteral("https:") + tile) : QString());
+
+                QJsonArray cats = p.value(QStringLiteral("LocalizedCategories")).toArray();
+                if (cats.isEmpty()) cats = p.value(QStringLiteral("Categories")).toArray();
+
+                QJsonObject entry;
+                entry[QStringLiteral("titleId")] = titleId;
+                entry[QStringLiteral("productId")] = it.key();
+                entry[QStringLiteral("name")] = name;
+                entry[QStringLiteral("boxArt")] = boxArt;
+                entry[QStringLiteral("categories")] = cats;
+                entry[QStringLiteral("developer")] = p.value(QStringLiteral("DeveloperName")).toString();
+                entry[QStringLiteral("publisher")] = p.value(QStringLiteral("PublisherName")).toString();
+                entry[QStringLiteral("description")] = p.value(QStringLiteral("ProductDescriptionShort")).toString();
+
+                bool updated = false;
+                for (int j = 0; j < m_cloudTitles.size(); ++j) {
+                    if (m_cloudTitles[j].toObject().value(QStringLiteral("productId")).toString() == it.key()) {
+                        m_cloudTitles[j] = entry;
+                        updated = true;
+                        break;
+                    }
+                }
+                if (!updated) {
+                    m_cloudTitles.append(entry);
+                }
+            }
+            emit cloudTitlesUpdated(m_cloudTitles);
+        }
+
+        hydrateCloudCatalog(ids, offset + batchSize);
+    });
 }

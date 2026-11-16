@@ -32,6 +32,8 @@
     <file>GameCard.qml</file>
     <file>CloudPlayView.qml</file>
     <file>XboxView.qml</file>
+    <file>XboxGameCard.qml</file>
+    <file>xcloud_catalog.json</file>
     <file>CloudGameCard.qml</file>
     <file>TrophyListDialog.qml</file>
     <file>GameShortcutDialog.qml</file>
