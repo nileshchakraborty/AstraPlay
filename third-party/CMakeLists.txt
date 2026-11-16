@@ -145,7 +145,8 @@ if(ANDROID OR IOS)
 	set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 	set(DISABLE_WERROR ON CACHE BOOL "" FORCE)
 	
-	FetchContent_Declare(
+	include(FetchContent)
+FetchContent_Declare(
 		jsonc
 		GIT_REPOSITORY https://github.com/json-c/json-c.git
 		GIT_TAG json-c-0.17-20230812
@@ -168,7 +169,8 @@ if(ANDROID OR IOS)
 	set(UPNPC_BUILD_SAMPLE OFF CACHE BOOL "" FORCE)
 	set(UPNPC_NO_INSTALL ON CACHE BOOL "" FORCE)
 	
-	FetchContent_Declare(
+	include(FetchContent)
+FetchContent_Declare(
 		miniupnp
 		GIT_REPOSITORY https://github.com/miniupnp/miniupnp.git
 		GIT_TAG miniupnpc_2_2_8
@@ -213,7 +215,8 @@ if(ANDROID OR IOS)
 	set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF CACHE BOOL "" FORCE)
 	set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF CACHE BOOL "" FORCE)
 	
-	FetchContent_Declare(
+	include(FetchContent)
+FetchContent_Declare(
 		opus
 		GIT_REPOSITORY https://github.com/xiph/opus.git
 		GIT_TAG v1.5.2
@@ -238,3 +241,22 @@ if(ANDROID OR IOS)
 	set(Opus_LIBRARIES opus CACHE STRING "opus libraries" FORCE)
 	add_library(Opus::opus ALIAS opus)
 endif()
+
+##################
+# libdatachannel
+##################
+set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
+set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
+set(NO_TESTS ON CACHE BOOL "" FORCE)
+set(USE_OPENSSL ON CACHE BOOL "" FORCE)
+set(PREFER_SYSTEM_LIBSRTP OFF CACHE BOOL "" FORCE)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+
+include(FetchContent)
+FetchContent_Declare(
+    LibDataChannel
+    GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+    GIT_TAG v0.22.4
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(LibDataChannel)

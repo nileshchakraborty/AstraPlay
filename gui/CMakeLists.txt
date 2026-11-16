@@ -52,6 +52,8 @@ set(SOURCE_FILES
 	src/xboxpopsigner.cpp
 	include/xboxauthmanager.h
 	src/xboxauthmanager.cpp
+	include/xboxstreamsession.h
+	src/xboxstreamsession.cpp
 	include/sessionlog.h
 	src/sessionlog.cpp
 	include/settings.h
@@ -154,7 +156,7 @@ add_library(placebo-libav-impl src/libav_impl.c)
 target_link_libraries(placebo-libav-impl PkgConfig::LIBPLACEBO FFMPEG::avcodec FFMPEG::avutil FFMPEG::avformat)
 target_link_libraries(astraplay PkgConfig::LIBPLACEBO placebo-libav-impl)
 
-target_link_libraries(astraplay chiaki-lib)
+target_link_libraries(astraplay chiaki-lib datachannel-static)
 if(CHIAKI_ENABLE_CLI)
 	add_definitions(-DCHIAKI_ENABLE_CLI)
 	target_link_libraries(astraplay chiaki-cli-lib)

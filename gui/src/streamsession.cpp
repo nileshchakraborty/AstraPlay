@@ -2,6 +2,7 @@
 
 #include <streamsession.h>
 #include <playstationstreamsession.h>
+#include <xboxstreamsession.h>
 #include <settings.h>
 #include <sessionlog.h>
 
@@ -114,8 +115,7 @@ StreamSessionConnectInfo::StreamSessionConnectInfo(
 StreamSession *StreamSession::Create(const StreamSessionConnectInfo &connect_info, QObject *parent)
 {
 	if (connect_info.isXbox()) {
-		// Will return XboxStreamSession in Phase 3
-		return nullptr;
+		return new XboxStreamSession(connect_info, parent);
 	}
 	return new PlayStationStreamSession(connect_info, parent);
 }
