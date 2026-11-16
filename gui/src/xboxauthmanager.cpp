@@ -104,6 +104,7 @@ void XboxAuthManager::cancelLogin()
 {
     m_pollTimer->stop();
     m_deviceCode.clear();
+    emit loginCancelled();
 }
 
 void XboxAuthManager::onDeviceCodePollTimer()

@@ -6,6 +6,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
+#include <QQmlEngine>
+#include <QQmlComponent>
+#include <QQuickItem>
 
 #include "xboxpopsigner.h"
 #include "xboxauthmanager.h"
@@ -15,6 +18,32 @@
 #include <openssl/ecdsa.h>
 #include <openssl/bn.h>
 #include <openssl/pem.h>
+
+class AstraPlayStub : public QObject
+{
+    Q_OBJECT
+public:
+    Q_INVOKABLE QString getQRCodeDataUrl(const QString &data, int size) {
+        Q_UNUSED(data);
+        Q_UNUSED(size);
+        return QStringLiteral("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+    }
+    Q_INVOKABLE void startXboxStream(const QString &serverId, const QString &titleId, const QString &gameName) {
+        lastServerId = serverId;
+        lastTitleId = titleId;
+        lastGameName = gameName;
+        streamStarted = true;
+    }
+    Q_INVOKABLE void setClipboardText(const QString &text) {
+        lastClipboard = text;
+    }
+
+    QString lastServerId;
+    QString lastTitleId;
+    QString lastGameName;
+    QString lastClipboard;
+    bool streamStarted = false;
+};
 
 class XboxAuthTest : public QObject
 {
@@ -30,6 +59,7 @@ private slots:
     void testPoPPersistenceInVault();
     void testXboxAuthManagerInitialState();
     void testLiveDeviceCodeFlow();
+    void testXboxViewQml();
 };
 
 void XboxAuthTest::initTestCase()
@@ -231,6 +261,54 @@ void XboxAuthTest::testLiveDeviceCodeFlow()
     QVERIFY(expiresIn > 0);
 
     auth->cancelLogin();
+}
+
+void XboxAuthTest::testXboxViewQml()
+{
+    QQmlEngine engine;
+    AstraPlayStub astraplayStub;
+    XboxAuthManager *auth = XboxAuthManager::instance();
+
+    const char *uri = "io.github.nileshchakraborty.astraplay";
+    qmlRegisterSingletonInstance(uri, 1, 0, "XboxAuth", auth);
+    qmlRegisterSingletonInstance(uri, 1, 0, "AstraPlay", &astraplayStub);
+
+    QString qmlPath = QStringLiteral("/Users/nileshchakraborty/workspace/astraplay/gui/src/qml/XboxView.qml");
+    QQmlComponent component(&engine, QUrl::fromLocalFile(qmlPath));
+
+    if (!component.isReady()) {
+        for (const auto &err : component.errors()) {
+            qCritical() << "QML Error:" << err.toString();
+        }
+    }
+    QVERIFY(component.isReady());
+
+    QObject *rootObj = component.create();
+    QVERIFY(rootObj != nullptr);
+
+    // Initial state: not logged in, not in login flow
+    QCOMPARE(rootObj->property("isLoggingIn").toBool(), false);
+    QCOMPARE(rootObj->property("userCode").toString(), QString());
+
+    // Trigger device code login
+    QSignalSpy spy(auth, &XboxAuthManager::deviceCodeReceived);
+    auth->startDeviceCodeLogin();
+
+    QVERIFY(spy.wait(10000));
+    QCOMPARE(spy.count(), 1);
+
+    // QML properties must update via Connections target: XboxAuth
+    QCOMPARE(rootObj->property("isLoggingIn").toBool(), true);
+    QString code = rootObj->property("userCode").toString();
+    QVERIFY(!code.isEmpty());
+    QVERIFY(code.length() >= 8);
+    QVERIFY(!rootObj->property("verificationUri").toString().isEmpty());
+
+    // Cancel login
+    auth->cancelLogin();
+    QCOMPARE(rootObj->property("isLoggingIn").toBool(), false);
+
+    delete rootObj;
 }
 
 QTEST_MAIN(XboxAuthTest)

@@ -64,6 +64,7 @@ signals:
     void deviceCodeReceived(const QString &userCode, const QString &verificationUri, const QString &qrUrl, int expiresIn);
     void authenticated(const QString &gamertag, const QString &uhs);
     void authFailed(const QString &errorMessage);
+    void loginCancelled();
     void loggedOut();
     void consolesUpdated(const QJsonArray &consoles);
 

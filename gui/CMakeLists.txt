@@ -299,7 +299,7 @@ if(CHIAKI_ENABLE_TESTS)
 		src/credentialvault.cpp
 	)
 	target_include_directories(chiaki-xbox-auth-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include)
-	target_link_libraries(chiaki-xbox-auth-test PRIVATE Qt::Core Qt::Network Qt::Test chiaki-lib)
+	target_link_libraries(chiaki-xbox-auth-test PRIVATE Qt::Core Qt::Gui Qt::Qml Qt::Quick Qt::Network Qt::Test chiaki-lib)
 	if(APPLE)
 		target_link_libraries(chiaki-xbox-auth-test PRIVATE "-framework IOKit" "-framework CoreFoundation")
 	endif()

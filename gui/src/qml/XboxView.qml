@@ -52,6 +52,12 @@ Pane {
             root.loginStatusMessage = errorMessage;
         }
 
+        function onLoginCancelled() {
+            root.isLoggingIn = false;
+            root.userCode = "";
+            root.verificationUri = "";
+        }
+
         function onLoggedOut() {
             root.isLoggingIn = false;
             root.userCode = "";
