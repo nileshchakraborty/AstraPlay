@@ -14,56 +14,72 @@
         android:focusable="true"
         android:focusableInTouchMode="true" />
 
-    <!-- Loading indicator -->
+    <!-- Loading progress line -->
     <ProgressBar
         android:id="@+id/loadingProgressBar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
+        android:layout_height="3dp"
         android:layout_gravity="top"
         android:indeterminate="false"
-        android:progressTint="#107C10" />
+        android:progressTint="#107C10"
+        android:elevation="25dp"
+        android:translationZ="25dp" />
 
-    <!-- Minimal top overlay: game title & Stop button -->
+    <!-- Top Left: Subtle Game Title Pill (auto-fades) -->
     <LinearLayout
-        android:id="@+id/overlayBar"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_gravity="top"
-        android:background="#CC14161F"
+        android:id="@+id/streamStatusPill"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:visibility="visible">
+        android:background="@drawable/icon_island_background"
+        android:paddingHorizontal="12dp"
+        android:elevation="20dp"
+        android:translationZ="20dp"
+        android:alpha="0.85">
 
         <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
             android:src="@drawable/ic_xbox"
-            app:tint="#107C10" />
+            app:tint="#4CAF50" />
 
         <TextView
             android:id="@+id/overlayGameTitle"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="8dp"
             android:text="Xbox Cloud Gaming"
             android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:singleLine="true" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/stopStreamButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Exit Stream"
-            android:textColor="#FFB74D"
             android:textSize="12sp"
-            app:strokeColor="#FFB74D"
-            app:cornerRadius="18dp" />
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <!-- Top Right: Persistent, Highly Visible Exit Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stopStreamButton"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:text="✕ Exit Stream"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:alpha="0.85"
+        app:backgroundTint="#D914161F"
+        app:strokeColor="#80FFFFFF"
+        app:strokeWidth="1dp"
+        app:cornerRadius="19dp"
+        android:elevation="25dp"
+        android:translationZ="25dp"
+        android:focusable="true"
+        android:clickable="true" />
 
 </FrameLayout>

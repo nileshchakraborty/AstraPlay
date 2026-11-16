@@ -99,16 +99,24 @@ class XboxFragment : Fragment() {
 
         binding.directStreamButton.setOnClickListener {
             val titleId = binding.titleIdInput.text.toString().trim()
-            if (titleId.isEmpty()) {
-                Toast.makeText(requireContext(), "Please enter an Xbox Title ID", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            val match = if (titleId.isNotEmpty()) {
+                allGames.firstOrNull { it.titleId.equals(titleId, ignoreCase = true) || it.name.contains(titleId, ignoreCase = true) }
+            } else null
+
+            val launchId = match?.productId ?: match?.titleId ?: titleId
+            val streamUrl = if (launchId.isNotEmpty()) {
+                "https://www.xbox.com/play/launch/$launchId"
+            } else {
+                "https://www.xbox.com/play"
             }
-            val match = allGames.firstOrNull { it.titleId.equals(titleId, ignoreCase = true) || it.name.contains(titleId, ignoreCase = true) }
-            launchStream(
-                gameName = match?.name ?: titleId,
-                titleId = titleId,
-                productId = match?.productId ?: ""
-            )
+            val gameName = match?.name ?: if (titleId.isNotEmpty()) titleId else "Xbox Cloud Gaming"
+
+            val intent = android.content.Intent(requireContext(), XboxStreamActivity::class.java).apply {
+                putExtra(XboxStreamActivity.EXTRA_URL, streamUrl)
+                putExtra(XboxStreamActivity.EXTRA_TITLE, gameName)
+                putExtra(XboxStreamActivity.EXTRA_TITLE_ID, titleId)
+            }
+            startActivity(intent)
         }
     }
 
