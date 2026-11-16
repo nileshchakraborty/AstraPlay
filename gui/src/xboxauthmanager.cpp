@@ -456,11 +456,40 @@ void XboxAuthManager::getStreamingToken(const QString &offeringId, std::function
 
     connect(reply, &QNetworkReply::finished, this, [reply, callback, hostName]() {
         reply->deleteLater();
-        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200) {
-            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respBytes = reply->readAll();
+        qDebug() << "Xbox login/user response:" << httpCode << "body:" << respBytes;
+
+        if (httpCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(respBytes);
             QJsonObject obj = doc.object();
             QString gsToken = obj.value(QStringLiteral("gsToken")).toString();
-            callback(!gsToken.isEmpty(), gsToken, hostName);
+
+            // Extract regional streaming baseUri from offeringSettings
+            QString targetHost = hostName;
+            QJsonObject offeringSettings = obj.value(QStringLiteral("offeringSettings")).toObject();
+            QJsonArray regions = offeringSettings.value(QStringLiteral("regions")).toArray();
+            for (const QJsonValue &rVal : regions) {
+                QJsonObject rObj = rVal.toObject();
+                QString baseUri = rObj.value(QStringLiteral("baseUri")).toString();
+                if (!baseUri.isEmpty()) {
+                    QUrl parsedUrl(baseUri);
+                    QString host = parsedUrl.host().isEmpty() ? baseUri : parsedUrl.host();
+                    host.remove(QStringLiteral("https://"));
+                    host.remove(QStringLiteral("http://"));
+                    while (host.endsWith(QLatin1Char('/'))) host.chop(1);
+
+                    if (rObj.value(QStringLiteral("isDefault")).toBool(false)) {
+                        targetHost = host;
+                        break;
+                    } else if (targetHost == hostName) {
+                        targetHost = host;
+                    }
+                }
+            }
+
+            qDebug() << "Resolved Xbox GSSV targetHost:" << targetHost;
+            callback(!gsToken.isEmpty(), gsToken, targetHost);
         } else {
             callback(false, QString(), QString());
         }

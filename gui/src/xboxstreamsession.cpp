@@ -99,6 +99,9 @@ void XboxStreamSession::Start()
 
         m_gsToken = token;
         m_gssvHost = host;
+        m_gssvHost.remove(QStringLiteral("https://"));
+        m_gssvHost.remove(QStringLiteral("http://"));
+        while (m_gssvHost.endsWith(QLatin1Char('/'))) m_gssvHost.chop(1);
         requestPlaySession();
     });
 }
