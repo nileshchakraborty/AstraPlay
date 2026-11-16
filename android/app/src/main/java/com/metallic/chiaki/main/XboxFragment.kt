@@ -28,6 +28,7 @@ import com.metallic.chiaki.common.ext.isTv
 import com.metallic.chiaki.xbox.XboxAuthManager
 import com.metallic.chiaki.xbox.XboxGame
 import com.metallic.chiaki.xbox.XboxGameAdapter
+import com.metallic.chiaki.xbox.XboxStreamActivity
 import io.github.nileshchakraborty.astraplay.R
 import io.github.nileshchakraborty.astraplay.databinding.FragmentXboxBinding
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +81,7 @@ class XboxFragment : Fragment() {
         }
 
         adapter = XboxGameAdapter(emptyList()) { game ->
-            onGameSelected(game.titleId, game.name)
+            onGameSelected(game)
         }
 
         binding.xboxGamesRecyclerView.layoutManager = GridLayoutManager(requireContext(), spanCount)
@@ -102,7 +103,12 @@ class XboxFragment : Fragment() {
                 Toast.makeText(requireContext(), "Please enter an Xbox Title ID", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            onGameSelected(titleId, titleId)
+            val match = allGames.firstOrNull { it.titleId.equals(titleId, ignoreCase = true) || it.name.contains(titleId, ignoreCase = true) }
+            launchStream(
+                gameName = match?.name ?: titleId,
+                titleId = titleId,
+                productId = match?.productId ?: ""
+            )
         }
     }
 
@@ -269,7 +275,7 @@ class XboxFragment : Fragment() {
         }
     }
 
-    private fun onGameSelected(titleId: String, gameName: String) {
+    private fun onGameSelected(game: XboxGame) {
         val gamertag = preferences.getXboxGamertag()
         if (gamertag == null) {
             requireContext().alertDialogBuilder()
@@ -281,18 +287,22 @@ class XboxFragment : Fragment() {
             return
         }
 
-        // Inform user about subscription requirement gracefully without crashing
-        requireContext().alertDialogBuilder()
-            .setTitle(gameName)
-            .setMessage("Starting stream for $gameName ($titleId).\n\nXbox Cloud Gaming requires an active Xbox Game Pass Ultimate subscription.")
-            .setPositiveButton("Launch") { _, _ ->
-                Toast.makeText(
-                    requireContext(),
-                    "Xbox Cloud Gaming requires an active Xbox Game Pass Ultimate subscription.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        launchStream(
+            gameName = game.name,
+            titleId = game.titleId,
+            productId = game.productId
+        )
+    }
+
+    private fun launchStream(gameName: String, titleId: String, productId: String) {
+        val launchId = productId.ifEmpty { titleId }
+        val streamUrl = "https://www.xbox.com/play/launch/$launchId"
+
+        val intent = android.content.Intent(requireContext(), XboxStreamActivity::class.java).apply {
+            putExtra(XboxStreamActivity.EXTRA_URL, streamUrl)
+            putExtra(XboxStreamActivity.EXTRA_TITLE, gameName)
+            putExtra(XboxStreamActivity.EXTRA_TITLE_ID, titleId)
+        }
+        startActivity(intent)
     }
 }

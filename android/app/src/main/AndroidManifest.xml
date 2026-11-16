@@ -60,6 +60,13 @@
             android:supportsPictureInPicture="true"/>
 
         <activity
+            android:name="com.metallic.chiaki.xbox.XboxStreamActivity"
+            android:exported="true"
+            android:theme="@style/StreamTheme"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:screenOrientation="userLandscape" />
+
+        <activity
             android:name="com.metallic.chiaki.settings.SettingsActivity"
             android:exported="false" />
 
