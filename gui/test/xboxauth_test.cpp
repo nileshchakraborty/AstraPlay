@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-AGPL-3.0-only-OpenSSL
 
 #include <QtTest/QtTest>
+#include <QSignalSpy>
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -28,6 +29,7 @@ private slots:
     void testPoPSignatureVerification();
     void testPoPPersistenceInVault();
     void testXboxAuthManagerInitialState();
+    void testLiveDeviceCodeFlow();
 };
 
 void XboxAuthTest::initTestCase()
@@ -198,6 +200,37 @@ void XboxAuthTest::testXboxAuthManagerInitialState()
     QVERIFY(auth->getGamertag().isEmpty());
     QVERIFY(auth->getUserHash().isEmpty());
     QVERIFY(auth->getConsolesJson().isEmpty());
+}
+
+void XboxAuthTest::testLiveDeviceCodeFlow()
+{
+    XboxAuthManager *auth = XboxAuthManager::instance();
+    QVERIFY(auth != nullptr);
+
+    QSignalSpy spy(auth, &XboxAuthManager::deviceCodeReceived);
+    auth->startDeviceCodeLogin();
+
+    // Wait up to 10 seconds for live Microsoft OAuth response
+    bool received = spy.wait(10000);
+    QVERIFY2(received, "Timed out waiting for Microsoft devicecode response");
+    QCOMPARE(spy.count(), 1);
+
+    QList<QVariant> args = spy.takeFirst();
+    QString userCode = args.at(0).toString();
+    QString verificationUri = args.at(1).toString();
+    int expiresIn = args.at(3).toInt();
+
+    qDebug() << "LIVE TEST SUCCESS: Received User Code from Microsoft:" << userCode
+             << "Verification URI:" << verificationUri
+             << "Expires in:" << expiresIn << "seconds";
+
+    QVERIFY(!userCode.isEmpty());
+    QVERIFY(userCode.length() >= 8);
+    QVERIFY(verificationUri.contains(QStringLiteral("microsoft.com/link")) ||
+            verificationUri.contains(QStringLiteral("microsoft.com/devicelogin")));
+    QVERIFY(expiresIn > 0);
+
+    auth->cancelLogin();
 }
 
 QTEST_MAIN(XboxAuthTest)

@@ -513,7 +513,7 @@ Pane {
                 Text {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
-                    text: qsTr("Scan the QR code or go to %1 and enter the code:").arg("microsoft.com/devicelogin")
+                    text: qsTr("Scan the QR code or go to %1 and enter the code:").arg(root.verificationUri.length > 0 ? root.verificationUri : "microsoft.com/link")
                     color: Qt.rgba(255, 255, 255, 0.7)
                     font.pixelSize: 13
                     horizontalAlignment: Text.AlignHCenter
