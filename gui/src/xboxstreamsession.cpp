@@ -96,6 +96,16 @@ void XboxStreamSession::Stop()
     m_inputTimer->stop();
     m_keepaliveTimer->stop();
 
+    if (!m_sessionPath.isEmpty() && !m_gssvHost.isEmpty() && !m_gsToken.isEmpty()) {
+        QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath);
+        QNetworkRequest req(url);
+        req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
+        req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
+        QNetworkReply *reply = m_nam->deleteResource(req);
+        connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
+        m_sessionPath.clear();
+    }
+
     if (m_peerConnection) {
         m_peerConnection->close();
         m_peerConnection.reset();
@@ -104,6 +114,7 @@ void XboxStreamSession::Stop()
     connected = false;
     session_started = false;
     emit ConnectedChanged();
+    emit SessionQuit(CHIAKI_QUIT_REASON_NONE, QString());
 }
 
 void XboxStreamSession::GoToBed()

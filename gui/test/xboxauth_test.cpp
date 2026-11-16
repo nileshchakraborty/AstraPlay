@@ -33,6 +33,12 @@ public:
         lastTitleId = titleId;
         lastGameName = gameName;
         streamStarted = true;
+        sessionStopped = false;
+    }
+    Q_INVOKABLE void stopSession(bool sleep = false) {
+        Q_UNUSED(sleep);
+        streamStarted = false;
+        sessionStopped = true;
     }
     Q_INVOKABLE void setClipboardText(const QString &text) {
         lastClipboard = text;
@@ -43,6 +49,7 @@ public:
     QString lastGameName;
     QString lastClipboard;
     bool streamStarted = false;
+    bool sessionStopped = false;
 };
 
 class XboxAuthTest : public QObject
@@ -311,6 +318,23 @@ void XboxAuthTest::testXboxViewQml()
     // Cancel login
     auth->cancelLogin();
     QCOMPARE(rootObj->property("isLoggingIn").toBool(), false);
+
+    // Test Opening a Game (e.g. Cricket 26 / xCloud title)
+    bool launched = QMetaObject::invokeMethod(rootObj, "launchGame",
+                                              Q_ARG(QVariant, QStringLiteral("CRICKET26THEOFFICIALGAMEOFTHEASHES")),
+                                              Q_ARG(QVariant, QStringLiteral("Cricket 26 - The Official Game of the Ashes")));
+    QVERIFY(launched);
+    QCOMPARE(astraplayStub.streamStarted, true);
+    QCOMPARE(astraplayStub.lastTitleId, QStringLiteral("CRICKET26THEOFFICIALGAMEOFTHEASHES"));
+    QCOMPARE(astraplayStub.lastGameName, QStringLiteral("Cricket 26 - The Official Game of the Ashes"));
+    QCOMPARE(astraplayStub.lastServerId, QString());
+    qDebug() << "Successfully launched game:" << astraplayStub.lastGameName << "ID:" << astraplayStub.lastTitleId;
+
+    // Test Closing the same Game
+    astraplayStub.stopSession(false);
+    QCOMPARE(astraplayStub.streamStarted, false);
+    QCOMPARE(astraplayStub.sessionStopped, true);
+    qDebug() << "Successfully closed stream session for:" << astraplayStub.lastGameName;
 
     delete rootObj;
 }
