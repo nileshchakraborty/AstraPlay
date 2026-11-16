@@ -63,6 +63,8 @@ XboxStreamSession::XboxStreamSession(const StreamSessionConnectInfo &connect_inf
 
 XboxStreamSession::~XboxStreamSession()
 {
+    m_stopped = true;
+    disconnect();
     Stop();
 
     for (auto controller : controllers) {
@@ -88,7 +90,10 @@ void XboxStreamSession::Start()
     QString offering = m_isCloud ? QStringLiteral("xgpuweb") : QStringLiteral("xhome");
     XboxAuthManager::instance()->getStreamingToken(offering, [this](bool success, const QString &token, const QString &host) {
         if (!success || token.isEmpty()) {
-            emit SessionQuit(CHIAKI_QUIT_REASON_CTRL_UNKNOWN, tr("Failed to retrieve Xbox stream authorization token."));
+            m_stopped = true;
+            emit SessionQuit(CHIAKI_QUIT_REASON_CTRL_UNKNOWN,
+                             m_isCloud ? tr("Xbox Cloud Gaming requires an active Xbox Game Pass Ultimate subscription.")
+                                       : tr("Failed to retrieve Xbox stream authorization token. Ensure Remote features are enabled on your console."));
             return;
         }
 
@@ -100,6 +105,10 @@ void XboxStreamSession::Start()
 
 void XboxStreamSession::Stop()
 {
+    if (m_stopped)
+        return;
+    m_stopped = true;
+
     m_inputTimer->stop();
     m_keepaliveTimer->stop();
 

@@ -258,6 +258,9 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 
         // Connect session quit handler
         connect(session, &StreamSession::SessionQuit, this, [this](ChiakiQuitReason reason, const QString &reason_str) {
+            if (!session)
+                return;
+
             if (chiaki_quit_reason_is_error(reason)) {
                 QString m = tr("AstraPlay Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
                 if (!reason_str.isEmpty())
@@ -269,8 +272,9 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
             chiaki_log_ctx = nullptr;
             chiaki_log_mutex.unlock();
 
-            session->deleteLater();
+            StreamSession *s = session;
             session = nullptr;
+            s->deleteLater();
             emit sessionChanged(session);
 
             sleep_inhibit->release();
@@ -279,7 +283,7 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 
         // Connect discovery state handler
         connect(session, &StreamSession::ConnectedChanged, this, [this]() {
-            if (session->IsConnected())
+            if (session && session->IsConnected())
                 setDiscoveryEnabled(false);
         });
         
@@ -1285,6 +1289,9 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
     });
 
     connect(session, &StreamSession::SessionQuit, this, [this](ChiakiQuitReason reason, const QString &reason_str) {
+        if (!session)
+            return;
+
         if (chiaki_quit_reason_is_error(reason)) {
             QString m = tr("AstraPlay Session has quit") + ":\n" + chiaki_quit_reason_string(reason);
             if (!reason_str.isEmpty())
@@ -1296,8 +1303,9 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
         chiaki_log_ctx = nullptr;
         chiaki_log_mutex.unlock();
 
-        session->deleteLater();
+        StreamSession *s = session;
         session = nullptr;
+        s->deleteLater();
         emit sessionChanged(session);
 
         sleep_inhibit->release();
@@ -1333,7 +1341,7 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
     connect(session, &StreamSession::AutoRegistSucceeded, this, &QmlBackend::finishAutoRegister);
 
     connect(session, &StreamSession::ConnectedChanged, this, [this]() {
-        if (session->IsConnected())
+        if (session && session->IsConnected())
             setDiscoveryEnabled(false);
     });
 

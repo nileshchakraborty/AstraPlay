@@ -100,5 +100,7 @@ private:
     // Physical controllers
     void UpdateControllers();
 
+    bool m_stopped = false;
+
     friend class XboxAuthTest;
 };

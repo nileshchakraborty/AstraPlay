@@ -1104,9 +1104,10 @@ Item {
             text: {
                 if (!AstraPlay.session)
                     return "";
+                let targetName = AstraPlay.session.host ? AstraPlay.session.host : (AstraPlay.session.gameName ? AstraPlay.session.gameName : "Xbox");
                 if (AstraPlay.session.connected)
-                    return qsTr("Connected to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : AstraPlay.session.host);
-                return qsTr("Connecting to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : AstraPlay.session.host);
+                    return qsTr("Connected to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : targetName);
+                return qsTr("Connecting to <b>%1</b>").arg(AstraPlay.settings.streamerMode ? "hidden" : targetName);
             }
 
             RowLayout {
