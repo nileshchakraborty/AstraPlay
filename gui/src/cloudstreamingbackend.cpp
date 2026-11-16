@@ -340,7 +340,7 @@ void CloudStreamingBackend::finishCloudSession(QString serviceType, QString serv
 
     qInfo() << "=== Creating StreamSession ===";
     try {
-        StreamSession *session = new StreamSession(connect_info, parent());
+        StreamSession *session = StreamSession::Create(connect_info, parent());
         emit sessionCreated(session);
 
         setAllocationProgress("");

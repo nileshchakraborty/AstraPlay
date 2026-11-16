@@ -3,9 +3,22 @@
 #ifndef CHIAKI_STREAMSESSION_H
 #define CHIAKI_STREAMSESSION_H
 
+#include <QObject>
+#include <QString>
+#include <QByteArray>
+#include <QMap>
+#include <QSet>
+#include <QImage>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QTimer>
+#include <QQueue>
+#include <QElapsedTimer>
+#include <QPointer>
+#include <QHash>
+
+#include <chiaki/common.h>
 #include <chiaki/session.h>
-#include <chiaki/opusdecoder.h>
-#include <chiaki/opusencoder.h>
 #include <chiaki/ffmpegdecoder.h>
 
 #if CHIAKI_LIB_ENABLE_PI_DECODER
@@ -28,22 +41,8 @@
 #endif
 
 #include "exception.h"
-#include "sessionlog.h"
 #include "controllermanager.h"
 #include "settings.h"
-
-#include <QObject>
-#include <QImage>
-#include <QMouseEvent>
-#include <QTimer>
-#include <QQueue>
-#include <QElapsedTimer>
-#include <QPointer>
-#if CHIAKI_GUI_ENABLE_SPEEX
-#include <QQueue>
-#include <speex/speex_echo.h>
-#include <speex/speex_preprocess.h>
-#endif
 
 class QKeyEvent;
 class Settings;
@@ -63,8 +62,15 @@ typedef struct haptic_packet_t
 } haptic_packet_t;
 #endif
 
+enum class StreamBackend
+{
+	PlayStation,
+	Xbox
+};
+
 struct StreamSessionConnectInfo
 {
+	StreamBackend stream_backend = StreamBackend::PlayStation;
 	Settings *settings;
 	QMap<Qt::Key, int> key_map;
 	Decoder decoder;
@@ -126,6 +132,9 @@ struct StreamSessionConnectInfo
 	uint32_t cloud_mtu_out; // MTU out from ping results (0 if not set)
 	uint64_t cloud_rtt_us; // RTT in microseconds from ping results (0 if not set)
 
+	bool isXbox() const { return stream_backend == StreamBackend::Xbox; }
+	bool isPlayStation() const { return stream_backend == StreamBackend::PlayStation; }
+
 	StreamSessionConnectInfo() {}
 	StreamSessionConnectInfo(
 			Settings *settings,
@@ -172,13 +181,8 @@ class StreamSession : public QObject
 	Q_PROPERTY(bool stretch READ GetStretch CONSTANT)
 	Q_PROPERTY(QString controllerBattery READ GetControllerBattery NOTIFY ControllerBatteryChanged)
 
-	private:
-		SessionLog log;
-		ChiakiSession session;
-		ChiakiOpusDecoder opus_decoder;
-		ChiakiOpusEncoder opus_encoder;
+	protected:
 		bool connected;
-		int mid_stream_reconnect_attempts = 0;
 		bool muted;
 		bool mic_connected;
 #ifdef Q_OS_MACOS
@@ -188,7 +192,6 @@ class StreamSession : public QObject
 		int input_block;
 		QString host;
 		QString title_id;
-		ChiakiServiceType service_type; // Store service type from connect_info
 		bool fullscreen;
 		bool zoom;
 		bool stretch;
@@ -202,70 +205,14 @@ class StreamSession : public QObject
 		bool cant_display = false;
 		QString loading_message;
 		QString controller_battery;
-		int haptics_handheld;
-		float rumble_multiplier;
-		int ps5_rumble_intensity;
-		int ps5_trigger_intensity;
-		uint8_t led_color[3];
-		uint8_t player_index;
 		QHash<int, Controller *> controllers;
-#if CHIAKI_GUI_ENABLE_SETSU
-		Setsu *setsu;
-		QMap<QPair<QString, SetsuTrackingId>, uint8_t> setsu_ids;
-		ChiakiControllerState setsu_state;
-		SetsuDevice *setsu_motion_device;
-		ChiakiOrientationTracker orient_tracker;
-		ChiakiAccelNewZero setsu_accel_zero, setsu_real_accel;
-		bool orient_dirty;
-#endif
-
-#if CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
-		SDeck *sdeck;
-		ChiakiControllerState sdeck_state;
-		QQueue<haptic_packet_t> sdeck_hapticl;
-		QQueue<haptic_packet_t> sdeck_hapticr;
-		int16_t * sdeck_haptics_senderl;
-		int16_t * sdeck_haptics_senderr;
-		int sdeck_queue_segment;
-		uint64_t sdeck_last_haptic;
-		bool sdeck_skipl, sdeck_skipr;
-		bool enable_steamdeck_haptics;
-		ChiakiOrientationTracker sdeck_orient_tracker;
-		ChiakiAccelNewZero sdeck_accel_zero, sdeck_real_accel;
-		bool sdeck_orient_dirty;
-		bool vertical_sdeck;
-#endif
-		QQueue<uint16_t> rumble_haptics;
-		bool rumble_haptics_connected;
-		bool rumble_haptics_on;
-		float PS_TOUCHPAD_MAX_X, PS_TOUCHPAD_MAX_Y;
-		ChiakiControllerState keyboard_state;
-		ChiakiControllerState touch_state;
-		QMap<int, uint8_t> touch_tracker;
-		int8_t mouse_touch_id;
-		ChiakiControllerState dpad_touch_state;
-		uint16_t dpad_touch_increment;
-		float trigger_override;
-		float haptic_override;
-		bool keyboard_controller_enabled;
-		bool mouse_touch_enabled;
-		bool dpad_regular;
-		bool dpad_regular_touch_switched;
-		uint dpad_touch_shortcut1;
-		uint dpad_touch_shortcut2;
-		uint dpad_touch_shortcut3;
-		uint dpad_touch_shortcut4;
-		int8_t dpad_touch_id;
-		QPair<uint16_t, uint16_t> dpad_touch_value;
-		QTimer *dpad_touch_timer, *dpad_touch_stop_timer;
-		QElapsedTimer double_tap_timer;
-		RumbleHapticsIntensity rumble_haptics_intensity;
 		bool start_mic_unmuted;
 		bool session_started;
 		QPointer<GameLauncher> game_launcher;
 
+		ChiakiControllerState keyboard_state;
+
 		ChiakiFfmpegDecoder *ffmpeg_decoder;
-		void TriggerFfmpegFrameAvailable();
 #if CHIAKI_LIB_ENABLE_PI_DECODER
 		ChiakiPiDecoder *pi_decoder;
 #endif
@@ -276,80 +223,30 @@ class StreamSession : public QObject
 		SDL_AudioDeviceID audio_in;
 		size_t audio_out_sample_size;
 		bool audio_out_drain_queue;
-		size_t haptics_buffer_size;
 		unsigned int audio_buffer_size;
-		ChiakiHolepunchSession holepunch_session;
-#if CHIAKI_GUI_ENABLE_SPEEX
-		SpeexEchoState *echo_state;
-		SpeexPreprocessState *preprocess_state;
-		bool speech_processing_enabled;
-		uint8_t *echo_resampler_buf, *mic_resampler_buf;
-		QQueue<int16_t *> echo_to_cancel;
-#endif
-		SDL_AudioDeviceID haptics_output;
-		// A connected controller restarts the retries; older ones stop
-		quint64 haptics_retry_generation = 0;
-		size_t haptics_retry_attempt = 0;
-		uint8_t *haptics_resampler_buf;
+		bool mouse_touch_enabled;
+		bool keyboard_controller_enabled;
 		MicBuf mic_buf;
 		QMap<Qt::Key, int> key_map;
 		QElapsedTimer connect_timer;
-		// Cloud streaming parameter storage (keep alive for session lifetime)
-		QByteArray cloud_launch_spec_storage;
-		QByteArray cloud_handshake_key_storage;
-		QByteArray cloud_session_id_storage;
-		QByteArray host_storage; // For cloud mode when we modify host string
-
-		void PushAudioFrame(int16_t *buf, size_t samples_count);
-		void PushHapticsFrame(uint8_t *buf, size_t buf_size);
-		void CantDisplayMessage(bool cant_display);
-		ChiakiErrorCode InitiatePsnConnection(QString psn_token);
-#ifdef Q_OS_MACOS
-		void SetMicAuthorization(Authorization authorization);
-#endif
-#if CHIAKI_GUI_ENABLE_SETSU
-		void HandleSetsuEvent(SetsuEvent *event);
-#endif
-#if CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
-		void HandleSDeckEvent(SDeckEvent *event);
-#endif
-		void AdjustAdaptiveTriggerPacket(uint8_t *buf, uint8_t type);
-		void WaitHaptics();
-		void RetryHaptics(quint64 generation);
-
-	private slots:
-		void InitAudio(unsigned int channels, unsigned int rate);
-		void InitMic(unsigned int channels, unsigned int rate);
-		void InitHaptics();
-		void Event(ChiakiEvent *event);
-		void DisconnectHaptics();
-		void ConnectHaptics();
-#if CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
-		void SdeckQueueHaptics(haptic_packet_t packetl, haptic_packet_t packetr);
-		void ConnectSdeckHaptics();
-#endif
-		void QueueRumbleHaptics(uint16_t strength);
-		void ConnectRumbleHaptics();
 
 	public:
+		static StreamSession *Create(const StreamSessionConnectInfo &connect_info, QObject *parent = nullptr);
+
 		explicit StreamSession(const StreamSessionConnectInfo &connect_info, QObject *parent = nullptr);
-		~StreamSession();
+		~StreamSession() override;
 
-		bool IsConnected()	{ return connected; }
-		// Whether chiaki_session_start succeeded, i.e. a session thread exists that the
-		// destructor will join. Callers deleting a session synchronously must check this:
-		// deleting a *started* session from the GUI thread joins its thread and can deadlock
-		// against BlockingQueuedConnection calls into the GUI loop — use Stop() and delete
-		// from the SessionQuit signal instead (see QmlBackend's cloud sessionCreated handler).
-		bool IsStarted() const	{ return session_started; }
-		bool IsConnecting()	{ return connect_timer.isValid(); }
+		virtual bool IsConnected() { return connected; }
+		virtual bool IsStarted() const { return session_started; }
+		virtual bool IsConnecting() { return connect_timer.isValid(); }
 
-		void Start();
-		void Stop();
-		void GoToBed();
-		void ToggleMute();
-		void SetLoginPIN(const QString &pin);
-		void GoHome();
+		virtual void Start() = 0;
+		virtual void Stop() = 0;
+		virtual void GoToBed() = 0;
+		virtual void ToggleMute() {}
+		virtual void SetLoginPIN(const QString &pin) { Q_UNUSED(pin); }
+		virtual void GoHome() = 0;
+
 		QString GetHost() { return host; }
 		QString GetTitleId() { return title_id; }
 		bool GetConnected() { return connected; }
@@ -357,26 +254,7 @@ class StreamSession : public QObject
 		double GetAveragePacketLoss()	{ return average_packet_loss; }
 		double GetMeasuredFps()	{ return measured_fps; }
 		double GetMeasuredRtt()	{ return measured_rtt; }
-		QString GetResolution() {
-			// Use the resolution the video receiver is actually decoding (the
-			// negotiated/adaptive profile from the server's stream-info), not the
-			// requested connect_info profile — the cloud server may encode lower
-			// than requested. Fall back to the requested profile before the first
-			// frame selects an adaptive profile.
-			int w = 0, h = 0;
-			unsigned int uw = 0, uh = 0;
-			if(chiaki_stream_connection_video_resolution(&session.stream_connection, &uw, &uh))
-			{
-				w = (int)uw;
-				h = (int)uh;
-			}
-			else
-			{
-				w = session.connect_info.video_profile.width;
-				h = session.connect_info.video_profile.height;
-			}
-			return (w > 0 && h > 0) ? QStringLiteral("%1x%2").arg(w).arg(h) : QString();
-		}
+		virtual QString GetResolution() = 0;
 		bool GetMuted()	{ return muted; }
 		void SetMuted(bool enable)	{ if (enable != muted) ToggleMute(); }
 		Q_INVOKABLE int GetAudioVolume() { return audio_volume; }
@@ -389,30 +267,35 @@ class StreamSession : public QObject
 				emit LoadingMessageChanged();
 			}
 		}
-		bool IsCloudStreaming() { return chiaki_service_type_is_cloud(service_type); }
+		virtual bool IsCloudStreaming() = 0;
 		bool GetFullscreen() { return fullscreen; }
 		bool GetZoom() { return zoom; }
 		bool GetStretch() { return stretch; }
 		QString GetControllerBattery() { return controller_battery; }
-		ChiakiErrorCode ConnectPsnConnection(QString duid, bool ps5);
-		void CancelPsnConnection(bool stop_thread);
 
-	ChiakiLog *GetChiakiLog()				{ return log.GetChiakiLog(); }
-	ChiakiSession *GetChiakiSession()		{ return &session; }
-	QList<Controller *> GetControllers()	{ return controllers.values(); }
-		ChiakiFfmpegDecoder *GetFfmpegDecoder()	{ return ffmpeg_decoder; }
+		virtual ChiakiErrorCode ConnectPsnConnection(QString duid, bool ps5) { Q_UNUSED(duid); Q_UNUSED(ps5); return CHIAKI_ERR_UNKNOWN; }
+		virtual void CancelPsnConnection(bool stop_thread) { Q_UNUSED(stop_thread); }
+
+		virtual ChiakiLog *GetChiakiLog() { return nullptr; }
+		virtual ChiakiSession *GetChiakiSession() { return nullptr; }
+		QList<Controller *> GetControllers() { return controllers.values(); }
+		ChiakiFfmpegDecoder *GetFfmpegDecoder() { return ffmpeg_decoder; }
 #if CHIAKI_LIB_ENABLE_PI_DECODER
-		ChiakiPiDecoder *GetPiDecoder()	{ return pi_decoder; }
+		ChiakiPiDecoder *GetPiDecoder() { return pi_decoder; }
 #endif
-		void HandleKeyboardEvent(QKeyEvent *event);
-		void HandleTouchEvent(QTouchEvent *event, qreal width, qreal height);
-		void HandleDpadTouchEvent(ChiakiControllerState *state, bool placeholder = false);
-		void HandleMouseReleaseEvent(QMouseEvent *event);
-		void HandleMousePressEvent(QMouseEvent *event);
-		void HandleMouseMoveEvent(QMouseEvent *event, qreal width, qreal height);
-		void ReadMic(const QByteArray &micdata);
+
+		virtual void HandleKeyboardEvent(QKeyEvent *event) { Q_UNUSED(event); }
+		virtual void HandleTouchEvent(QTouchEvent *event, qreal width, qreal height) { Q_UNUSED(event); Q_UNUSED(width); Q_UNUSED(height); }
+		virtual void HandleDpadTouchEvent(ChiakiControllerState *state, bool placeholder = false) { Q_UNUSED(state); Q_UNUSED(placeholder); }
+		virtual void HandleMouseReleaseEvent(QMouseEvent *event) { Q_UNUSED(event); }
+		virtual void HandleMousePressEvent(QMouseEvent *event) { Q_UNUSED(event); }
+		virtual void HandleMouseMoveEvent(QMouseEvent *event, qreal width, qreal height) { Q_UNUSED(event); Q_UNUSED(width); Q_UNUSED(height); }
+		virtual void ReadMic(const QByteArray &micdata) { Q_UNUSED(micdata); }
 
 		void BlockInput(bool block) { input_block = block ? 1 : 2; SendFeedbackState(); }
+		virtual void SendFeedbackState() = 0;
+
+		virtual StreamBackend GetBackend() const = 0;
 
 	signals:
 		void FfmpegFrameAvailable();
@@ -437,13 +320,7 @@ class StreamSession : public QObject
 		void LoadingMessageChanged();
 		void ControllerBatteryChanged();
 		void GameLaunchCompleted();
-		void PsChordFired(); // OPTIONS+SHARE chord fired -> open the in-stream menu
-
-	private slots:
-		void UpdateGamepads();
-		void DpadSendFeedbackState();
-		void SendFeedbackState();
-		void OnGameLauncherCompleted();
+		void PsChordFired();
 };
 
 Q_DECLARE_METATYPE(ChiakiQuitReason)
