@@ -35,9 +35,9 @@ XboxStreamSession::XboxStreamSession(const StreamSessionConnectInfo &connect_inf
     m_titleId = connect_info.title_id;
     m_serverId = connect_info.duid; // duid holds Xbox serverId for xHome
 
-    // 1. Initialize video decoder
+    // 1. Initialize video decoder (Xbox WebRTC stream is always H.264)
     ffmpeg_decoder = CHIAKI_NEW(ChiakiFfmpegDecoder);
-    ChiakiCodec codec = connect_info.video_profile.codec;
+    ChiakiCodec codec = CHIAKI_CODEC_H264;
     chiaki_ffmpeg_decoder_init(ffmpeg_decoder,
                                m_log.GetChiakiLog(),
                                codec,
@@ -118,6 +118,7 @@ void XboxStreamSession::Stop()
     if (!m_sessionPath.isEmpty() && !m_gssvHost.isEmpty() && !m_gsToken.isEmpty()) {
         QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath);
         QNetworkRequest req(url);
+        req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
         req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
         req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
         QNetworkReply *reply = m_nam->deleteResource(req);
@@ -172,10 +173,11 @@ void XboxStreamSession::requestPlaySession()
     QUrl url(QStringLiteral("https://") + m_gssvHost + playPath);
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
-    // Resolve game product ID from catalog if titleId was passed as a name or slug
+    // Resolve game titleId (XCloudTitleId) from catalog if productId or name was passed
     QString playTitleId = m_titleId;
     if (m_isCloud) {
         const QJsonArray &titles = XboxAuthManager::instance()->getCloudTitlesJson();
@@ -184,9 +186,9 @@ void XboxStreamSession::requestPlaySession()
             if (o.value(QStringLiteral("titleId")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0 ||
                 o.value(QStringLiteral("productId")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0 ||
                 o.value(QStringLiteral("name")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0) {
-                QString pid = o.value(QStringLiteral("productId")).toString();
-                if (!pid.isEmpty()) {
-                    playTitleId = pid;
+                QString tid = o.value(QStringLiteral("titleId")).toString();
+                if (!tid.isEmpty()) {
+                    playTitleId = tid;
                 }
                 break;
             }
@@ -255,6 +257,7 @@ void XboxStreamSession::pollSessionState()
 
     QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/state"));
     QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
@@ -264,10 +267,20 @@ void XboxStreamSession::pollSessionState()
         if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200) {
             QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
             QString state = doc.object().value(QStringLiteral("state")).toString();
+            qDebug() << "Xbox session state:" << state;
             if (state == QStringLiteral("Provisioned") || state == QStringLiteral("Ready")) {
                 setupWebRtc();
+            } else if (state == QStringLiteral("ReadyToConnect")) {
+                if (m_isCloud) {
+                    sendConsoleTransferToken();
+                } else {
+                    setupWebRtc();
+                }
             } else if (state == QStringLiteral("Failed")) {
                 emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_UNKNOWN, tr("Xbox blade provisioning failed."));
+            } else if (state == QStringLiteral("WaitingForResources")) {
+                SetLoadingMessage(tr("Waiting for available Xbox server blade..."));
+                QTimer::singleShot(1000, this, &XboxStreamSession::pollSessionState);
             } else {
                 QTimer::singleShot(1000, this, &XboxStreamSession::pollSessionState);
             }
@@ -277,30 +290,129 @@ void XboxStreamSession::pollSessionState()
     });
 }
 
+void XboxStreamSession::sendConsoleTransferToken()
+{
+    if (m_transferTokenSent) {
+        // If already sent, keep polling until state transitions to Provisioned
+        QTimer::singleShot(1000, this, &XboxStreamSession::pollSessionState);
+        return;
+    }
+    m_transferTokenSent = true;
+    qDebug() << "Xbox session is ReadyToConnect: requesting console transfer token...";
+
+    XboxAuthManager::instance()->getConsoleTransferToken([this](bool success, const QString &token) {
+        if (!success || token.isEmpty()) {
+            qWarning() << "Failed to obtain Xbox console transfer token!";
+            m_transferTokenSent = false;
+            QTimer::singleShot(1000, this, &XboxStreamSession::pollSessionState);
+            return;
+        }
+
+        qDebug() << "Obtained console transfer token, sending /connect to GSSV...";
+        QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/connect"));
+        QNetworkRequest req(url);
+        req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+        req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
+        req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
+        req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
+        req.setRawHeader("UserToken", token.toUtf8());
+
+        QJsonObject payload;
+        payload[QStringLiteral("userToken")] = token;
+        payload[QStringLiteral("UserToken")] = token;
+        payload[QStringLiteral("msalToken")] = token;
+
+        QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+        QNetworkReply *reply = m_nam->post(req, body);
+        connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+            reply->deleteLater();
+            int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            QByteArray respBytes = reply->readAll();
+            qDebug() << "Xbox /connect response:" << httpCode << "body:" << respBytes;
+            if (httpCode != 200 && httpCode != 202 && httpCode != 204) {
+                qWarning() << "Xbox /connect failed with code" << httpCode;
+                m_transferTokenSent = false;
+            }
+            // State will transition to Provisioned
+            QTimer::singleShot(500, this, &XboxStreamSession::pollSessionState);
+        });
+    });
+}
+
 void XboxStreamSession::setupWebRtc()
 {
+    if (m_peerConnection) return;
+    qDebug() << "Xbox setting up WebRTC...";
+
     rtc::Configuration config;
+    config.iceServers.emplace_back("stun:stun.l.google.com:19302");
+    config.iceServers.emplace_back("stun:stun.cloudflare.com:3478");
     m_peerConnection = std::make_shared<rtc::PeerConnection>(config);
+
+    // Register callbacks FIRST so that initial negotiation triggers onLocalDescription
+    m_peerConnection->onLocalDescription([this](rtc::Description desc) {
+        QString sdpStr = QString::fromStdString(desc);
+        qDebug() << "Generated local SDP offer:\n" << sdpStr;
+        QMetaObject::invokeMethod(this, [this, sdpStr]() {
+            sendSdpOffer(sdpStr);
+        });
+    });
+
+    m_peerConnection->onLocalCandidate([this](rtc::Candidate candidate) {
+        QString candStr = QString::fromStdString(candidate.candidate());
+        QString midStr = QString::fromStdString(candidate.mid());
+        qDebug() << "Local ICE candidate gathered:" << candStr << "mid:" << midStr;
+        QMetaObject::invokeMethod(this, [this, candStr, midStr]() {
+            m_localCandidates.append(qMakePair(candStr, midStr));
+            if (m_remoteDescriptionSet) {
+                sendQueuedIceCandidates();
+            }
+        });
+    });
+
+    m_peerConnection->onStateChange([this](rtc::PeerConnection::State state) {
+        QMetaObject::invokeMethod(this, [this, state]() {
+            qDebug() << "Xbox PeerConnection state changed:" << static_cast<int>(state);
+            if (state == rtc::PeerConnection::State::Connected) {
+                connected = true;
+                emit ConnectedChanged();
+                emit GameLaunchCompleted();
+                m_keepaliveTimer->start();
+            } else if (state == rtc::PeerConnection::State::Failed || state == rtc::PeerConnection::State::Closed) {
+                connected = false;
+                emit ConnectedChanged();
+                emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT, tr("Xbox WebRTC connection closed."));
+            }
+        });
+    });
 
     // Setup Video Depacketizer (Annex B NALU parsing)
     m_videoDepacketizer = std::make_shared<rtc::H264RtpDepacketizer>();
 
     // Add Video Track (recvonly)
     rtc::Description::Video videoDesc("video", rtc::Description::Direction::RecvOnly);
-    videoDesc.addH264Codec(96);
+    videoDesc.addH264Codec(97, "profile-level-id=4d001f;packetization-mode=1;level-asymmetry-allowed=1");
+    videoDesc.addH264Codec(96, "profile-level-id=42e01f;packetization-mode=1;level-asymmetry-allowed=1");
+    videoDesc.addH264Codec(98, "profile-level-id=42001f;packetization-mode=1;level-asymmetry-allowed=1");
     m_videoTrack = m_peerConnection->addTrack(videoDesc);
     m_videoTrack->setMediaHandler(m_videoDepacketizer);
 
     m_videoTrack->onFrame([this](rtc::binary frame, rtc::FrameInfo info) {
         Q_UNUSED(info);
         if (ffmpeg_decoder && !frame.empty()) {
+            if (!m_firstFrameReceived) {
+                m_firstFrameReceived = true;
+                QMetaObject::invokeMethod(this, [this]() {
+                    emit GameLaunchCompleted();
+                });
+            }
             chiaki_ffmpeg_decoder_video_sample_cb(reinterpret_cast<uint8_t*>(frame.data()), frame.size(), 0, true, ffmpeg_decoder);
         }
     });
 
-    // Add Audio Track (sendrecv)
-    rtc::Description::Audio audioDesc("audio", rtc::Description::Direction::SendRecv);
-    audioDesc.addOpusCodec(97);
+    // Add Audio Track (recvonly)
+    rtc::Description::Audio audioDesc("audio", rtc::Description::Direction::RecvOnly);
+    audioDesc.addOpusCodec(111);
     m_audioTrack = m_peerConnection->addTrack(audioDesc);
 
     // DataChannel: input (1.0, ordered)
@@ -356,7 +468,9 @@ void XboxStreamSession::setupWebRtc()
     m_messageChannel->onMessage([this](auto msg) {
         if (std::holds_alternative<std::string>(msg)) {
             QByteArray data = QByteArray::fromStdString(std::get<std::string>(msg));
-            handleMessageChannelPayload(data);
+            QMetaObject::invokeMethod(this, [this, data]() {
+                handleMessageChannelPayload(data);
+            });
         }
     });
 
@@ -366,35 +480,26 @@ void XboxStreamSession::setupWebRtc()
     controlConfig.reliability.unordered = false;
     m_controlChannel = m_peerConnection->createDataChannel("control", controlConfig);
 
-    // ICE Candidate callback
-    m_peerConnection->onLocalCandidate([this](rtc::Candidate candidate) {
-        sendIceCandidate(QString::fromStdString(candidate.candidate()), QString::fromStdString(candidate.mid()));
-    });
+    // DataChannel: chat (chatV1, ordered)
+    rtc::DataChannelInit chatConfig;
+    chatConfig.protocol = "chatV1";
+    chatConfig.reliability.unordered = false;
+    m_chatChannel = m_peerConnection->createDataChannel("chat", chatConfig);
 
-    m_peerConnection->onStateChange([this](rtc::PeerConnection::State state) {
-        if (state == rtc::PeerConnection::State::Connected) {
-            connected = true;
-            emit ConnectedChanged();
-            m_keepaliveTimer->start();
-        } else if (state == rtc::PeerConnection::State::Failed || state == rtc::PeerConnection::State::Closed) {
-            connected = false;
-            emit ConnectedChanged();
-            emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT, tr("Xbox WebRTC connection closed."));
-        }
-    });
-
-    // Generate SDP offer
-    m_peerConnection->setLocalDescription();
-    m_peerConnection->onLocalDescription([this](rtc::Description desc) {
-        sendSdpOffer(QString::fromStdString(desc));
-    });
+    // If local description wasn't automatically triggered by data channel creation, trigger it explicitly
+    if (!m_peerConnection->localDescription().has_value()) {
+        m_peerConnection->setLocalDescription();
+    }
 }
 
 void XboxStreamSession::sendSdpOffer(const QString &sdp)
 {
+    if (m_sessionPath.isEmpty()) return;
+
     QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/sdp"));
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
@@ -403,57 +508,275 @@ void XboxStreamSession::sendSdpOffer(const QString &sdp)
     payload[QStringLiteral("sdp")] = sdp;
     payload[QStringLiteral("requestId")] = QStringLiteral("1");
 
+    QJsonObject chatConfig;
+    chatConfig[QStringLiteral("bytesPerSample")] = 2;
+    chatConfig[QStringLiteral("expectedClipDurationMs")] = 20;
+    QJsonObject format;
+    format[QStringLiteral("codec")] = QStringLiteral("opus");
+    format[QStringLiteral("container")] = QStringLiteral("webm");
+    chatConfig[QStringLiteral("format")] = format;
+    chatConfig[QStringLiteral("numChannels")] = 1;
+    chatConfig[QStringLiteral("sampleFrequencyHz")] = 24000;
+
+    QJsonObject ver1;
+    ver1[QStringLiteral("minVersion")] = 1;
+    ver1[QStringLiteral("maxVersion")] = 1;
+
+    QJsonObject verCtrl;
+    verCtrl[QStringLiteral("minVersion")] = 1;
+    verCtrl[QStringLiteral("maxVersion")] = 3;
+
+    QJsonObject verInput;
+    verInput[QStringLiteral("minVersion")] = 1;
+    verInput[QStringLiteral("maxVersion")] = 9;
+
+    QJsonObject verReliable;
+    verReliable[QStringLiteral("minVersion")] = 9;
+    verReliable[QStringLiteral("maxVersion")] = 9;
+
+    QJsonObject config;
+    config[QStringLiteral("chatConfiguration")] = chatConfig;
+    config[QStringLiteral("chat")] = ver1;
+    config[QStringLiteral("control")] = verCtrl;
+    config[QStringLiteral("input")] = verInput;
+    config[QStringLiteral("message")] = ver1;
+    config[QStringLiteral("reliableinput")] = verReliable;
+    config[QStringLiteral("unreliableinput")] = verReliable;
+
+    payload[QStringLiteral("configuration")] = config;
+
     QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
     QNetworkReply *reply = m_nam->post(req, body);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         reply->deleteLater();
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respBytes = reply->readAll();
+        qDebug() << "Xbox SDP offer response:" << httpCode << "body:" << respBytes;
+        if (httpCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(respBytes);
+            QJsonObject rootObj = doc.object();
+            QString answerSdp;
+            if (rootObj.contains(QStringLiteral("exchangeResponse"))) {
+                QJsonValue exVal = rootObj.value(QStringLiteral("exchangeResponse"));
+                if (exVal.isString()) {
+                    QJsonDocument exDoc = QJsonDocument::fromJson(exVal.toString().toUtf8());
+                    answerSdp = exDoc.object().value(QStringLiteral("sdp")).toString();
+                } else if (exVal.isObject()) {
+                    answerSdp = exVal.toObject().value(QStringLiteral("sdp")).toString();
+                }
+            }
+            if (answerSdp.isEmpty()) {
+                answerSdp = rootObj.value(QStringLiteral("sdp")).toString();
+            }
+
+            if (!answerSdp.isEmpty() && m_peerConnection) {
+                qDebug() << "Successfully extracted server SDP answer from offer response! Setting remote description...";
+                m_remoteDescriptionSet = true;
+                m_peerConnection->setRemoteDescription(rtc::Description(answerSdp.toStdString(), "answer"));
+                sendQueuedIceCandidates();
+                pollIceCandidates();
+                return;
+            }
+        }
         pollSdpAnswer();
     });
 }
 
 void XboxStreamSession::pollSdpAnswer()
 {
+    if (m_stopped || m_sessionPath.isEmpty()) return;
+    if (m_peerConnection && m_peerConnection->state() == rtc::PeerConnection::State::Connected) return;
+
     QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/sdp"));
     QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
     QNetworkReply *reply = m_nam->get(req);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         reply->deleteLater();
-        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200) {
-            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
-            QString answerSdp = doc.object().value(QStringLiteral("sdp")).toString();
-            if (!answerSdp.isEmpty() && m_peerConnection) {
-                m_peerConnection->setRemoteDescription(rtc::Description(answerSdp.toStdString(), "answer"));
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respBytes = reply->readAll();
+        qDebug() << "Xbox poll SDP answer response:" << httpCode << "body:" << respBytes;
+
+        if (httpCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(respBytes);
+            QJsonObject rootObj = doc.object();
+
+            QString answerSdp;
+            if (rootObj.contains(QStringLiteral("exchangeResponse"))) {
+                QJsonValue exVal = rootObj.value(QStringLiteral("exchangeResponse"));
+                if (exVal.isString()) {
+                    QJsonDocument exDoc = QJsonDocument::fromJson(exVal.toString().toUtf8());
+                    answerSdp = exDoc.object().value(QStringLiteral("sdp")).toString();
+                } else if (exVal.isObject()) {
+                    answerSdp = exVal.toObject().value(QStringLiteral("sdp")).toString();
+                }
             }
+            if (answerSdp.isEmpty()) {
+                answerSdp = rootObj.value(QStringLiteral("sdp")).toString();
+            }
+
+            if (!answerSdp.isEmpty() && m_peerConnection) {
+                qDebug() << "Successfully extracted server SDP answer! Setting remote description...";
+                m_remoteDescriptionSet = true;
+                m_peerConnection->setRemoteDescription(rtc::Description(answerSdp.toStdString(), "answer"));
+                sendQueuedIceCandidates();
+                pollIceCandidates();
+                return;
+            }
+
+            // Only fail if we did NOT get any answer SDP
+            if (rootObj.contains(QStringLiteral("errorDetails")) && !rootObj.value(QStringLiteral("errorDetails")).isNull()) {
+                QJsonObject errObj = rootObj.value(QStringLiteral("errorDetails")).toObject();
+                QString errMsg = errObj.value(QStringLiteral("message")).toString();
+                qWarning() << "Xbox SDP exchange failed:" << errMsg;
+                emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT, tr("Xbox SDP exchange failed: ") + errMsg);
+                return;
+            }
+        }
+        if (!m_stopped && m_peerConnection && m_peerConnection->state() != rtc::PeerConnection::State::Connected) {
+            QTimer::singleShot(500, this, &XboxStreamSession::pollSdpAnswer);
         }
     });
 }
 
-void XboxStreamSession::sendIceCandidate(const QString &candidate, const QString &mid)
+void XboxStreamSession::pollIceCandidates()
 {
-    if (m_sessionPath.isEmpty()) return;
+    if (m_stopped || m_sessionPath.isEmpty()) return;
+    if (m_peerConnection && m_peerConnection->state() == rtc::PeerConnection::State::Connected) return;
+
+    QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/ice"));
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
+    req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
+    req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
+
+    QNetworkReply *reply = m_nam->get(req);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        reply->deleteLater();
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respBytes = reply->readAll();
+        qDebug() << "Xbox poll ICE candidates response:" << httpCode << "body:" << respBytes;
+
+        if (httpCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(respBytes);
+            QJsonObject rootObj = doc.object();
+            QJsonArray candList;
+
+            if (rootObj.contains(QStringLiteral("exchangeResponse"))) {
+                QJsonValue exVal = rootObj.value(QStringLiteral("exchangeResponse"));
+                if (exVal.isString()) {
+                    QJsonDocument exDoc = QJsonDocument::fromJson(exVal.toString().toUtf8());
+                    if (exDoc.isArray()) {
+                        candList = exDoc.array();
+                    } else if (exDoc.isObject() && exDoc.object().contains(QStringLiteral("candidates"))) {
+                        candList = exDoc.object().value(QStringLiteral("candidates")).toArray();
+                    } else if (exDoc.isObject() && exDoc.object().contains(QStringLiteral("iceCandidates"))) {
+                        candList = exDoc.object().value(QStringLiteral("iceCandidates")).toArray();
+                    }
+                } else if (exVal.isArray()) {
+                    candList = exVal.toArray();
+                } else if (exVal.isObject() && exVal.toObject().contains(QStringLiteral("candidates"))) {
+                    candList = exVal.toObject().value(QStringLiteral("candidates")).toArray();
+                } else if (exVal.isObject() && exVal.toObject().contains(QStringLiteral("iceCandidates"))) {
+                    candList = exVal.toObject().value(QStringLiteral("iceCandidates")).toArray();
+                }
+            } else if (rootObj.contains(QStringLiteral("candidates"))) {
+                candList = rootObj.value(QStringLiteral("candidates")).toArray();
+            } else if (rootObj.contains(QStringLiteral("iceCandidates"))) {
+                candList = rootObj.value(QStringLiteral("iceCandidates")).toArray();
+            }
+
+            for (const QJsonValue &cVal : candList) {
+                QJsonObject cObj;
+                if (cVal.isString()) {
+                    cObj = QJsonDocument::fromJson(cVal.toString().toUtf8()).object();
+                } else if (cVal.isObject()) {
+                    cObj = cVal.toObject();
+                }
+                QString candidate = cObj.value(QStringLiteral("candidate")).toString();
+                QString mid = cObj.value(QStringLiteral("sdpMid")).toString();
+                if (mid.isEmpty()) mid = cObj.value(QStringLiteral("mid")).toString();
+
+                if (candidate.isEmpty() || candidate == QStringLiteral("a=end-of-candidates")) continue;
+
+                // Teredo IPv6 candidate translation (RFC 4380) for Azure blades
+                QStringList parts = candidate.split(QLatin1Char(' '));
+                if (parts.size() > 4 && parts[4].startsWith(QStringLiteral("2001:"))) {
+                    QString ip6 = parts[4];
+                    QStringList segs = ip6.split(QLatin1Char(':'));
+                    if (segs.size() >= 8) {
+                        bool ok1 = false, ok2 = false, ok3 = false, ok4 = false, okP = false;
+                        QString ipv4_part = segs[6] + segs[7];
+                        int b1 = (~ipv4_part.mid(0, 2).toInt(&ok1, 16)) & 0xFF;
+                        int b2 = (~ipv4_part.mid(2, 2).toInt(&ok2, 16)) & 0xFF;
+                        int b3 = (~ipv4_part.mid(4, 2).toInt(&ok3, 16)) & 0xFF;
+                        int b4 = (~ipv4_part.mid(6, 2).toInt(&ok4, 16)) & 0xFF;
+                        int port = (~segs[5].toInt(&okP, 16)) & 0xFFFF;
+                        if (ok1 && ok2 && ok3 && ok4 && okP) {
+                            QString ipv4Addr = QStringLiteral("%1.%2.%3.%4").arg(b1).arg(b2).arg(b3).arg(b4);
+                            QString c10 = QStringLiteral("candidate:10 1 UDP 1 %1 9002 typ host").arg(ipv4Addr);
+                            QString c11 = QStringLiteral("candidate:11 1 UDP 1 %1 %2 typ host").arg(ipv4Addr).arg(port);
+                            qDebug() << "Extracted Teredo IPv4 candidates:" << c10 << c11;
+                            if (m_peerConnection) {
+                                m_peerConnection->addRemoteCandidate(rtc::Candidate(c10.toStdString(), mid.toStdString()));
+                                m_peerConnection->addRemoteCandidate(rtc::Candidate(c11.toStdString(), mid.toStdString()));
+                            }
+                        }
+                    }
+                }
+
+                if (m_peerConnection) {
+                    qDebug() << "Adding remote ICE candidate from server:" << candidate << "mid:" << mid;
+                    m_peerConnection->addRemoteCandidate(rtc::Candidate(candidate.toStdString(), mid.toStdString()));
+                }
+            }
+        }
+
+        if (!m_stopped && m_peerConnection && m_peerConnection->state() != rtc::PeerConnection::State::Connected) {
+            QTimer::singleShot(500, this, &XboxStreamSession::pollIceCandidates);
+        }
+    });
+}
+
+void XboxStreamSession::sendQueuedIceCandidates()
+{
+    if (m_localCandidates.isEmpty() || m_sessionPath.isEmpty() || !m_remoteDescriptionSet) return;
 
     QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/ice"));
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
-    QJsonObject candObj;
-    candObj[QStringLiteral("candidate")] = candidate;
-    candObj[QStringLiteral("sdpMid")] = mid;
+    QJsonArray candidateStrings;
+    while (!m_localCandidates.isEmpty()) {
+        auto pair = m_localCandidates.takeFirst();
+        QString candStr = pair.first;
+        QString mid = pair.second;
 
-    QJsonArray candidates;
-    candidates.append(candObj);
+        QJsonObject candObj;
+        candObj[QStringLiteral("candidate")] = candStr;
+        candObj[QStringLiteral("sdpMid")] = mid;
+        candObj[QStringLiteral("sdpMLineIndex")] = (mid == QStringLiteral("audio") ? 1 : (mid == QStringLiteral("video") ? 0 : 2));
+
+        candidateStrings.append(QString::fromUtf8(QJsonDocument(candObj).toJson(QJsonDocument::Compact)));
+    }
 
     QJsonObject payload;
-    payload[QStringLiteral("candidates")] = candidates;
+    payload[QStringLiteral("candidates")] = candidateStrings;
 
     QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
+    qDebug() << "Posting local ICE candidates to GSSV:" << body;
     QNetworkReply *reply = m_nam->post(req, body);
-    connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
+    connect(reply, &QNetworkReply::finished, this, [reply]() {
+        reply->deleteLater();
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        qDebug() << "Xbox ICE candidates post response:" << httpCode << "body:" << reply->readAll();
+    });
 }
 
 void XboxStreamSession::handleMessageChannelPayload(const QByteArray &data)
@@ -536,6 +859,7 @@ void XboxStreamSession::onKeepaliveTimer()
     QUrl url(QStringLiteral("https://") + m_gssvHost + QStringLiteral("/") + m_sessionPath + QStringLiteral("/keepalive"));
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 

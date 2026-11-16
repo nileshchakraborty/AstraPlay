@@ -1834,7 +1834,7 @@ void QmlBackend::startXboxStream(const QString &serverId, const QString &titleId
 
     window->setWindowAdjustable(false);
 
-    bool fullscreen = false, zoom = false, stretch = false;
+    bool fullscreen = true, zoom = false, stretch = false;
     switch (settings->GetWindowType()) {
     case WindowType::Fullscreen:
         fullscreen = true;
@@ -1846,6 +1846,7 @@ void QmlBackend::startXboxStream(const QString &serverId, const QString &titleId
         stretch = true;
         break;
     default:
+        fullscreen = true;
         break;
     }
     emit windowTypeUpdated(settings->GetWindowType());

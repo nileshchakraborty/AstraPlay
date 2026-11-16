@@ -57,6 +57,7 @@ private:
     QNetworkAccessManager *m_nam;
 
     bool m_isCloud = false;
+    bool m_transferTokenSent = false;
     QString m_gssvHost;
     QString m_gsToken;
     QString m_sessionPath;
@@ -89,10 +90,15 @@ private:
     void setupWebRtc();
     void sendSdpOffer(const QString &sdp);
     void pollSdpAnswer();
-    void sendIceCandidate(const QString &candidate, const QString &mid);
+    void pollIceCandidates();
+    void sendQueuedIceCandidates();
     void sendConsoleTransferToken();
     void handleMessageChannelPayload(const QByteArray &data);
     void sendSystemUiConfigurations();
+
+    bool m_remoteDescriptionSet = false;
+    bool m_firstFrameReceived = false;
+    QList<QPair<QString, QString>> m_localCandidates;
 
     // Gamepad binary frame serialization (38-byte binary layout)
     QByteArray serializeGamepadPacket();

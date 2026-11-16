@@ -1442,6 +1442,19 @@ Item {
 
         function onHasVideoChanged() {
             if (AstraPlay.window.hasVideo) {
+                // For Xbox stream or any session where video has arrived:
+                if (AstraPlay.session && (AstraPlay.session.isXbox || AstraPlay.session.isCloudStreaming)) {
+                    gameBackgroundLoader.active = false;
+                    sessionLoading = false;
+                    if (AstraPlay.cloudStreaming && AstraPlay.cloudStreaming.gameImageUrl) {
+                        AstraPlay.cloudStreaming.gameImageUrl = "";
+                    }
+                    if (!controllerOverlayShown && !AstraPlay.settings.controllerOverlayShown) {
+                        controllerOverlayTimer.start();
+                    }
+                    return;
+                }
+
                 // For cloud play: clear image and hide game background when video appears
                 // (same as GameLaunchCompleted for remote play)
                 if (AstraPlay.cloudStreaming && AstraPlay.cloudStreaming.gameImageUrl) {

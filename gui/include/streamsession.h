@@ -176,6 +176,7 @@ class StreamSession : public QObject
 	Q_PROPERTY(bool cantDisplay READ GetCantDisplay NOTIFY CantDisplayChanged)
 	Q_PROPERTY(QString loadingMessage READ GetLoadingMessage WRITE SetLoadingMessage NOTIFY LoadingMessageChanged)
 	Q_PROPERTY(bool isCloudStreaming READ IsCloudStreaming CONSTANT)
+	Q_PROPERTY(bool isXbox READ IsXbox CONSTANT)
 	Q_PROPERTY(bool fullscreen READ GetFullscreen CONSTANT)
 	Q_PROPERTY(bool zoom READ GetZoom CONSTANT)
 	Q_PROPERTY(bool stretch READ GetStretch CONSTANT)
@@ -268,6 +269,7 @@ class StreamSession : public QObject
 			}
 		}
 		virtual bool IsCloudStreaming() = 0;
+		virtual bool IsXbox() const { return GetBackend() == StreamBackend::Xbox; }
 		bool GetFullscreen() { return fullscreen; }
 		bool GetZoom() { return zoom; }
 		bool GetStretch() { return stretch; }

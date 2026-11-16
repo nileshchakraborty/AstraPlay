@@ -66,6 +66,9 @@ public:
     // Get streaming token for a specific offering ("xhome", "xgpuweb")
     void getStreamingToken(const QString &offeringId, std::function<void(bool success, const QString &token, const QString &host)> callback);
 
+    // Get console transfer token (LPT) for Xbox Cloud /connect
+    void getConsoleTransferToken(std::function<void(bool success, const QString &token)> callback);
+
 signals:
     void loggedInChanged(bool loggedIn);
     void deviceCodeReceived(const QString &userCode, const QString &verificationUri, const QString &qrUrl, int expiresIn);

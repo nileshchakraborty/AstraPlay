@@ -444,6 +444,7 @@ void XboxAuthManager::getStreamingToken(const QString &offeringId, std::function
     QUrl url(QStringLiteral("https://") + hostName + QStringLiteral("/v2/login/user"));
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    req.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"));
     req.setRawHeader("x-gssv-client", "XboxComBrowser");
     req.setRawHeader("Accept", "application/json");
 
@@ -492,6 +493,47 @@ void XboxAuthManager::getStreamingToken(const QString &offeringId, std::function
             callback(!gsToken.isEmpty(), gsToken, targetHost);
         } else {
             callback(false, QString(), QString());
+        }
+    });
+}
+
+void XboxAuthManager::getConsoleTransferToken(std::function<void(bool success, const QString &token)> callback)
+{
+    QString refreshToken = m_refreshToken;
+    if (refreshToken.isEmpty()) {
+        refreshToken = CredentialVault::readSecret(QStringLiteral("xbox_refresh_token"));
+    }
+    if (refreshToken.isEmpty()) {
+        qWarning() << "XboxAuthManager: No refresh token available for console transfer token";
+        callback(false, QString());
+        return;
+    }
+
+    QUrl url(QStringLiteral("https://login.live.com/oauth20_token.srf"));
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/x-www-form-urlencoded"));
+
+    QUrlQuery query;
+    query.addQueryItem(QStringLiteral("client_id"), QString::fromLatin1(MSAL_CLIENT_ID));
+    query.addQueryItem(QStringLiteral("grant_type"), QStringLiteral("refresh_token"));
+    query.addQueryItem(QStringLiteral("scope"), QStringLiteral("service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN"));
+    query.addQueryItem(QStringLiteral("refresh_token"), refreshToken);
+
+    QByteArray body = query.toString(QUrl::FullyEncoded).toUtf8();
+    QNetworkReply *reply = m_nam->post(req, body);
+
+    connect(reply, &QNetworkReply::finished, this, [reply, callback]() {
+        reply->deleteLater();
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respBytes = reply->readAll();
+        qDebug() << "Xbox transfer token response:" << httpCode << "body:" << respBytes;
+
+        if (httpCode == 200) {
+            QJsonDocument doc = QJsonDocument::fromJson(respBytes);
+            QString transferToken = doc.object().value(QStringLiteral("access_token")).toString();
+            callback(!transferToken.isEmpty(), transferToken);
+        } else {
+            callback(false, QString());
         }
     });
 }

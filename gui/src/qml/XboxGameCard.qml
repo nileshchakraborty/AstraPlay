@@ -192,7 +192,7 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (root.gameData) {
-                                let launchId = root.gameData.productId || root.gameData.titleId;
+                                let launchId = root.gameData.titleId || root.gameData.productId;
                                 if (launchId) {
                                     root.streamGame(launchId, root.gameData.name || qsTr("Xbox Game"));
                                 }
@@ -212,7 +212,7 @@ Item {
             z: 1
             onClicked: {
                 if (root.gameData) {
-                    let launchId = root.gameData.productId || root.gameData.titleId;
+                    let launchId = root.gameData.titleId || root.gameData.productId;
                     if (launchId) {
                         root.streamGame(launchId, root.gameData.name || qsTr("Xbox Game"));
                     }
@@ -223,7 +223,7 @@ Item {
 
     Keys.onReturnPressed: {
         if (gameData) {
-            let launchId = gameData.productId || gameData.titleId;
+            let launchId = gameData.titleId || gameData.productId;
             if (launchId) {
                 streamGame(launchId, gameData.name || qsTr("Xbox Game"));
             }
