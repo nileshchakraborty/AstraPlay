@@ -553,7 +553,10 @@ Pane {
                     onClicked: {
                         let t = directTitleInput.text.trim();
                         if (t.length > 0) {
-                            root.launchGame(t, t);
+                            let match = (root.filteredGames || []).find(g => (g.name && g.name.toLowerCase().includes(t.toLowerCase())) || (g.titleId && g.titleId.toLowerCase() === t.toLowerCase()));
+                            let launchId = match ? (match.productId || match.titleId) : t;
+                            let gameName = match ? match.name : t;
+                            root.launchGame(launchId, gameName);
                         }
                     }
                 }

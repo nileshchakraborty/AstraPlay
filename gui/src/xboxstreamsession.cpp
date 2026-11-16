@@ -172,6 +172,24 @@ void XboxStreamSession::requestPlaySession()
     req.setRawHeader("X-Gssv-Client", "XboxComBrowser");
     req.setRawHeader("Authorization", (QStringLiteral("Bearer ") + m_gsToken).toUtf8());
 
+    // Resolve game product ID from catalog if titleId was passed as a name or slug
+    QString playTitleId = m_titleId;
+    if (m_isCloud) {
+        const QJsonArray &titles = XboxAuthManager::instance()->getCloudTitlesJson();
+        for (const QJsonValue &v : titles) {
+            QJsonObject o = v.toObject();
+            if (o.value(QStringLiteral("titleId")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0 ||
+                o.value(QStringLiteral("productId")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0 ||
+                o.value(QStringLiteral("name")).toString().compare(m_titleId, Qt::CaseInsensitive) == 0) {
+                QString pid = o.value(QStringLiteral("productId")).toString();
+                if (!pid.isEmpty()) {
+                    playTitleId = pid;
+                }
+                break;
+            }
+        }
+    }
+
     QJsonObject settings;
     settings[QStringLiteral("nanoVersion")] = QStringLiteral("V3;WebrtcTransport.dll");
     settings[QStringLiteral("enableOptionalDataCollection")] = false;
@@ -185,7 +203,8 @@ void XboxStreamSession::requestPlaySession()
 
     QJsonObject payload;
     payload[QStringLiteral("clientSessionId")] = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    payload[QStringLiteral("titleId")] = m_isCloud ? m_titleId : QString();
+    payload[QStringLiteral("titleId")] = m_isCloud ? playTitleId : QString();
+    payload[QStringLiteral("systemUpdateGroup")] = QString();
     payload[QStringLiteral("serverId")] = m_isCloud ? QString() : m_serverId;
     payload[QStringLiteral("settings")] = settings;
     payload[QStringLiteral("fallbackRegionNames")] = QJsonArray();
@@ -193,16 +212,33 @@ void XboxStreamSession::requestPlaySession()
     QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
     QNetworkReply *reply = m_nam->post(req, body);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, url]() {
         reply->deleteLater();
-        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 200 ||
-            reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 202) {
-            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+        int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray respData = reply->readAll();
+        qDebug() << "Xbox GSSV play response:" << httpCode << "for URL:" << url.toString() << "body:" << respData;
+
+        if (httpCode == 200 || httpCode == 202) {
+            QJsonDocument doc = QJsonDocument::fromJson(respData);
             QJsonObject obj = doc.object();
             m_sessionPath = obj.value(QStringLiteral("sessionPath")).toString();
             pollSessionState();
         } else {
-            emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT, tr("Xbox GSSV stream provision rejected."));
+            QString detail;
+            QJsonDocument errDoc = QJsonDocument::fromJson(respData);
+            if (errDoc.isObject() && errDoc.object().contains(QStringLiteral("message"))) {
+                detail = errDoc.object().value(QStringLiteral("message")).toString();
+            } else if (!respData.isEmpty()) {
+                detail = QString::fromUtf8(respData);
+            }
+
+            QString errorMsg = tr("Xbox GSSV stream provision rejected.");
+            if (!detail.isEmpty()) {
+                errorMsg += QStringLiteral(" (%1)").arg(detail);
+            } else if (httpCode > 0) {
+                errorMsg += QStringLiteral(" (HTTP %1)").arg(httpCode);
+            }
+            emit SessionQuit(CHIAKI_QUIT_REASON_STREAM_CONNECTION_TIMEOUT, errorMsg);
         }
     });
 }

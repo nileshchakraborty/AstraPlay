@@ -191,8 +191,11 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            if (root.gameData && root.gameData.titleId) {
-                                root.streamGame(root.gameData.titleId, root.gameData.name || qsTr("Xbox Game"));
+                            if (root.gameData) {
+                                let launchId = root.gameData.productId || root.gameData.titleId;
+                                if (launchId) {
+                                    root.streamGame(launchId, root.gameData.name || qsTr("Xbox Game"));
+                                }
                             }
                         }
                     }
@@ -208,16 +211,22 @@ Item {
             cursorShape: Qt.PointingHandCursor
             z: 1
             onClicked: {
-                if (root.gameData && root.gameData.titleId) {
-                    root.streamGame(root.gameData.titleId, root.gameData.name || qsTr("Xbox Game"));
+                if (root.gameData) {
+                    let launchId = root.gameData.productId || root.gameData.titleId;
+                    if (launchId) {
+                        root.streamGame(launchId, root.gameData.name || qsTr("Xbox Game"));
+                    }
                 }
             }
         }
     }
 
     Keys.onReturnPressed: {
-        if (gameData && gameData.titleId) {
-            streamGame(gameData.titleId, gameData.name || qsTr("Xbox Game"));
+        if (gameData) {
+            let launchId = gameData.productId || gameData.titleId;
+            if (launchId) {
+                streamGame(launchId, gameData.name || qsTr("Xbox Game"));
+            }
         }
     }
     Keys.onEnterPressed: Keys.onReturnPressed(event)
