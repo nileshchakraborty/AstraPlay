@@ -154,6 +154,9 @@ endif()
 if(IOS)
 	target_link_libraries(chiaki-lib "-framework Security" "-framework Foundation")
 endif()
+if(UNIX AND NOT APPLE)
+	target_link_libraries(chiaki-lib m)
+endif()
 
 target_include_directories(chiaki-lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
