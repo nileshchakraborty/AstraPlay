@@ -351,7 +351,7 @@ Pane {
                 
                 // Keyboard navigation
                 KeyNavigation.left: mainTabBar.itemAt(0) // Remote Play tab
-                KeyNavigation.right: psnLoginHeaderButton
+                KeyNavigation.right: mainTabBar.itemAt(2) // Xbox tab
                 Keys.onDownPressed: (event) => {
                     console.log("[Cloud Play Tab] Down pressed, currentIndex:", mainTabBar.currentIndex, "cloudPlayLoader.active:", cloudPlayLoader.active);
                     event.accepted = true;
@@ -420,6 +420,55 @@ Pane {
                     text: parent.text
                     font: parent.font
                     color: parent.checked ? "#F59E0B" : (parent.activeFocus ? "#F59E0B" : Qt.rgba(255, 255, 255, 0.7))
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            TabButton {
+                text: qsTr("Xbox")
+                width: implicitWidth + 24
+                font.pixelSize: 15
+                font.weight: Font.Medium
+                focusPolicy: Qt.StrongFocus
+
+                // Keyboard navigation
+                KeyNavigation.left: mainTabBar.itemAt(1) // Cloud Play tab
+                KeyNavigation.right: psnLoginHeaderButton
+
+                Keys.onReturnPressed: (event) => {
+                    mainTabBar.currentIndex = 2;
+                    event.accepted = true;
+                }
+
+                background: Rectangle {
+                    color: parent.activeFocus ? Qt.rgba(16/255, 124/255, 65/255, 0.15) : "transparent"
+                    border.color: parent.activeFocus ? "#107C10" : "transparent"
+                    border.width: parent.activeFocus ? 1 : 0
+                    radius: 4
+
+                    // Underline when selected
+                    Rectangle {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            bottom: parent.bottom
+                        }
+                        height: 3
+                        color: parent.parent.checked ? "#107C10" : "transparent"
+                        radius: 1.5
+
+                        Behavior on color { ColorAnimation { duration: 200 } }
+                    }
+
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                }
+
+                contentItem: Text {
+                    text: parent.text
+                    font: parent.font
+                    color: parent.checked ? "#107C10" : (parent.activeFocus ? "#107C10" : Qt.rgba(255, 255, 255, 0.7))
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -1275,6 +1324,27 @@ Pane {
                             item.loadUnifiedCatalog();
                         });
                     }
+                }
+            }
+        }
+
+        // Xbox Play Tab
+        Loader {
+            id: xboxPlayLoader
+            source: "XboxView.qml"
+            active: mainTabBar.currentIndex === 2
+            onItemChanged: {
+                if (item) {
+                    item.mainTabBar = mainTabBar
+                    item.settingsButton = settingsButton
+                    item.showConfirmDialogFunc = root.showConfirmDialog
+                }
+            }
+            onLoaded: {
+                if (item) {
+                    item.mainTabBar = mainTabBar
+                    item.settingsButton = settingsButton
+                    item.showConfirmDialogFunc = root.showConfirmDialog
                 }
             }
         }

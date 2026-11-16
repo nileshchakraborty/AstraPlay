@@ -31,6 +31,7 @@
     <file>GamesView.qml</file>
     <file>GameCard.qml</file>
     <file>CloudPlayView.qml</file>
+    <file>XboxView.qml</file>
     <file>CloudGameCard.qml</file>
     <file>TrophyListDialog.qml</file>
     <file>GameShortcutDialog.qml</file>

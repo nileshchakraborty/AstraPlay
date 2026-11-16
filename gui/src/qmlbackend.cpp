@@ -15,6 +15,7 @@
 #include "systemdinhibit.h"
 #include "chiaki/remote/holepunch.h"
 #include "cloudcatalogbackend.h"
+#include "xboxauthmanager.h"
 #ifdef Q_OS_MACOS
 #include "macWakeSleep.h"
 #elif defined(Q_OS_WINDOWS)
@@ -147,6 +148,9 @@ QmlBackend::QmlBackend(Settings *settings, QmlMainWindow *window, SteamworksWrap
 
     m_update_manager = new UpdateManager(settings, this);
     qmlRegisterSingletonInstance(uri, 1, 0, "UpdateManager", m_update_manager);
+
+    qmlRegisterSingletonInstance(uri, 1, 0, "XboxAuth", XboxAuthManager::instance());
+    XboxAuthManager::instance()->checkSavedCredentials();
 #ifdef CHIAKI_IS_MAC_APPSTORE
     // Mac App Store: arm the SKStoreReviewController prompt for the next active transition.
     auto *appReviewManager = new AppReviewManager(settings, this);
@@ -1354,7 +1358,23 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
     chiaki_log_ctx = session->GetChiakiLog();
     chiaki_log_mutex.unlock();
 
-    if(connect_info.duid.isEmpty())
+    if (connect_info.isXbox())
+    {
+        try {
+            session->Start();
+        } catch (const Exception &e) {
+            emit error(tr("Stream failed"), tr("Failed to start Xbox Stream Session: %1").arg(e.what()));
+            chiaki_log_mutex.lock();
+            chiaki_log_ctx = nullptr;
+            chiaki_log_mutex.unlock();
+            session->deleteLater();
+            session = nullptr;
+            return;
+        }
+        emit sessionChanged(session);
+        sleep_inhibit->inhibit();
+    }
+    else if(connect_info.duid.isEmpty())
     {
         if(!wakeup_nickname.isEmpty())
         {
@@ -1795,6 +1815,53 @@ void QmlBackend::connectToHost(int index, QString nickname, QString gameName, QS
         else
             createSession(info);
     }
+}
+
+void QmlBackend::startXboxStream(const QString &serverId, const QString &titleId, const QString &gameName)
+{
+    if (session) {
+        qCWarning(chiakiGui) << "Another session is already active";
+        return;
+    }
+
+    window->setWindowAdjustable(false);
+
+    bool fullscreen = false, zoom = false, stretch = false;
+    switch (settings->GetWindowType()) {
+    case WindowType::Fullscreen:
+        fullscreen = true;
+        break;
+    case WindowType::Zoom:
+        zoom = true;
+        break;
+    case WindowType::Stretch:
+        stretch = true;
+        break;
+    default:
+        break;
+    }
+    emit windowTypeUpdated(settings->GetWindowType());
+
+    StreamSessionConnectInfo info(
+        settings,
+        CHIAKI_TARGET_PS5_UNKNOWN,
+        QString(),
+        QString(),
+        QByteArray(),
+        QByteArray(),
+        QString(),
+        serverId,
+        false,
+        fullscreen,
+        zoom,
+        stretch);
+
+    info.stream_backend = StreamBackend::Xbox;
+    info.duid = serverId;
+    info.title_id = titleId;
+    info.game_name = gameName;
+
+    createSession(info);
 }
 
 void QmlBackend::stopSession(bool sleep)
