@@ -802,7 +802,7 @@ class StreamInput(val context: Context, val preferences: Preferences)
 			KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_MEDIA_RECORD -> ControllerState.BUTTON_SHARE
 			KeyEvent.KEYCODE_BUTTON_START -> ControllerState.BUTTON_OPTIONS
 			KeyEvent.KEYCODE_BUTTON_C -> ControllerState.BUTTON_PS
-			KeyEvent.KEYCODE_BUTTON_MODE -> ControllerState.BUTTON_PS
+			KeyEvent.KEYCODE_BUTTON_MODE, KeyEvent.KEYCODE_GUIDE -> ControllerState.BUTTON_PS
 			else -> return false
 		}
 

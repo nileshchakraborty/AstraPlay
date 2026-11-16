@@ -242,21 +242,23 @@ FetchContent_Declare(
 	add_library(Opus::opus ALIAS opus)
 endif()
 
-##################
-# libdatachannel
-##################
-set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
-set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
-set(NO_TESTS ON CACHE BOOL "" FORCE)
-set(USE_OPENSSL ON CACHE BOOL "" FORCE)
-set(PREFER_SYSTEM_LIBSRTP OFF CACHE BOOL "" FORCE)
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+if(CHIAKI_ENABLE_GUI)
+	##################
+	# libdatachannel
+	##################
+	set(NO_WEBSOCKET ON CACHE BOOL "" FORCE)
+	set(NO_EXAMPLES ON CACHE BOOL "" FORCE)
+	set(NO_TESTS ON CACHE BOOL "" FORCE)
+	set(USE_OPENSSL ON CACHE BOOL "" FORCE)
+	set(PREFER_SYSTEM_LIBSRTP OFF CACHE BOOL "" FORCE)
+	set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
 
-include(FetchContent)
-FetchContent_Declare(
-    LibDataChannel
-    GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
-    GIT_TAG v0.22.4
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(LibDataChannel)
+	include(FetchContent)
+	FetchContent_Declare(
+	    LibDataChannel
+	    GIT_REPOSITORY https://github.com/paullouisageneau/libdatachannel.git
+	    GIT_TAG v0.22.4
+	    GIT_SHALLOW TRUE
+	)
+	FetchContent_MakeAvailable(LibDataChannel)
+endif()

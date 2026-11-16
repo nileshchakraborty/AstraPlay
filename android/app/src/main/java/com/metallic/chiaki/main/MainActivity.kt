@@ -81,9 +81,9 @@ class MainActivity : AppCompatActivity()
 		observeViewModel()
 
 		// Restore last selected tab or honor shortcut intent extra
-		val requestedTab = intent.getIntExtra("tab", -1).takeIf { it in 0..1 }
+		val requestedTab = intent.getIntExtra("tab", -1).takeIf { it in 0..2 }
 		val initialTab = requestedTab ?: preferences.getLastMainTab()
-		if (initialTab in 0..1) {
+		if (initialTab in 0..2) {
 			binding.viewPager.setCurrentItem(initialTab, false)
 			currentPage = initialTab
 			updateModeIcons()
@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity()
 
 	override fun onNewIntent(intent: Intent?) {
 		super.onNewIntent(intent)
-		intent?.getIntExtra("tab", -1)?.takeIf { it in 0..1 }?.let { tab ->
+		intent?.getIntExtra("tab", -1)?.takeIf { it in 0..2 }?.let { tab ->
 			binding.viewPager.setCurrentItem(tab, true)
 		}
 	}
@@ -112,8 +112,8 @@ class MainActivity : AppCompatActivity()
 	{
 		val adapter = ViewPagerAdapter(this)
 		binding.viewPager.adapter = adapter
-		// Keep both pages in memory to prevent unnecessary fragment recreation
-		binding.viewPager.offscreenPageLimit = 1
+		// Keep all pages in memory to prevent unnecessary fragment recreation
+		binding.viewPager.offscreenPageLimit = 2
 		// Disable swipe - only header buttons switch tabs (avoids accidental swipes when scrolling)
 		binding.viewPager.isUserInputEnabled = false
 		// ViewPager2 creates an internal RecyclerView that grabs focus and swallows D-pad events.
@@ -126,6 +126,9 @@ class MainActivity : AppCompatActivity()
 		}
 		binding.cloudPlayButton.setOnClickListener {
 			binding.viewPager.setCurrentItem(1, true)
+		}
+		binding.xboxButton.setOnClickListener {
+			binding.viewPager.setCurrentItem(2, true)
 		}
 
 		// Sync ViewPager swipes back to icons
@@ -169,6 +172,7 @@ class MainActivity : AppCompatActivity()
 		}
 		binding.remotePlayButton.onFocusChangeListener = primaryFocusHighlight
 		binding.cloudPlayButton.onFocusChangeListener = primaryFocusHighlight
+		binding.xboxButton.onFocusChangeListener = primaryFocusHighlight
 		binding.wifiIcon.onFocusChangeListener = primaryFocusHighlight
 		binding.settingsIcon.onFocusChangeListener = primaryFocusHighlight
 	}
@@ -255,12 +259,17 @@ class MainActivity : AppCompatActivity()
 			R.id.headerSearchButton, R.id.headerRefreshButton
 		)
 		val primaryIds = setOf(
-			R.id.remotePlayButton, R.id.cloudPlayButton,
+			R.id.remotePlayButton, R.id.cloudPlayButton, R.id.xboxButton,
 			R.id.settingsIcon, R.id.wifiIcon
 		)
 
 		fun focusPrimaryHeader() {
-			val btn = if (currentPage == 0) binding.remotePlayButton else binding.cloudPlayButton
+			val btn = when (currentPage) {
+				0 -> binding.remotePlayButton
+				1 -> binding.cloudPlayButton
+				2 -> binding.xboxButton
+				else -> binding.remotePlayButton
+			}
 			btn.requestFocus()
 		}
 
@@ -383,6 +392,14 @@ class MainActivity : AppCompatActivity()
 						if (currentPage == 1) {
 							// Cloud Play: secondary header first
 							focusSecondaryHeader()
+						} else if (currentPage == 2) {
+							val authBtn = window.decorView.findViewById<View>(R.id.authActionButton)
+							val refreshBtn = window.decorView.findViewById<View>(R.id.refreshButton)
+							if (authBtn != null && authBtn.isShown) {
+								authBtn.requestFocus()
+							} else if (refreshBtn != null && refreshBtn.isShown) {
+								refreshBtn.requestFocus()
+							}
 						} else {
 							// Remote Play: first console, or FAB if none
 							val firstHost = hostRv?.layoutManager?.findViewByPosition(0)
@@ -482,18 +499,24 @@ class MainActivity : AppCompatActivity()
 			}
 
 			KeyEvent.KEYCODE_BUTTON_L1 -> {
-				if (currentPage != 0) {
-					binding.viewPager.currentItem = 0
-					binding.remotePlayButton.requestFocus()
+				if (currentPage > 0) {
+					val target = currentPage - 1
+					binding.viewPager.currentItem = target
+					when (target) {
+						0 -> binding.remotePlayButton.requestFocus()
+						1 -> binding.cloudPlayButton.requestFocus()
+					}
 					return true
 				}
 			}
 
 			KeyEvent.KEYCODE_BUTTON_R1 -> {
-				if (currentPage != 1) {
-					binding.viewPager.currentItem = 1
-					if (!binding.cloudPlayButton.isGone) {
-						binding.cloudPlayButton.requestFocus()
+				if (currentPage < 2) {
+					val target = currentPage + 1
+					binding.viewPager.currentItem = target
+					when (target) {
+						1 -> binding.cloudPlayButton.requestFocus()
+						2 -> binding.xboxButton.requestFocus()
 					}
 					return true
 				}
@@ -522,7 +545,12 @@ class MainActivity : AppCompatActivity()
 
 		val focusedInCloud = focused?.let { cloudRv?.findContainingItemView(it) }
 		val focusedInHost  = focused?.let { hostRv?.findContainingItemView(it) }
-		val activeHeader   = if (currentPage == 0) binding.remotePlayButton else binding.cloudPlayButton
+		val activeHeader = when (currentPage) {
+			0 -> binding.remotePlayButton
+			1 -> binding.cloudPlayButton
+			2 -> binding.xboxButton
+			else -> binding.remotePlayButton
+		}
 
 		when {
 			focusedInCloud != null || focusedInHost != null ||
@@ -551,6 +579,9 @@ class MainActivity : AppCompatActivity()
 		binding.cloudPlayIcon.imageTintList = ColorStateList.valueOf(
 			if (currentPage == 1) ICON_SELECTED else ICON_UNSELECTED
 		)
+		binding.xboxIcon.imageTintList = ColorStateList.valueOf(
+			if (currentPage == 2) ICON_SELECTED else ICON_UNSELECTED
+		)
 
 		// Show circular highlight behind the selected icon
 		binding.remotePlayIcon.setBackgroundResource(
@@ -558,6 +589,9 @@ class MainActivity : AppCompatActivity()
 		)
 		binding.cloudPlayIcon.setBackgroundResource(
 			if (currentPage == 1) R.drawable.icon_island_selected else android.R.color.transparent
+		)
+		binding.xboxIcon.setBackgroundResource(
+			if (currentPage == 2) R.drawable.icon_island_selected else android.R.color.transparent
 		)
 	}
 
@@ -596,11 +630,15 @@ class MainActivity : AppCompatActivity()
 	{
 		val remoteRoot = supportFragmentManager.fragments.filterIsInstance<RemotePlayFragment>().firstOrNull()?.view as? ViewGroup
 		val cloudRoot = supportFragmentManager.fragments.filterIsInstance<CloudPlayFragment>().firstOrNull()?.view as? ViewGroup
+		val xboxRoot = supportFragmentManager.fragments.filterIsInstance<XboxFragment>().firstOrNull()?.view as? ViewGroup
 		remoteRoot?.descendantFocusability =
 			if (selectedPage == 0) ViewGroup.FOCUS_BEFORE_DESCENDANTS
 			else ViewGroup.FOCUS_BLOCK_DESCENDANTS
 		cloudRoot?.descendantFocusability =
 			if (selectedPage == 1) ViewGroup.FOCUS_BEFORE_DESCENDANTS
+			else ViewGroup.FOCUS_BLOCK_DESCENDANTS
+		xboxRoot?.descendantFocusability =
+			if (selectedPage == 2) ViewGroup.FOCUS_BEFORE_DESCENDANTS
 			else ViewGroup.FOCUS_BLOCK_DESCENDANTS
 		// Only re-home focus if it's currently on the now-hidden page. requestFocus() no-ops in
 		// touch mode (mobile finger use), which is what we want; it succeeds in non-touch mode (TV/pad).
@@ -609,11 +647,29 @@ class MainActivity : AppCompatActivity()
 		{
 			binding.remotePlayButton.requestFocus()
 		}
+		if (focused != null && xboxRoot != null && selectedPage == 0 && isDescendantOf(focused, xboxRoot))
+		{
+			binding.remotePlayButton.requestFocus()
+		}
 		if (focused != null && remoteRoot != null && selectedPage == 1 && isDescendantOf(focused, remoteRoot))
 		{
 			if (!binding.cloudPlayButton.isGone)
 			{
 				binding.cloudPlayButton.requestFocus()
+			}
+		}
+		if (focused != null && xboxRoot != null && selectedPage == 1 && isDescendantOf(focused, xboxRoot))
+		{
+			if (!binding.cloudPlayButton.isGone)
+			{
+				binding.cloudPlayButton.requestFocus()
+			}
+		}
+		if (focused != null && (remoteRoot != null && isDescendantOf(focused, remoteRoot) || cloudRoot != null && isDescendantOf(focused, cloudRoot)) && selectedPage == 2)
+		{
+			if (!binding.xboxButton.isGone)
+			{
+				binding.xboxButton.requestFocus()
 			}
 		}
 	}
@@ -627,6 +683,7 @@ class MainActivity : AppCompatActivity()
 		{
 			0 -> binding.remotePlayButton.requestFocus()
 			1 -> if (!binding.cloudPlayButton.isGone) binding.cloudPlayButton.requestFocus()
+			2 -> if (!binding.xboxButton.isGone) binding.xboxButton.requestFocus()
 		}
 	}
 
@@ -637,24 +694,48 @@ class MainActivity : AppCompatActivity()
 		if (currentPage == 0)
 		{
 			val cloudRoot = supportFragmentManager.fragments.filterIsInstance<CloudPlayFragment>().firstOrNull()?.view
-				?: return false
-			if (!isDescendantOf(focused, cloudRoot)) return false
-			binding.remotePlayButton.requestFocus()
-			return true
+			val xboxRoot = supportFragmentManager.fragments.filterIsInstance<XboxFragment>().firstOrNull()?.view
+			if (cloudRoot != null && isDescendantOf(focused, cloudRoot) || (xboxRoot != null && isDescendantOf(focused, xboxRoot)))
+			{
+				binding.remotePlayButton.requestFocus()
+				return true
+			}
+			return false
 		}
-		val remoteRoot = supportFragmentManager.fragments.filterIsInstance<RemotePlayFragment>().firstOrNull()?.view
-			?: return false
-		if (!isDescendantOf(focused, remoteRoot)) return false
-		if (!binding.cloudPlayButton.isGone)
+		if (currentPage == 1)
 		{
-			binding.cloudPlayButton.requestFocus()
+			val remoteRoot = supportFragmentManager.fragments.filterIsInstance<RemotePlayFragment>().firstOrNull()?.view
+			val xboxRoot = supportFragmentManager.fragments.filterIsInstance<XboxFragment>().firstOrNull()?.view
+			if (remoteRoot != null && isDescendantOf(focused, remoteRoot) || (xboxRoot != null && isDescendantOf(focused, xboxRoot)))
+			{
+				if (!binding.cloudPlayButton.isGone)
+				{
+					binding.cloudPlayButton.requestFocus()
+				}
+				return true
+			}
+			return false
 		}
-		return true
+		if (currentPage == 2)
+		{
+			val remoteRoot = supportFragmentManager.fragments.filterIsInstance<RemotePlayFragment>().firstOrNull()?.view
+			val cloudRoot = supportFragmentManager.fragments.filterIsInstance<CloudPlayFragment>().firstOrNull()?.view
+			if (remoteRoot != null && isDescendantOf(focused, remoteRoot) || (cloudRoot != null && isDescendantOf(focused, cloudRoot)))
+			{
+				if (!binding.xboxButton.isGone)
+				{
+					binding.xboxButton.requestFocus()
+				}
+				return true
+			}
+			return false
+		}
+		return false
 	}
 
 	private inner class ViewPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity)
 	{
-		override fun getItemCount(): Int = 2
+		override fun getItemCount(): Int = 3
 
 		override fun createFragment(position: Int): Fragment
 		{
@@ -662,6 +743,7 @@ class MainActivity : AppCompatActivity()
 			{
 				0 -> RemotePlayFragment()
 				1 -> CloudPlayFragment()
+				2 -> XboxFragment()
 				else -> RemotePlayFragment()
 			}
 		}

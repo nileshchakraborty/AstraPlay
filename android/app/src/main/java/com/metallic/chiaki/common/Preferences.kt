@@ -752,4 +752,19 @@ class Preferences(context: Context)
 		sharedPreferences.edit().putLong(TOTAL_STREAM_TIME_MS_KEY, sum).apply()
 	}
 
+	// Xbox Settings & Authentication
+	fun getXboxGamertag(): String? = sharedPreferences.getString("xbox_gamertag", null)
+	fun setXboxGamertag(gamertag: String?) {
+		sharedPreferences.edit().putString("xbox_gamertag", gamertag).apply()
+	}
+
+	fun getXboxRefreshToken(): String? = sharedPreferences.getString("xbox_refresh_token", null)
+	fun setXboxRefreshToken(token: String?) {
+		sharedPreferences.edit().putString("xbox_refresh_token", token).apply()
+	}
+
+	fun getXboxUserHash(): String? = sharedPreferences.getString("xbox_user_hash", null)
+	fun setXboxUserHash(hash: String?) {
+		sharedPreferences.edit().putString("xbox_user_hash", hash).apply()
+	}
 }

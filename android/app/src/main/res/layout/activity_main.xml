@@ -88,6 +88,26 @@
                             android:clickable="false" />
                     </FrameLayout>
 
+                    <FrameLayout
+                        android:id="@+id/xboxButton"
+                        android:layout_width="44dp"
+                        android:layout_height="40dp"
+                        android:layout_margin="0dp"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:background="?android:attr/selectableItemBackgroundBorderless">
+                        <ImageView
+                            android:id="@+id/xboxIcon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_xbox"
+                            android:contentDescription="Xbox"
+                            android:background="@android:color/transparent"
+                            android:focusable="false"
+                            android:clickable="false" />
+                    </FrameLayout>
+
                 </LinearLayout>
 
                 <!-- Center: AstraPlay logo - absolutely centered -->
