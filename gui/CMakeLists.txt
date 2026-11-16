@@ -48,6 +48,10 @@ set(SOURCE_FILES
 	src/streamsession.cpp
 	include/playstationstreamsession.h
 	src/playstationstreamsession.cpp
+	include/xboxpopsigner.h
+	src/xboxpopsigner.cpp
+	include/xboxauthmanager.h
+	src/xboxauthmanager.cpp
 	include/sessionlog.h
 	src/sessionlog.cpp
 	include/settings.h
@@ -282,4 +286,20 @@ if(CHIAKI_ENABLE_TESTS)
 		target_link_libraries(chiaki-vault-test PRIVATE "-framework IOKit" "-framework CoreFoundation")
 	endif()
 	add_test(NAME qt-credential-vault-test COMMAND chiaki-vault-test)
+
+	add_executable(chiaki-xbox-auth-test
+		test/xboxauth_test.cpp
+		include/xboxpopsigner.h
+		src/xboxpopsigner.cpp
+		include/xboxauthmanager.h
+		src/xboxauthmanager.cpp
+		include/credentialvault.h
+		src/credentialvault.cpp
+	)
+	target_include_directories(chiaki-xbox-auth-test PRIVATE include ${CMAKE_SOURCE_DIR}/lib/include)
+	target_link_libraries(chiaki-xbox-auth-test PRIVATE Qt::Core Qt::Network Qt::Test chiaki-lib)
+	if(APPLE)
+		target_link_libraries(chiaki-xbox-auth-test PRIVATE "-framework IOKit" "-framework CoreFoundation")
+	endif()
+	add_test(NAME qt-xbox-auth-test COMMAND chiaki-xbox-auth-test)
 endif()
