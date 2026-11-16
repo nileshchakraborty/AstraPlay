@@ -455,7 +455,7 @@ void XboxAuthManager::getStreamingToken(const QString &offeringId, std::function
     QByteArray body = QJsonDocument(payload).toJson(QJsonDocument::Compact);
     QNetworkReply *reply = m_nam->post(req, body);
 
-    connect(reply, &QNetworkReply::finished, this, [reply, callback, hostName]() {
+    connect(reply, &QNetworkReply::finished, this, [reply, callback, hostName, offeringId]() {
         reply->deleteLater();
         int httpCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         QByteArray respBytes = reply->readAll();
@@ -487,6 +487,11 @@ void XboxAuthManager::getStreamingToken(const QString &offeringId, std::function
                         targetHost = host;
                     }
                 }
+            }
+
+            // Ensure xgpuweb never falls back to root auth domain which rejects /play sessions
+            if (targetHost == hostName && offeringId == QStringLiteral("xgpuweb")) {
+                targetHost = QStringLiteral("wus.core.gssv-play-prod.xboxlive.com");
             }
 
             qDebug() << "Resolved Xbox GSSV targetHost:" << targetHost;

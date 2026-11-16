@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -61,8 +62,16 @@ class XboxStreamActivity : AppCompatActivity() {
         binding.overlayGameTitle.text = title
 
         // 2. Direct, Reliable Exit Stream Button
+        binding.stopStreamButton.bringToFront()
         binding.stopStreamButton.setOnClickListener {
             stopSessionAndExit()
+        }
+        binding.stopStreamButton.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                v.performClick()
+                stopSessionAndExit()
+                true
+            } else false
         }
 
         // Auto-fade title pill after 4 seconds
@@ -186,8 +195,21 @@ class XboxStreamActivity : AppCompatActivity() {
                 if (window._astraPlayAutoPlayObserver) return;
                 window._astraPlayAutoPlayObserver = true;
 
+                function simulateClick(el) {
+                    try {
+                        ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(evt) {
+                            el.dispatchEvent(new MouseEvent(evt, {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            }));
+                        });
+                        el.click();
+                    } catch(e) {}
+                }
+
                 let attempts = 0;
-                const maxAttempts = 80; // 24 seconds (300ms intervals)
+                const maxAttempts = 120; // 36 seconds (300ms intervals)
 
                 const timer = setInterval(function() {
                     attempts++;
@@ -202,7 +224,7 @@ class XboxStreamActivity : AppCompatActivity() {
                         const txt = (btn.innerText || btn.textContent || '').trim().toLowerCase();
                         if (txt === 'continue anyway' || txt === 'play anyway' || txt === 'play with touch') {
                             console.log('[AstraPlay] Auto-clicking confirmation modal:', txt);
-                            btn.click();
+                            simulateClick(btn);
                             return;
                         }
                     }
@@ -213,14 +235,15 @@ class XboxStreamActivity : AppCompatActivity() {
                         const testId = (el.getAttribute('data-testid') || '').toLowerCase();
                         const aria = (el.getAttribute('aria-label') || '').toLowerCase();
 
-                        const isPlayText = txt.startsWith('play with cloud') ||
-                                           txt.startsWith('play with game pass') ||
-                                           txt === 'play';
-                        const isPlayAttr = testId.includes('play-button') || aria.includes('play with cloud') || aria === 'play';
+                        const isPlayText = txt.includes('play with cloud') ||
+                                           txt.includes('play with game pass') ||
+                                           txt === 'play' ||
+                                           txt === 'play game';
+                        const isPlayAttr = testId.includes('play') || aria.includes('play with cloud') || aria === 'play';
 
                         if ((isPlayText || isPlayAttr) && !el.disabled && el.offsetParent !== null) {
                             console.log('[AstraPlay] Found Play button, auto-clicking:', txt || testId || aria);
-                            el.click();
+                            simulateClick(el);
                             clearInterval(timer);
                             break;
                         }
@@ -232,12 +255,13 @@ class XboxStreamActivity : AppCompatActivity() {
     }
 
     private fun stopSessionAndExit() {
-        binding.xboxWebView.apply {
-            stopLoading()
-            loadUrl("about:blank")
-            clearHistory()
-            removeAllViews()
-            destroy()
+        handler.removeCallbacksAndMessages(null)
+        try {
+            binding.xboxWebView.stopLoading()
+            binding.xboxWebView.loadUrl("about:blank")
+            binding.xboxWebView.onPause()
+        } catch (e: Exception) {
+            Log.e("XboxStreamActivity", "Error stopping webview", e)
         }
         finish()
     }
@@ -262,10 +286,11 @@ class XboxStreamActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
-        binding.xboxWebView.apply {
-            stopLoading()
-            loadUrl("about:blank")
-            destroy()
+        try {
+            (binding.xboxWebView.parent as? android.view.ViewGroup)?.removeView(binding.xboxWebView)
+            binding.xboxWebView.destroy()
+        } catch (e: Exception) {
+            Log.e("XboxStreamActivity", "Error destroying webview", e)
         }
         super.onDestroy()
     }
